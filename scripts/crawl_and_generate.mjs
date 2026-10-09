@@ -166,6 +166,10 @@ stars: ${repo.stargazers_count}
 - コピペで本番投入できる環境構築・設定ファイル（YAML/JSON/ENV）完全版
 - クライアント向け「社内稟議・提案書ドラフト」
 
+> 💡 **【投資対効果（ROI）と会社経費精算について】**
+> 本記事の価格は **980円（ランチ1回分）** です。しかし、この記事に記載されている『提案書テンプレート』と『本番環境構築手順』を活用すれば、**1件80万円〜250万円の受託案件受注や、社内の高額SaaSコスト削減** に直結します。
+> ※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。
+
 --------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 --------------------------------------------------
@@ -195,11 +199,11 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いた�
 ※重要規則：各ツイートはURLやハッシュタグを含めて全角110文字以内（改行含む）に厳密に収めてください。長文・英語原文の丸写しは禁止。
 
 [TWEET 1]
-GitHub急上昇OSS「${repo.name}」が注目。
-${repo.description.slice(0, 48)}...
-⭐ スター: ${repo.stargazers_count}
-#${repo.language} #OSS #AI開発
-▼ 詳細はツリーへ（保存推奨 📌）
+【案件単価80万〜250万の秘密】
+世界で★${repo.stargazers_count}急増中の「${repo.name}」が凄い。
+${repo.description.slice(0, 40)}...
+高額SaaSを自社代替できる新星OSS。
+提案骨子と商用手順を完全解剖👇（保存推奨 📌）
 ${repo.html_url}
 
 [TWEET 2]
@@ -360,14 +364,16 @@ async function run() {
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
 
       try {
+        const topics = Array.isArray(repo.topics) ? repo.topics : [];
+        const combinedTags = [repo.language, ...topics, "OSS"].filter(Boolean);
         generateOgCardForPost({
           slug,
           title: repo.name,
           stars: repo.stargazers_count,
-          tags: [repo.language, "OSS"],
+          tags: combinedTags,
           desc: repo.description
         });
-        console.log(`✓ 個別OGPカード（SVG）自動生成完了: public/ogp/${slug}.svg`);
+        console.log(`✓ 個別OGPカード（SVG ＆ PNG）自動生成完了: public/ogp/${slug}.png`);
       } catch (ogpErr) {
         console.warn(`OGP生成スキップ: ${ogpErr.message}`);
       }
