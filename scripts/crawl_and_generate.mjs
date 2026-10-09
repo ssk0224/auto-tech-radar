@@ -148,8 +148,9 @@ ${repo.html_url}
 
 [TWEET 3]
 【💡 ビジネス・副業での活用可能性】
-受託開発での提案や、自社SaaS構築のアイデア、詳しい収益化手順をnoteにまとめました。
-（noteリンク差し込み用）
+受託開発での提案や、自社SaaS構築のアイデア、詳しい収益化手順・設定コードをまとめました。
+▼ 有料版レポート（Stripe即時閲覧）:
+https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000
 `;
 
   const models = ["gemini-3.8-flash", "gemini-2.5-flash"];
