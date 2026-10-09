@@ -27,15 +27,13 @@ const c = {
   bgDark: "\x1b[40m",
 };
 
-// 100%確実にChromeをフルパス起動してURLを開く関数
+// 100%確実にユーザーのGUI画面でブラウザを開く関数（Windows FileProtocolHandler API）
 function openUrl(url) {
-  const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  const safeUrl = url.replace(/'/g, "''");
-  if (fs.existsSync(chromePath)) {
-    exec(`powershell -NoProfile -Command "Start-Process '${chromePath}' -ArgumentList '${safeUrl}'"`);
-  } else {
-    exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
-  }
+  exec(`rundll32 url.dll,FileProtocolHandler "${url}"`, (err) => {
+    if (err) {
+      exec(`start "" "${url}"`);
+    }
+  });
 }
 
 function openFile(filePath) {

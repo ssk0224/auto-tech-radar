@@ -95,12 +95,10 @@ console.log('⚡ 【X集客ブースト】完全保存版まとめスレッド�
 console.log(`📄 保存先: ${outputFile}`);
 console.log('===============================================================================\n');
 
-// メモ帳（テキストファイル）と Chrome（X投稿画面）を確実に起動
+// メモ帳（テキストファイル）と ブラウザ（X投稿画面）を対話型GUIで確実に起動
 exec(`start "" "${outputFile}"`);
-const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const safeUrl = tweetUrl.replace(/'/g, "''");
-if (fs.existsSync(chromePath)) {
-  exec(`powershell -NoProfile -Command "Start-Process '${chromePath}' -ArgumentList '${safeUrl}'"`);
-} else {
-  exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
-}
+exec(`rundll32 url.dll,FileProtocolHandler "${tweetUrl}"`, (err) => {
+  if (err) {
+    exec(`start "" "${tweetUrl}"`);
+  }
+});
