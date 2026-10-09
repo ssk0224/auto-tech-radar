@@ -9,6 +9,7 @@ const rootDir = path.resolve(__dirname, '..');
 const noteDir = path.join(rootDir, 'note_drafts');
 const xDir = path.join(rootDir, 'x_posts');
 const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
+const historyFile = path.join(__dirname, 'publish_history.json');
 
 // ANSIカラー定数（高級感あるダークターミナルUI）
 const c = {
@@ -26,9 +27,40 @@ const c = {
   bgDark: "\x1b[40m",
 };
 
-// 記事原稿リスト取得
+// 投稿履歴の読み込み・保存
+function loadHistory() {
+  if (!fs.existsSync(historyFile)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveHistory(history) {
+  try {
+    fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+function recordPublish(slug, type) {
+  const history = loadHistory();
+  if (!history[slug]) history[slug] = {};
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (type === 'note') {
+    history[slug].note = true;
+    history[slug].noteAt = todayStr;
+  } else if (type === 'x') {
+    history[slug].x = true;
+    history[slug].xAt = todayStr;
+  }
+  saveHistory(history);
+}
+
+// 記事原稿リスト取得（履歴と紐付け）
 function getDrafts() {
   if (!fs.existsSync(noteDir)) return [];
+  const history = loadHistory();
   return fs.readdirSync(noteDir)
     .filter(f => f.endsWith('_note.md'))
     .map(f => {
@@ -45,13 +77,19 @@ function getDrafts() {
         if (match) title = match[1].trim();
       } catch (e) {}
 
+      const h = history[slug] || {};
+
       return {
         slug,
         title,
         noteFile: fullPath,
         xFile: hasX ? xFile : null,
         mtime: stat.mtimeMs,
-        size: stat.size
+        size: stat.size,
+        isNotePosted: !!h.note,
+        notePostedAt: h.noteAt || null,
+        isXPosted: !!h.x,
+        xPostedAt: h.xAt || null
       };
     })
     .filter(d => d.size > 500)
@@ -66,11 +104,16 @@ function getPublishedCount() {
 
 function renderHeader() {
   const publishedCount = getPublishedCount();
+  const drafts = getDrafts();
+  const noteUnpostedCount = drafts.filter(d => !d.isNotePosted).length;
+  const xUnpostedCount = drafts.filter(d => !d.isXPosted).length;
+
   console.clear();
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.yellow}⚡ Auto Tech Radar${c.reset}  ${c.white}${c.bold}|  海外急上昇OSS 徹底解剖 ＆ 【月収100万円】収益化コンソール${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-  console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}解剖レポート総数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
+  console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
+  console.log(`  ${c.dim}未出品ストック  :${c.reset} note未出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0 本(完了)' + c.reset}  |  X未拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0 本(完了)' + c.reset}`);
   console.log(`  ${c.dim}公式Webメディア :${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①Stripe単発 (¥980)  ②noteサブスク (¥1,980/月)  ③B2B協賛 (¥100,000〜)`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
@@ -80,8 +123,8 @@ function promptMenu() {
   renderHeader();
 
   console.log(`\n  ${c.yellow}${c.bold}【🔥 日々の収益化アクション（1分ルーティン）】${c.reset}`);
-  console.log(`   ${c.green}${c.bold}[4]${c.reset} ${c.bold}生成済み有料レポートを note に出品する${c.reset} ${c.dim}(最新原稿選択 ＆ 投稿画面自動起動)${c.reset}`);
-  console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(Gemini生成ツイート画面を即起動)${c.reset}`);
+  console.log(`   ${c.green}${c.bold}[4]${c.reset} ${c.bold}生成済み有料レポートを note に出品する${c.reset} ${c.dim}(未出品の推奨記事を最優先サジェスト)${c.reset}`);
+  console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(未投稿記事をワンクリック展開)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
@@ -167,15 +210,40 @@ function runPublishHelper(mode) {
     return;
   }
 
+  // 自動レコメンド対象（一番上の「未出品」記事）
+  let recommendedIdx = -1;
+
   drafts.forEach((d, idx) => {
     const num = `[${idx + 1}]`.padEnd(5, ' ');
-    const xMark = d.xFile ? `${c.green}✓ X文あり${c.reset}` : `${c.dim}(X文なし)${c.reset}`;
+    const isPosted = mode === 'note' ? d.isNotePosted : d.isXPosted;
+    
+    // バッジ表示
+    let statusBadge = '';
+    if (isPosted) {
+      statusBadge = `${c.dim}[✓ 出品済]${c.reset}`;
+    } else {
+      if (recommendedIdx === -1) {
+        recommendedIdx = idx;
+        statusBadge = `${c.yellow}${c.bold}[★ 次の出品推奨]${c.reset}`;
+      } else {
+        statusBadge = `${c.green}[● 未出品]${c.reset}`;
+      }
+    }
+
     const cleanTitle = d.title.replace(/^【最新OSS解体新書】/, '');
-    const shortTitle = cleanTitle.length > 42 ? cleanTitle.slice(0, 42) + '...' : cleanTitle;
-    console.log(`  ${c.yellow}${num}${c.reset} ${c.white}${c.bold}${shortTitle}${c.reset}  ${xMark}`);
+    const shortTitle = cleanTitle.length > 36 ? cleanTitle.slice(0, 36) + '...' : cleanTitle;
+    
+    if (isPosted) {
+      console.log(`  ${c.dim}${num} ${shortTitle.padEnd(40, ' ')}  ${statusBadge}${c.reset}`);
+    } else {
+      console.log(`  ${c.white}${c.bold}${num}${c.reset} ${c.white}${c.bold}${shortTitle.padEnd(40, ' ')}${c.reset}  ${statusBadge}`);
+    }
   });
 
   console.log(`\n  ${c.dim}[0] メニューに戻る${c.reset}`);
+  if (recommendedIdx !== -1) {
+    console.log(`  ${c.yellow}💡 おすすめ: そのまま [${recommendedIdx + 1}] を選ぶと未出品の最新レポートを投稿できます。${c.reset}`);
+  }
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
 
   const rl = readline.createInterface({
@@ -183,9 +251,13 @@ function runPublishHelper(mode) {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}記事番号を入力して Enter > ${c.reset}`, (ans) => {
+  const promptDefault = recommendedIdx !== -1 ? ` (${recommendedIdx + 1})` : '';
+  rl.question(`\n${c.yellow}${c.bold}記事番号を入力して Enter${promptDefault} > ${c.reset}`, (ans) => {
     rl.close();
-    const idx = parseInt(ans.trim(), 10);
+    let idx = parseInt(ans.trim(), 10);
+    if (ans.trim() === '' && recommendedIdx !== -1) {
+      idx = recommendedIdx + 1;
+    }
     if (isNaN(idx) || idx === 0) {
       promptMenu();
       return;
@@ -198,12 +270,16 @@ function runPublishHelper(mode) {
       return;
     }
 
+    // 投稿履歴を即時記録
+    recordPublish(selected.slug, mode);
+
     if (mode === 'note') {
       exec('start "" "https://note.com/notes/new"');
       exec(`start "" "${selected.noteFile}"`);
 
       console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
       console.log(`  ${c.green}✓ note新規投稿画面 と 原稿テキスト（${selected.slug}）を開きました！${c.reset}`);
+      console.log(`  ${c.yellow}※ この記事は「出品済み [✓]」としてステータスを自動記録しました。${c.reset}`);
       console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
       console.log(`  ${c.bold}【出品手順 (約30秒)】${c.reset}`);
       console.log(`  1. 開いたメモ帳で ${c.cyan}[Ctrl + A]${c.reset} → ${c.cyan}[Ctrl + C]${c.reset} で全コピー`);
@@ -229,6 +305,7 @@ function runPublishHelper(mode) {
 
         console.log(`\n${c.blue}${c.bold}================================================================================${c.reset}`);
         console.log(`  ${c.blue}✓ X投稿画面（本文自動入力済み） と 全スレッドテキストを開きました！${c.reset}`);
+        console.log(`  ${c.yellow}※ この記事は「X拡散済み [✓]」としてステータスを自動記録しました。${c.reset}`);
         console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
         console.log(`  ブラウザの画面で ${c.cyan}「ポストする」${c.reset} を押すだけで拡散完了です。`);
         console.log(`  （2ツリー目以降のテキストも開いたファイル内に記載されています）`);
