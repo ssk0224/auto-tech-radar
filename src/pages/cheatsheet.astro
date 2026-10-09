@@ -35,13 +35,19 @@ const allTags = Array.from(
       <!-- アクションボタン群 -->
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
         <button id="copy-cheatsheet-url" style="background: #1f2937; border: 1px solid #374151; color: #f3f4f6; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: background 0.15s;">
-          🔗 URLをコピー（保存）
+          🔗 URLをコピー
+        </button>
+        <button id="copy-cheatsheet-md" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #93c5fd; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+          📋 表をMarkdownコピー
+        </button>
+        <button id="export-cheatsheet-csv" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+          📥 CSV保存
         </button>
         <a href="https://b.hatena.ne.jp/entry/https://ssk0224.github.io/auto-tech-radar/cheatsheet/" target="_blank" style="background: rgba(0, 164, 222, 0.2); border: 1px solid rgba(0, 164, 222, 0.5); color: #38bdf8; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-          🅱️ はてブに保存
+          🅱️ はてブ保存
         </a>
         <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("世界の最新急上昇OSSを「受託想定単価」や「SaaS化勝率」で横断比較できる神チートシートが超役立つ。社内稟議や新規開発のネタ探しに保存推奨。\nhttps://ssk0224.github.io/auto-tech-radar/cheatsheet/\n#AutoTechRadar #OSS #エンジニア")}`} target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-          𝕏 で共有・ブックマーク
+          𝕏 で共有
         </a>
       </div>
     </div>
@@ -188,6 +194,69 @@ const allTags = Array.from(
             copyBtn.style.background = '#1f2937';
           }, 2000);
         });
+      });
+    }
+
+    // Markdown表コピーボタン
+    const copyMdBtn = document.getElementById('copy-cheatsheet-md');
+    if (copyMdBtn) {
+      copyMdBtn.addEventListener('click', () => {
+        let md = '| OSS | 技術領域 | Stars | 推奨受託単価目安 | 商用ポテンシャル | 記事URL |\n';
+        md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
+        rows.forEach(row => {
+          if (row.style.display !== 'none') {
+            const tds = row.querySelectorAll('td');
+            if (tds.length >= 6) {
+              const name = tds[0].querySelector('a')?.textContent?.trim() || '';
+              const link = tds[0].querySelector('a')?.href || '';
+              const tags = Array.from(tds[1].querySelectorAll('span')).map(s => s.textContent?.trim()).join(', ');
+              const stars = tds[2].textContent?.trim() || '';
+              const price = tds[3].textContent?.trim() || '';
+              const model = tds[4].textContent?.trim() || '';
+              md += `| [${name}](${link}) | ${tags} | ${stars} | ${price} | ${model} | [詳細](${link}) |\n`;
+            }
+          }
+        });
+        navigator.clipboard.writeText(md).then(() => {
+          const orig = copyMdBtn.innerHTML;
+          copyMdBtn.innerHTML = '✓ Markdown表コピー完了！';
+          copyMdBtn.style.background = '#1e3a8a';
+          setTimeout(() => {
+            copyMdBtn.innerHTML = orig;
+            copyMdBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+          }, 2000);
+        });
+      });
+    }
+
+    // CSV保存ボタン
+    const exportCsvBtn = document.getElementById('export-cheatsheet-csv');
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener('click', () => {
+        let csv = 'OSS,技術領域,Stars,推奨受託単価目安,商用ポテンシャル,記事URL\n';
+        rows.forEach(row => {
+          if (row.style.display !== 'none') {
+            const tds = row.querySelectorAll('td');
+            if (tds.length >= 6) {
+              const name = `"${(tds[0].querySelector('a')?.textContent?.trim() || '').replace(/"/g, '""')}"`;
+              const link = `"${(tds[0].querySelector('a')?.href || '').replace(/"/g, '""')}"`;
+              const tags = `"${Array.from(tds[1].querySelectorAll('span')).map(s => s.textContent?.trim()).join(', ').replace(/"/g, '""')}"`;
+              const stars = `"${(tds[2].textContent?.trim() || '').replace(/"/g, '""')}"`;
+              const price = `"${(tds[3].textContent?.trim() || '').replace(/"/g, '""')}"`;
+              const model = `"${(tds[4].textContent?.trim() || '').replace(/"/g, '""')}"`;
+              csv += `${name},${tags},${stars},${price},${model},${link}\n`;
+            }
+          }
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `auto-tech-radar-cheatsheet-${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       });
     }
   </script>

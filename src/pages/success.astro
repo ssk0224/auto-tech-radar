@@ -1,0 +1,67 @@
+---
+import Layout from "../layouts/Layout.astro";
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Layout title="ご購入ありがとうございます | Auto Tech Radar PRO" description="Auto Tech Radar PRO のご購入が完了しました。最新の商用化コード・提案書テンプレート・深層技術レポートをお楽しみください。">
+  <div style="max-width: 760px; margin: 2rem auto; text-align: center; padding: 2.5rem 1.5rem; background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.18) 0%, transparent 70%); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px;">
+    
+    <div style="display: inline-block; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 1.2rem;">
+      🎉 決済完了 ＆ アクセス権アンロック
+    </div>
+
+    <h1 style="font-size: 2.3rem; font-weight: 900; color: #fff; margin: 0 0 1rem; line-height: 1.3;">
+      Auto Tech Radar PRO へようこそ！
+    </h1>
+
+    <p style="font-size: 1.05rem; color: #cbd5e1; line-height: 1.8; margin-bottom: 2rem;">
+      ご購入いただき誠にありがとうございます。Stripe決済が正常に完了し、プロフェッショナル向け技術レポートの完全版閲覧権限が付与されました。
+    </p>
+
+    <!-- 特典クイックアクセスコールアウト -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.8rem; text-align: left; margin-bottom: 2.5rem;">
+      <h3 style="margin: 0 0 1rem; font-size: 1.15rem; color: #38bdf8; display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚡ アンロックされたPRO限定機能</span>
+      </h3>
+      <ul style="margin: 0; padding-left: 1.4rem; color: #94a3b8; font-size: 0.95rem; line-height: 1.8;">
+        <li><strong style="color: #f3f4f6;">受託開発・SaaS化マネタイズ手順書:</strong> 全記事の商用環境構築ガイド、Docker設定、ライセンス安全対策</li>
+        <li><strong style="color: #f3f4f6;">1クリック社内稟議・提案書ドラフト:</strong> 各レポート内の「📋 提案書ドラフトをコピー」が即座に利用可能</li>
+        <li><strong style="color: #f3f4f6;">Mermaid動的アーキテクチャ図解:</strong> 各OSSのコンポーネント構成・データフローの深層解析</li>
+      </ul>
+    </div>
+
+    <!-- アップセル ＆ 回遊カード -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2.5rem; text-align: left;">
+      <div style="background: rgba(30, 27, 75, 0.6); border: 1px solid #4338ca; border-radius: 12px; padding: 1.4rem; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.75rem; color: #a5b4fc; font-weight: 700; margin-bottom: 0.3rem;">全アーカイブ読み放題</div>
+          <h4 style="margin: 0 0 0.5rem; font-size: 1.1rem; color: #fff;">note メンバーシップ</h4>
+          <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 1rem;">
+            月額1,980円で過去全15本以上のアーカイブ記事および毎朝6:00の新着レポートがすべて読み放題になります。
+          </p>
+        </div>
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-align: center; text-decoration: none;">
+          noteメンバーシップに参加 →
+        </a>
+      </div>
+
+      <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; border-radius: 12px; padding: 1.4rem; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.75rem; color: #fbbf24; font-weight: 700; margin-bottom: 0.3rem;">自己負担ゼロ</div>
+          <h4 style="margin: 0 0 0.5rem; font-size: 1.1rem; color: #fff;">会社の研修費で経費精算</h4>
+          <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 1rem;">
+            Stripeインボイス領収書と、コピペで社内承認を通せる稟議書テンプレートをご用意しています。
+          </p>
+        </div>
+        <a href={`${baseUrl}/expense/`} style="background: #1f2937; border: 1px solid #374151; color: #fbbf24; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-align: center; text-decoration: none;">
+          経費精算テンプレートを見る →
+        </a>
+      </div>
+    </div>
+
+    <!-- ホームへ戻るボタン -->
+    <a href={`${baseUrl}/cheatsheet/`} style="display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; padding: 0.75rem 1.6rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; text-decoration: none;">
+      <span>📊 全OSS商用化チートシートを開く</span>
+    </a>
+  </div>
+</Layout>
