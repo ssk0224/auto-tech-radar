@@ -1,7 +1,7 @@
 ---
 const { title, description, frontmatter } = Astro.props;
-const pageTitle = title || frontmatter?.title || "Auto Tech Radar";
-const pageDesc = description || frontmatter?.description || "世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説";
+const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
+const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 <!doctype html>
@@ -13,130 +13,231 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta name="description" content={pageDesc} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDesc} />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
       :root {
-        --color-primary: #0969da;
-        --color-bg: #f8fafc;
-        --color-card: #ffffff;
-        --color-text: #1e293b;
-        --color-muted: #64748b;
-        --color-border: #e2e8f0;
+        --color-primary: #3b82f6;
+        --color-primary-hover: #2563eb;
+        --color-accent: #10b981;
+        --color-purple: #8b5cf6;
+        --color-bg: #0b0f19;
+        --color-card: #111827;
+        --color-card-border: #1f2937;
+        --color-text: #f3f4f6;
+        --color-text-muted: #9ca3af;
+        --color-border: #1f2937;
       }
       * { box-sizing: border-box; }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.7;
-        max-width: 860px;
+        font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.75;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 2rem 1.2rem;
+        padding: 1.5rem 1.2rem;
         color: var(--color-text);
         background: var(--color-bg);
       }
+      a { color: var(--color-primary); text-decoration: none; transition: color 0.15s; }
+      a:hover { color: #60a5fa; text-decoration: underline; }
+
+      /* Global Header */
       header {
-        border-bottom: 2px solid var(--color-border);
-        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--color-border);
+        margin-bottom: 2rem;
         padding-bottom: 1.2rem;
       }
-      header h1 { margin: 0; font-size: 1.9rem; font-weight: 800; }
-      header p { margin: 0.4rem 0 0; color: var(--color-muted); font-size: 0.95rem; }
-      a { color: var(--color-primary); text-decoration: none; font-weight: 500; }
-      a:hover { text-decoration: underline; }
-      
+      .brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        padding: 0.2rem 0.6rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        margin-bottom: 0.4rem;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.85rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      header p { margin: 0.3rem 0 0; color: var(--color-text-muted); font-size: 0.92rem; }
+      .nav-links { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
+      .pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: transform 0.1s, opacity 0.15s;
+      }
+      .pill-btn:hover { transform: translateY(-1px); opacity: 0.9; }
+      .btn-x { background: #000; color: #fff !important; border: 1px solid #374151; }
+      .btn-note { background: #2cb696; color: #fff !important; }
+      .btn-gh { background: #1f2937; color: #e5e7eb !important; border: 1px solid #374151; }
+
+      /* Post Card & Feed */
       .post-card {
         background: var(--color-card);
-        padding: 1.5rem 1.8rem;
-        border-radius: 10px;
-        border: 1px solid var(--color-border);
+        padding: 1.6rem;
+        border-radius: 12px;
+        border: 1px solid var(--color-card-border);
         margin-bottom: 1.2rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition: transform 0.15s, border-color 0.15s;
       }
       .post-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        border-color: #3b82f6;
       }
-      .post-card h3 { margin-top: 0; font-size: 1.3rem; }
-      .post-card small { color: var(--color-muted); }
+      .post-card h3 { margin-top: 0; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; }
+      .post-card h3 a { color: #f9fafb; }
+      .post-card p { margin: 0 0 0.8rem; color: #9ca3af; font-size: 0.95rem; }
+      .meta-tag {
+        font-size: 0.78rem;
+        background: #1f2937;
+        color: #cbd5e1;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', monospace;
+      }
 
-      /* Markdown Content Styling */
-      article h1, article h2, article h3 {
-        color: #0f172a;
-        margin-top: 2rem;
-        margin-bottom: 0.8rem;
-        font-weight: 700;
+      /* Article Markdown Content */
+      article {
+        background: var(--color-card);
+        border: 1px solid var(--color-card-border);
+        border-radius: 14px;
+        padding: 2.2rem;
+        margin-bottom: 2.5rem;
       }
-      article h1 { font-size: 1.8rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem; }
-      article h2 { font-size: 1.4rem; border-left: 4px solid var(--color-primary); padding-left: 0.7rem; }
-      article h3 { font-size: 1.15rem; }
+      article h1 { font-size: 1.85rem; font-weight: 800; border-bottom: 1px solid var(--color-border); padding-bottom: 0.8rem; margin-top: 0; color: #fff; }
+      article h2 { font-size: 1.4rem; font-weight: 700; border-left: 4px solid var(--color-primary); padding-left: 0.8rem; margin-top: 2rem; color: #e2e8f0; }
+      article h3 { font-size: 1.18rem; font-weight: 700; margin-top: 1.5rem; color: #cbd5e1; }
+      article p { color: #d1d5db; font-size: 1rem; line-height: 1.8; }
       article pre {
-        background: #0f172a;
-        color: #f8fafc;
+        background: #030712;
+        color: #e5e7eb;
         padding: 1.2rem;
         border-radius: 8px;
         overflow-x: auto;
-        font-size: 0.9rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.88rem;
+        border: 1px solid #1f2937;
       }
       article code {
-        background: #e2e8f0;
-        padding: 0.2rem 0.4rem;
+        background: #1f2937;
+        color: #93c5fd;
+        padding: 0.15rem 0.4rem;
         border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
         font-size: 0.88em;
       }
       article pre code { background: transparent; padding: 0; color: inherit; }
-      article ul, article ol { padding-left: 1.5rem; }
       article blockquote {
-        border-left: 4px solid #cbd5e1;
+        border-left: 4px solid #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
         margin: 1.5rem 0;
-        padding-left: 1rem;
-        color: var(--color-muted);
+        padding: 0.8rem 1.2rem;
+        color: #93c5fd;
+        border-radius: 0 8px 8px 0;
       }
       article table {
         width: 100%;
         border-collapse: collapse;
         margin: 1.5rem 0;
+        font-size: 0.92rem;
       }
       article th, article td {
-        border: 1px solid var(--color-border);
-        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--color-card-border);
+        padding: 0.7rem 0.9rem;
         text-align: left;
       }
-      article th { background: #f1f5f9; }
+      article th { background: #1e293b; color: #f1f5f9; }
+      article td { background: #0f172a; }
 
-      /* Stripe & Monetization Banner */
-      .monetization-banner {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border: 1px solid #bfdbfe;
-        border-radius: 10px;
-        padding: 1.5rem;
+      /* Monetization Offer Card */
+      .monetization-box {
+        background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+        border: 1px solid #4338ca;
+        border-radius: 14px;
+        padding: 2rem 1.8rem;
         margin: 2.5rem 0;
         text-align: center;
+        box-shadow: 0 10px 25px -5px rgba(67, 56, 202, 0.25);
       }
-      .monetization-banner h4 { margin: 0 0 0.5rem; color: #1e40af; font-size: 1.15rem; }
-      .monetization-banner p { margin: 0 0 1rem; font-size: 0.92rem; color: #1e3a8a; }
-      .btn-group { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
-      .monetization-btn {
-        display: inline-block;
-        background: #2563eb;
-        color: #fff !important;
-        padding: 0.6rem 1.4rem;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: background 0.15s ease;
+      .monetization-box h3 { margin: 0 0 0.5rem; color: #e0e7ff; font-size: 1.35rem; font-weight: 800; }
+      .monetization-box p { margin: 0 auto 1.4rem; font-size: 0.95rem; color: #a5b4fc; max-width: 600px; }
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.2rem;
+        margin-top: 1.2rem;
+        text-align: left;
       }
-      .monetization-btn:hover { background: #1d4ed8; text-decoration: none; }
-      .stripe-btn {
-        background: #635bff;
+      .price-card {
+        background: #0f172a;
+        border: 1px solid #312e81;
+        border-radius: 10px;
+        padding: 1.3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
-      .stripe-btn:hover { background: #5046e5; }
+      .price-card.featured {
+        border-color: #6366f1;
+        background: rgba(30, 27, 75, 0.6);
+        position: relative;
+      }
+      .badge-rec {
+        position: absolute;
+        top: -10px;
+        right: 12px;
+        background: #6366f1;
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 700;
+      }
+      .price-card h4 { margin: 0 0 0.4rem; font-size: 1.05rem; color: #fff; }
+      .price-val { font-size: 1.6rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.6rem; }
+      .price-val span { font-size: 0.85rem; color: #94a3b8; font-weight: normal; }
+      .feature-list { list-style: none; padding: 0; margin: 0 0 1.2rem; font-size: 0.85rem; color: #cbd5e1; }
+      .feature-list li { margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+      .cta-btn {
+        display: block;
+        text-align: center;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        text-decoration: none !important;
+        transition: transform 0.1s, filter 0.15s;
+      }
+      .cta-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+      .cta-primary { background: #635bff; color: #fff !important; }
+      .cta-note { background: #2cb696; color: #fff !important; }
 
       footer {
         margin-top: 4rem;
         font-size: 0.88rem;
-        color: var(--color-muted);
+        color: var(--color-text-muted);
         border-top: 1px solid var(--color-border);
-        padding-top: 1.5rem;
+        padding-top: 1.8rem;
         text-align: center;
       }
     </style>
@@ -145,38 +246,64 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     <header>
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
+          <div class="brand-badge">⚡ Global OSS Intelligence</div>
           <h1><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></h1>
-          <p>世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説</p>
+          <p>世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説 ＆ マネタイズ分析</p>
         </div>
-        <div style="display: flex; gap: 0.6rem; align-items: center; margin-top: 0.4rem; flex-wrap: wrap;">
-          <a href="https://x.com/AutoTechRadar" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #000; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">𝕏 @AutoTechRadar</a>
-          <a href="https://note.com/" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #2cb696; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">note 有料記事</a>
-          <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #24292f; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">GitHub</a>
+        <div class="nav-links">
+          <a href="https://x.com/AutoTechRadar" target="_blank" class="pill-btn btn-x">𝕏 @AutoTechRadar</a>
+          <a href="https://note.com/vast_ixora7005" target="_blank" class="pill-btn btn-note">note 公式ページ</a>
+          <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" class="pill-btn btn-gh">GitHub</a>
         </div>
       </div>
     </header>
-    <main>
-      <article>
-        <slot />
-      </article>
 
-      <!-- ビジネス・マネタイズ & Stripe決済導線 -->
-      <div class="monetization-banner">
-        <h4>🔓 技術レポート有料版（フルアクセス & 商用活用ガイド）</h4>
-        <p>世界最先端OSSのアーキテクチャ詳細解説、商用利用ガイド、およびビジネス活用・マネタイズ実践戦略レポートの全文閲覧権（980円）。</p>
-        <div class="btn-group">
-          <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" class="monetization-btn stripe-btn">💳 980円で購入して続きを読む（Stripe即時決済）</a>
-          <a href="https://github.com/ssk0224" target="_blank" class="monetization-btn">💼 開発・導入支援のご相談（GitHub）</a>
+    <main>
+      <slot />
+
+      <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え） -->
+      <section class="monetization-box">
+        <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
+        <p>最先端OSSのアーキテクチャ解析、受託開発・SaaS化によるマネタイズ実践ガイドの完全版を即時アンロック。</p>
+        
+        <div class="pricing-grid">
+          <div class="price-card">
+            <div>
+              <h4>単発レポート（即時閲覧）</h4>
+              <div class="price-val">¥980 <span>/ 買い切り</span></div>
+              <ul class="feature-list">
+                <li>✓ 本記事のアーキテクチャ完全解説</li>
+                <li>✓ 商用利用・ライセンスリスク評価</li>
+                <li>✓ 受託・自社開発マネタイズ手順書</li>
+              </ul>
+            </div>
+            <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" class="cta-btn cta-primary">💳 Stripeで単発購入（¥980）</a>
+          </div>
+
+          <div class="price-card featured">
+            <span class="badge-rec">おすすめ・全記事読み放題</span>
+            <div>
+              <h4>note メンバーシップ（定期購読）</h4>
+              <div class="price-val">¥1,980 <span>/ 月額（初月無料/更新自由）</span></div>
+              <ul class="feature-list">
+                <li>✓ 毎朝配信される全有料記事が読み放題</li>
+                <li>✓ 過去アーカイブ全技術レポート閲覧</li>
+                <li>✓ noteアプリで通勤・スキマ時間に通知読込</li>
+              </ul>
+            </div>
+            <a href="https://note.com/vast_ixora7005" target="_blank" class="cta-btn cta-note">📗 noteでメンバーシップ購読</a>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
+
     <footer>
       <p style="margin-bottom: 0.8rem;">
-        <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.5rem;">公式 𝕏 (@AutoTechRadar)</a> |
-        <a href="https://note.com/" target="_blank" style="margin: 0 0.5rem;">公式 note</a> |
-        <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="margin: 0 0.5rem;">GitHub リポジトリ</a>
+        <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.6rem;">公式 𝕏 (@AutoTechRadar)</a> |
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="margin: 0 0.6rem;">公式 note (vast_ixora7005)</a> |
+        <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
       </p>
-      <p>© 2026 Auto Tech Radar. 世界のOSS一次情報インデックス</p>
+      <p>© 2026 Auto Tech Radar. Powered by Gemini 3.8 & GitHub Actions.</p>
     </footer>
   </body>
 </html>
