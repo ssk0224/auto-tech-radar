@@ -49,6 +49,15 @@ const posts = Object.values(postModules) as any[];
           style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.92rem; outline: none;"
         />
       </div>
+      <!-- One-click Category Quick Filters -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">人気カテゴリ:</span>
+        <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">すべて</button>
+        <button class="cat-pill" data-cat="ai" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI / Agent</button>
+        <button class="cat-pill" data-cat="llm" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">⚡ LLM / 高速推論</button>
+        <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発者ツール / CLI</button>
+        <button class="cat-pill" data-cat="python" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🐍 Python</button>
+      </div>
     </div>
   </section>
 
@@ -130,32 +139,49 @@ const posts = Object.values(postModules) as any[];
     </div>
   </section>
 
-  <!-- Client-side Search Script -->
+  <!-- Client-side Search & Category Filter Script -->
   <script is:inline>
     const searchInput = document.getElementById("search-input");
     const cards = document.querySelectorAll(".post-card");
     const countEl = document.getElementById("post-count");
+    const catPills = document.querySelectorAll(".cat-pill");
+
+    function applyFilter(query) {
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const title = card.getAttribute("data-title") || "";
+        const desc = card.getAttribute("data-desc") || "";
+        if (!query || title.includes(query) || desc.includes(query)) {
+          card.style.display = "";
+          visibleCount++;
+        } else {
+          card.style.display = "none";
+        }
+      });
+      if (countEl) countEl.textContent = `表示中: ${visibleCount} 本の技術レポート`;
+    }
 
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        let visibleCount = 0;
-
-        cards.forEach((card) => {
-          const title = card.getAttribute("data-title") || "";
-          const desc = card.getAttribute("data-desc") || "";
-          if (title.includes(query) || desc.includes(query)) {
-            card.style.display = "";
-            visibleCount++;
-          } else {
-            card.style.display = "none";
-          }
-        });
-
-        if (countEl) {
-          countEl.textContent = `表示中: ${visibleCount} 本の技術レポート`;
-        }
+        applyFilter(e.target.value.toLowerCase().trim());
       });
     }
+
+    catPills.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        catPills.forEach((p) => {
+          p.style.background = "#1f2937";
+          p.style.color = "#94a3b8";
+          p.style.border = "1px solid #374151";
+        });
+        pill.style.background = "#2563eb";
+        pill.style.color = "#fff";
+        pill.style.border = "none";
+
+        const cat = pill.getAttribute("data-cat") || "";
+        if (searchInput) searchInput.value = cat;
+        applyFilter(cat);
+      });
+    });
   </script>
 </Layout>
