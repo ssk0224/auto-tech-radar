@@ -255,7 +255,7 @@ export function generateOgCardForPost(postData) {
       'chromium-browser'
     ];
     const chromeBin = chromeCandidates.find(c => fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore' });
+    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore' });
   } catch (e) {
     // Chromeが使えない環境でもエラーで中断しないフェイルセーフ設計
   }

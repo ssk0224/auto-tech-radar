@@ -29,11 +29,11 @@ if (isArticle) {
     .map(item => item.post);
 }
 
-// 動的OGP画像
+// 動的OGP画像（Twitter/SNSクローラーの100%描画のためPNGを完全指定）
 const currentSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || '';
 const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar') 
-  ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.svg` 
-  : "https://ssk0224.github.io/auto-tech-radar/og-card.svg";
+  ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.png` 
+  : "https://ssk0224.github.io/auto-tech-radar/og-card.png";
 ---
 <!doctype html>
 <html lang="ja">
@@ -402,6 +402,26 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
       #toc-box li { margin-bottom: 0.35rem; }
       #toc-box a { color: #93c5fd; text-decoration: none; }
       #toc-box a:hover { text-decoration: underline; color: #60a5fa; }
+
+      /* A4資料・PDF保存用の完全印刷スタイル（ByteByteGoホワイトペーパースタイル） */
+      @media print {
+        body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+        header, .nav-links, footer, .reading-meta-bar button, .reading-meta-bar a,
+        #social-proof-toast, #reading-progress, .paywall-divider, .monetization-box,
+        .btn-gh, .btn-x, .btn-note, #copy-cheatsheet-url, #copy-cheatsheet-md,
+        #export-cheatsheet-csv, #filter-search, #print-pdf-btn {
+          display: none !important;
+        }
+        main { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        article { background: #fff !important; border: none !important; padding: 0 !important; color: #111 !important; }
+        article h1, article h2, article h3 { color: #000 !important; page-break-after: avoid; }
+        article p, article li, article td { color: #222 !important; }
+        article pre { background: #f8fafc !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; page-break-inside: avoid; }
+        table { border-collapse: collapse !important; width: 100% !important; page-break-inside: avoid; }
+        th, td { border: 1px solid #94a3b8 !important; padding: 6px 10px !important; color: #000 !important; }
+        th { background: #e2e8f0 !important; }
+        a { color: #000 !important; text-decoration: underline !important; }
+      }
     </style>
   </head>
   <body>
@@ -685,6 +705,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
               </span>
             </div>
             <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+              <button id="print-article-btn" onclick="window.print()" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
+                🖨️ A4印刷/PDF
+              </button>
               <button id="copy-proposal-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
                 📋 提案書ドラフトをコピー
               </button>
