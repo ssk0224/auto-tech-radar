@@ -1,10 +1,41 @@
 {
-  "answer-me-with-html": {
-    "note": true,
-    "noteAt": "2026-10-09",
-    "x": false
-  },
   "pinvou-agent": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "mediawiki": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "potatotool": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "crates-io-index": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "md3music": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "tokenspeed": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "internships-2027": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "homebrew-core": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "dsh-tavern": {
+    "note": true,
+    "noteAt": "2026-10-09"
+  },
+  "answer-me-with-html": {
     "note": true,
     "noteAt": "2026-10-09"
   }
