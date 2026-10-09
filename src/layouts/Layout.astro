@@ -343,6 +343,17 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       </section>
     </main>
 
+    <!-- Floating Sticky Action Bar (読者が50%スクロールした際にフワッと出現する高成約バー) -->
+    <div id="sticky-bar" style="position: fixed; bottom: -80px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #312e81; padding: 0.75rem 1.2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; z-index: 9998; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
+      <div style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;" class="sticky-text">
+        ⚡ <span style="color: #60a5fa;">毎朝の最新OSS解体新書</span> を全編読み放題（月額1,980円）
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
+        <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">Stripe単発(¥980)</a>
+      </div>
+    </div>
+
     <footer>
       <p style="margin-bottom: 0.8rem;">
         <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.6rem;">公式 𝕏 (@AutoTechRadar)</a> |
@@ -354,13 +365,23 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
     <!-- UX & Reading Performance Script -->
     <script is:inline>
-      // Reading progress bar
+      // Reading progress bar & Sticky action bar trigger
       window.addEventListener('scroll', () => {
         const winScroll = document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const scrolled = (winScroll / height) * 100;
         const bar = document.getElementById('reading-progress');
         if (bar) bar.style.width = scrolled + '%';
+
+        // 35%以上スクロールでフワッと出現、最下部付近でも維持
+        const stickyBar = document.getElementById('sticky-bar');
+        if (stickyBar) {
+          if (scrolled > 30) {
+            stickyBar.style.bottom = '0px';
+          } else {
+            stickyBar.style.bottom = '-80px';
+          }
+        }
       });
 
       // Code blocks 1-click copy button
