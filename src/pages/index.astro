@@ -37,11 +37,37 @@ const posts = Object.values(postModules) as any[];
     </div>
 
     <!-- Lead Magnet Banner -->
-    <div style="margin-top: 1.5rem;">
-      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/cheatsheet/`} style="display: inline-flex; align-items: center; gap: 0.6rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.7rem 1.4rem; border-radius: 9999px; color: #6ee7b7; font-weight: 700; font-size: 0.92rem; text-decoration: none; transition: transform 0.1s, border-color 0.15s;">
-        <span>📊 【完全無料】全OSS商用化チートシート ＆ 比較マトリクスはこちら</span>
-        <span style="background: #10b981; color: #000; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800;">保存推奨</span>
+    <div style="margin-top: 1.5rem; display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/cheatsheet/`} style="display: inline-flex; align-items: center; gap: 0.6rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); border: 1px solid rgba(16, 185, 129, 0.5); padding: 0.75rem 1.5rem; border-radius: 9999px; color: #6ee7b7; font-weight: 700; font-size: 0.95rem; text-decoration: none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);">
+        <span>📊 【完全保存版】全OSS商用化チートシート ＆ 比較マトリクス</span>
+        <span style="background: #10b981; color: #000; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800;">CSV/Markdown出力</span>
       </a>
+    </div>
+  </section>
+
+  <!-- 📬 ByteByteGo / TLDR スタイル: 無料インテリジェンス購読 ＆ 新着プッシュ通知枠 -->
+  <section style="margin-bottom: 2.5rem; background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1px solid #2563eb; border-radius: 14px; padding: 1.8rem; text-align: center;">
+    <div style="max-width: 680px; margin: 0 auto;">
+      <div style="display: inline-block; background: rgba(59, 130, 246, 0.25); color: #93c5fd; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; margin-bottom: 0.6rem;">
+        ⚡ 毎朝6:00 JST 配信中
+      </div>
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
+        世界の急上昇オープンソースを誰よりも早くキャッチアップ
+      </h3>
+      <p style="font-size: 0.92rem; color: #94a3b8; margin: 0 0 1.2rem; line-height: 1.6;">
+        エンジニア、CTO、フリーランス向けに、GitHub Trendingの最速解説と受託・SaaS商用化ノウハウを毎朝更新。お好みのチャンネルで新着通知をお受け取りください。
+      </p>
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/rss.xml`} target="_blank" style="background: #f97316; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          📡 RSSリーダーに追加
+        </a>
+        <a href="https://x.com/AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          𝕏 公式をフォロー (@AutoTechRadar)
+        </a>
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          ⚡ note メンバーシップ（読み放題）
+        </a>
+      </div>
     </div>
   </section>
 
@@ -98,12 +124,13 @@ const posts = Object.values(postModules) as any[];
       </div>
       <!-- One-click Category Quick Filters -->
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">人気カテゴリ:</span>
+        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">クイック絞込:</span>
         <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">すべて</button>
-        <button class="cat-pill" data-cat="ai" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI / Agent</button>
+        <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent</button>
         <button class="cat-pill" data-cat="llm" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">⚡ LLM / 高速推論</button>
-        <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発者ツール / CLI</button>
+        <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発ツール / CLI</button>
         <button class="cat-pill" data-cat="python" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🐍 Python</button>
+        <button class="cat-pill" data-cat="rust" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🦀 Rust</button>
       </div>
     </div>
   </section>
@@ -122,38 +149,62 @@ const posts = Object.values(postModules) as any[];
           <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる完全無人自動運用中</p>
         </div>
       ) : (
-        posts.reverse().map((post) => (
-          <article class="post-card" data-title={(post.frontmatter?.title || "").toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()}>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.4rem;">
-              <h3 style="margin: 0;"><a href={post.url}>{post.frontmatter?.title || post.file}</a></h3>
-              <span class="meta-tag">{post.frontmatter?.pubDate || "本日公開"}</span>
-            </div>
-            <p>{post.frontmatter?.description}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem;">
-              <a href={post.url} style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.2rem;">
-                日本語レポートを読む →
-              </a>
-              <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <button 
-                  onclick={`navigator.clipboard.writeText('【注目OSS】' + '${(post.frontmatter?.title || '').replace(/'/g, "\\'")}' + ' \\nhttps://ssk0224.github.io' + '${post.url}'); alert('社内Slack/Discord用テキストをコピーしました！');`}
-                  style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;"
-                  onmouseover="this.style.background='#374151'"
-                  onmouseout="this.style.background='#1f2937'"
-                  title="社内SlackやDiscordでチームに共有"
-                >
-                  💬 Slack/Discordに共有
-                </button>
-                <a 
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('世界の注目OSS解体新書: ' + (post.frontmatter?.title || '') + '\nhttps://ssk0224.github.io' + post.url + '\n#OSS #AutoTechRadar')}`}
-                  target="_blank"
-                  style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; text-decoration: none;"
-                >
-                  𝕏 ポスト
-                </a>
+        posts.reverse().map((post) => {
+          const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
+          const title = post.frontmatter?.title || post.file;
+          let priceEst = "¥80万 〜 ¥200万";
+          if (tags.some((t: string) => /agent|ai|llm/i.test(t)) || /agent|model/i.test(title)) {
+            priceEst = "¥150万 〜 ¥350万";
+          } else if (tags.some((t: string) => /rust|perf/i.test(t))) {
+            priceEst = "¥120万 〜 ¥280万";
+          }
+          return (
+            <article class="post-card" data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                <h3 style="margin: 0;"><a href={post.url}>{title}</a></h3>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                    想定単価: {priceEst}
+                  </span>
+                  <span class="meta-tag">{post.frontmatter?.pubDate || "本日公開"}</span>
+                </div>
               </div>
-            </div>
-          </article>
-        ))
+              <p>{post.frontmatter?.description}</p>
+              
+              <div style="display: flex; gap: 0.4rem; margin: 0.6rem 0 0.8rem; flex-wrap: wrap;">
+                {tags.map((tg: string) => (
+                  <span style="background: #111827; border: 1px solid #1f2937; color: #94a3b8; font-size: 0.72rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;">
+                    #{tg}
+                  </span>
+                ))}
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem; border-top: 1px solid rgba(31, 41, 55, 0.6); padding-top: 0.7rem;">
+                <a href={post.url} style="font-weight: 700; color: #60a5fa; display: inline-flex; align-items: center; gap: 0.2rem; text-decoration: none;">
+                  日本語解剖レポート ＆ 商用手順書 →
+                </a>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  <button 
+                    onclick={`navigator.clipboard.writeText('【注目OSS】' + '${title.replace(/'/g, "\\'")}' + ' \\nhttps://ssk0224.github.io' + '${post.url}'); alert('社内Slack/Discord用テキストをコピーしました！');`}
+                    style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;"
+                    onmouseover="this.style.background='#374151'"
+                    onmouseout="this.style.background='#1f2937'"
+                    title="社内SlackやDiscordでチームに共有"
+                  >
+                    💬 Slack共有
+                  </button>
+                  <a 
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('世界の注目OSS解体新書: ' + title + '\nhttps://ssk0224.github.io' + post.url + '\n#OSS #AutoTechRadar')}`}
+                    target="_blank"
+                    style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; text-decoration: none;"
+                  >
+                    𝕏 ポスト
+                  </a>
+                </div>
+              </div>
+            </article>
+          );
+        })
       )}
     </div>
   </section>
@@ -198,7 +249,8 @@ const posts = Object.values(postModules) as any[];
       cards.forEach((card) => {
         const title = card.getAttribute("data-title") || "";
         const desc = card.getAttribute("data-desc") || "";
-        if (!query || title.includes(query) || desc.includes(query)) {
+        const tags = card.getAttribute("data-tags") || "";
+        if (!query || title.includes(query) || desc.includes(query) || tags.includes(query)) {
           card.style.display = "";
           visibleCount++;
         } else {
