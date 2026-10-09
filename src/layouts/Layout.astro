@@ -2,6 +2,7 @@
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar";
 const pageDesc = description || frontmatter?.description || "世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説";
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 <!doctype html>
 <html lang="ja">
@@ -102,7 +103,7 @@ const pageDesc = description || frontmatter?.description || "世界の急上昇�
       }
       article th { background: #f1f5f9; }
 
-      /* Monetization & Lead Banner */
+      /* Stripe & Monetization Banner */
       .monetization-banner {
         background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
         border: 1px solid #bfdbfe;
@@ -113,16 +114,22 @@ const pageDesc = description || frontmatter?.description || "世界の急上昇�
       }
       .monetization-banner h4 { margin: 0 0 0.5rem; color: #1e40af; font-size: 1.15rem; }
       .monetization-banner p { margin: 0 0 1rem; font-size: 0.92rem; color: #1e3a8a; }
+      .btn-group { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
       .monetization-btn {
         display: inline-block;
         background: #2563eb;
-        color: #fff;
+        color: #fff !important;
         padding: 0.6rem 1.4rem;
         border-radius: 6px;
         font-weight: 600;
         font-size: 0.9rem;
+        transition: background 0.15s ease;
       }
       .monetization-btn:hover { background: #1d4ed8; text-decoration: none; }
+      .stripe-btn {
+        background: #635bff;
+      }
+      .stripe-btn:hover { background: #5046e5; }
 
       footer {
         margin-top: 4rem;
@@ -136,7 +143,7 @@ const pageDesc = description || frontmatter?.description || "世界の急上昇�
   </head>
   <body>
     <header>
-      <h1><a href="/">📡 Auto Tech Radar</a></h1>
+      <h1><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></h1>
       <p>世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説</p>
     </header>
     <main>
@@ -144,11 +151,13 @@ const pageDesc = description || frontmatter?.description || "世界の急上昇�
         <slot />
       </article>
 
-      <!-- ビジネス・マネタイズ相談バナー -->
+      <!-- ビジネス・マネタイズ & Stripe決済導線 -->
       <div class="monetization-banner">
         <h4>💼 本OSSを活用したシステム開発・PoC・業務自動化のご相談</h4>
         <p>掲載されている最新オープンソースを活用した貴社向けカスタム開発・導入支援を承ります。</p>
-        <a href="https://github.com/ssk0224" target="_blank" class="monetization-btn">開発・導入のご相談はこちら（GitHub）</a>
+        <div class="btn-group">
+          <a href="https://github.com/ssk0224" target="_blank" class="monetization-btn">開発・導入のご相談はこちら（GitHub）</a>
+        </div>
       </div>
     </main>
     <footer>
