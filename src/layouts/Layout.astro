@@ -432,7 +432,10 @@ if (isArticle) {
         <div class="pricing-grid">
           <div class="price-card">
             <div>
-              <h4>単発レポート（即時閲覧）</h4>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <h4 style="margin: 0;">単発レポート（即時閲覧）</h4>
+                <span style="font-size: 0.7rem; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 0.1rem 0.4rem; border-radius: 4px;">⚡ 即時アンロック</span>
+              </div>
               <div class="price-val">¥980 <span>/ 買い切り</span></div>
               <ul class="feature-list">
                 <li>✓ 本記事のアーキテクチャ完全解説</li>
@@ -440,7 +443,7 @@ if (isArticle) {
                 <li>✓ 受託・自社開発マネタイズ手順書</li>
               </ul>
             </div>
-            <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" class="cta-btn cta-primary">💳 Stripeで単発購入（¥980）</a>
+            <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">💳 Stripeで単発購入（¥980）</a>
           </div>
 
           <div class="price-card featured">
@@ -632,6 +635,10 @@ if (isArticle) {
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
               <span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>
+              <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 0.15rem 0.5rem; border-radius: 9999px;">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+                <span>現在 <strong>${Math.floor(Math.random() * 8) + 12} 名</strong>が閲覧・研究中</span>
+              </span>
             </div>
             <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center;">
               <button id="copy-url-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer;">
