@@ -91,13 +91,16 @@ rl.question('番号を入力して Enter > ', (answer) => {
   console.log(`\n選択された記事: ${selected.title}\n`);
 
   function openUrl(url) {
-    const safeUrl = url.replace(/'/g, "''");
-    exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+    exec(`start chrome "${url}"`, (err) => {
+      if (err) {
+        const safeUrl = url.replace(/'/g, "''");
+        exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+      }
+    });
   }
 
   function openFile(filePath) {
-    const safePath = filePath.replace(/'/g, "''");
-    exec(`powershell -NoProfile -Command "Start-Process '${safePath}'"`);
+    exec(`start "" "${filePath}"`);
   }
 
   if (mode === 'note') {

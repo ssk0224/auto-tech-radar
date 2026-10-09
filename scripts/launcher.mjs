@@ -27,15 +27,18 @@ const c = {
   bgDark: "\x1b[40m",
 };
 
-// 100%確実にブラウザ（Chrome/既定）を開く関数（PowerShell ShellExecute経由）
+// 100%確実にChromeを開く関数（直接 start chrome 起動 ＆ フォールバック）
 function openUrl(url) {
-  const safeUrl = url.replace(/'/g, "''");
-  exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+  exec(`start chrome "${url}"`, (err) => {
+    if (err) {
+      const safeUrl = url.replace(/'/g, "''");
+      exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+    }
+  });
 }
 
 function openFile(filePath) {
-  const safePath = filePath.replace(/'/g, "''");
-  exec(`powershell -NoProfile -Command "Start-Process '${safePath}'"`);
+  exec(`start "" "${filePath}"`);
 }
 
 // 投稿履歴の読み込み・保存
