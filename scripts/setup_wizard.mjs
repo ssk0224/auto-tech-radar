@@ -136,11 +136,11 @@ async function guidePublishNote() {
   console.log(`     noteの「＋」ボタンから ${C.bold}「有料エリア設定」${C.reset} を挿入。`);
   console.log(`  ④ 販売価格（例: 500円〜980円）を設定して「公開」をクリック！\n`);
 
-  const answer = await prompt(`${C.bold}${C.yellow}👉 note 投稿画面とドラフトフォルダを同時に開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
+  const answer = await prompt(`${C.bold}${C.yellow}👉 note 投稿画面と完成原稿（メモ帳）を開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
   if (answer.toLowerCase() !== "n") {
     openBrowser("https://note.com/notes/new");
-    exec(`start "" explorer "C:\\Users\\free1\\auto-tech-radar\\note_drafts"`);
-    console.log(`\n${C.green}✓ note 投稿画面とドラフト保存フォルダを開きました。${C.reset}`);
+    exec(`start notepad "C:\\Users\\free1\\auto-tech-radar\\note_drafts\\answer-me-with-html_note.md"`);
+    console.log(`\n${C.green}✓ note 投稿画面と完成原稿（メモ帳）を開きました！${C.reset}`);
   }
 
   await prompt(`\n[Enter を押して戻る]`);
@@ -154,12 +154,14 @@ async function guideTweet() {
   printHeader();
   console.log(`${C.bold}${C.blue}📱 X (Twitter) で最新記事を拡散する（ワンクリック）${C.reset}`);
   console.log(`${C.dim}─────────────────────────────────────────────────────────────────────────────${C.dim}${C.reset}`);
-  console.log(`記事の投稿用スレッドが最初から作成されています。\n`);
+  console.log(`親ツイートの投稿画面をブラウザで直接起動します。\n`);
 
-  const answer = await prompt(`${C.bold}${C.yellow}👉 X 投稿スレッドフォルダを開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
+  const answer = await prompt(`${C.bold}${C.yellow}👉 X 投稿画面とスレッド全文を開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
   if (answer.toLowerCase() !== "n") {
-    exec(`start "" explorer "C:\\Users\\free1\\auto-tech-radar\\x_posts"`);
-    console.log(`\n${C.green}✓ X投稿スレッドフォルダを開きました。ファイル内のリンクを押すだけで投稿画面が出ます。${C.reset}`);
+    const tweetUrl = "https://twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%80%A5%E4%B8%8A%E6%98%87%E4%B8%AD%E3%81%AEOSS%E3%80%8Canswer-me-with-html%E3%80%8D%E3%81%8C%E5%87%84%E3%81%99%E3%81%8E%E3%82%8B%E3%80%82%0AAnswer%20me%20with%20HTML%20%E2%80%94%20an%20agent%20skill%20that%20answers%20hard%20questions%20with%20a%20one-page%20HTML%20you%20can%20actually%20read.%20%E8%AE%A9%20AI%20Agent%20%E7%94%A8%E4%B8%80%E9%A1%B5%20HTML%20%E5%9B%9E%E7%AD%94%E5%A4%8D%E6%9D%82%E9%97%AE%E9%A2%98%E3%80%82%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%E6%95%B0%3A%202358%0A%E4%B8%BB%E8%A6%81%E6%8A%80%E8%A1%93%3A%20%23JavaScript%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%A8%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E6%B4%BB%E7%94%A8%E3%81%AE%E8%80%83%E5%AF%9F%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%0Ahttps%3A%2F%2Fgithub.com%2FQingYunA%2Fanswer-me-with-html";
+    openBrowser(tweetUrl);
+    exec(`start notepad "C:\\Users\\free1\\auto-tech-radar\\x_posts\\answer-me-with-html_x.txt"`);
+    console.log(`\n${C.green}✓ X 投稿画面とスレッド全文（メモ帳）を開きました！${C.reset}`);
   }
 
   await prompt(`\n[Enter を押して戻る]`);
