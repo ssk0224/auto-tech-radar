@@ -27,6 +27,17 @@ const c = {
   bgDark: "\x1b[40m",
 };
 
+// 100%確実にブラウザ（Chrome/既定）を開く関数（PowerShell ShellExecute経由）
+function openUrl(url) {
+  const safeUrl = url.replace(/'/g, "''");
+  exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+}
+
+function openFile(filePath) {
+  const safePath = filePath.replace(/'/g, "''");
+  exec(`powershell -NoProfile -Command "Start-Process '${safePath}'"`);
+}
+
 // 投稿履歴の読み込み・保存
 function loadHistory() {
   if (!fs.existsSync(historyFile)) return {};
@@ -159,7 +170,7 @@ function handleChoice(choice) {
       break;
     case '6':
       console.log(`\n${c.cyan}自社HPを開きます...${c.reset}`);
-      exec('start "" "https://ssk0224.github.io/auto-tech-radar/"');
+      openUrl("https://ssk0224.github.io/auto-tech-radar/");
       waitBack();
       break;
     case '7':
@@ -167,12 +178,12 @@ function handleChoice(choice) {
       break;
     case '1':
       console.log(`\n${c.cyan}Stripe ダッシュボードを開きます...${c.reset}`);
-      exec('start "" "https://dashboard.stripe.com/"');
+      openUrl("https://dashboard.stripe.com/");
       waitBack();
       break;
     case '2':
       console.log(`\n${c.cyan}note メンバーシップ管理画面（ダッシュボード）を開きます...${c.reset}`);
-      exec('start "" "https://note.com/dashboard/membership"');
+      openUrl("https://note.com/dashboard/membership");
       waitBack();
       break;
     case '3':
@@ -280,8 +291,8 @@ function runPublishHelper(mode) {
     recordPublish(selected.slug, mode);
 
     if (mode === 'note') {
-      exec('start "" "https://note.com/notes/new"');
-      exec(`start "" "${selected.noteFile}"`);
+      openUrl("https://note.com/notes/new");
+      openFile(selected.noteFile);
 
       console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
       console.log(`  ${c.green}✓ note新規投稿画面 と 原稿テキスト（${selected.slug}）を開きました！${c.reset}`);
@@ -296,17 +307,17 @@ function runPublishHelper(mode) {
       waitBack();
     } else {
       if (selected.xFile) {
-        exec(`start "" "${selected.xFile}"`);
+        openFile(selected.xFile);
         try {
           const xText = fs.readFileSync(selected.xFile, 'utf8');
           const match = xText.match(/https:\/\/twitter\.com\/intent\/tweet\?text=[^\s\n\r]+/);
           if (match) {
-            exec(`start "" "${match[0]}"`);
+            openUrl(match[0]);
           } else {
-            exec('start "" "https://twitter.com/intent/tweet"');
+            openUrl("https://twitter.com/intent/tweet");
           }
         } catch (e) {
-          exec('start "" "https://twitter.com/intent/tweet"');
+          openUrl("https://twitter.com/intent/tweet");
         }
 
         console.log(`\n${c.blue}${c.bold}================================================================================${c.reset}`);
@@ -319,7 +330,7 @@ function runPublishHelper(mode) {
         waitBack();
       } else {
         const fallbackUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('最新OSS徹底解剖レポートを公開しました！\nhttps://ssk0224.github.io/auto-tech-radar/\n#OSS #AutoTechRadar')}`;
-        exec(`start "" "${fallbackUrl}"`);
+        openUrl(fallbackUrl);
         waitBack();
       }
     }

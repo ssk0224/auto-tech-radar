@@ -95,6 +95,8 @@ console.log('⚡ 【X集客ブースト】完全保存版まとめスレッド�
 console.log(`📄 保存先: ${outputFile}`);
 console.log('===============================================================================\n');
 
-// テキストファイルとブラウザ起動
-exec(`start "" "${outputFile}"`);
-exec(`start "" "${tweetUrl}"`);
+// テキストファイルとブラウザ（Chrome/既定）を100%確実に起動
+const safePath = outputFile.replace(/'/g, "''");
+const safeUrl = tweetUrl.replace(/'/g, "''");
+exec(`powershell -NoProfile -Command "Start-Process '${safePath}'"`);
+exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
