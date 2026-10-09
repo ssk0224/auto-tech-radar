@@ -260,9 +260,21 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         padding-top: 1.8rem;
         text-align: center;
       }
+      /* Reading progress bar */
+      #reading-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #10b981);
+        width: 0%;
+        z-index: 9999;
+        transition: width 0.1s ease;
+      }
     </style>
   </head>
   <body>
+    <div id="reading-progress"></div>
     <header>
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
@@ -339,5 +351,50 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       </p>
       <p>© 2026 Auto Tech Radar. Powered by Gemini 3.8 & GitHub Actions.</p>
     </footer>
+
+    <!-- UX & Reading Performance Script -->
+    <script is:inline>
+      // Reading progress bar
+      window.addEventListener('scroll', () => {
+        const winScroll = document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        const bar = document.getElementById('reading-progress');
+        if (bar) bar.style.width = scrolled + '%';
+      });
+
+      // Code blocks 1-click copy button
+      document.querySelectorAll('pre').forEach((pre) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const btn = document.createElement('button');
+        btn.textContent = 'コピー';
+        btn.style.position = 'absolute';
+        btn.style.top = '8px';
+        btn.style.right = '8px';
+        btn.style.background = '#1f2937';
+        btn.style.color = '#94a3b8';
+        btn.style.border = '1px solid #374151';
+        btn.style.borderRadius = '4px';
+        btn.style.padding = '2px 8px';
+        btn.style.fontSize = '12px';
+        btn.style.cursor = 'pointer';
+
+        btn.addEventListener('click', () => {
+          navigator.clipboard.writeText(pre.innerText).then(() => {
+            btn.textContent = '完了！';
+            btn.style.color = '#10b981';
+            setTimeout(() => {
+              btn.textContent = 'コピー';
+              btn.style.color = '#94a3b8';
+            }, 2000);
+          });
+        });
+        wrapper.appendChild(btn);
+      });
+    </script>
   </body>
 </html>
