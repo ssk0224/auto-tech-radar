@@ -11,6 +11,15 @@ const xDir = path.join(rootDir, 'x_posts');
 
 const mode = process.argv[2] || 'note'; // 'note' or 'x'
 
+// 起動時にリモート（GitHub Actionsが朝6時に生成した最新原稿）を自動同期
+try {
+  process.stdout.write('🔄 最新のリモート原稿・画像を自動同期中 (Git Pull)... ');
+  execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
+  console.log('✓ 完了');
+} catch (e) {
+  console.log('(オフライン/スキップ)');
+}
+
 // 下書き一覧を取得
 function getDrafts() {
   if (!fs.existsSync(noteDir)) return [];
