@@ -1,0 +1,139 @@
+---
+import Layout from "../layouts/Layout.astro";
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Layout title="企業の研修・スキルアップ経費精算ガイド | Auto Tech Radar PRO" description="Auto Tech Radar PROの月額購読料・単発レポート購入費は、会社の研修費・スキルアップ支援制度・研究開発費で100%経費精算可能です。">
+  <div style="max-width: 760px; margin: 0 auto; padding: 1rem 0 3rem;">
+    <!-- Breadcrumb -->
+    <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">
+      <a href={`${baseUrl}/`} style="color: #60a5fa; text-decoration: none;">← トップページに戻る</a>
+    </div>
+
+    <!-- Header Banner -->
+    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid #4338ca; border-radius: 14px; padding: 2.2rem 2rem; margin-bottom: 2.5rem; text-align: center;">
+      <div style="display: inline-block; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 0.3rem 0.9rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.8rem;">
+        💼 会社の経費（自己負担ゼロ）で購読する
+      </div>
+      <h1 style="font-size: 2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.35;">
+        企業の研修費・スキルアップ制度で<br/>
+        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Auto Tech Radar PRO を経費精算する方法</span>
+      </h1>
+      <p style="font-size: 0.98rem; color: #cbd5e1; margin: 0 auto; max-width: 620px; line-height: 1.7;">
+        Pragmatic Engineer等の海外トップメディアでは有料購読者の<strong>65%以上が企業の研修費・自己啓発予算</strong>を利用しています。本メディアも適格領収書・インボイスに完全対応しています。
+      </p>
+    </div>
+
+    <!-- 3-Step Flow -->
+    <section style="margin-bottom: 2.5rem;">
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #f1f5f9; border-left: 4px solid #3b82f6; padding-left: 0.8rem; margin-bottom: 1.2rem;">
+        📋 経費申請のカンタン3ステップ
+      </h2>
+      <div style="display: grid; gap: 1rem;">
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem;">
+          <div style="font-weight: 800; color: #38bdf8; font-size: 1.05rem; margin-bottom: 0.4rem;">STEP 1: 上長または経理へ事前相談 / 申請</div>
+          <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.65;">
+            下記の「コピペで使える社内申請文テンプレート」を社内Slack/Teamsまたはメールで送信します。
+          </p>
+        </div>
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem;">
+          <div style="font-weight: 800; color: #10b981; font-size: 1.05rem; margin-bottom: 0.4rem;">STEP 2: 法人カードまたは個人立替で購入</div>
+          <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.65;">
+            法人クレジットカードまたは個人カードで決済します（Stripe単発980円、またはnoteメンバーシップ月額1,980円）。
+          </p>
+        </div>
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem;">
+          <div style="font-weight: 800; color: #f59e0b; font-size: 1.05rem; margin-bottom: 0.4rem;">STEP 3: 領収書を精算システムに添付して完了</div>
+          <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.65;">
+            決済直後にメール送付されるStripe公式領収書（またはnoteの購入履歴・領収書画面）を経費精算ソフト（マネーフォワード、楽楽精算、Concur等）に添付してください。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Email Template Box -->
+    <section style="margin-bottom: 2.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #f1f5f9; border-left: 4px solid #10b981; padding-left: 0.8rem; margin: 0;">
+          ✉️ そのまま使える社内申請文テンプレート
+        </h2>
+        <button id="copy-template-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer;">
+          📋 テンプレートをコピー
+        </button>
+      </div>
+      <div style="background: #030712; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #e2e8f0; line-height: 1.7; white-space: pre-wrap;" id="template-text">件名：技術調査・スキルアップ研修費用の経費精算申請（Auto Tech Radar PRO）
+
+〇〇さん（上長名、または経理部ご担当者様）
+
+お疲れ様です、〇〇です。
+
+今後の自社開発およびプロダクトのアーキテクチャ設計・商用OSS活用力向上のため、世界最先端の急上昇オープンソースを日本語で技術解剖・商用分析する専門メディア「Auto Tech Radar PRO」の購読を申請いたしたくご連絡いたしました。
+
+■ 媒体概要
+・名称：Auto Tech Radar PRO（世界の急上昇OSS徹底解剖メディア）
+・URL：https://ssk0224.github.io/auto-tech-radar/
+・内容：GitHub急上昇OSSのアーキテクチャ分析、セキュリティ・商用利用リスク評価、自社サービスへの導入手順書
+
+■ 業務上の導入メリット
+1. 国内に先行事例がない最新AI・クラウド基盤OSSの一次情報を即座にキャッチアップ可能
+2. 自社プロダクトの設計工数削減および競合SaaS代替によるコスト最適化
+3. 毎朝配信されるため、チーム全体の技術力・意思決定スピードが大幅に向上
+
+■ 費用
+・月額 1,980円（税込）
+※会社の書籍購入費・技術研修枠・開発研究費としての精算を想定しております。
+※決済後に適格領収書（PDF）が即時発行されます。
+
+こちら、経費精算の承認をいただけますと幸いです。
+ご確認のほどよろしくお願い申し上げます。</div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom: 3rem;">
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #f1f5f9; border-left: 4px solid #8b5cf6; padding-left: 0.8rem; margin-bottom: 1.2rem;">
+        ❓ よくある質問（経理・精算関係）
+      </h2>
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.4rem; color: #e0e7ff; font-size: 1rem;">Q. 領収書の宛名は会社名に変更できますか？</h4>
+          <p style="margin: 0; font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">
+            はい、Stripeの決済画面（または決済完了メールの領収書表示画面）にて、任意の法人名・部署名をご入力いただくことで会社宛名の領収書PDFが即時ダウンロード可能です。
+          </p>
+        </div>
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.4rem; color: #e0e7ff; font-size: 1rem;">Q. チーム・複数名での法人一括導入は可能ですか？</h4>
+          <p style="margin: 0; font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">
+            はい、エンジニアチーム向けの一括ライセンス（請求書払い対応）もご用意しております。公式𝕏のDM（@AutoTechRadar）またはGitHub Issuesよりお気軽にご相談ください。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Box -->
+    <div style="text-align: center; background: #1e1b4b; border: 1px solid #4338ca; border-radius: 12px; padding: 2rem; margin-top: 2rem;">
+      <h3 style="margin: 0 0 0.6rem; color: #fff; font-size: 1.3rem;">今すぐ会社経費で技術レポートをアンロックする</h3>
+      <p style="margin: 0 0 1.2rem; color: #a5b4fc; font-size: 0.92rem;">世界の急上昇OSSの商用手順書・アーキテクチャ解説が全編読み放題になります。</p>
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">📗 noteメンバーシップで購読 (¥1,980/月)</a>
+        <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" style="background: #635bff; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">💳 Stripeで単発購入 (¥980)</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const copyBtn = document.getElementById('copy-template-btn');
+    const textEl = document.getElementById('template-text');
+    if (copyBtn && textEl) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(textEl.innerText).then(() => {
+          copyBtn.textContent = 'コピー完了！';
+          copyBtn.style.color = '#10b981';
+          setTimeout(() => {
+            copyBtn.textContent = '📋 テンプレートをコピー';
+            copyBtn.style.color = '#94a3b8';
+          }, 2500);
+        });
+      });
+    }
+  </script>
+</Layout>
