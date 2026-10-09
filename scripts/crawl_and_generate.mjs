@@ -30,7 +30,7 @@ function getGithubHeaders() {
 async function fetchTrendingRepos() {
   const query = "stars:>500 archived:false is:public";
   const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=30`;
-  
+
   const res = await fetch(url, { headers: getGithubHeaders() });
   if (!res.ok) {
     throw new Error(`GitHub API error (${res.status}): ${res.statusText}`);
@@ -60,33 +60,39 @@ async function getReadme(owner, repo) {
   }
 }
 
-// Gemini による記事生成（モデルのフォールバック機構付き）
-async function generateTechnicalArticle(repo, readme) {
+// 1回のAI呼び出しで「Web記事」「note有料記事ドラフト」「Xスレッド」を3点一括生成
+async function generateAllContent(repo, readme) {
   const today = new Date().toISOString().split("T")[0];
   const licenseName = repo.license?.name || repo.license?.spdx_id || "オープンソース (要確認)";
 
   const systemInstruction = `
-あなたはシリコンバレーのシニアソリューションアーキテクト兼技術エバンジェリストです。
-オープンソースソフトウェア（OSS）の一次情報を基に、エンジニアおよび事業開発者が熱狂する最高品質の日本語技術ドキュメントを作成します。
-主観的な感想や挨拶文は一切排除し、事実・論理・技術仕様・ビジネス活用価値に基づいた構造化ドキュメントを執筆してください。
+あなたはシリコンバレーのシニアソリューションアーキテクト兼トップテックライターです。
+オープンソース（OSS）の一次情報を基に、以下の3つの最高品質コンテンツを一括作成してください。
+1. 自社Webサイト用 Astro技術解説マークダウン
+2. note有料販売用 記事パッケージ（無料導入部＋有料ノウハウ部の2重構造）
+3. X (Twitter) 用のバズ・スレッド投稿文（3ツイート構成）
+
+必ず指定のデリミタ（=== SECTION ===）で正確に区切って出力してください。
 `;
 
   const prompt = `
-以下のGitHubリポジトリ情報を基に、プロフェッショナルな日本語技術ドキュメントを作成してください。
+以下のGitHubリポジトリ情報を基に、3つのコンテンツを作成してください。
 
 [リポジトリ情報]
-リポジトリ名: ${repo.full_name}
-公式URL: ${repo.html_url}
+名前: ${repo.full_name}
+URL: ${repo.html_url}
 スター数: ${repo.stargazers_count}
-主要言語: ${repo.language}
+言語: ${repo.language}
 ライセンス: ${licenseName}
 概要: ${repo.description}
 
-[README コンテンツ抜粋]
+[README]
 ${readme || "(READMEなし - リポジトリ概要から分析してください)"}
 
-[出力フォーマット要件]
-1. 出力は純粋なマークダウン形式とし、冒頭に以下のフロントマターを必ず配置してください。フロントマターの前に余計なテキストを一切含めないでください。
+--------------------------------------------------
+以下のフォーマット通りに出力してください。余計な挨拶は不要です。
+
+=== WEB ARTICLE ===
 ---
 layout: "../../layouts/Layout.astro"
 title: "${repo.name} - ${repo.description.replace(/"/g, "'")}"
@@ -97,28 +103,55 @@ repoUrl: "${repo.html_url}"
 stars: ${repo.stargazers_count}
 ---
 
-2. 本文は以下のセクション構成で詳細に執筆してください：
 # ${repo.name}: 概要と革新性
 ## 解決する主要な課題とアーキテクチャ
-- 従来の技術スタックにおける問題点
-- 本ツールが採用するアプローチと仕組み
-
 ## 競合ツール/商用SaaSとの徹底比較
-- 主な競合ツールとの機能・パフォーマンス・コスト比較
-
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-- 本OSSを活用した受託開発・自社SaaS立ち上げ・自動化運用の具体例
-- コスト削減効果または収益化のポテンシャル
-
 ## インストール & クイックスタート手順
-- 前提条件
-- コマンドライン手順（コードブロック付き）
-
 ## 商用利用可否 & ライセンス考察
-- ライセンス（${licenseName}）の商用利用可否と注意点
+
+=== NOTE ARTICLE ===
+# 【最新OSS解体新書】${repo.name}とは？機能解説とビジネス活用・マネタイズ実践法
+
+## はじめに：なぜ今、世界中で注目されているのか？
+（無料公開エリア：魅力的な導入、解決する課題、革新性の概要）
+
+## 主な機能とアーキテクチャ
+（無料公開エリア：技術的な特徴、クイックスタート手順）
+
+--------------------------------------------------
+【有料ライン（推奨販売価格: 500円〜980円）ここから先は有料会員限定】
+--------------------------------------------------
+
+## 💡 このOSSを活用した具体的なマネタイズ戦略（受託・自社サービス化）
+1. クライアントへの提案シナリオと受託開発モデル（想定単価：30万円〜100万円）
+2. 自社マイクロSaaS / 有料ツールとしての構築アイデア
+3. 競合ツールに対する圧倒的なコスト削減提案の作り方
+
+## 商用カスタマイズ・実装の勘所（コピペで使える設計ガイド）
+（具体的なコード例や設定パラメータのポイント）
+
+## まとめと今後の展望
+
+=== X THREAD ===
+[TWEET 1]
+GitHubで急上昇中のOSS「${repo.name}」が凄すぎる。
+${repo.description}
+⭐ スター数: ${repo.stargazers_count}
+主要技術: #${repo.language} #OSS #AI開発
+▼ 詳細とビジネス活用の考察はツリーへ↓
+${repo.html_url}
+
+[TWEET 2]
+【従来のツールとの決定的な違い】
+（なぜこれが革新的なのか、何が他と違うのかを2行程度で要約）
+
+[TWEET 3]
+【💡 ビジネス・副業での活用可能性】
+受託開発での提案や、自社SaaS構築のアイデア、詳しい収益化手順をnoteにまとめました。
+（noteリンク差し込み用）
 `;
 
-  // 第一優先: gemini-3.8-flash, フォールバック: gemini-2.5-flash
   const models = ["gemini-3.8-flash", "gemini-2.5-flash"];
   let lastError = null;
 
@@ -130,35 +163,13 @@ stars: ${repo.stargazers_count}
         contents: prompt,
         config: {
           systemInstruction,
-          temperature: 0.2, // 再現性と正確性を担保
+          temperature: 0.2,
         },
       });
 
-      let text = response.text || "";
-      // マークダウン記法のコードブロック囲み（\`\`\`markdown ... \`\`\`）があれば自動除去
-      text = text.replace(/^```markdown\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-
-      // フロントマターが正常に配置されているか確認
-      if (text.startsWith("---")) {
-        // layout が欠落している場合は自動注入
-        if (!text.includes("layout:")) {
-          text = text.replace(/^---\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
-        }
-        return text;
-      } else {
-        // フロントマターが欠落している場合のフォールバック補正
-        const fallbackHeader = `---
-layout: "../../layouts/Layout.astro"
-title: "${repo.name} - 技術解説"
-description: "${repo.description.replace(/"/g, "'")}"
-pubDate: "${today}"
-tags: ["${repo.language}", "OSS"]
-repoUrl: "${repo.html_url}"
-stars: ${repo.stargazers_count}
----
-
-`;
-        return fallbackHeader + text;
+      const text = response.text || "";
+      if (text.includes("=== WEB ARTICLE ===")) {
+        return parseGeneratedOutput(text, repo, today);
       }
     } catch (err) {
       console.warn(`Model ${model} failed: ${err.message}`);
@@ -169,18 +180,75 @@ stars: ${repo.stargazers_count}
   throw lastError || new Error("All Gemini models failed");
 }
 
+// 出力テキストを各ファイル用にパース
+function parseGeneratedOutput(rawText, repo, today) {
+  let webContent = "";
+  let noteContent = "";
+  let xContent = "";
+
+  const parts = rawText.split(/=== (WEB ARTICLE|NOTE ARTICLE|X THREAD) ===/g);
+  for (let i = 1; i < parts.length; i += 2) {
+    const section = parts[i].trim();
+    const body = (parts[i + 1] || "").trim();
+
+    if (section === "WEB ARTICLE") {
+      webContent = body.replace(/^```markdown\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    } else if (section === "NOTE ARTICLE") {
+      noteContent = body;
+    } else if (section === "X THREAD") {
+      xContent = body;
+    }
+  }
+
+  // Web記事のフォールバック
+  if (!webContent.startsWith("---")) {
+    webContent = `---
+layout: "../../layouts/Layout.astro"
+title: "${repo.name} - ${repo.description.replace(/"/g, "'")}"
+description: "${repo.description.replace(/"/g, "'")}"
+pubDate: "${today}"
+tags: ["${repo.language}", "OSS"]
+repoUrl: "${repo.html_url}"
+stars: ${repo.stargazers_count}
+---
+
+${webContent}`;
+  } else if (!webContent.includes("layout:")) {
+    webContent = webContent.replace(/^---\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
+  }
+
+  // X投稿文にワンクリック投稿リンクを付加
+  let enhancedXContent = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
+  const tweets = xContent.split(/\[TWEET \d+\]/gi).map((t) => t.trim()).filter(Boolean);
+
+  tweets.forEach((tweet, idx) => {
+    const tweetNum = idx + 1;
+    const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+    enhancedXContent += `--------------------------------------------------\n【ツイート ${tweetNum}】\n${tweet}\n\n👉 ワンクリックで投稿画面を開く:\n${intentUrl}\n--------------------------------------------------\n\n`;
+  });
+
+  return {
+    web: webContent,
+    note: noteContent,
+    x: enhancedXContent,
+  };
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function run() {
-  console.log("=== Auto Tech Radar Pipeline 2.0 (Gemini 3.8 Flash Edition) ===");
+  console.log("=== Auto Tech Radar Pipeline 3.0 (Web + note有料 + X一括生成) ===");
   const repos = await fetchTrendingRepos();
-  const outputDir = path.resolve("src/pages/radar");
 
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  const webDir = path.resolve("src/pages/radar");
+  const noteDir = path.resolve("note_drafts");
+  const xDir = path.resolve("x_posts");
+
+  [webDir, noteDir, xDir].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
 
   let generatedCount = 0;
 
@@ -191,32 +259,40 @@ async function run() {
     }
 
     const slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-    const filePath = path.join(outputDir, `${slug}.md`);
+    const webFile = path.join(webDir, `${slug}.md`);
+    const noteFile = path.join(noteDir, `${slug}_note.md`);
+    const xFile = path.join(xDir, `${slug}_x.txt`);
 
-    if (fs.existsSync(filePath)) {
-      continue; // 既にインデックス済みの場合はスキップ
+    if (fs.existsSync(webFile)) {
+      continue; // 既に生成済みの場合はスキップ
     }
 
     console.log(`\n[${generatedCount + 1}/${TARGET_NEW_COUNT}] Processing: ${repo.full_name}`);
     const readme = await getReadme(repo.owner.login, repo.name);
 
     try {
-      const content = await generateTechnicalArticle(repo, readme);
-      fs.writeFileSync(filePath, content, "utf8");
-      console.log(`✓ Saved: ${filePath}`);
+      const result = await generateAllContent(repo, readme);
+
+      fs.writeFileSync(webFile, result.web, "utf8");
+      console.log(`✓ Web記事保存: ${webFile}`);
+
+      fs.writeFileSync(noteFile, result.note, "utf8");
+      console.log(`✓ note有料記事ドラフト保存: ${noteFile}`);
+
+      fs.writeFileSync(xFile, result.x, "utf8");
+      console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
+
       generatedCount++;
 
-      // レート制限を安全に回避するため 3 秒待機
       if (generatedCount < TARGET_NEW_COUNT) {
         await sleep(3000);
       }
     } catch (err) {
       console.error(`Failed to process ${repo.full_name}: ${err.message}`);
-      // 1件失敗しても次のリポジトリを処理して継続
     }
   }
 
-  console.log(`\nPipeline finished. Total new articles created: ${generatedCount}`);
+  console.log(`\nPipeline finished. Total new packages created: ${generatedCount}`);
 }
 
 run().catch((err) => {
