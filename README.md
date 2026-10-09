@@ -12,6 +12,7 @@
 
 ## ⚡ クイックアクセス・公式ゲートウェイ
 - 🌐 **全世界公開メディア（公式自社HP）**: https://ssk0224.github.io/auto-tech-radar/
+- 📊 **全OSS商用化チートシート（比較マトリクス）**: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
 - 📗 **note 公式メンバーシップ（全レポート読み放題）**: https://note.com/vast_ixora7005
 - 💼 **企業研修・スキルアップ経費精算ガイド**: https://ssk0224.github.io/auto-tech-radar/expense/
 - 💳 **Stripe 単発レポート即時購入（¥980）**: [Stripe即時決済](https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000)
@@ -33,28 +34,30 @@
 
 ---
 
-## 🏗 システムアーキテクチャ
+## 🏗 自律型オムニチャネル・アーキテクチャ
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                   GitHub Actions (毎朝 6:00 JST 自動起動)              │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-    ┌───────────────────────────────┼───────────────────────────────┐
-    ▼                               ▼                               ▼
-[GitHub Trending API]     [Google Gemini 3.8 / 2.5]       [Astro 7 SSG Engine]
-未解説OSS・一次README抽出   深層技術解剖 ＆ 収益手順生成     TechArticle構造化・超高速ビルド
-    │                               │                               │
-    └───────────────────────────────┼───────────────────────────────┘
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        オムニチャネル自動収益化配信                    │
-├────────────────────────────────────────────────────────────────────────┤
-│ ① 公式Webメディア (GitHub Pages): https://ssk0224.github.io/auto-tech-radar/│
-│ ② note 有料ドラフト (note_drafts/): 毎朝の有料記事を即時ストック      │
-│ ③ X (Twitter) スレッド (x_posts/): ワンクリック投稿用スレッド自動生成  │
-│ ④ RSS 2.0 フィード (/rss.xml): 全世界技術アグリゲーターへ自動配信     │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Cron["⏰ GitHub Actions (毎朝 6:00 JST 自動巡回)"]
+    API["🐙 GitHub Trending API (一次ソース抽出)"]
+    AI["🧠 Google Gemini 3.8 / 2.5 Flash (深層解剖・マネタイズ分析)"]
+    Build["⚡ Astro 7 SSG Engine (動的OGP・Mermaid・構造化SEO)"]
+
+    Cron --> API
+    API --> AI
+    AI --> Build
+
+    subgraph OmniChannels["🚀 オムニチャネル自動収益化配信"]
+        Web["🌐 公式Webメディア (GitHub Pages / 15本+アーカイブ)"]
+        Note["📗 note 有料ドラフト (単発980円 / 月額1,980円メンバーシップ)"]
+        X["📱 𝕏 ワンクリック拡散スレッド (Intent URL自動生成)"]
+        RSS["📡 RSS 2.0 / llms.txt (AI検索・アグリゲーター自動収集)"]
+    end
+
+    Build --> Web
+    Build --> Note
+    Build --> X
+    Build --> RSS
 ```
 
 ---
