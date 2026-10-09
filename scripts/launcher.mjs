@@ -127,6 +127,9 @@ function promptMenu() {
   console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(未投稿記事をワンクリック展開)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
 
+  console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト】${c.reset}`);
+  console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
+
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
   console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(単発980円の入金確認)${c.reset}`);
   console.log(`   ${c.white}[2] note メンバーシップ管理画面を開く ${c.dim}(月額1,980円の会員管理)${c.reset}`);
@@ -140,7 +143,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-6) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-7) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -158,6 +161,9 @@ function handleChoice(choice) {
       console.log(`\n${c.cyan}自社HPを開きます...${c.reset}`);
       exec('start "" "https://ssk0224.github.io/auto-tech-radar/"');
       waitBack();
+      break;
+    case '7':
+      runWeeklyThread();
       break;
     case '1':
       console.log(`\n${c.cyan}Stripe ダッシュボードを開きます...${c.reset}`);
@@ -327,6 +333,19 @@ function runCrawlerManual() {
   try {
     execSync('node scripts/crawl_and_generate.mjs', { stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ クロールと記事生成が正常に完了しました！${c.reset}\n`);
+  } catch (err) {
+    console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
+  }
+  waitBack();
+}
+
+function runWeeklyThread() {
+  console.clear();
+  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 完全保存版まとめスレッド発行 ===${c.reset}\n`);
+  console.log(`ストックされた急上昇OSSからTop 7を厳選し、ブックマーク爆弾用の完全版スレッドテキストを生成します...\n`);
+  try {
+    execSync('node scripts/generate_weekly_thread.mjs', { stdio: 'inherit' });
+    console.log(`\n${c.green}${c.bold}✓ スレッド生成とX投稿画面の起動が完了しました！${c.reset}\n`);
   } catch (err) {
     console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
   }

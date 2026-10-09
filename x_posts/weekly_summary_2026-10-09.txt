@@ -1,0 +1,63 @@
+【完全保存版】GitHubで急上昇した最新AI＆テックOSS 7選
+
+世界のエンジニアが注目する最新OSSを「技術アーキテクチャ」「受託開発・SaaS化の狙い目」で徹底比較しました。
+新規事業のネタ帳・社内DX提案資料として役立ちます（ブックマーク推奨 📌）👇🧵
+
+--------------------------------------------------
+【1/7】OpenSandbox (★ 15,739)
+--------------------------------------------------
+・概要: Secure, Fast, and Extensible Sandbox runtime for AI agents.
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/opensandbox/
+
+--------------------------------------------------
+【2/7】homebrew-core (★ 15,615)
+--------------------------------------------------
+・概要: 🍻 Default and OSS formulae (built-from-source packages) for the package manager for everywhere
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/homebrew-core/
+
+--------------------------------------------------
+【3/7】jiuwenswarm (★ 5,978)
+--------------------------------------------------
+・概要: JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It extends the powerful capabilities of large language models directly to your fingertips through various communication apps you use daily.
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
+
+--------------------------------------------------
+【4/7】Internships-2027 (★ 5,224)
+--------------------------------------------------
+・概要: 2027年向けテック・ソフトウェアエンジニアリング学生インターンシップ情報を10分単位で自動同期するOSS求人アグリゲーターのアーキテクチャと活用法
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/internships-2027/
+
+--------------------------------------------------
+【5/7】mediawiki (★ 5,203)
+--------------------------------------------------
+・概要: 🌻 The collaborative editing software that runs Wikipedia. Mirror from https://gerrit.wikimedia.org/g/mediawiki/core. See https://mediawiki.org/wiki/Developer_access for contributing.
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/mediawiki/
+
+--------------------------------------------------
+【6/7】pinvou-agent (★ 2,399)
+--------------------------------------------------
+・概要: Open-source desktop AI agent for tools, files, knowledge, workflows, and real deliverables.
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/pinvou-agent/
+
+--------------------------------------------------
+【7/7】answer-me-with-html (★ 2,358)
+--------------------------------------------------
+・概要: AIエージェントのテキストの壁を解消。LLMの出力トークン数を1/8に削減し、2.6倍の超高速でシーケンス図やフローチャートを含むオフライン完結型単一HTML/解説動画を自動生成するOSS「answer-me-with-html」を徹底解剖。
+・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/answer-me-with-html/
+
+--------------------------------------------------
+【全OSS横断チートシート ＆ 比較マトリクス】
+--------------------------------------------------
+蓄積された全OSSの想定受託単価・技術スタック一覧は公式メディアで無料公開中（検索・絞り込み対応）：
+👉 https://ssk0224.github.io/auto-tech-radar/cheatsheet/
+
+毎朝6:00に海外急上昇OSSを日本語解剖中。
+最新トレンドを見逃さないよう @AutoTechRadar をフォロー＆RTお願いします！
+#AutoTechRadar #OSS #AI #エンジニア #プログラミング

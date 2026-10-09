@@ -1,0 +1,191 @@
+---
+import Layout from "../layouts/Layout.astro";
+const postModules = import.meta.glob("./radar/*.md", { eager: true });
+const posts = Object.values(postModules) as any[];
+
+// ソート: 日付降順、またはスター数降順
+const sortedPosts = posts.sort((a, b) => {
+  const dateA = new Date(a.frontmatter?.pubDate || "2026-01-01").getTime();
+  const dateB = new Date(b.frontmatter?.pubDate || "2026-01-01").getTime();
+  return dateB - dateA;
+});
+
+// 全ユニークタグの抽出
+const allTags = Array.from(
+  new Set(
+    posts.flatMap(p => (Array.isArray(p.frontmatter?.tags) ? p.frontmatter.tags : []))
+  )
+).slice(0, 10);
+---
+
+<Layout title="OSS商用化チートシート ＆ 比較マトリクス | Auto Tech Radar" description="世界で急上昇するオープンソースの受託開発単価・SaaS展開性・技術スタックを横断比較できるエンジニア・CTO向け商用化データベース。">
+  <div style="margin-bottom: 2rem;">
+    <!-- ヘッダーバナー -->
+    <div style="background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 70%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 2.2rem 1.5rem; text-align: center; margin-bottom: 2rem;">
+      <div style="display: inline-block; background: rgba(99, 102, 241, 0.25); color: #c7d2fe; padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.8rem;">
+        ⚡ 完全保存版・無料エンジニアナレッジ
+      </div>
+      <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
+        海外急上昇OSS <span style="background: linear-gradient(135deg, #818cf8, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">商用化チートシート ＆ 比較マトリクス</span>
+      </h1>
+      <p style="font-size: 1.02rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.5rem; line-height: 1.7;">
+        GitHub Trendingを賑わす世界の最新OSSを「受託案件での推奨提案単価」「SaaS展開の勝率」「コア技術スタック」で横断比較。新規事業立案や社内DX稟議の一次資料としてご活用ください。
+      </p>
+
+      <!-- アクションボタン群 -->
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <button id="copy-cheatsheet-url" style="background: #1f2937; border: 1px solid #374151; color: #f3f4f6; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: background 0.15s;">
+          🔗 URLをコピー（保存）
+        </button>
+        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("世界の最新急上昇OSSを「受託想定単価」や「SaaS化勝率」で横断比較できる神チートシートが超役立つ。社内稟議や新規開発のネタ探しに保存推奨。\nhttps://ssk0224.github.io/auto-tech-radar/cheatsheet/\n#AutoTechRadar #OSS #エンジニア")}`} target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          𝕏 で共有・ブックマーク
+        </a>
+      </div>
+    </div>
+
+    <!-- 検索 ＆ フィルターバー -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="flex: 1; min-width: 240px;">
+          <input type="text" id="filter-search" placeholder="🔍 OSS名、技術タグ、キーワードで即時絞り込み..." style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.65rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
+        </div>
+        <div style="font-size: 0.85rem; color: #94a3b8;">
+          表示中: <span id="item-count" style="color: #38bdf8; font-weight: 700;">{sortedPosts.length}</span> 件のOSS
+        </div>
+      </div>
+    </div>
+
+    <!-- マトリクス一覧テーブル -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow-x: auto; margin-bottom: 2.5rem;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+        <thead>
+          <tr style="background: rgba(31, 41, 55, 0.7); border-bottom: 1px solid #374151; color: #9ca3af; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            <th style="padding: 1rem; white-space: nowrap;">OSS リポジトリ</th>
+            <th style="padding: 1rem; white-space: nowrap;">技術領域 / 言語</th>
+            <th style="padding: 1rem; white-space: nowrap;">GitHub Stars</th>
+            <th style="padding: 1rem; white-space: nowrap;">推奨受託単価目安</th>
+            <th style="padding: 1rem; white-space: nowrap;">商用ポテンシャル</th>
+            <th style="padding: 1rem; text-align: right; white-space: nowrap;">レポート</th>
+          </tr>
+        </thead>
+        <tbody id="matrix-tbody">
+          {sortedPosts.map((post) => {
+            const rawSlug = post.url ? post.url.replace(/^.*[\\\/]/, '').replace('.html', '') : 'oss';
+            const title = post.frontmatter?.title || 'OSS Entry';
+            const shortName = title.split(' - ')[0].split(':')[0].trim();
+            const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
+            const stars = post.frontmatter?.stars ? post.frontmatter.stars.toLocaleString() : '急増中';
+            const desc = post.frontmatter?.description || '';
+
+            // 想定単価の簡易ヒューリスティック表示（タイトル・タグに基づく）
+            let priceTier = "¥80万 〜 ¥200万";
+            let modelTier = "業務自動化・受託開発";
+            if (tags.some((t: string) => /agent|ai|llm/i.test(t)) || /agent|model/i.test(title)) {
+              priceTier = "¥150万 〜 ¥350万";
+              modelTier = "AIエージェント・DX統合";
+            } else if (tags.some((t: string) => /rust|perf|speed/i.test(t))) {
+              priceTier = "¥120万 〜 ¥280万";
+              modelTier = "高速バックエンド基盤";
+            }
+
+            return (
+              <tr class="matrix-row" data-search={`${title} ${desc} ${tags.join(' ')}`.toLowerCase()} style="border-bottom: 1px solid #1f2937; transition: background 0.15s;">
+                <td style="padding: 1rem; vertical-align: top;">
+                  <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 0.25rem;">
+                    <a href={post.url} style="color: #60a5fa; text-decoration: none;">{shortName}</a>
+                  </div>
+                  <div style="font-size: 0.78rem; color: #94a3b8; max-width: 280px; line-height: 1.4;">
+                    {desc.length > 70 ? desc.slice(0, 70) + '...' : desc}
+                  </div>
+                </td>
+                <td style="padding: 1rem; vertical-align: top;">
+                  <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                    {tags.map((tg: string) => (
+                      <span style="background: #1f2937; color: #cbd5e1; font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;">
+                        {tg}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td style="padding: 1rem; vertical-align: top; font-family: 'JetBrains Mono', monospace; color: #f59e0b; font-weight: 700;">
+                  ★ {stars}
+                </td>
+                <td style="padding: 1rem; vertical-align: top; color: #10b981; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                  {priceTier}
+                </td>
+                <td style="padding: 1rem; vertical-align: top;">
+                  <span style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600;">
+                    {modelTier}
+                  </span>
+                </td>
+                <td style="padding: 1rem; vertical-align: top; text-align: right; white-space: nowrap;">
+                  <a href={post.url} style="background: #2563eb; color: #fff; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-block;">
+                    詳細解析 ➔
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 底部CTA -->
+    <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #4338ca; border-radius: 14px; padding: 2rem; text-align: center;">
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: #e0e7ff; margin: 0 0 0.6rem;">
+        自社ビジネスへの導入・受託案件化の完全手順をアンロック
+      </h3>
+      <p style="font-size: 0.95rem; color: #a5b4fc; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.7;">
+        Auto Tech Radar PRO（月額1,980円 / noteメンバーシップ）では、全記事の商用環境構築手順書、顧客向け提案書テンプレート、セキュリティ監査チェックリストが即時閲覧可能です。
+      </p>
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
+          ⚡ noteメンバーシップに参加（初月即時全解禁）
+        </a>
+        <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/expense/`} style="background: #1f2937; border: 1px solid #374151; color: #fbbf24; padding: 0.7rem 1.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
+          💼 会社の経費で精算する（領収書・稟議書テンプレ）
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // リアルタイム検索フィルター
+    const searchInput = document.getElementById('filter-search');
+    const rows = document.querySelectorAll('.matrix-row');
+    const countDisplay = document.getElementById('item-count');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        let visibleCount = 0;
+        rows.forEach(row => {
+          const searchData = row.getAttribute('data-search') || '';
+          if (query === '' || searchData.includes(query)) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        if (countDisplay) countDisplay.textContent = visibleCount;
+      });
+    }
+
+    // URLコピーボタン
+    const copyBtn = document.getElementById('copy-cheatsheet-url');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '✓ コピー完了！';
+          copyBtn.style.background = '#065f46';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.style.background = '#1f2937';
+          }, 2000);
+        });
+      });
+    }
+  </script>
+</Layout>
