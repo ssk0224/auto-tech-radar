@@ -189,6 +189,36 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       article th { background: #1e293b; color: #f1f5f9; }
       article td { background: #0f172a; }
 
+      /* Visual Paywall & Content Lock */
+      .paywall-divider {
+        position: relative;
+        text-align: center;
+        margin: 3rem 0 2rem;
+      }
+      .paywall-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #6366f1, transparent);
+      }
+      .paywall-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #1e1b4b;
+        color: #a5b4fc;
+        border: 1px solid #4338ca;
+        padding: 0.4rem 1.2rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4);
+      }
+
       /* Monetization Offer Card */
       .monetization-box {
         background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
@@ -337,10 +367,15 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     <main>
       <slot />
 
+      <!-- ビジュアル・ペイウォール境界線（ここから先は有料会員限定） -->
+      <div class="paywall-divider">
+        <span class="paywall-badge">🔒 ここから先は Auto Tech Radar PRO 会員限定エリア</span>
+      </div>
+
       <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え） -->
       <section class="monetization-box">
         <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
-        <p>最先端OSSのアーキテクチャ解析、受託開発・SaaS化によるマネタイズ実践ガイドの完全版を即時アンロック。</p>
+        <p>最先端OSSのアーキテクチャ詳細解説、受託開発（単価50〜100万円）への提案法、SaaS化マネタイズ実践ガイドの完全版を即時アンロック。</p>
         
         <div class="pricing-grid">
           <div class="price-card">
