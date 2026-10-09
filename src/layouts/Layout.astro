@@ -503,6 +503,32 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
         </div>
       </section>
 
+      <!-- Substack/TLDRモデル: 読者リテンション・エンゲージメントボックス -->
+      {isArticle && (
+        <section style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #334155; border-radius: 12px; padding: 1.8rem; margin: 3rem 0; text-align: center;">
+          <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem;">
+            🔔 毎朝 6:00 JST 完全自動配信
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
+            明日の海外急上昇OSS解剖レポートを見逃さないために
+          </h3>
+          <p style="font-size: 0.9rem; color: #94a3b8; max-width: 580px; margin: 0 auto 1.3rem; line-height: 1.6;">
+            GitHub Trendingから厳選された最新OSSのアーキテクチャ図解・受託開発提案シナリオを毎朝自動配信中。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
+          </p>
+          <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://x.com/AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #475569; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+              𝕏 @AutoTechRadar をフォロー
+            </a>
+            <a href={`${baseUrl}/rss.xml`} target="_blank" style="background: #ea580c; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+              📡 RSSリーダーに追加
+            </a>
+            <a href={`${baseUrl}/cheatsheet/`} style="background: #1e293b; border: 1px solid #475569; color: #38bdf8; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+              📊 全OSS比較チートシート
+            </a>
+          </div>
+        </section>
+      )}
+
       {isArticle && relatedPosts.length > 0 && (
         <section style="margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid var(--color-border);">
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem;">
@@ -722,7 +748,31 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
               <span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>
               <span>💡 商用リスク: PRO分析セクション参照</span>
             </div>
+            <div style="margin-top: 0.9rem; padding: 0.6rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+              <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span style="color: #10b981; font-weight: 700;">⚡ 3秒クイック検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
+              </div>
+              <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
+                コピー
+              </button>
+            </div>
           `;
+
+          const quickRunBtn = summaryBox.querySelector('#quick-run-copy-btn');
+          if (quickRunBtn) {
+            quickRunBtn.addEventListener('click', () => {
+              const repoName = (document.title.split(' - ')[0] || '').trim();
+              const cmd = `git clone https://github.com/${repoName}`;
+              navigator.clipboard.writeText(cmd).then(() => {
+                quickRunBtn.textContent = '完了！';
+                quickRunBtn.style.color = '#10b981';
+                setTimeout(() => {
+                  quickRunBtn.textContent = 'コピー';
+                  quickRunBtn.style.color = '#94a3b8';
+                }, 2000);
+              });
+            });
+          }
 
           if (firstH1) {
             firstH1.insertAdjacentElement('afterend', metaBar);
