@@ -143,8 +143,17 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
   </head>
   <body>
     <header>
-      <h1><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></h1>
-      <p>世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説</p>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></h1>
+          <p>世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説</p>
+        </div>
+        <div style="display: flex; gap: 0.6rem; align-items: center; margin-top: 0.4rem; flex-wrap: wrap;">
+          <a href="https://x.com/AutoTechRadar" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #000; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">𝕏 @AutoTechRadar</a>
+          <a href="https://note.com/" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #2cb696; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">note 有料記事</a>
+          <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="display: inline-flex; align-items: center; gap: 0.3rem; background: #24292f; color: #fff !important; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">GitHub</a>
+        </div>
+      </div>
     </header>
     <main>
       <article>
@@ -162,6 +171,11 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
     </main>
     <footer>
+      <p style="margin-bottom: 0.8rem;">
+        <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.5rem;">公式 𝕏 (@AutoTechRadar)</a> |
+        <a href="https://note.com/" target="_blank" style="margin: 0 0.5rem;">公式 note</a> |
+        <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="margin: 0 0.5rem;">GitHub リポジトリ</a>
+      </p>
       <p>© 2026 Auto Tech Radar. 世界のOSS一次情報インデックス</p>
     </footer>
   </body>
