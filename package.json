@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "crawl": "node scripts/crawl_and_generate.mjs"
+    "crawl": "node scripts/crawl_and_generate.mjs",
+    "audit": "node scripts/audit_quality.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
