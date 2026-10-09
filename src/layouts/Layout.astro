@@ -650,6 +650,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
               </span>
             </div>
             <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+              <button id="copy-proposal-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
+                📋 提案書ドラフトをコピー
+              </button>
               <button id="copy-url-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer;">
                 🔗 URLコピー
               </button>
@@ -672,6 +675,31 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                   copyBtn.textContent = '🔗 URLコピー';
                   copyBtn.style.color = '#94a3b8';
                 }, 2000);
+              });
+            });
+          }
+
+          // 1クリック提案書・稟議ドラフト生成
+          const copyPropBtn = metaBar.querySelector('#copy-proposal-btn');
+          if (copyPropBtn) {
+            copyPropBtn.addEventListener('click', () => {
+              const proposalText = `# 【社内稟議・提案書】${articleTitle} の導入および商用活用について\n\n` +
+                `■ 案件名: ${articleTitle} を活用した業務自動化・DX基盤構築\n` +
+                `■ 提案目的: 海外で急上昇中の最先端OSSを活用し、月額商用SaaSに依存せず開発コストを大幅に削減（推定30%〜60%圧縮）しつつ、迅速に自社基盤/顧客システムを構築する。\n` +
+                `■ 想定受託・導入予算規模: 80万円 〜 250万円\n` +
+                `■ 期待されるROI・効果:\n` +
+                `  1. 既存商用SaaSの継続課金ライセンス費用の完全撤廃\n` +
+                `  2. ベンダーロックインを排除し、独自のセキュアなオンプレミス/プライベートクラウド運用を実現\n` +
+                `  3. 最新AI/エージェント技術の内製化による業務工数の半減\n\n` +
+                `■ 詳細技術仕様・商用手順書:\n` +
+                `  ${pageUrl}\n`;
+              navigator.clipboard.writeText(proposalText).then(() => {
+                copyPropBtn.textContent = '✓ 提案書コピー完了！';
+                copyPropBtn.style.background = '#065f46';
+                setTimeout(() => {
+                  copyPropBtn.textContent = '📋 提案書ドラフトをコピー';
+                  copyPropBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+                }, 2500);
               });
             });
           }
@@ -706,6 +734,47 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
             summaryBox.insertAdjacentElement('afterend', tocBox);
           }
         }
+      }
+    </script>
+
+    <!-- ByteByteGoモデル: Mermaid.js 動的アーキテクチャ図解レンダラー -->
+    <script type="module" is:inline>
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      try {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          themeVariables: {
+            darkMode: true,
+            background: '#0f172a',
+            primaryColor: '#3b82f6',
+            primaryTextColor: '#f8fafc',
+            primaryBorderColor: '#60a5fa',
+            lineColor: '#93c5fd',
+            secondaryColor: '#1e293b',
+            tertiaryColor: '#111827'
+          }
+        });
+
+        // pre code.language-mermaid を検出してSVGダイアグラムに変換
+        const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid, pre.mermaid');
+        if (mermaidBlocks.length > 0) {
+          for (let i = 0; i < mermaidBlocks.length; i++) {
+            const block = mermaidBlocks[i];
+            const pre = block.tagName === 'PRE' ? block : block.closest('pre');
+            const code = block.textContent;
+            const container = document.createElement('div');
+            container.className = 'mermaid-container';
+            container.style.cssText = 'background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 1.5rem; margin: 1.8rem 0; overflow-x: auto; text-align: center;';
+            const { svg } = await mermaid.render('mermaid-svg-' + i, code);
+            container.innerHTML = svg;
+            if (pre && pre.parentNode) {
+              pre.parentNode.replaceChild(container, pre);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Mermaid rendering notice:', err);
       }
     </script>
   </body>

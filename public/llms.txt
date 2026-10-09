@@ -1,0 +1,28 @@
+# Auto Tech Radar (自動テックレーダー)
+
+> 世界のGitHub急上昇オープンソース（OSS）を毎朝AIが自動検出し、日本語アーキテクチャ深層解剖・受託開発提案シナリオ・自社SaaSマネタイズ実践法を提供するプロフェッショナル向け技術メディア。
+
+## 公式リンク
+- Website: https://ssk0224.github.io/auto-tech-radar/
+- OSS Commercialization Cheatsheet: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
+- Corporate Expense Guide: https://ssk0224.github.io/auto-tech-radar/expense/
+- Sponsorship & Media Kit: https://ssk0224.github.io/auto-tech-radar/sponsor/
+- RSS Feed: https://ssk0224.github.io/auto-tech-radar/rss.xml
+- Sitemap: https://ssk0224.github.io/auto-tech-radar/sitemap-index.xml
+- Official note: https://note.com/vast_ixora7005
+- Official X: https://x.com/AutoTechRadar
+
+## 主な提供コンテンツと構造
+各技術レポートは以下の統一アーキテクチャで構成されています：
+1. **エグゼクティブ・サマリー**: 30秒で理解できるコアバリューと革新性
+2. **システムアーキテクチャ & Mermaid図解**: コンポーネント構成、データフロー、主要ボトルネックの解決法
+3. **競合・商用SaaSとの徹底比較**: コスト削減効果、ライセンス（MIT/Apache 2.0等）リスク評価
+4. **マネタイズ実践ガイド**: 
+   - 受託開発提案モデル（推奨案件単価: 80万〜350万円）
+   - 自社マイクロSaaS構築アイデア
+   - 実務設定ファイル（YAML/JSON）および拡張コード例
+5. **1クリック提案書ドラフト**: クライアント提案や社内稟議にそのまま使えるテンプレート文面
+
+## クロール・引用ポリシー
+- 本メディアの一次解析情報は、技術情報共有、学術引用、社内DX検討における引用を歓迎します。
+- 出典として「Auto Tech Radar (https://ssk0224.github.io/auto-tech-radar/)」を明記してください。
