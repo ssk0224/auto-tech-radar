@@ -271,6 +271,49 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         z-index: 9999;
         transition: width 0.1s ease;
       }
+      /* Reading time badge & Table of Contents */
+      .reading-meta-bar {
+        display: flex;
+        gap: 0.8rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.82rem;
+        color: var(--color-text-muted);
+        flex-wrap: wrap;
+      }
+      .reading-badge {
+        background: rgba(59, 130, 246, 0.15);
+        color: #93c5fd;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+      #toc-box {
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 1.2rem 1.4rem;
+        margin: 1.5rem 0 2rem;
+      }
+      #toc-box h4 {
+        margin: 0 0 0.8rem;
+        font-size: 0.95rem;
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      #toc-box ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        font-size: 0.88rem;
+        color: #94a3b8;
+      }
+      #toc-box li { margin-bottom: 0.35rem; }
+      #toc-box a { color: #93c5fd; text-decoration: none; }
+      #toc-box a:hover { text-decoration: underline; color: #60a5fa; }
     </style>
   </head>
   <body>
@@ -416,6 +459,47 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         });
         wrapper.appendChild(btn);
       });
+
+      // Automatic Table of Contents (目次) & Reading Time calculation
+      const article = document.querySelector('article');
+      if (article) {
+        const headings = article.querySelectorAll('h2, h3');
+        if (headings.length >= 2) {
+          const tocBox = document.createElement('div');
+          tocBox.id = 'toc-box';
+          tocBox.innerHTML = '<h4>📑 目次 (クイックナビゲーション)</h4><ul></ul>';
+          const list = tocBox.querySelector('ul');
+
+          headings.forEach((h, idx) => {
+            const id = 'heading-' + idx;
+            h.id = id;
+            const li = document.createElement('li');
+            li.style.marginLeft = h.tagName === 'H3' ? '1rem' : '0';
+            li.innerHTML = `<a href="#${id}">${h.textContent}</a>`;
+            list.appendChild(li);
+          });
+
+          // 読了時間バッジ
+          const textLength = article.innerText.length;
+          const readMinutes = Math.max(1, Math.ceil(textLength / 600)); // 日本語約600字/分
+          const metaBar = document.createElement('div');
+          metaBar.className = 'reading-meta-bar';
+          metaBar.innerHTML = `
+            <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
+            <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
+            <span>商用・マネタイズ分析付き</span>
+          `;
+
+          const firstH1 = article.querySelector('h1');
+          if (firstH1) {
+            firstH1.insertAdjacentElement('afterend', metaBar);
+            metaBar.insertAdjacentElement('afterend', tocBox);
+          } else {
+            article.insertBefore(metaBar, article.firstChild);
+            metaBar.insertAdjacentElement('afterend', tocBox);
+          }
+        }
+      }
     </script>
   </body>
 </html>
