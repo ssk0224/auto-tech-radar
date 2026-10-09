@@ -436,6 +436,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
         <div class="nav-links">
           <a href={`${baseUrl}/cheatsheet/`} class="pill-btn" style="background: rgba(16, 185, 129, 0.15); color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4);">📊 OSS比較チートシート</a>
           <a href={`${baseUrl}/expense/`} class="pill-btn" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4);">💼 経費精算ガイド</a>
+          <a href={`${baseUrl}/contact/`} class="pill-btn" style="background: rgba(37, 99, 235, 0.2); color: #93c5fd !important; border: 1px solid rgba(37, 99, 235, 0.5);">📩 受託・導入相談</a>
           <a href={`${baseUrl}/sponsor/`} class="pill-btn" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc !important; border: 1px solid rgba(99, 102, 241, 0.4);">📢 協賛・広告掲載</a>
           <a href="https://x.com/AutoTechRadar" target="_blank" class="pill-btn btn-x">𝕏 @AutoTechRadar</a>
           <a href="https://note.com/vast_ixora7005" target="_blank" class="pill-btn btn-note">note 公式ページ</a>
@@ -523,6 +524,26 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
         </div>
       </section>
 
+      <!-- 🏢 法人・企業向け受託開発 ＆ AIエージェント導入相談バナー -->
+      {isArticle && (
+        <section style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 1.6rem 2rem; margin: 2rem 0; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+          <div>
+            <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; margin-bottom: 0.4rem;">
+              🏢 企業・開発責任者様向け
+            </div>
+            <h3 style="margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 800; color: #fff;">
+              本OSSを活用した社内DX・AIエージェント受託開発（単価80万〜250万円）
+            </h3>
+            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">
+              商用環境構築、社内データ連携、オンプレミス運用、NDA締結対応。専任エンジニアチームが最短2週間で構築します。
+            </p>
+          </div>
+          <a href={`${baseUrl}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+            📩 無料相談・見積もり依頼 →
+          </a>
+        </section>
+      )}
+
       <!-- Substack/TLDRモデル: 読者リテンション・エンゲージメントボックス -->
       {isArticle && (
         <section style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #334155; border-radius: 12px; padding: 1.8rem; margin: 3rem 0; text-align: center;">
@@ -607,6 +628,8 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
 
     <footer>
       <p style="margin-bottom: 0.8rem;">
+        <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
+        <a href={`${baseUrl}/sponsor/`} style="margin: 0 0.6rem;">📢 広告・協賛</a> |
         <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.6rem;">公式 𝕏 (@AutoTechRadar)</a> |
         <a href="https://note.com/vast_ixora7005" target="_blank" style="margin: 0 0.6rem;">公式 note (vast_ixora7005)</a> |
         <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
