@@ -27,14 +27,15 @@ const c = {
   bgDark: "\x1b[40m",
 };
 
-// 100%確実にChromeを開く関数（直接 start chrome 起動 ＆ フォールバック）
+// 100%確実にChromeをフルパス起動してURLを開く関数
 function openUrl(url) {
-  exec(`start chrome "${url}"`, (err) => {
-    if (err) {
-      const safeUrl = url.replace(/'/g, "''");
-      exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
-    }
-  });
+  const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  const safeUrl = url.replace(/'/g, "''");
+  if (fs.existsSync(chromePath)) {
+    exec(`powershell -NoProfile -Command "Start-Process '${chromePath}' -ArgumentList '${safeUrl}'"`);
+  } else {
+    exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+  }
 }
 
 function openFile(filePath) {
