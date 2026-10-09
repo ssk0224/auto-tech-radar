@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -107,13 +108,30 @@ export function generateOgCardForPost(postData) {
 
   const outPath = path.join(ogpDir, `${slug}.svg`);
   fs.writeFileSync(outPath, svgContent, 'utf8');
+
+  // PNGサムネイルの自動生成（note見出し画像用: 1200x630）
+  const pngPath = path.join(ogpDir, `${slug}.png`);
+  try {
+    const chromeCandidates = [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      'google-chrome',
+      'chromium',
+      'chromium-browser'
+    ];
+    const chromeBin = chromeCandidates.find(c => fs.existsSync(c)) || 'google-chrome';
+    execSync(`"${chromeBin}" --headless --disable-gpu --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore' });
+  } catch (e) {
+    // Chromeが使えない環境でもエラーで中断しないフェイルセーフ設計
+  }
+
   return `/auto-tech-radar/ogp/${slug}.svg`;
 }
 
 // 全記事に対して実行
 if (process.argv[1] && process.argv[1].endsWith('generate_og_cards.mjs')) {
   const files = fs.readdirSync(radarDir).filter(f => f.endsWith('.md'));
-  console.log(`全 ${files.length} 本のOGPカードを生成中...`);
+  console.log(`全 ${files.length} 本のOGPカード ＆ サムネイルPNGを生成中...`);
 
   files.forEach(f => {
     const slug = f.replace('.md', '');
@@ -140,5 +158,5 @@ if (process.argv[1] && process.argv[1].endsWith('generate_og_cards.mjs')) {
     generateOgCardForPost({ slug, title, desc, tags, stars });
   });
 
-  console.log('✓ 全OGPカード（SVG）の生成が完了しました！');
+  console.log('✓ 全OGPカード（SVG ＆ note用PNGサムネイル）の生成が完了しました！');
 }
