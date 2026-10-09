@@ -1,0 +1,31 @@
+---
+const { title, description } = Astro.props;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title || "Auto Tech Radar"}</title>
+    <meta name="description" content={description || "世界の最先端オープンソース技術インデックス"} />
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem 1rem; color: #222; background: #fafafa; }
+      header { border-bottom: 2px solid #eaeaea; margin-bottom: 2rem; padding-bottom: 1rem; }
+      h1 { margin: 0; font-size: 1.8rem; }
+      a { color: #0969da; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .post-card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e1e4e8; margin-bottom: 1rem; }
+      footer { margin-top: 3rem; font-size: 0.85rem; color: #666; border-top: 1px solid #eaeaea; padding-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">📡 Auto Tech Radar</a></h1>
+      <p>世界の急上昇オープンソースを毎日自動インデックス化・日本語技術解説</p>
+    </header>
+    <slot />
+    <footer>
+      <p>© 2026 Auto Tech Radar. 一次情報インデックス</p>
+    </footer>
+  </body>
+</html>

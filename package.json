@@ -1,0 +1,16 @@
+{
+  "name": "auto-tech-radar",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "crawl": "node scripts/crawl_and_generate.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@google/genai": "^2.28.0",
+    "astro": "^7.3.8",
+    "dotenv": "^16.4.5"
+  }
+}
