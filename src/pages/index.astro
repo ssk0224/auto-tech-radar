@@ -73,11 +73,28 @@ const posts = Object.values(postModules) as any[];
               <span class="meta-tag">{post.frontmatter?.pubDate || "本日公開"}</span>
             </div>
             <p>{post.frontmatter?.description}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; font-size: 0.88rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem;">
               <a href={post.url} style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.2rem;">
                 日本語レポートを読む →
               </a>
-              <span style="color: #64748b; font-size: 0.8rem;">商用利用・マネタイズ分析あり</span>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <button 
+                  onclick={`navigator.clipboard.writeText('【注目OSS】' + '${(post.frontmatter?.title || '').replace(/'/g, "\\'")}' + ' \\nhttps://ssk0224.github.io' + '${post.url}'); alert('社内Slack/Discord用テキストをコピーしました！');`}
+                  style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;"
+                  onmouseover="this.style.background='#374151'"
+                  onmouseout="this.style.background='#1f2937'"
+                  title="社内SlackやDiscordでチームに共有"
+                >
+                  💬 Slack/Discordに共有
+                </button>
+                <a 
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('世界の注目OSS解体新書: ' + (post.frontmatter?.title || '') + '\nhttps://ssk0224.github.io' + post.url + '\n#OSS #AutoTechRadar')}`}
+                  target="_blank"
+                  style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; text-decoration: none;"
+                >
+                  𝕏 ポスト
+                </a>
+              </div>
             </div>
           </article>
         ))
