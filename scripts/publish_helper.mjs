@@ -90,11 +90,21 @@ rl.question('番号を入力して Enter > ', (answer) => {
 
   console.log(`\n選択された記事: ${selected.title}\n`);
 
+  function openUrl(url) {
+    const safeUrl = url.replace(/'/g, "''");
+    exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
+  }
+
+  function openFile(filePath) {
+    const safePath = filePath.replace(/'/g, "''");
+    exec(`powershell -NoProfile -Command "Start-Process '${safePath}'"`);
+  }
+
   if (mode === 'note') {
     // 1. note新規投稿画面を開く
-    exec('start "" "https://note.com/notes/new"');
+    openUrl("https://note.com/notes/new");
     // 2. 原稿ファイルをメモ帳等の既定エディタで直接開く
-    exec(`start "" "${selected.noteFile}"`);
+    openFile(selected.noteFile);
 
     console.log('===============================================================================');
     console.log('✓ noteの新規投稿画面と、選択した原稿テキストを開きました！');
@@ -108,18 +118,18 @@ rl.question('番号を入力して Enter > ', (answer) => {
   } else {
     // X拡散モード
     if (selected.xFile) {
-      exec(`start "" "${selected.xFile}"`);
+      openFile(selected.xFile);
       // Xスレッドの第1ツイートからIntent URLを抽出して自動起動
       try {
         const xText = fs.readFileSync(selected.xFile, 'utf8');
         const match = xText.match(/https:\/\/twitter\.com\/intent\/tweet\?text=[^\s\n\r]+/);
         if (match) {
-          exec(`start "" "${match[0]}"`);
+          openUrl(match[0]);
         } else {
-          exec('start "" "https://twitter.com/intent/tweet"');
+          openUrl("https://twitter.com/intent/tweet");
         }
       } catch (e) {
-        exec('start "" "https://twitter.com/intent/tweet"');
+        openUrl("https://twitter.com/intent/tweet");
       }
 
       console.log('===============================================================================');
@@ -131,7 +141,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
     } else {
       console.log('⚠️ この記事の専用X投稿文がありません。共通告知画面を開きます...');
       const fallbackUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('最新OSS徹底解剖レポートを公開しました！\nhttps://ssk0224.github.io/auto-tech-radar/\n#OSS #AutoTechRadar')}`;
-      exec(`start "" "${fallbackUrl}"`);
+      openUrl(fallbackUrl);
     }
   }
 });
