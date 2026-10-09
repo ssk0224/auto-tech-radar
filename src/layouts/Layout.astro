@@ -642,12 +642,33 @@ if (isArticle) {
           }
 
           const firstH1 = article.querySelector('h1');
+          
+          // ⚡ 30秒エグゼクティブ・サマリー（Executive Summary Box）
+          const firstP = article.querySelector('p');
+          const summaryText = firstP ? firstP.textContent.slice(0, 240) + '...' : '';
+          const summaryBox = document.createElement('div');
+          summaryBox.style.cssText = 'background: rgba(30, 41, 59, 0.7); border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 1.1rem 1.3rem; margin: 1.5rem 0;';
+          summaryBox.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; color: #60a5fa; font-weight: 700; font-size: 0.92rem;">
+              <span>⚡ 30秒エグゼクティブ・サマリー（結論 ＆ 商用要点）</span>
+            </div>
+            <p style="margin: 0; font-size: 0.92rem; color: #e2e8f0; line-height: 1.65;">
+              ${summaryText}
+            </p>
+            <div style="display: flex; gap: 1rem; margin-top: 0.8rem; font-size: 0.8rem; color: #94a3b8; flex-wrap: wrap;">
+              <span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>
+              <span>💡 商用リスク: PRO分析セクション参照</span>
+            </div>
+          `;
+
           if (firstH1) {
             firstH1.insertAdjacentElement('afterend', metaBar);
-            metaBar.insertAdjacentElement('afterend', tocBox);
+            metaBar.insertAdjacentElement('afterend', summaryBox);
+            summaryBox.insertAdjacentElement('afterend', tocBox);
           } else {
             article.insertBefore(metaBar, article.firstChild);
-            metaBar.insertAdjacentElement('afterend', tocBox);
+            metaBar.insertAdjacentElement('afterend', summaryBox);
+            summaryBox.insertAdjacentElement('afterend', tocBox);
           }
         }
       }
