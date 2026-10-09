@@ -1,0 +1,21 @@
+---
+import Layout from "../layouts/Layout.astro";
+const postModules = import.meta.glob("./radar/*.md", { eager: true });
+const posts = Object.values(postModules) as any[];
+---
+<Layout title="Auto Tech Radar | 海外OSS日本語インデックス">
+  <main>
+    <h2>最新ピックアップ</h2>
+    {posts.length === 0 ? (
+      <p>現在インデックスを準備中です。</p>
+    ) : (
+      posts.reverse().map((post) => (
+        <article class="post-card">
+          <h3><a href={post.url}>{post.frontmatter?.title || post.file}</a></h3>
+          <p>{post.frontmatter?.description}</p>
+          <small>公開日: {post.frontmatter?.pubDate || "本日"}</small>
+        </article>
+      ))
+    )}
+  </main>
+</Layout>
