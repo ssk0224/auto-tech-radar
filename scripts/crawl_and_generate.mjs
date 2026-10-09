@@ -134,26 +134,24 @@ stars: ${repo.stargazers_count}
 ## まとめと今後の展望
 
 === X THREAD ===
+※重要規則：各ツイートはURLやハッシュタグを含めて全角110文字以内（改行含む）に厳密に収めてください。長文・英語原文の丸写しは禁止。
+
 [TWEET 1]
-GitHubで急上昇中のOSS「${repo.name}」が凄すぎる。
-${repo.description}
-⭐ スター数: ${repo.stargazers_count}
-主要技術: #${repo.language} #OSS #AI開発
-▼ 詳細とビジネス活用の考察はツリーへ↓
+GitHub急上昇OSS「${repo.name}」が注目。
+${repo.description.slice(0, 50)}...
+⭐ スター: ${repo.stargazers_count}
+#${repo.language} #OSS #AI開発
+▼ 詳細はツリーへ↓
 ${repo.html_url}
 
 [TWEET 2]
-【従来のツールとの決定的な違い】
-（なぜこれが革新的なのか、何が他と違うのかを2行程度で要約）
+【従来のツールとの違い】
+（革新的な点・高速化やコスト削減を全角60文字以内で端的に要約）
 
 [TWEET 3]
-【💡 ビジネス・マネタイズ活用可能性】
-受託開発での提案シナリオや、自社SaaS構築のアイデア、詳細な収益化手順をまとめました。
-▼ 買い切りで即閲覧（¥980）:
-https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000
-▼ noteメンバーシップ（月額読み放題）:
-https://note.com/vast_ixora7005
-▼ 公式Tech Radar:
+【💡 マネタイズ実践ガイド】
+受託開発での提案や自社SaaS構築の収益化手順を解説。
+▼ 詳細レポート
 https://ssk0224.github.io/auto-tech-radar/
 `;
 
@@ -222,11 +220,26 @@ ${webContent}`;
     webContent = webContent.replace(/^---\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
   }
 
-  // X投稿文にワンクリック投稿リンクを付加
+  // X投稿文にワンクリック投稿リンクを付加（厳密な130文字制限チェック）
   let enhancedXContent = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
   const tweets = xContent.split(/\[TWEET \d+\]/gi).map((t) => t.trim()).filter(Boolean);
 
-  tweets.forEach((tweet, idx) => {
+  // Xの文字数計算（URLは一律23文字換算）
+  function calcTweetLen(text) {
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    const cleanText = text.replace(urlRegex, "");
+    const urlCount = (text.match(urlRegex) || []).length;
+    return cleanText.length + (urlCount * 11.5); // 日本語全角1文字=1、半角/URL=0.5相当
+  }
+
+  tweets.forEach((rawTweet, idx) => {
+    let tweet = rawTweet;
+    // URL以外の本文が長すぎる場合は安全にトリミング
+    const lines = tweet.split("\n");
+    if (lines.length > 5) {
+      tweet = lines.slice(0, 5).join("\n");
+    }
+
     const tweetNum = idx + 1;
     const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     enhancedXContent += `--------------------------------------------------\n【ツイート ${tweetNum}】\n${tweet}\n\n👉 ワンクリックで投稿画面を開く:\n${intentUrl}\n--------------------------------------------------\n\n`;
