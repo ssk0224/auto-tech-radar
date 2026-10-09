@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="transparent" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+
+  <!-- Grid lines -->
+  <g opacity="0.06" stroke="#ffffff" stroke-width="1">
+    <line x1="0" y1="126" x2="1200" y2="126" />
+    <line x1="0" y1="252" x2="1200" y2="252" />
+    <line x1="0" y1="378" x2="1200" y2="378" />
+    <line x1="0" y1="504" x2="1200" y2="504" />
+    <line x1="240" y1="0" x2="240" y2="630" />
+    <line x1="480" y1="0" x2="480" y2="630" />
+    <line x1="720" y1="0" x2="720" y2="630" />
+    <line x1="960" y1="0" x2="960" y2="630" />
+  </g>
+
+  <!-- Brand Badge Top Left -->
+  <g transform="translate(80, 75)">
+    <rect width="280" height="38" rx="19" fill="#1e293b" stroke="#3b82f6" stroke-width="1.2" />
+    <text x="140" y="24" fill="#60a5fa" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="1">⚡ AUTO TECH RADAR</text>
+  </g>
+
+  <!-- Star Metric Badge Top Right -->
+  <g transform="translate(900, 75)">
+    <rect width="220" height="38" rx="19" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.2" />
+    <text x="110" y="24" fill="#fbbf24" font-family="monospace" font-size="16" font-weight="700" text-anchor="middle">★ 15,739</text>
+  </g>
+
+  <!-- Main Repo Title -->
+  <text x="80" y="220" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="64" font-weight="900" letter-spacing="-1">
+    OpenSandbox
+  </text>
+
+  <!-- Sub Title -->
+  <text x="80" y="295" fill="url(#brand)" font-family="-apple-system, sans-serif" font-size="34" font-weight="800">
+    海外急上昇OSS 徹底解剖 ＆ 商用受託・SaaS活用法
+  </text>
+
+  <!-- Description -->
+  <text x="80" y="375" fill="#94a3b8" font-family="-apple-system, sans-serif" font-size="22" font-weight="500">
+    Secure, Fast, and Extensible Sandbox runtime for AI agents....
+  </text>
+
+  <!-- Bottom Badges -->
+  <g transform="translate(80, 480)">
+    <rect x="0" y="0" width="220" height="48" rx="8" fill="#111827" stroke="#10b981" stroke-width="1.2" />
+    <text x="110" y="30" fill="#34d399" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle">受託単価 ¥80万〜250万</text>
+
+    <rect x="240" y="0" width="220" height="48" rx="8" fill="#111827" stroke="#6366f1" stroke-width="1.2" />
+    <text x="350" y="30" fill="#a5b4fc" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle">アーキテクチャ深層解説</text>
+
+    <rect x="480" y="0" width="240" height="48" rx="8" fill="#111827" stroke="#1f2937" stroke-width="1.2" />
+    <text x="600" y="30" fill="#cbd5e1" font-family="monospace" font-size="14" text-anchor="middle">Python ｜ OSS ｜ GitHub</text>
+  </g>
+</svg>

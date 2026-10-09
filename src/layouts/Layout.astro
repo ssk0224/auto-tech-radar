@@ -28,6 +28,12 @@ if (isArticle) {
     .slice(0, 3)
     .map(item => item.post);
 }
+
+// 動的OGP画像
+const currentSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || '';
+const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar') 
+  ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.svg` 
+  : "https://ssk0224.github.io/auto-tech-radar/og-card.svg";
 ---
 <!doctype html>
 <html lang="ja">
@@ -40,13 +46,13 @@ if (isArticle) {
     <meta property="og:description" content={pageDesc} />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Auto Tech Radar" />
-    <meta property="og:image" content="https://ssk0224.github.io/auto-tech-radar/og-card.svg" />
+    <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@AutoTechRadar" />
     <meta name="twitter:creator" content="@AutoTechRadar" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
-    <meta name="twitter:image" content="https://ssk0224.github.io/auto-tech-radar/og-card.svg" />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="canonical" href={`https://ssk0224.github.io${Astro.url.pathname}`} />
     <link rel="alternate" type="application/rss+xml" title="Auto Tech Radar RSS Feed" href="https://ssk0224.github.io/auto-tech-radar/rss.xml" />
     {isArticle ? (
@@ -643,10 +649,13 @@ if (isArticle) {
                 <span>現在 <strong>${Math.floor(Math.random() * 8) + 12} 名</strong>が閲覧・研究中</span>
               </span>
             </div>
-            <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center;">
+            <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
               <button id="copy-url-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer;">
                 🔗 URLコピー
               </button>
+              <a href="https://b.hatena.ne.jp/entry/${encodeURIComponent(pageUrl)}" target="_blank" style="background: rgba(0, 164, 222, 0.15); border: 1px solid rgba(0, 164, 222, 0.4); color: #38bdf8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center; font-weight: 700;">
+                🅱️ はてブ
+              </a>
               <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle + '\n' + pageUrl + '\n#OSS #AutoTechRadar')}" target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center;">
                 𝕏 ポスト
               </a>

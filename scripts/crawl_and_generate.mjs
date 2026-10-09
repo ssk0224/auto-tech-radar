@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
+import { generateOgCardForPost } from "./generate_og_cards.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -315,6 +316,19 @@ async function run() {
 
       fs.writeFileSync(xFile, result.x, "utf8");
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
+
+      try {
+        generateOgCardForPost({
+          slug,
+          title: repo.name,
+          stars: repo.stargazers_count,
+          tags: [repo.language, "OSS"],
+          desc: repo.description
+        });
+        console.log(`✓ 個別OGPカード（SVG）自動生成完了: public/ogp/${slug}.svg`);
+      } catch (ogpErr) {
+        console.warn(`OGP生成スキップ: ${ogpErr.message}`);
+      }
 
       generatedCount++;
 
