@@ -91,13 +91,11 @@ rl.question('番号を入力して Enter > ', (answer) => {
   console.log(`\n選択された記事: ${selected.title}\n`);
 
   function openUrl(url) {
-    const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-    const safeUrl = url.replace(/'/g, "''");
-    if (fs.existsSync(chromePath)) {
-      exec(`powershell -NoProfile -Command "Start-Process '${chromePath}' -ArgumentList '${safeUrl}'"`);
-    } else {
-      exec(`powershell -NoProfile -Command "Start-Process '${safeUrl}'"`);
-    }
+    exec(`rundll32 url.dll,FileProtocolHandler "${url}"`, (err) => {
+      if (err) {
+        exec(`start "" "${url}"`);
+      }
+    });
   }
 
   function openFile(filePath) {
