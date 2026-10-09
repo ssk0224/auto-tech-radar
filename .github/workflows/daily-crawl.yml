@@ -29,6 +29,7 @@ jobs:
 
       - run: npm ci
       - name: Run Crawler & Gemini
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,7 +47,8 @@ jobs:
             echo "No new radar entries."
           else
             git commit -m "chore: auto-index new tech radar entry"
-            git push
+            git pull --rebase origin main || true
+            git push origin main
           fi
 
       - name: Setup Pages
