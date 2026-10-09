@@ -108,14 +108,22 @@ rl.question('番号を入力して Enter > ', (answer) => {
     // 2. 原稿ファイルをメモ帳等の既定エディタで直接開く
     openFile(selected.noteFile);
 
+    // 3. 記事専用のサムネイルPNGがあればエクスプローラーでハイライト表示
+    const thumbPng = path.join(rootDir, 'public', 'ogp', `${selected.slug}.png`);
+    if (fs.existsSync(thumbPng)) {
+      exec(`explorer /select,"${thumbPng}"`);
+    }
+
     console.log('===============================================================================');
-    console.log('✓ noteの新規投稿画面と、選択した原稿テキストを開きました！');
+    console.log('✓ noteの新規投稿画面、原稿テキスト、専用サムネイル画像を開きました！');
     console.log('-------------------------------------------------------------------------------');
-    console.log('【出品手順】');
-    console.log('  1. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
-    console.log('  2. note投稿画面に [Ctrl + V] で貼り付け');
-    console.log('  3. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
-    console.log('  4. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
+    console.log('【出品手順（超速1分）】');
+    console.log('  1. 開いたエクスプローラーの画像（選択中）を、note画面の「画像を追加」へドラッグ＆ドロップ！');
+    console.log('     ※プロ級サイバー調サムネが即時セットされ、クリック率が爆増します');
+    console.log('  2. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
+    console.log('  3. note投稿画面に [Ctrl + V] で貼り付け');
+    console.log('  4. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
+    console.log('  5. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
     console.log('===============================================================================\n');
   } else {
     // X拡散モード
