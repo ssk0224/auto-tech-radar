@@ -27,19 +27,49 @@ function getGithubHeaders() {
   return headers;
 }
 
-// 急上昇・トレンドリポジトリの取得
-async function fetchTrendingRepos() {
-  const query = "stars:>500 archived:false is:public";
-  const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=30`;
+// 厳格なノイズ・非プロダクト系リポジトリの排除ブラックリスト
+const NOISE_FILTER_REGEX = /(index$|core$|cask$|nixpkgs|mediawiki|awesome|interview|curriculum|roadmap|internship|cheatsheet|cheat-sheet|leetcode|tutorial|translation|locale|dotfiles|fonts|sample|dataset|collection)/i;
 
-  const res = await fetch(url, { headers: getGithubHeaders() });
-  if (!res.ok) {
-    throw new Error(`GitHub API error (${res.status}): ${res.statusText}`);
+// 急上昇・高収益OSS（AIエージェント、SaaS代替、ローカル推論基盤、マイクロSaaS）の精密取得
+async function fetchTrendingRepos() {
+  const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  // 2つの最強戦略クエリで検索
+  // 戦略1: 過去30日以内に生まれ、爆発的にスターを獲得している世界的新星OSS (Stars > 200)
+  // 戦略2: 直近アクティブなAIエージェント、SaaS代替、自律実行基盤
+  const queries = [
+    `created:>${oneMonthAgo} stars:>200 archived:false is:public`,
+    `(agent OR autonomous OR "browser-use" OR mcp OR "self-hosted" OR alternative OR vllm OR inference) stars:>400 archived:false is:public pushed:>${oneWeekAgo}`
+  ];
+
+  const candidateMap = new Map();
+
+  for (const q of queries) {
+    try {
+      const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30`;
+      const res = await fetch(url, { headers: getGithubHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        for (const item of (data.items || [])) {
+          if (!candidateMap.has(item.full_name)) {
+            candidateMap.set(item.full_name, item);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`Query search warning for "${q}": ${e.message}`);
+    }
   }
-  const data = await res.json();
-  return (data.items || []).filter(
-    (r) => r.language && r.description && r.name && !r.fork
-  );
+
+  // 厳格なフィルタリング：商用化・受託提案・SaaS化が成立する真のプロダクトのみを抽出
+  return Array.from(candidateMap.values()).filter((r) => {
+    if (!r.name || !r.description || r.fork) return false;
+    if (!r.language) return false; // 言語不明・単なるマークダウン集は除外
+    if (r.description.length < 20) return false; // 説明が短すぎるものは除外
+    if (NOISE_FILTER_REGEX.test(r.name) || NOISE_FILTER_REGEX.test(r.full_name)) return false; // パッケージ辞書・求人リスト・チートシート集を完全排除
+    return true;
+  });
 }
 
 // README の取得（最大30,000文字まで広域取得）
