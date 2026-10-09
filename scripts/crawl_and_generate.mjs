@@ -147,10 +147,14 @@ ${repo.html_url}
 （なぜこれが革新的なのか、何が他と違うのかを2行程度で要約）
 
 [TWEET 3]
-【💡 ビジネス・副業での活用可能性】
-受託開発での提案や、自社SaaS構築のアイデア、詳しい収益化手順・設定コードをまとめました。
-▼ 有料版レポート（Stripe即時閲覧）:
+【💡 ビジネス・マネタイズ活用可能性】
+受託開発での提案シナリオや、自社SaaS構築のアイデア、詳細な収益化手順をまとめました。
+▼ 買い切りで即閲覧（¥980）:
 https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000
+▼ noteメンバーシップ（月額読み放題）:
+https://note.com/vast_ixora7005
+▼ 公式Tech Radar:
+https://ssk0224.github.io/auto-tech-radar/
 `;
 
   const models = ["gemini-3.8-flash", "gemini-2.5-flash"];
