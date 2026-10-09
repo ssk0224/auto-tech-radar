@@ -13,7 +13,26 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta name="description" content={pageDesc} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDesc} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Auto Tech Radar" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@AutoTechRadar" />
+    <meta name="twitter:creator" content="@AutoTechRadar" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+    <link rel="canonical" href="https://ssk0224.github.io/auto-tech-radar/" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "NewsMediaOrganization",
+      "name": "Auto Tech Radar",
+      "url": "https://ssk0224.github.io/auto-tech-radar/",
+      "sameAs": [
+        "https://x.com/AutoTechRadar",
+        "https://note.com/vast_ixora7005",
+        "https://github.com/ssk0224/auto-tech-radar"
+      ],
+      "description": "世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説とマネタイズ指南"
+    })} />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
