@@ -29,21 +29,22 @@ stars: 2399
 - **データプライバシーの懸念**: 機密コードや社内ナレッジを外部SaaSへアップロードすることへのコンプライアンス制限。
 
 ### アーキテクチャ構成
-```text
-┌────────────────────────────────────────────────────────┐
-│               React 19 + Vite 8 UI                     │
-└───────────────────────────┬────────────────────────────┘
-                            │ Tauri IPC (Commands / Events)
-┌───────────────────────────▼────────────────────────────┐
-│      pinvou3-app (Rust Core / Desktop Orchestration)   │
-└───────────────────────────┬────────────────────────────┘
-                            │ EngineHandle / AgentHarness
-┌───────────────────────────▼────────────────────────────┐
-│          CodeWhale (Agent Core Submodule)               │
-│  ├─ Multi-LLM Routing (vLLM / OpenAI-compatible / MCP) │
-│  ├─ Knowledge Retrieval (Full-Text & Vector DB)        │
-│  └─ Execution Engine (ACP, CLI Connectors, Sandbox)   │
-└────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    UI["🖥️ React 19 + Vite 8 UI (Desktop Workspace)"]
+    IPC["⚡ Tauri 2 IPC (Commands / Events)"]
+    Core["🦀 pinvou3-app (Rust Core / Desktop Orchestration)"]
+    Engine["🐋 CodeWhale (Agent Core Engine)"]
+    LLM["🧠 Multi-LLM Routing (vLLM / Local / OpenAI)"]
+    RAG["📚 Local Knowledge (Full-Text & Vector DB)"]
+    Exec["🛡️ Safe Sandbox & MCP Tool Connectors"]
+
+    UI --> IPC
+    IPC --> Core
+    Core --> Engine
+    Engine --> LLM
+    Engine --> RAG
+    Engine --> Exec
 ```
 - **UI層とエンジン層の完全分離**: デスクトップ制御を担う`pinvou3-app`と、モデル推論・ツール呼び出し・コンテキスト圧縮を司る`CodeWhale`エンジンが疎結合に設計されており、拡張性と保守性に優れています。
 - **MCP & コネクタエコシステム**: Lark（飛書）、DingTalk、Obsidianなどの企業内ツールや、ローカル/リモートのMCPサーバーを統一管理ストアから導入可能です。
