@@ -3,19 +3,61 @@ import Layout from "../layouts/Layout.astro";
 const postModules = import.meta.glob("./radar/*.md", { eager: true });
 const posts = Object.values(postModules) as any[];
 ---
-<Layout title="Auto Tech Radar | 海外OSS日本語インデックス">
-  <main>
-    <h2>最新ピックアップ</h2>
+<Layout title="Auto Tech Radar | 海外急上昇OSS徹底解剖メディア">
+  <!-- Hero Section -->
+  <section style="margin-bottom: 2.8rem; text-align: center; padding: 2rem 1rem; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 70%); border-radius: 16px;">
+    <h2 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; line-height: 1.3; color: #fff;">
+      世界の急上昇OSSを<span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">毎朝最速で日本語解剖</span>
+    </h2>
+    <p style="font-size: 1.05rem; color: #94a3b8; max-width: 650px; margin: 0 auto 1.5rem; line-height: 1.7;">
+      GitHub Trendingの一次情報をGemini 3.8が毎朝自動クロール。技術スタックの深層分析から、受託開発・SaaS自作マネタイズの実践ロードマップまで全自動でお届けします。
+    </p>
+
+    <!-- Stat Badges -->
+    <div style="display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+      <div style="background: #111827; border: 1px solid #1f2937; padding: 0.6rem 1.2rem; border-radius: 10px;">
+        <div style="font-size: 1.4rem; font-weight: 800; color: #38bdf8;">毎朝 6:00</div>
+        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">自動更新配信 (JST)</div>
+      </div>
+      <div style="background: #111827; border: 1px solid #1f2937; padding: 0.6rem 1.2rem; border-radius: 10px;">
+        <div style="font-size: 1.4rem; font-weight: 800; color: #10b981;">100% 一次ソース</div>
+        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">GitHub公式API直結</div>
+      </div>
+      <div style="background: #111827; border: 1px solid #1f2937; padding: 0.6rem 1.2rem; border-radius: 10px;">
+        <div style="font-size: 1.4rem; font-weight: 800; color: #a855f7;">マネタイズ分析</div>
+        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">商用・SaaS化手順付属</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feed Section -->
+  <section>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.6rem;">
+      <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #f3f4f6;">📡 最新レーダー速報</h3>
+      <span style="font-size: 0.85rem; color: #64748b;">全 {posts.length} 本の技術レポート</span>
+    </div>
+
     {posts.length === 0 ? (
-      <p>現在インデックスを準備中です。</p>
+      <div style="text-align: center; padding: 3rem 1rem; background: #111827; border-radius: 12px; border: 1px solid #1f2937;">
+        <p style="color: #94a3b8; margin-bottom: 0.5rem;">毎朝6時の定時クロールで自動インデックスされます。</p>
+        <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる完全無人自動運用中</p>
+      </div>
     ) : (
       posts.reverse().map((post) => (
         <article class="post-card">
-          <h3><a href={post.url}>{post.frontmatter?.title || post.file}</a></h3>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.4rem;">
+            <h3 style="margin: 0;"><a href={post.url}>{post.frontmatter?.title || post.file}</a></h3>
+            <span class="meta-tag">{post.frontmatter?.pubDate || "本日公開"}</span>
+          </div>
           <p>{post.frontmatter?.description}</p>
-          <small>公開日: {post.frontmatter?.pubDate || "本日"}</small>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; font-size: 0.88rem;">
+            <a href={post.url} style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.2rem;">
+              日本語レポートを読む →
+            </a>
+            <span style="color: #64748b; font-size: 0.8rem;">商用利用・マネタイズ分析あり</span>
+          </div>
         </article>
       ))
     )}
-  </main>
+  </section>
 </Layout>
