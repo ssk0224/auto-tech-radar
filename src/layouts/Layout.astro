@@ -47,20 +47,45 @@ if (isArticle) {
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={pageDesc} />
     <meta name="twitter:image" content="https://ssk0224.github.io/auto-tech-radar/og-card.svg" />
-    <link rel="canonical" href="https://ssk0224.github.io/auto-tech-radar/" />
+    <link rel="canonical" href={`https://ssk0224.github.io${Astro.url.pathname}`} />
     <link rel="alternate" type="application/rss+xml" title="Auto Tech Radar RSS Feed" href="https://ssk0224.github.io/auto-tech-radar/rss.xml" />
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "NewsMediaOrganization",
-      "name": "Auto Tech Radar",
-      "url": "https://ssk0224.github.io/auto-tech-radar/",
-      "sameAs": [
-        "https://x.com/AutoTechRadar",
-        "https://note.com/vast_ixora7005",
-        "https://github.com/ssk0224/auto-tech-radar"
-      ],
-      "description": "世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説とマネタイズ指南"
-    })} />
+    {isArticle ? (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": pageTitle,
+        "description": pageDesc,
+        "url": `https://ssk0224.github.io${Astro.url.pathname}`,
+        "datePublished": frontmatter?.pubDate || "2026-10-09",
+        "author": {
+          "@type": "Organization",
+          "name": "Auto Tech Radar",
+          "url": "https://ssk0224.github.io/auto-tech-radar/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Auto Tech Radar",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://ssk0224.github.io/auto-tech-radar/og-card.svg"
+          }
+        },
+        "keywords": (frontmatter?.tags || ["OSS", "Tech"]).join(", ")
+      })} />
+    ) : (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "NewsMediaOrganization",
+        "name": "Auto Tech Radar",
+        "url": "https://ssk0224.github.io/auto-tech-radar/",
+        "sameAs": [
+          "https://x.com/AutoTechRadar",
+          "https://note.com/vast_ixora7005",
+          "https://github.com/ssk0224/auto-tech-radar"
+        ],
+        "description": "世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説とマネタイズ指南"
+      })} />
+    )}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -579,16 +604,42 @@ if (isArticle) {
             list.appendChild(li);
           });
 
-          // 読了時間バッジ
+          // 読了時間バッジ & クイック共有バー
           const textLength = article.innerText.length;
           const readMinutes = Math.max(1, Math.ceil(textLength / 600)); // 日本語約600字/分
+          const articleTitle = document.title.split('|')[0].trim();
+          const pageUrl = window.location.href;
           const metaBar = document.createElement('div');
           metaBar.className = 'reading-meta-bar';
           metaBar.innerHTML = `
-            <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
-            <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
-            <span>商用・マネタイズ分析付き</span>
+            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+              <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
+              <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
+              <span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>
+            </div>
+            <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center;">
+              <button id="copy-url-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer;">
+                🔗 URLコピー
+              </button>
+              <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle + '\n' + pageUrl + '\n#OSS #AutoTechRadar')}" target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center;">
+                𝕏 ポスト
+              </a>
+            </div>
           `;
+
+          const copyBtn = metaBar.querySelector('#copy-url-btn');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard.writeText(pageUrl).then(() => {
+                copyBtn.textContent = '完了！';
+                copyBtn.style.color = '#10b981';
+                setTimeout(() => {
+                  copyBtn.textContent = '🔗 URLコピー';
+                  copyBtn.style.color = '#94a3b8';
+                }, 2000);
+              });
+            });
+          }
 
           const firstH1 = article.querySelector('h1');
           if (firstH1) {
