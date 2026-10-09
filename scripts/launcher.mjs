@@ -165,8 +165,8 @@ function handleChoice(choice) {
       waitBack();
       break;
     case '2':
-      console.log(`\n${c.cyan}note メンバーシップ管理画面を開きます...${c.reset}`);
-      exec('start "" "https://note.com/membership"');
+      console.log(`\n${c.cyan}note メンバーシップ管理画面（ダッシュボード）を開きます...${c.reset}`);
+      exec('start "" "https://note.com/dashboard/membership"');
       waitBack();
       break;
     case '3':
