@@ -1,4 +1,5 @@
 ---
+layout: "../../layouts/Layout.astro"
 title: Homebrew Cask - macOS/Linux向けバイナリソフトウェア管理ツール
 description: Homebrew Caskは、macOSおよびLinux上でGUIアプリケーション、CLIツール、フォントなどのバイナリソフトウェアをコマンドラインから簡単にインストールおよび管理するためのHomebrew拡張です。
 pubDate: 2024-07-30
