@@ -1,0 +1,332 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
+const postModules = import.meta.glob("./radar/*.md", { eager: true });
+const posts = Object.values(postModules) as any[];
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// 4象限 & 4リングへの自動マッピングアルゴリズム
+// レポジトリのタグ・スター数・説明文から最適な象限・成熟度リングを判定
+const radarItems = posts.map(p => {
+  const front = p.frontmatter || {};
+  const title = (front.title || p.file || "").split(" - ")[0].trim();
+  const desc = front.description || "";
+  const stars = Number(front.stars) || 0;
+  const tags = (Array.isArray(front.tags) ? front.tags : []).map((t: string) => t.toLowerCase());
+  const slug = p.url.replace(/\/$/, "").split("/").pop();
+
+  // 象限 (Quadrant) 判定
+  let quadrant = 0; // 0: AI Agents, 1: LLM/Inference, 2: DevTools, 3: Backend/Systems
+  const text = (title + " " + desc + " " + tags.join(" ")).toLowerCase();
+  
+  if (text.includes("agent") || text.includes("autonomous") || text.includes("swarm") || text.includes("workflow")) {
+    quadrant = 0; // Q1: AI Agents
+  } else if (text.includes("llm") || text.includes("gpt") || text.includes("model") || text.includes("inference") || text.includes("token")) {
+    quadrant = 1; // Q2: LLM Infrastructure
+  } else if (text.includes("tool") || text.includes("cli") || text.includes("brew") || text.includes("pkg") || text.includes("terminal")) {
+    quadrant = 2; // Q3: DevTools & CLI
+  } else {
+    quadrant = 3; // Q4: Backend & Systems
+  }
+
+  // リング (Ring / 成熟度) 判定: 0: ADOPT, 1: TRIAL, 2: ASSESS, 3: HOLD
+  let ring = 1; // default TRIAL
+  if (stars >= 15000) {
+    ring = 0; // ADOPT (実戦投入推奨)
+  } else if (stars >= 5000) {
+    ring = 1; // TRIAL (先行検証推奨)
+  } else if (stars >= 1000) {
+    ring = 2; // ASSESS (注目・キャッチアップ)
+  } else {
+    ring = 3; // HOLD (様子見)
+  }
+
+  return {
+    title,
+    desc,
+    stars,
+    quadrant,
+    ring,
+    slug,
+    url: p.url,
+    tags: front.tags || []
+  };
+});
+---
+
+<Layout title="4象限インタラクティブ・テックレーダー | Auto Tech Radar" description="ThoughtWorks・ByteByteGoモデルを採用した次世代技術レーダー。世界の急上昇OSSをADOPT（本番採用）・TRIAL（検証）・ASSESS（注目）の4象限で可視化。">
+  <div style="margin-bottom: 2.5rem;">
+    <!-- ヒーローバナー -->
+    <div style="background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 75%); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 16px; padding: 2.5rem 1.5rem; text-align: center; margin-bottom: 2rem;">
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(139, 92, 246, 0.25); color: #c4b5fd; padding: 0.3rem 0.9rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; margin-bottom: 0.9rem; letter-spacing: 0.05em;">
+        <span>🎯 THOUGHTWORKS & BYTEBYTEGO MODEL</span>
+      </div>
+      <h1 style="font-size: 2.3rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
+        世界最新オープンソース <span style="background: linear-gradient(135deg, #a78bfa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4象限動態テックレーダー</span>
+      </h1>
+      <p style="font-size: 1.05rem; color: #94a3b8; max-width: 700px; margin: 0 auto 1.5rem; line-height: 1.75;">
+        GitHubで急上昇する世界のOSSを「ADOPT（本番採用推奨）」「TRIAL（PoC検証）」「ASSESS（動向注視）」の4リング × 4象限で可視化。CTO・技術顧問・リードエンジニアの意思決定を瞬時に支援します。
+      </p>
+      
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <span style="font-size: 0.82rem; background: #030712; border: 1px solid #1f2937; padding: 0.4rem 0.8rem; border-radius: 6px; color: #34d399; font-weight: 700;">🟢 ADOPT: 即戦力・本番採用</span>
+        <span style="font-size: 0.82rem; background: #030712; border: 1px solid #1f2937; padding: 0.4rem 0.8rem; border-radius: 6px; color: #60a5fa; font-weight: 700;">🔵 TRIAL: PoC・先行検証</span>
+        <span style="font-size: 0.82rem; background: #030712; border: 1px solid #1f2937; padding: 0.4rem 0.8rem; border-radius: 6px; color: #fbbf24; font-weight: 700;">🟡 ASSESS: 注目・動向調査</span>
+      </div>
+    </div>
+
+    <!-- レーダーキャンバス表示セクション -->
+    <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 1.5rem; margin-bottom: 2.5rem; position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #f8fafc; font-weight: 800;">🧭 インタラクティブ・レーダーマップ</h3>
+        <span style="font-size: 0.8rem; color: #94a3b8;">※ 点をクリックすると詳細カードが開きます</span>
+      </div>
+
+      <!-- Canvas コンテナ -->
+      <div style="width: 100%; max-width: 680px; margin: 0 auto; aspect-ratio: 1 / 1; position: relative;">
+        <canvas id="radarCanvas" width="680" height="680" style="width: 100%; height: 100%; display: block; border-radius: 50%; cursor: crosshair; background: radial-gradient(circle, #090d16 0%, #030712 100%); box-shadow: 0 0 50px rgba(59, 130, 246, 0.15); border: 2px solid #1e293b;"></canvas>
+      </div>
+
+      <!-- 選択されたOSSの詳細情報ポップアップカード -->
+      <div id="radar-detail-card" style="display: none; margin-top: 1.5rem; background: rgba(30, 41, 59, 0.95); border: 1px solid #3b82f6; border-radius: 12px; padding: 1.2rem; backdrop-filter: blur(12px); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+          <div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem;">
+              <span id="detail-ring-badge" style="font-size: 0.72rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px;"></span>
+              <span id="detail-quadrant-badge" style="font-size: 0.72rem; color: #94a3b8; font-family: 'JetBrains Mono', monospace;"></span>
+            </div>
+            <h4 id="detail-title" style="margin: 0 0 0.4rem; font-size: 1.25rem; color: #fff; font-weight: 800;"></h4>
+            <p id="detail-desc" style="margin: 0 0 0.8rem; font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;"></p>
+          </div>
+          <a id="detail-link" href="#" style="background: #2563eb; color: #fff; padding: 0.6rem 1.1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; text-decoration: none; white-space: nowrap;">
+            完全解剖レポートへ →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 象限別ブレークダウンテーブル -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 14px; padding: 1.5rem;">
+      <h3 style="margin: 0 0 1.2rem; font-size: 1.25rem; color: #fff; font-weight: 800;">
+        📊 象限別・全OSSステータス早見表
+      </h3>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem;">
+        <!-- Q1: AI Agents -->
+        <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.8rem; color: #38bdf8; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
+            🤖 Q1: AI Agents & 自律システム
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {radarItems.filter(item => item.quadrant === 0).map(item => (
+              <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
+                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Q2: LLM & Local Inference -->
+        <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.8rem; color: #a78bfa; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
+            ⚡ Q2: LLM・ローカル推論基盤
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {radarItems.filter(item => item.quadrant === 1).map(item => (
+              <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
+                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Q3: DevTools & CLI -->
+        <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.8rem; color: #34d399; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
+            🛠️ Q3: Developer Tools & CLI
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {radarItems.filter(item => item.quadrant === 2).map(item => (
+              <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
+                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Q4: Backend & Systems -->
+        <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
+          <h4 style="margin: 0 0 0.8rem; color: #fbbf24; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
+            🦀 Q4: Next-Gen Systems & Rust
+          </h4>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {radarItems.filter(item => item.quadrant === 3).map(item => (
+              <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
+                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ items: radarItems }}>
+    // Canvas インタラクティブ描画ロジック
+    const canvas = document.getElementById('radarCanvas');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      const size = 680;
+      const center = size / 2;
+      const radius = center - 40;
+
+      const rings = [
+        { label: 'ADOPT', r: radius * 0.35, color: 'rgba(16, 185, 129, 0.15)', stroke: '#10b981' },
+        { label: 'TRIAL', r: radius * 0.65, color: 'rgba(59, 130, 246, 0.08)', stroke: '#3b82f6' },
+        { label: 'ASSESS', r: radius * 0.95, color: 'rgba(245, 158, 11, 0.05)', stroke: '#f59e0b' },
+      ];
+
+      // 各アイテムの座標を事前計算
+      const placedItems = items.map((item, idx) => {
+        let baseR = 0;
+        if (item.ring === 0) baseR = radius * (0.12 + Math.random() * 0.18);
+        else if (item.ring === 1) baseR = radius * (0.38 + Math.random() * 0.22);
+        else baseR = radius * (0.68 + Math.random() * 0.22);
+
+        // 象限ごとの角度範囲 (Q0: 0~90°, Q1: 90~180°, Q2: 180~270°, Q3: 270~360°)
+        const qOffset = item.quadrant * (Math.PI / 2);
+        const angle = qOffset + 0.15 + (Math.random() * (Math.PI / 2 - 0.3));
+
+        const x = center + baseR * Math.cos(angle);
+        const y = center + baseR * Math.sin(angle);
+        return { ...item, x, y };
+      });
+
+      let hoveredItem = null;
+
+      function drawRadar() {
+        ctx.clearRect(0, 0, size, size);
+
+        // 背景同心円
+        for (let i = rings.length - 1; i >= 0; i--) {
+          const ring = rings[i];
+          ctx.beginPath();
+          ctx.arc(center, center, ring.r, 0, Math.PI * 2);
+          ctx.fillStyle = ring.color;
+          ctx.fill();
+          ctx.strokeStyle = ring.stroke;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // リングラベル
+          ctx.font = '600 11px JetBrains Mono, monospace';
+          ctx.fillStyle = ring.stroke;
+          ctx.fillText(ring.label, center + 6, center - ring.r + 14);
+        }
+
+        // 十字線 (4象限の分割線)
+        ctx.beginPath();
+        ctx.moveTo(center, center - radius);
+        ctx.lineTo(center, center + radius);
+        ctx.moveTo(center - radius, center);
+        ctx.lineTo(center + radius, center);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 各アイテム（Blip）の描画
+        placedItems.forEach(item => {
+          const isHover = hoveredItem && hoveredItem.title === item.title;
+          ctx.beginPath();
+          ctx.arc(item.x, item.y, isHover ? 8 : 5, 0, Math.PI * 2);
+
+          let color = '#34d399';
+          if (item.ring === 1) color = '#60a5fa';
+          else if (item.ring === 2) color = '#fbbf24';
+
+          ctx.fillStyle = color;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = isHover ? 16 : 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // ホバー時はテキストラベル表示
+          if (isHover) {
+            ctx.font = '700 13px Inter, Noto Sans JP, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(item.title, item.x + 10, item.y - 10);
+          }
+        });
+      }
+
+      drawRadar();
+
+      // インタラクション: マウス移動 & クリック
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        let found = null;
+        for (let item of placedItems) {
+          const dist = Math.hypot(item.x - mx, item.y - my);
+          if (dist < 12) {
+            found = item;
+            break;
+          }
+        }
+
+        if (found !== hoveredItem) {
+          hoveredItem = found;
+          canvas.style.cursor = found ? 'pointer' : 'crosshair';
+          drawRadar();
+        }
+      });
+
+      canvas.addEventListener('click', () => {
+        if (hoveredItem) {
+          const card = document.getElementById('radar-detail-card');
+          const titleEl = document.getElementById('detail-title');
+          const descEl = document.getElementById('detail-desc');
+          const ringEl = document.getElementById('detail-ring-badge');
+          const quadEl = document.getElementById('detail-quadrant-badge');
+          const linkEl = document.getElementById('detail-link');
+
+          if (card && titleEl && descEl && ringEl && quadEl && linkEl) {
+            card.style.display = 'block';
+            titleEl.textContent = hoveredItem.title;
+            descEl.textContent = hoveredItem.desc;
+
+            const ringLabels = ['ADOPT (本番採用)', 'TRIAL (先行検証)', 'ASSESS (注目調査)'];
+            const ringColors = ['#10b981', '#3b82f6', '#f59e0b'];
+            ringEl.textContent = ringLabels[hoveredItem.ring] || 'TRIAL';
+            ringEl.style.background = ringColors[hoveredItem.ring] || '#3b82f6';
+            ringEl.style.color = '#fff';
+
+            const quadLabels = ['AI Agents', 'LLM Infrastructure', 'DevTools & CLI', 'Backend & Systems'];
+            quadEl.textContent = `象限: ${quadLabels[hoveredItem.quadrant]}`;
+            linkEl.href = hoveredItem.url;
+
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      });
+    }
+  </script>
+</Layout>
