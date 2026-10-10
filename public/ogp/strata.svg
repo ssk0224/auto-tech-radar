@@ -115,7 +115,7 @@
 
     <!-- バッジ 3: 技術タグ -->
     <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.2" />
-    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">C++ ｜ OSS</text>
+    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">C++ ｜ OSS ｜ GitHub</text>
 
     <!-- バッジ 4: PRO限定 -->
     <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.2" />
