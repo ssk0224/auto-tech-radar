@@ -14,7 +14,7 @@ const historyFile = path.join(__dirname, 'publish_history.json');
 // 起動時にリモート（GitHub Actionsが朝自動巡回生成した最新レポート）を自動同期
 try {
   process.stdout.write('🔄 最新のリモート原稿・レポートを自動同期中 (Git Pull)... ');
-  execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
+  execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
   console.log('✓ 完了\n');
 } catch (e) {
   console.log('(オフライン/スキップ)\n');
@@ -47,6 +47,19 @@ function openUrl(url) {
 
 function openFile(filePath) {
   exec(`start "" "${filePath}"`);
+}
+
+// サムネイル画像をクリップボードに直接コピー（note画面でCtrl+V即貼り付け可能にする）
+function copyImageToClipboard(imagePath) {
+  if (!fs.existsSync(imagePath)) return false;
+  try {
+    const escaped = imagePath.replace(/'/g, "''");
+    const psCmd = `Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; [System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile('${escaped}'))`;
+    execSync(`powershell -NoProfile -Command "${psCmd}"`, { stdio: 'ignore', timeout: 4000 });
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 // 投稿履歴の読み込み・保存
@@ -305,11 +318,37 @@ function runPublishHelper(mode) {
       openUrl("https://note.com/notes/new");
       openFile(selected.noteFile);
 
+      // 記事専用のサムネイルPNG（OGPカード）
+      const thumbPng = path.join(rootDir, 'public', 'ogp', `${selected.slug}.png`);
+      let hasImage = false;
+      let copiedToClip = false;
+
+      if (fs.existsSync(thumbPng)) {
+        hasImage = true;
+        // 1. 画像ビューアで直接プレビュー表示
+        openFile(thumbPng);
+        // 2. エクスプローラーで画像ファイルを自動選択・ハイライト
+        exec(`explorer /select,"${thumbPng}"`);
+        // 3. クリップボードに画像を自動コピー（note見出し画像でCtrl+V即貼り付け可能）
+        copiedToClip = copyImageToClipboard(thumbPng);
+      }
+
       console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
       console.log(`  ${c.green}✓ note新規投稿画面 と 原稿テキスト（${selected.slug}）を開きました！${c.reset}`);
-      console.log(`  ${c.yellow}※ この記事は「出品済み [✓]」としてステータスを自動記録しました。${c.reset}`);
+      if (hasImage) {
+        console.log(`  ${c.yellow}🖼️  専用サムネイル画像（${selected.slug}.png）も自動オープン ＆ エクスプローラー選択完了！${c.reset}`);
+        if (copiedToClip) {
+          console.log(`  ${c.cyan}📋 【神機能】サムネイル画像をクリップボードに自動コピーしました！${c.reset}`);
+        }
+      }
+      console.log(`  ${c.dim}※ この記事は「出品済み [✓]」としてステータスを自動記録しました。${c.reset}`);
       console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
-      console.log(`  ${c.bold}【出品手順 (約30秒)】${c.reset}`);
+      console.log(`  ${c.bold}【出品手順 (最短30秒)】${c.reset}`);
+      if (hasImage) {
+        console.log(`  ${c.yellow}0. [見出し画像の設定]${c.reset}`);
+        console.log(`     ・noteの「画像を追加」をクリックして ${c.cyan}[Ctrl + V]${c.reset}（クリップボードから即貼付け）`);
+        console.log(`     ・または、自動で開いたフォルダから画像をドラッグ＆ドロップ！`);
+      }
       console.log(`  1. 開いたメモ帳で ${c.cyan}[Ctrl + A]${c.reset} → ${c.cyan}[Ctrl + C]${c.reset} で全コピー`);
       console.log(`  2. note投稿画面に ${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
       console.log(`  3. 「有料エリア」の手前で「有料ライン」を挿入`);
