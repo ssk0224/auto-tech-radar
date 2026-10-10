@@ -1,15 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <!-- ダイナミック・オーロラグラデーション背景 -->
+    <!-- 多層ディープグラデーション背景 -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#041d14" />
-      <stop offset="50%" stop-color="#083a27" />
-      <stop offset="100%" stop-color="#010d08" />
+      <stop offset="0%" stop-color="#031710" />
+      <stop offset="50%" stop-color="#073322" />
+      <stop offset="100%" stop-color="#010c08" />
     </linearGradient>
 
-    <!-- テーマ別アクセントグラデーション -->
+    <!-- 主役アクセントグラデーション -->
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#34d399" />
+      <stop offset="60%" stop-color="#10b981" />
       <stop offset="100%" stop-color="#059669" />
     </linearGradient>
 
@@ -19,106 +20,103 @@
       <stop offset="100%" stop-color="#fbbf24" />
     </linearGradient>
 
-    <!-- オーロラグロー効果 -->
-    <radialGradient id="glowTop" cx="80%" cy="15%" r="65%">
-      <stop offset="0%" stop-color="#10b981" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="transparent" />
-    </radialGradient>
-    <radialGradient id="glowBottom" cx="20%" cy="85%" r="55%">
-      <stop offset="0%" stop-color="#059669" stop-opacity="0.25" />
+    <!-- 特注オーロラグロー効果（記事ごとに照射角度・位置が変動） -->
+    <radialGradient id="glowDynamic" cx="74%" cy="27%" r="60%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.4" />
       <stop offset="100%" stop-color="transparent" />
     </radialGradient>
 
-    <!-- クロップ用シャドウフィルタ -->
+    <!-- ドロップシャドウ -->
     <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.65"/>
     </filter>
   </defs>
 
-  <!-- Background Base -->
+  <!-- Background Layer -->
   <rect width="1200" height="630" fill="url(#bg)" />
-  <rect width="1200" height="630" fill="url(#glowTop)" />
-  <rect width="1200" height="630" fill="url(#glowBottom)" />
+  <rect width="1200" height="630" fill="url(#glowDynamic)" />
 
-  <!-- 外枠ネオンストローク（高級感・ブランドフレーム） -->
-  <rect x="20" y="20" width="1160" height="590" rx="16" fill="none" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.4" />
+  <!-- 記事個別ジェネレーティブ・ハイテク背景パターン -->
+  
+        <g opacity="0.12" fill="#34d399">
+          <rect x="150" y="180" width="3" height="80" rx="1.5" />
+          <rect x="180" y="150" width="3" height="140" rx="1.5" />
+          <rect x="210" y="200" width="3" height="50" rx="1.5" />
+          <rect x="240" y="160" width="3" height="120" rx="1.5" />
+          <rect x="960" y="170" width="3" height="110" rx="1.5" />
+          <rect x="990" y="140" width="3" height="160" rx="1.5" />
+          <rect x="1020" y="190" width="3" height="70" rx="1.5" />
+          <rect x="1050" y="160" width="3" height="130" rx="1.5" />
+        </g>
+      
 
-  <!-- ハイテク背景グリッド -->
-  <g opacity="0.07" stroke="#ffffff" stroke-width="1">
-    <line x1="0" y1="126" x2="1200" y2="126" />
-    <line x1="0" y1="252" x2="1200" y2="252" />
-    <line x1="0" y1="378" x2="1200" y2="378" />
-    <line x1="0" y1="504" x2="1200" y2="504" />
-    <line x1="200" y1="0" x2="200" y2="630" />
-    <line x1="400" y1="0" x2="400" y2="630" />
-    <line x1="600" y1="0" x2="600" y2="630" />
-    <line x1="800" y1="0" x2="800" y2="630" />
-    <line x1="1000" y1="0" x2="1000" y2="630" />
-  </g>
+  <!-- 外枠プレミアムフレーム（ネオンデュアルライン） -->
+  <rect x="20" y="20" width="1160" height="590" rx="16" fill="none" stroke="#34d399" stroke-width="1.5" stroke-opacity="0.45" />
+  <rect x="25" y="25" width="1150" height="580" rx="13" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-opacity="0.08" />
 
   <!-- ヘッダー行: ブランドバッジ ＆ カテゴリ -->
-  <g transform="translate(60, 55)">
-    <rect width="360" height="42" rx="21" fill="rgba(5, 150, 105, 0.25)" stroke="#10b981" stroke-width="1.4" />
-    <text x="180" y="26" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="800" text-anchor="middle" letter-spacing="1.2">
-      ⚡ AUTO TECH RADAR ｜ DEV TOOLS / CLI
+  <g transform="translate(60, 52)">
+    <rect width="380" height="44" rx="22" fill="rgba(52, 211, 153, 0.2)" stroke="#34d399" stroke-width="1.4" />
+    <text x="190" y="28" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="15" font-weight="900" text-anchor="middle" letter-spacing="1.2">
+      ⚡ AUTO TECH RADAR ｜ DEV INFRA &amp; CLI SUITE
     </text>
   </g>
 
   <!-- ヘッダー右: ゴールドスターメガバッジ -->
-  <g transform="translate(930, 55)">
-    <rect width="210" height="42" rx="21" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.4" />
-    <text x="105" y="27" fill="#fbbf24" font-family="'JetBrains Mono', monospace, sans-serif" font-size="18" font-weight="900" text-anchor="middle">急上昇</text>
+  <g transform="translate(930, 52)">
+    <rect width="210" height="44" rx="22" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.5" />
+    <text x="105" y="28" fill="#fbbf24" font-family="'JetBrains Mono', 'Segoe UI', monospace, sans-serif" font-size="19" font-weight="900" text-anchor="middle">急上昇</text>
   </g>
 
-  <!-- 巨大テックモノグラム・3Dシンボルブロック（視覚的アイキャッチ） -->
-  <g transform="translate(60, 140)">
-    <rect width="110" height="110" rx="22" fill="#0d1117" stroke="#34d399" stroke-width="2.5" filter="url(#cardShadow)" />
-    <text x="55" y="58" font-size="40" text-anchor="middle" dominant-baseline="central">🛠️</text>
-    <text x="55" y="94" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="800" text-anchor="middle">HO</text>
+  <!-- 巨大3Dモノグラム＆シンボル（左アイキャッチブロック） -->
+  <g transform="translate(60, 135)">
+    <rect width="115" height="115" rx="24" fill="#0d1117" stroke="#34d399" stroke-width="2.6" filter="url(#cardShadow)" />
+    <text x="57" y="60" font-size="44" text-anchor="middle" dominant-baseline="central">🛠️</text>
+    <text x="57" y="98" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="900" text-anchor="middle">HO</text>
   </g>
 
-  <!-- メインタイトル（リポジトリ名） -->
-  <g transform="translate(195, 175)">
-    <text x="0" y="0" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="900" letter-spacing="-0.5">
+  <!-- メインタイトル ＆ サブヘッド -->
+  <g transform="translate(205, 172)">
+    <text x="0" y="0" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="64" font-weight="900" letter-spacing="-0.5">
       Homebrew Cask
     </text>
-    <text x="0" y="44" fill="url(#accent)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="25" font-weight="800">
+    <text x="0" y="45" fill="url(#accent)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="25" font-weight="800">
       海外急上昇OSS 徹底解剖 ＆ 商用手順書
     </text>
   </g>
 
-  <!-- 【超高視認性】キラー帯（実績者が絶対に使う注目座布団バナー） -->
-  <g transform="translate(60, 285)">
-    <rect width="1080" height="64" rx="10" fill="rgba(5, 150, 105, 0.25)" stroke="#10b981" stroke-width="1.5" />
-    <rect x="0" y="0" width="8" height="64" rx="4" fill="#34d399" />
-    <text x="30" y="40" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="900">
-      💰 想定受託単価: <tspan fill="#34d399">¥80万〜¥200万</tspan> ｜ <tspan fill="#e2e8f0" font-weight="600">開発者生産性爆上げ・業務自動化ツール</tspan>
+  <!-- 【超高視認性】キラー帯（想定受託単価 ＆ 収益化モデル） -->
+  <g transform="translate(60, 282)">
+    <rect width="1080" height="66" rx="12" fill="rgba(52, 211, 153, 0.2)" stroke="#34d399" stroke-width="1.6" filter="url(#cardShadow)" />
+    <rect x="0" y="0" width="10" height="66" rx="5" fill="#34d399" />
+    <text x="32" y="42" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="900">
+      💰 想定受託単価: <tspan fill="#34d399">¥100万〜¥220万</tspan> ｜ <tspan fill="#f1f5f9" font-weight="700">エンジニア生産性極大化・モダンDevOps/環境整備</tspan>
     </text>
   </g>
 
   <!-- リポジトリ概要（抜粋） -->
   <g transform="translate(60, 395)">
-    <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500">
-      Homebrew Caskは、macOSおよびLinux上でGUIアプリケーション、CLIツール、フォントなどのバイナリソフトウェアをコ...
+    <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="500">
+      Homebrew Caskは、macOSおよびLinux上でGUIアプリケーション、CLIツール、フォントなどのバイナリソフトウェアをコマンドラ...
     </text>
   </g>
 
-  <!-- フッター実績プルーフバッジ群 -->
+  <!-- フッター実績プルーフバッジ群（4大キラープルーフ） -->
   <g transform="translate(60, 480)">
     <!-- バッジ 1: 商用SaaS活用手順 -->
-    <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#34d399" stroke-width="1.2" />
-    <text x="130" y="31" fill="#34d399" font-family="-apple-system, sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 商用SaaS化・構築手順付</text>
+    <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#34d399" stroke-width="1.3" />
+    <text x="130" y="31" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 商用SaaS化・構築手順付</text>
 
     <!-- バッジ 2: 社内稟議テンプレ -->
-    <rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.2" />
-    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 社内稟議・提案書ドラフト</text>
+    <rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.3" />
+    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 社内稟議・提案書ドラフト</text>
 
     <!-- バッジ 3: 技術タグ -->
-    <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.2" />
+    <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.3" />
     <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">Homebrew ｜ Cask ｜ macOS</text>
 
     <!-- バッジ 4: PRO限定 -->
-    <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.2" />
-    <text x="970" y="31" fill="#fbbf24" font-family="-apple-system, sans-serif" font-size="16" font-weight="800" text-anchor="middle">🔒 完全保存版 PRO</text>
+    <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.3" />
+    <text x="970" y="31" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">🔒 完全保存版 PRO</text>
   </g>
 </svg>

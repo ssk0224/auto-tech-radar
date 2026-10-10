@@ -50,5 +50,9 @@
   "strata": {
     "note": true,
     "noteAt": "2026-10-10"
+  },
+  "jev-ultrafast": {
+    "note": true,
+    "noteAt": "2026-10-10"
   }
 }
