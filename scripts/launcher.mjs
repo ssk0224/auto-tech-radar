@@ -11,6 +11,15 @@ const xDir = path.join(rootDir, 'x_posts');
 const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
 
+// 起動時にリモート（GitHub Actionsが朝自動巡回生成した最新レポート）を自動同期
+try {
+  process.stdout.write('🔄 最新のリモート原稿・レポートを自動同期中 (Git Pull)... ');
+  execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
+  console.log('✓ 完了\n');
+} catch (e) {
+  console.log('(オフライン/スキップ)\n');
+}
+
 // ANSIカラー定数（高級感あるダークターミナルUI）
 const c = {
   reset: "\x1b[0m",
