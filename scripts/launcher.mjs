@@ -167,6 +167,7 @@ function promptMenu() {
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[9]${c.reset} ${c.bold}Zenn / Qiita 向け無料バズ用ドラフトを出力する${c.reset} ${c.dim}(恒久的SEO被リンク送客)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
   console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(単発980円の入金確認)${c.reset}`);
@@ -182,7 +183,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-8) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -203,6 +204,9 @@ function handleChoice(choice) {
       break;
     case '7':
       runWeeklyThread();
+      break;
+    case '9':
+      runPublishHelper('zenn');
       break;
     case '1':
       console.log(`\n${c.cyan}Stripe ダッシュボードを開きます...${c.reset}`);

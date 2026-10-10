@@ -64,6 +64,8 @@ console.clear();
 console.log('===============================================================================');
 if (mode === 'note') {
   console.log('       📗 【note 出品セレクター】出品したい記事の番号を選んでください');
+} else if (mode === 'zenn') {
+  console.log('       🚀 【Zenn / Qiita 送客セレクター】無料バズ用記事を出力したい番号を選んでください');
 } else {
   console.log('       📱 【X 拡散セレクター】投稿・拡散したい記事の番号を選んでください');
 }
@@ -133,6 +135,56 @@ rl.question('番号を入力して Enter > ', (answer) => {
     console.log('  3. note投稿画面に [Ctrl + V] で貼り付け');
     console.log('  4. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
     console.log('  5. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
+    console.log('===============================================================================\n');
+  } else if (mode === 'zenn') {
+    // Zenn / Qiita 送客モード
+    const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${selected.slug}.md`);
+    let articleContent = '';
+    if (fs.existsSync(radarMd)) {
+      articleContent = fs.readFileSync(radarMd, 'utf8');
+      articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
+    } else {
+      articleContent = fs.readFileSync(selected.noteFile, 'utf8');
+    }
+
+    const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
+    const zennDraft = `---
+title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
+emoji: "⚡"
+type: "tech"
+topics: ["ai", "oss", "github", "architecture", "プログラミング"]
+published: true
+---
+
+${articleContent}
+
+---
+
+## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
+本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
+
+👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/)**
+`;
+
+    const zennDir = path.join(rootDir, 'zenn_drafts');
+    if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });
+    const zennFile = path.join(zennDir, `${selected.slug}_zenn.md`);
+    fs.writeFileSync(zennFile, zennDraft, 'utf8');
+
+    try {
+      execSync(`powershell -command "Get-Content -LiteralPath '${zennFile}' -Raw -Encoding UTF8 | Set-Clipboard"`);
+    } catch (e) {}
+
+    openFile(zennFile);
+    openUrl("https://zenn.dev/articles/new");
+
+    console.log('===============================================================================');
+    console.log('✓ Zenn/Qiita送客用ドラフトを生成し、クリップボードに自動コピーしました！');
+    console.log('-------------------------------------------------------------------------------');
+    console.log('【投稿手順（30秒）】');
+    console.log('  1. ブラウザで開いたZennの新規投稿画面で [Ctrl + V] を押して貼り付け');
+    console.log('  2. 「公開」を押すだけで、ZennからAuto Tech Radarへの恒久的SEO送客リンクが完成！');
+    console.log('  ※ Qiitaにも同じ文面を https://qiita.com/drafts/new でそのまま併用可能です');
     console.log('===============================================================================\n');
   } else {
     // X拡散モード

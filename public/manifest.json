@@ -1,0 +1,17 @@
+{
+  "name": "Auto Tech Radar",
+  "short_name": "TechRadar",
+  "description": "世界最先端オープンソース（OSS）徹底解剖 ＆ 収益化メディア",
+  "start_url": "/auto-tech-radar/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/auto-tech-radar/og-card.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

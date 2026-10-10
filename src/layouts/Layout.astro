@@ -56,6 +56,8 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
     <meta name="twitter:image" content={ogImage} />
     <link rel="canonical" href={`https://ssk0224.github.io${Astro.url.pathname}`} />
     <link rel="alternate" type="application/rss+xml" title="Auto Tech Radar RSS Feed" href="https://ssk0224.github.io/auto-tech-radar/rss.xml" />
+    <link rel="manifest" href={`${baseUrl}/manifest.json`} />
+    <meta name="theme-color" content="#030712" />
     {isArticle ? (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
@@ -493,6 +495,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
           <p>世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説 ＆ マネタイズ分析</p>
         </div>
         <div class="nav-links">
+          <a href={`${baseUrl}/radar-map/`} class="pill-btn" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd !important; border: 1px solid rgba(139, 92, 246, 0.5);">🎯 4象限レーダーマップ</a>
           <a href={`${baseUrl}/cheatsheet/`} class="pill-btn" style="background: rgba(16, 185, 129, 0.15); color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4);">📊 OSS比較チートシート</a>
           <a href={`${baseUrl}/expense/`} class="pill-btn" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4);">💼 経費精算ガイド</a>
           <a href={`${baseUrl}/contact/`} class="pill-btn" style="background: rgba(37, 99, 235, 0.2); color: #93c5fd !important; border: 1px solid rgba(37, 99, 235, 0.5);">📩 受託・導入相談</a>
