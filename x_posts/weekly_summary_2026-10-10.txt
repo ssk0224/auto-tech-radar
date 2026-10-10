@@ -1,55 +1,55 @@
-【完全保存版】GitHubで急上昇した最新AI＆テックOSS 7選
+【完全保存版】GitHub急上昇の最新AI＆テックOSS 7選（10月10日速報）
 
-世界のエンジニアが注目する最新OSSを「技術アーキテクチャ」「受託開発・SaaS化の狙い目」で徹底比較しました。
-新規事業のネタ帳・社内DX提案資料として役立ちます（ブックマーク推奨 📌）👇🧵
+注目: photocraft / laya など世界の最先端OSSを「技術構成」「受託開発・SaaS化の狙い目」で徹底解剖。
+新規事業のネタ帳・社内DX提案資料として即戦力です（ブックマーク推奨 📌）👇🧵
 
 --------------------------------------------------
 【1/7】photocraft (★ 35,313)
 --------------------------------------------------
-・概要: An open-source, clean-room reimplementation of Adobe Photoshop in pure Rust
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: An open-source, clean-room reimplementation ...
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/photocraft/
 
 --------------------------------------------------
 【2/7】laya (★ 31,976)
 --------------------------------------------------
-・概要: Non-autoregressive System 1 decision engine. Typed choice, score and yes/no decisions over any text in a single forward pass, in 100+ languages, with a router that picks the right checkpoint per request.
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: Non-autoregressive System 1 decision engine....
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/laya/
 
 --------------------------------------------------
 【3/7】jev-ultrafast (★ 22,480)
 --------------------------------------------------
 ・概要: 投機的意思決定とDOM最適化により最速・最安を実現する次世代Webブラウザ自律エージェント
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/
 
 --------------------------------------------------
 【4/7】Strata (★ 19,544)
 --------------------------------------------------
-・概要: Qwen3.8-Flash-Next on any consumer hardware: one-click install for Windows / Linux. Strata inference engine, OpenAI/Anthropic API on localhost, optional image input.
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: Qwen3.8-Flash-Next on any consumer hardware:...
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/strata/
 
 --------------------------------------------------
 【5/7】OpenSandbox (★ 15,739)
 --------------------------------------------------
-・概要: Secure, Fast, and Extensible Sandbox runtime for AI agents.
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: Secure, Fast, and Extensible Sandbox runtime...
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/opensandbox/
 
 --------------------------------------------------
 【6/7】homebrew-core (★ 15,615)
 --------------------------------------------------
-・概要: 🍻 Default and OSS formulae (built-from-source packages) for the package manager for everywhere
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: 🍻 Default and OSS formulae (built-from-sour...
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/homebrew-core/
 
 --------------------------------------------------
 【7/7】jiuwenswarm (★ 5,978)
 --------------------------------------------------
-・概要: JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It extends the powerful capabilities of large language models directly to your fingertips through various communication apps you use daily.
-・商用化の狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
+・概要: JiuwenSwarm is an intelligent AI Agent built...
+・狙い目: 業務自動化 / 自社DX基盤 / 独自SaaS化
 ・詳細解説: https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
 
 --------------------------------------------------

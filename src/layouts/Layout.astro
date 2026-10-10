@@ -449,12 +449,15 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
     <main>
       <slot />
 
-      <!-- ビジュアル・ペイウォール境界線（ここから先は有料会員限定） -->
-      <div class="paywall-divider">
-        <span class="paywall-badge">🔒 ここから先は Auto Tech Radar PRO 会員限定エリア</span>
-      </div>
+      <!-- ビジュアル・ペイウォール境界線（記事詳細のみ表示） -->
+      {isArticle && (
+        <div class="paywall-divider">
+          <span class="paywall-badge">🔒 ここから先は Auto Tech Radar PRO 会員限定エリア</span>
+        </div>
+      )}
 
-      <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え） -->
+      <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え：記事詳細のみ表示） -->
+      {isArticle && (
       <section class="monetization-box">
         <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
         <p>最先端OSSのアーキテクチャ詳細解説、受託開発（単価50〜100万円）への提案法、SaaS化マネタイズ実践ガイドの完全版を即時アンロック。</p>
@@ -523,6 +526,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
           </div>
         </div>
       </section>
+      )}
 
       <!-- 🏢 法人・企業向け受託開発 ＆ AIエージェント導入相談バナー -->
       {isArticle && (
