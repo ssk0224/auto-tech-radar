@@ -55,12 +55,18 @@ if (topPosts.length === 0) {
   process.exit(1);
 }
 
-const today = new Date().toISOString().split('T')[0];
+const now = new Date();
+const today = now.toISOString().split('T')[0];
+const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 const outputFile = path.join(xDir, `weekly_summary_${today}.txt`);
 
-let threadText = `【完全保存版】GitHubで急上昇した最新AI＆テックOSS 7選\n\n`;
-threadText += `世界のエンジニアが注目する最新OSSを「技術アーキテクチャ」「受託開発・SaaS化の狙い目」で徹底比較しました。\n`;
-threadText += `新規事業のネタ帳・社内DX提案資料として役立ちます（ブックマーク推奨 📌）👇🧵\n\n`;
+// X重複検知を100%回避する動的フィーチャー（上位3つの具体的なOSS名を埋め込み）
+const featuredNames = topPosts.slice(0, 3).map(p => p.title.split(' - ')[0].split(':')[0].trim()).join(' / ');
+const dateLabel = `${now.getMonth() + 1}月${now.getDate()}日`;
+
+let threadText = `【完全保存版】GitHub急上昇の最新AI＆テックOSS 7選（${dateLabel}速報）\n\n`;
+threadText += `注目: ${featuredNames} など世界の最先端OSSを「技術アーキテクチャ」「受託開発・SaaS化の狙い目」で徹底解剖。\n`;
+threadText += `新規事業のネタ帳・社内DX提案資料として即戦力です（ブックマーク推奨 📌）👇🧵\n\n`;
 
 topPosts.forEach((p, idx) => {
   const shortTitle = p.title.split(' - ')[0].split(':')[0].trim();
@@ -86,12 +92,12 @@ threadText += `#AutoTechRadar #OSS #AI #エンジニア #プログラミング\n
 
 fs.writeFileSync(outputFile, threadText, 'utf8');
 
-// 第1ツイート用Intent URL
-const firstTweet = `【完全保存版】GitHub急上昇の最新AI＆テックOSS 7選まとめ\n\n世界の最新オープンソースを「技術アーキテクチャ」「商用受託・SaaS展開性」で徹底比較。\n新規事業のネタ帳・社内DX提案資料に最適（保存推奨 📌）\n\n全一覧・チートシート👇\nhttps://ssk0224.github.io/auto-tech-radar/cheatsheet/\n\n#AutoTechRadar #OSS #AI`;
+// 第1ツイート用Intent URL（日付・注目リポジトリ名を動的注入し、X重複ポスト判定を100%防止）
+const firstTweet = `【完全保存版】GitHub急上昇の最新AI＆テックOSS 7選（${dateLabel}速報）\n\n注目: ${featuredNames} 等\n世界の最新オープンソースを「技術アーキテクチャ」「商用受託・SaaS展開性」で徹底比較。\n社内DX提案資料や新規事業のネタ帳に最適（保存推奨 📌）\n\n全一覧・チートシート👇\nhttps://ssk0224.github.io/auto-tech-radar/cheatsheet/\n\n#AutoTechRadar #OSS #AI`;
 const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(firstTweet)}`;
 
 console.log('===============================================================================');
-console.log('⚡ 【X集客ブースト】完全保存版まとめスレッドテキストを生成しました！');
+console.log(`⚡ 【X集客ブースト】完全保存版まとめスレッドテキストを発行しました！（${dateLabel} ${timeStr}版）`);
 console.log(`📄 保存先: ${outputFile}`);
 console.log('===============================================================================\n');
 
