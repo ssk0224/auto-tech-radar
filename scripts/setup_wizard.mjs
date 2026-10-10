@@ -45,22 +45,28 @@ function printHeader() {
 async function guideStripe() {
   clearScreen();
   printHeader();
-  console.log(`${C.bold}${C.green}▶ [ステップ 1/3] Stripe（自社サイト直接決済・最速入金）の開設${C.reset}`);
+  console.log(`${C.bold}${C.green}▶ [ステップ 1/3] Stripe（自社サイト直接決済・最速入金）の設定と支払いリンク発行${C.reset}`);
   console.log(`${C.dim}─────────────────────────────────────────────────────────────────────────────${C.dim}${C.reset}`);
   console.log(`Stripe は、世界標準のクレジットカード決済システムです。`);
   console.log(`自社サイト上で読者が記事を購入した際、${C.bold}${C.yellow}noteの手数料を取られずに直接あなたの銀行口座へ入金${C.reset}されます。\n`);
 
-  console.log(`${C.bold}【画面操作の手順】${C.reset}`);
-  console.log(`  ① これからブラウザで登録画面が開きます。`);
-  console.log(`  ② ${C.cyan}「Google で続行」${C.reset} またはお使いの Gmail アドレスを入力します。`);
-  console.log(`  ③ 本人確認画面で、売上を受け取る ${C.bold}あなたの銀行口座（支店名・口座番号）${C.reset} を入力します。`);
-  console.log(`  ④ 完了後、ダッシュボードの「開発者」→「APIキー」にある公開可能キー（pk_live_...）または`);
-  console.log(`     「支払いリンク（Payment Links）」で980円のリンクを作成します。\n`);
+  console.log(`${C.bold}【🎉 ビジネスプロフィール作成完了後の最終手順（3分で開通）】${C.reset}`);
+  console.log(`  ① Stripeダッシュボード（https://dashboard.stripe.com/）にアクセスします。`);
+  console.log(`  ② 左メニューの「支払い」→ ${C.cyan}「支払いリンク (Payment Links)」${C.reset} を開きます。`);
+  console.log(`  ③ 右上の ${C.bold}「＋ 新規」${C.reset} をクリックします。`);
+  console.log(`  ④ 商品設定:`);
+  console.log(`     - 商品名: ${C.yellow}Auto Tech Radar PRO${C.reset}`);
+  console.log(`     - 金額: ${C.yellow}980 円${C.reset}（1回限り）`);
+  console.log(`  ⑤ 「支払い後（確認ページ）」の設定:`);
+  console.log(`     - 「お客様を自分のウェブサイトにリダイレクト」を選択`);
+  console.log(`     - URL: ${C.cyan}https://ssk0224.github.io/auto-tech-radar/success/${C.reset}`);
+  console.log(`  ⑥ 右上の「リンクを作成」を押し、発行されたURL（https://buy.stripe.com/...）をコピー！`);
+  console.log(`  ⑦ ランチャーの ${C.bold}${C.green}メニュー[8]${C.reset} に貼り付ければ、自社サイトが全世界LIVE課金モードに突入します！\n`);
 
-  const answer = await prompt(`${C.bold}${C.yellow}👉 ブラウザで Stripe 登録画面を開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
+  const answer = await prompt(`${C.bold}${C.yellow}👉 ブラウザで Stripe ダッシュボードを開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
   if (answer.toLowerCase() !== "n") {
-    openBrowser("https://dashboard.stripe.com/register");
-    console.log(`\n${C.green}✓ ブラウザで Stripe 登録画面を開きました。${C.reset}`);
+    openBrowser("https://dashboard.stripe.com/");
+    console.log(`\n${C.green}✓ ブラウザで Stripe ダッシュボードを開きました。${C.reset}`);
   }
 
   console.log(`\n登録作業が終わったら、Enterキーを押してメニューに戻ってください。`);

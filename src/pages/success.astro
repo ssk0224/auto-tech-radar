@@ -1,9 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <Layout title="ご購入ありがとうございます | Auto Tech Radar PRO" description="Auto Tech Radar PRO のご購入が完了しました。最新の商用化コード・提案書テンプレート・深層技術レポートをお楽しみください。">
+  <script is:inline>
+    try {
+      localStorage.setItem('atr_pro_unlocked', 'true');
+      localStorage.setItem('atr_pro_unlocked_at', new Date().toISOString());
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  </script>
   <div style="max-width: 760px; margin: 2rem auto; text-align: center; padding: 2.5rem 1.5rem; background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.18) 0%, transparent 70%); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 16px;">
     
     <div style="display: inline-block; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 1.2rem;">
@@ -40,7 +49,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             月額1,980円で過去全15本以上のアーカイブ記事および毎朝6:00の新着レポートがすべて読み放題になります。
           </p>
         </div>
-        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-align: center; text-decoration: none;">
+        <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-align: center; text-decoration: none;">
           noteメンバーシップに参加 →
         </a>
       </div>
