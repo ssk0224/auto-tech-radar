@@ -3,6 +3,7 @@ import path from 'path';
 import readline from 'readline';
 import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { siteConfig } from '../src/config/site.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -147,9 +148,11 @@ function renderHeader() {
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.yellow}⚡ Auto Tech Radar${c.reset}  ${c.white}${c.bold}|  海外急上昇OSS 徹底解剖 ＆ 【月収100万円】収益化コンソール${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  const isStripeLive = siteConfig.stripePaymentUrl && !siteConfig.stripePaymentUrl.includes('00000');
+  const stripeStatus = isStripeLive ? `${c.green}● 本番開通済み${c.reset}` : `${c.yellow}△ 未設定 (メニュー[8]で登録)${c.reset}`;
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
   console.log(`  ${c.dim}未出品ストック  :${c.reset} note未出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0 本(完了)' + c.reset}  |  X未拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0 本(完了)' + c.reset}`);
-  console.log(`  ${c.dim}公式Webメディア :${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
+  console.log(`  ${c.dim}Stripe直接決済  :${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①Stripe単発 (¥980)  ②noteサブスク (¥1,980/月)  ③B2B協賛 (¥100,000〜)`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
 }
@@ -169,6 +172,7 @@ function promptMenu() {
   console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(単発980円の入金確認)${c.reset}`);
   console.log(`   ${c.white}[2] note メンバーシップ管理画面を開く ${c.dim}(月額1,980円の会員管理)${c.reset}`);
   console.log(`   ${c.white}[3] 今すぐ手動で最新OSSをクロール＆記事生成する ${c.dim}(緊急・テスト実行)${c.reset}`);
+  console.log(`   ${c.green}${c.bold}[8]${c.reset} ${c.bold}Stripe 支払いリンクURLを登録・即時反映する${c.reset} ${c.dim}(全自動LIVE開通)${c.reset}`);
 
   console.log(`\n  ${c.dim}[0] 終了${c.reset}`);
   console.log(`${c.cyan}================================================================================${c.reset}`);
@@ -178,7 +182,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-7) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-8) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -212,6 +216,9 @@ function handleChoice(choice) {
       break;
     case '3':
       runCrawlerManual();
+      break;
+    case '8':
+      updateStripeLink();
       break;
     case '0':
       console.log(`\n${c.green}終了しました。${c.reset}\n`);
@@ -411,6 +418,60 @@ function runWeeklyThread() {
     console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
   }
   waitBack();
+}
+
+function updateStripeLink() {
+  console.clear();
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  console.log(`   ${c.green}${c.bold}💳 【Stripe 支払いリンク（Payment Link）登録 ＆ 全世界LIVE即時反映】${c.reset}`);
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
+
+  console.log(`Stripeダッシュボードで作成した980円の「支払いリンク（Payment Link）」URLを登録します。`);
+  console.log(`登録すると、自社HPの全購入ボタンが更新され、GitHub Pagesへ全自動反映されます。\n`);
+  console.log(`例: https://buy.stripe.com/live_... または https://buy.stripe.com/...\n`);
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(`${c.cyan}${c.bold}Stripe支払いリンクURLを貼り付けてください (空欄でキャンセル) > ${c.reset}`, (inputUrl) => {
+    rl.close();
+    const url = inputUrl.trim();
+    if (!url) {
+      console.log(`\n${c.dim}キャンセルしました。${c.reset}`);
+      waitBack();
+      return;
+    }
+
+    if (!url.startsWith('https://buy.stripe.com/')) {
+      console.log(`\n${c.red}⚠️ URLが不正です。「https://buy.stripe.com/」で始まるリンクを指定してください。${c.reset}\n`);
+      waitBack();
+      return;
+    }
+
+    try {
+      const configPath = path.join(rootDir, 'src', 'config', 'site.js');
+      let content = fs.readFileSync(configPath, 'utf8');
+      content = content.replace(/stripePaymentUrl:\s*"[^"]*"/, `stripePaymentUrl: "${url}"`);
+      fs.writeFileSync(configPath, content, 'utf8');
+      console.log(`\n${c.green}✓ src/config/site.js を更新しました！${c.reset}`);
+
+      console.log(`\n${c.yellow}サイトのビルド＆クラウド同期（GitHub Push）を開始します...${c.reset}`);
+      execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
+      execSync('git add src/config/site.js dist', { cwd: rootDir, stdio: 'inherit' });
+      execSync('git commit -m "feat(stripe): activate live payment link"', { cwd: rootDir, stdio: 'inherit' });
+      execSync('git push', { cwd: rootDir, stdio: 'inherit' });
+
+      console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
+      console.log(`   ${c.green}${c.bold}🎉 祝！Stripe本番決済リンクの全世界LIVE反映が完了しました！${c.reset}`);
+      console.log(`   ${c.cyan}サイト訪問者が決済すると、直接あなたの銀行口座へ即時着金します！${c.reset}`);
+      console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
+    } catch (err) {
+      console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
+    }
+    waitBack();
+  });
 }
 
 // 起動

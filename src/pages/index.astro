@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
 const postModules = import.meta.glob("./radar/*.md", { eager: true });
 const posts = Object.values(postModules) as any[];
 ---
@@ -61,10 +62,10 @@ const posts = Object.values(postModules) as any[];
         <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/rss.xml`} target="_blank" style="background: #f97316; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
           📡 RSSリーダーに追加
         </a>
-        <a href="https://x.com/AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-          𝕏 公式をフォロー (@AutoTechRadar)
+        <a href={siteConfig.xAccountUrl} target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          𝕏 公式をフォロー ({siteConfig.xHandle})
         </a>
-        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+        <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
           ⚡ note メンバーシップ（読み放題）
         </a>
       </div>

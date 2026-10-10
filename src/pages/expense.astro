@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
@@ -114,8 +115,8 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       <h3 style="margin: 0 0 0.6rem; color: #fff; font-size: 1.3rem;">今すぐ会社経費で技術レポートをアンロックする</h3>
       <p style="margin: 0 0 1.2rem; color: #a5b4fc; font-size: 0.92rem;">世界の急上昇OSSの商用手順書・アーキテクチャ解説が全編読み放題になります。</p>
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
-        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">📗 noteメンバーシップで購読 (¥1,980/月)</a>
-        <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" style="background: #635bff; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">💳 Stripeで単発購入 (¥980)</a>
+        <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">📗 noteメンバーシップで購読 (¥1,980/月)</a>
+        <a href={siteConfig.stripePaymentUrl} target="_blank" style="background: #635bff; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">💳 Stripeで単発購入 (¥980)</a>
       </div>
     </div>
   </div>

@@ -1,4 +1,5 @@
 ---
+import { siteConfig } from "../config/site.js";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
@@ -545,7 +546,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                 <li>✓ 受託・自社開発マネタイズ手順書</li>
               </ul>
             </div>
-            <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">💳 Stripeで単発購入（¥980）</a>
+            <a href={siteConfig.stripePaymentUrl} target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">💳 Stripeで単発購入（¥980）</a>
           </div>
 
           <div class="price-card featured">
@@ -559,7 +560,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                 <li>✓ noteアプリで通勤・スキマ時間に通知読込</li>
               </ul>
             </div>
-            <a href="https://note.com/vast_ixora7005" target="_blank" class="cta-btn cta-note">📗 noteでメンバーシップ購読</a>
+            <a href={siteConfig.noteMembershipUrl} target="_blank" class="cta-btn cta-note">📗 noteでメンバーシップ購読</a>
           </div>
 
           <div class="price-card">
@@ -574,7 +575,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
             </div>
             <div style="display: flex; gap: 0.4rem; flex-direction: column;">
               <a href={`${baseUrl}/sponsor/`} class="cta-btn" style="background: #4338ca; color: #fff !important; font-size: 0.88rem; padding: 0.55rem;">📢 スポンサー詳細・掲載メニューを見る →</a>
-              <a href="https://x.com/AutoTechRadar" target="_blank" class="cta-btn" style="background: #000; color: #fff !important; border: 1px solid #374151; font-size: 0.82rem; padding: 0.45rem;">💬 公式𝕏のDMで相談</a>
+              <a href={siteConfig.xAccountUrl} target="_blank" class="cta-btn" style="background: #000; color: #fff !important; border: 1px solid #374151; font-size: 0.82rem; padding: 0.45rem;">💬 公式𝕏のDMで相談</a>
             </div>
           </div>
         </div>
@@ -685,8 +686,8 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
         ⚡ <span style="color: #60a5fa;">毎朝の最新OSS解体新書</span> を全編読み放題（月額1,980円）
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="https://note.com/vast_ixora7005" target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-        <a href="https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000" target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">Stripe単発(¥980)</a>
+        <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
+        <a href={siteConfig.stripePaymentUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">Stripe単発(¥980)</a>
       </div>
     </div>
 
@@ -703,9 +704,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
       <p style="margin-bottom: 0.8rem;">
         <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
         <a href={`${baseUrl}/sponsor/`} style="margin: 0 0.6rem;">📢 広告・協賛</a> |
-        <a href="https://x.com/AutoTechRadar" target="_blank" style="margin: 0 0.6rem;">公式 𝕏 (@AutoTechRadar)</a> |
-        <a href="https://note.com/vast_ixora7005" target="_blank" style="margin: 0 0.6rem;">公式 note (vast_ixora7005)</a> |
-        <a href="https://github.com/ssk0224/auto-tech-radar" target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
+        <a href={siteConfig.xAccountUrl} target="_blank" style="margin: 0 0.6rem;">公式 𝕏 ({siteConfig.xHandle})</a> |
+        <a href={siteConfig.noteMembershipUrl} target="_blank" style="margin: 0 0.6rem;">公式 note</a> |
+        <a href={siteConfig.githubUrl} target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
       </p>
       <p>© 2026 Auto Tech Radar. Powered by Gemini 3.8 & GitHub Actions.</p>
     </footer>
@@ -880,9 +881,14 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
               <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 <span style="color: #10b981; font-weight: 700;">⚡ 3秒クイック検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
               </div>
-              <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
-                コピー
-              </button>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
+                  コピー
+                </button>
+                <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ＆商用化レポート。\n80万〜250万受託開発の提案書付き👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                  🐦 𝕏 でシェア
+                </a>
+              </div>
             </div>
           `;
 
@@ -930,6 +936,51 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
             metaBar.insertAdjacentElement('afterend', summaryBox);
             summaryBox.insertAdjacentElement('afterend', tocBox);
           }
+        }
+
+        // ⚡ Pieter Levels / Gumroad 型: 即時PROアンロック＆VIP状態レンダラー
+        try {
+          const isPro = localStorage.getItem('atr_pro_unlocked') === 'true';
+          if (isPro) {
+            const paywallDivider = document.querySelector('.paywall-divider');
+            const monetizationBox = document.querySelector('.monetization-box');
+            const stickyBar = document.getElementById('sticky-bar');
+
+            if (paywallDivider) {
+              paywallDivider.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); border: 1px solid #10b981; border-radius: 9999px; padding: 0.5rem 1.4rem; display: inline-flex; align-items: center; gap: 0.5rem; color: #34d399; font-weight: 800; font-size: 0.9rem; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                  <span>⚡ VIP UNLOCKED</span>
+                  <span>Auto Tech Radar PRO 会員として完全解放中</span>
+                </div>
+              `;
+            }
+
+            if (monetizationBox) {
+              monetizationBox.style.background = 'linear-gradient(180deg, rgba(6, 78, 59, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%)';
+              monetizationBox.style.borderColor = '#10b981';
+              monetizationBox.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem 1rem;">
+                  <div style="display: inline-block; background: rgba(16, 185, 129, 0.25); color: #34d399; padding: 0.3rem 0.9rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 800; margin-bottom: 0.8rem;">
+                    🎉 プレミアム会員認証済み
+                  </div>
+                  <h3 style="color: #fff; margin: 0 0 0.5rem; font-size: 1.3rem;">Auto Tech Radar PRO の全コンテンツをご利用中です</h3>
+                  <p style="color: #94a3b8; font-size: 0.9rem; max-width: 600px; margin: 0 auto 1.2rem; line-height: 1.6;">
+                    商用化アーキテクチャ、受託開発提案テンプレート、環境構築スクリプトが制限なく閲覧可能です。
+                  </p>
+                  <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="${baseUrl}/cheatsheet/" style="background: #10b981; color: #042f2e; font-weight: 800; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">📊 全OSS商用化チートシートを開く</a>
+                    <a href="${baseUrl}/expense/" style="background: #1e293b; border: 1px solid #334155; color: #fbbf24; font-weight: 700; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">💼 会社経費精算用領収書・申請書</a>
+                  </div>
+                </div>
+              `;
+            }
+
+            if (stickyBar) {
+              stickyBar.style.display = 'none';
+            }
+          }
+        } catch (e) {
+          console.warn('PRO unlock verification error:', e);
         }
       }
 
