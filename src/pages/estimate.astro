@@ -1,0 +1,254 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
+const postModules = import.meta.glob("./radar/*.md", { eager: true });
+const posts = Object.values(postModules) as any[];
+
+const ossList = posts.map(p => {
+  const slug = p.url.replace(/\/$/, '').split('/').pop();
+  const title = (p.frontmatter?.title || slug).split(' - ')[0].trim();
+  const lang = (p.frontmatter?.tags && p.frontmatter.tags[0]) || 'AI';
+  const stars = p.frontmatter?.stars || 1000;
+  return { slug, title, lang, stars };
+}).sort((a, b) => b.stars - a.stars);
+---
+
+<Layout 
+  title="B2B受託開発・社内AI導入 即時見積もりシミュレーター | Auto Tech Radar"
+  description="急上昇OSSを活用した社内DX・AIエージェント構築・SaaS脱課金リプレイスの概算開発費用、想定工数、削減コストROIを1秒で試算できるインタラクティブシミュレーター。"
+>
+  <div style="max-width: 840px; margin: 0 auto; padding-bottom: 3rem;">
+    <!-- ヘッダー -->
+    <div style="text-align: center; margin-bottom: 2.2rem; background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 70%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 2.2rem 1.5rem;">
+      <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.8rem;">
+        🏢 法人・受託開発者向け プロフェッショナル試算ツール
+      </div>
+      <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
+        AI受託開発 ＆ 社内DX導入<br/>
+        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">即時見積もり ＆ ROIシミュレーター</span>
+      </h1>
+      <p style="font-size: 1rem; color: #94a3b8; max-width: 640px; margin: 0 auto; line-height: 1.7;">
+        世界最先端の急上昇OSSを活用した「社内専用AIエージェント構築」や「商用SaaS脱課金リプレイス」の想定受託単価、開発工数、年間コスト削減額を瞬時に自動算出します。
+      </p>
+    </div>
+
+    <!-- シミュレーター操作パネル -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 14px; padding: 1.8rem; margin-bottom: 2rem;">
+      <h3 style="margin-top: 0; font-size: 1.2rem; color: #f3f4f6; border-bottom: 1px solid #1f2937; padding-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚙️</span> ステップ 1: 導入・開発スコープの選択
+      </h3>
+
+      <!-- 1. 対象OSS選択 -->
+      <div style="margin-bottom: 1.4rem;">
+        <label style="display: block; font-weight: 700; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.5rem;">
+          ① 活用・導入したいOSS基盤
+        </label>
+        <select id="oss-select" style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.95rem; outline: none;">
+          {ossList.map(oss => (
+            <option value={oss.slug} data-stars={oss.stars}>
+              {oss.title} (★{oss.stars.toLocaleString()} / {oss.lang})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <!-- 2. 導入形態 -->
+      <div style="margin-bottom: 1.4rem;">
+        <label style="display: block; font-weight: 700; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.5rem;">
+          ② 配備環境・インフラ形態
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem;">
+          <label style="display: flex; align-items: center; gap: 0.6rem; background: #0b0f19; border: 1px solid #374151; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;">
+            <input type="radio" name="infra" value="docker" checked style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.9rem; color: #f3f4f6;">Docker / ローカル検証<br/><small style="color: #64748b;">(最短・標準環境)</small></span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.6rem; background: #0b0f19; border: 1px solid #374151; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;">
+            <input type="radio" name="infra" value="cloud" style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.9rem; color: #f3f4f6;">AWS / Azure クラウド<br/><small style="color: #64748b;">(高可用性・冗長化)</small></span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.6rem; background: #0b0f19; border: 1px solid #374151; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;">
+            <input type="radio" name="infra" value="onprem" style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.9rem; color: #f3f4f6;">社内オンプレミスGPU<br/><small style="color: #64748b;">(機密保護・完全隔離)</small></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 3. 追加カスタム要件 -->
+      <div style="margin-bottom: 1.4rem;">
+        <label style="display: block; font-weight: 700; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.5rem;">
+          ③ 開発要件・追加機能（複数選択可）
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.6rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-auth" checked style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">社内SSO / ID連携 (+¥20万)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-rag" checked style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">社内独自データRAG連携 (+¥35万)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-ui" checked style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">自社専用UI/UXカスタマイズ (+¥25万)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-sec" style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">監査ログ・セキュリティ統制 (+¥30万)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-api" style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">基幹システム/Slack/Teams連携 (+¥20万)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
+            <input type="checkbox" id="req-maint" style="accent-color: #3b82f6;" />
+            <span style="font-size: 0.85rem; color: #e2e8f0;">月次保守・モデル更新パッケージ (+¥15万/月)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 試算結果ディスプレイ（リアルタイム更新） -->
+    <div style="background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px solid #10b981; border-radius: 14px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 40px -10px rgba(16, 185, 129, 0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(16, 185, 129, 0.3); padding-bottom: 1rem;">
+        <div>
+          <span style="font-size: 0.8rem; color: #34d399; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">AI Architecture Estimate</span>
+          <h2 style="margin: 0.2rem 0 0; font-size: 1.5rem; color: #fff;">📊 試算結果サマリー</h2>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.8rem; color: #94a3b8;">想定受託・開発費用（一括）</div>
+          <div id="result-price" style="font-size: 2.2rem; font-weight: 900; color: #6ee7b7; font-family: 'JetBrains Mono', monospace;">
+            ¥1,400,000
+          </div>
+        </div>
+      </div>
+
+      <!-- 3大指標グリッド -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: #0b0f19; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">⏱️ 推定開発・導入工数</div>
+          <div id="result-timeline" style="font-size: 1.4rem; font-weight: 800; color: #38bdf8; margin-top: 0.2rem;">
+            約 1.5 ヶ月
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">要件定義〜本番配備・引継ぎ</div>
+        </div>
+        <div style="background: #0b0f19; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">💰 年間想定SaaS削減額 (ROI)</div>
+          <div id="result-roi" style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; margin-top: 0.2rem;">
+            約 ¥3,600,000 /年
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">商用課金ライセンス解約効果</div>
+        </div>
+        <div style="background: #0b0f19; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">📈 投資回収期間</div>
+          <div id="result-payback" style="font-size: 1.4rem; font-weight: 800; color: #a78bfa; margin-top: 0.2rem;">
+            約 4.7 ヶ月
+          </div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">初期費用回収後の純粋黒字化</div>
+        </div>
+      </div>
+
+      <!-- アクションボタン群 -->
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <button id="copy-proposal-btn" style="background: #10b981; color: #042f2e; border: none; padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 800; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+          📋 稟議用・見積書Markdownをコピー
+        </button>
+        <button id="print-estimate-btn" onclick="window.print()" style="background: #1e293b; border: 1px solid #334155; color: #f1f5f9; padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+          🖨️ A4見積書として印刷 / PDF保存
+        </button>
+        <a id="consult-link" href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: #2563eb; color: #fff; padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 800; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+          📩 この構成で開発・導入を無料相談する →
+        </a>
+      </div>
+    </div>
+
+    <!-- 💡 導入メリット・受託開発モデル解説 -->
+    <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem;">
+      <h3 style="margin-top: 0; font-size: 1.1rem; color: #f3f4f6;">💡 なぜ、商用SaaSではなく「急上昇OSS」の受託開発・セルフホストが最強なのか？</h3>
+      <ul style="margin: 0; padding-left: 1.3rem; color: #94a3b8; font-size: 0.9rem; line-height: 1.75;">
+        <li><strong>月額課金の完全撤廃:</strong> アカウント単位で毎月数十万〜数百万円請求される商用AIサービスを、自社クラウドやローカルGPUでセルフホスト化しランニングコストを激減。</li>
+        <li><strong>完全なデータ主権・セキュリティ:</strong> 機密コードや顧客データを外部AIベンダーへ送信せず、社内閉域ネットワーク（オンプレミス）で安全運用。</li>
+        <li><strong>独自業務フローへの完全適応:</strong> オープンソースであるため、社内基幹システムや独自DBと自由にAPI接続・UIカスタマイズ可能。</li>
+      </ul>
+    </div>
+  </div>
+
+  <script is:inline>
+    function calculateEstimate() {
+      const ossSelect = document.getElementById('oss-select');
+      const selectedOss = ossSelect.options[ossSelect.selectedIndex].text.split(' (')[0];
+      const infra = document.querySelector('input[name="infra"]:checked').value;
+
+      let basePrice = 600000;
+      let weeks = 3;
+
+      if (infra === 'cloud') {
+        basePrice += 300000;
+        weeks += 2;
+      } else if (infra === 'onprem') {
+        basePrice += 500000;
+        weeks += 3;
+      }
+
+      if (document.getElementById('req-auth').checked) { basePrice += 200000; weeks += 1; }
+      if (document.getElementById('req-rag').checked) { basePrice += 350000; weeks += 2; }
+      if (document.getElementById('req-ui').checked) { basePrice += 250000; weeks += 1.5; }
+      if (document.getElementById('req-sec').checked) { basePrice += 300000; weeks += 1.5; }
+      if (document.getElementById('req-api').checked) { basePrice += 200000; weeks += 1; }
+
+      const months = (weeks / 4).toFixed(1);
+      const annualSaving = 3600000;
+      const paybackMonths = ((basePrice / annualSaving) * 12).toFixed(1);
+
+      document.getElementById('result-price').textContent = '¥' + basePrice.toLocaleString();
+      document.getElementById('result-timeline').textContent = '約 ' + months + ' ヶ月';
+      document.getElementById('result-roi').textContent = '約 ¥' + annualSaving.toLocaleString() + ' /年';
+      document.getElementById('result-payback').textContent = '約 ' + paybackMonths + ' ヶ月';
+
+      // 相談リンク更新
+      const consultLink = document.getElementById('consult-link');
+      if (consultLink) {
+        consultLink.href = `${window.location.origin}/auto-tech-radar/contact/?plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
+      }
+    }
+
+    document.querySelectorAll('#oss-select, input[type="radio"], input[type="checkbox"]').forEach(el => {
+      el.addEventListener('change', calculateEstimate);
+    });
+
+    const copyBtn = document.getElementById('copy-proposal-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const ossSelect = document.getElementById('oss-select');
+        const selectedOss = ossSelect.options[ossSelect.selectedIndex].text.split(' (')[0];
+        const price = document.getElementById('result-price').textContent;
+        const timeline = document.getElementById('result-timeline').textContent;
+        const payback = document.getElementById('result-payback').textContent;
+
+        const md = `# 【社内稟議・概算見積書】${selectedOss} 活用・受託開発提案書\n\n` +
+          `■ 案件名: ${selectedOss} を活用した社内専用AI・DX基盤構築プロジェクト\n` +
+          `■ 概算開発・導入費用: ${price}（税別・一括納品）\n` +
+          `■ 想定開発期間: ${timeline}（要件定義〜検証配備）\n` +
+          `■ 年間コスト削減効果: 約 ¥3,600,000 /年（既存SaaS解約代替）\n` +
+          `■ 投資回収期間: ${payback}（以降はランニングコストほぼゼロ）\n\n` +
+          `■ 導入メリット:\n` +
+          `  1. 商用AIベンダーへの継続課金を撤廃し、大幅な利益率改善を実現\n` +
+          `  2. 自社専有環境での安全稼働により機密データ漏洩リスクを100%遮断\n` +
+          `  3. 業務特化型エージェントの自社資産化\n\n` +
+          `■ 試算元: Auto Tech Radar Intelligence (https://ssk0224.github.io/auto-tech-radar/estimate/)\n`;
+
+        navigator.clipboard.writeText(md).then(() => {
+          copyBtn.textContent = '✓ 提案書Markdownコピー完了！';
+          copyBtn.style.background = '#065f46';
+          copyBtn.style.color = '#34d399';
+          setTimeout(() => {
+            copyBtn.textContent = '📋 稟議用・見積書Markdownをコピー';
+            copyBtn.style.background = '#10b981';
+            copyBtn.style.color = '#042f2e';
+          }, 2500);
+        });
+      });
+    }
+
+    calculateEstimate();
+  </script>
+</Layout>
