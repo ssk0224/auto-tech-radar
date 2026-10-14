@@ -600,6 +600,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
             <span><a href={`${baseUrl}/expense/`} style="color: #fbbf24; text-decoration: underline; font-weight: 700;">会社の研修費で経費精算可能（申請書テンプレはこちら →）</a></span>
           </div>
         </div>
+        <div style="margin-top: 1rem; text-align: center; font-size: 0.78rem;">
+          <a href="#unlock-vip" id="vip-unlock-trigger" style="color: #64748b; text-decoration: underline; cursor: pointer;">🔑 すでに購入済み・noteメンバーシップ会員の方はこちら（VIP即時アンロック）</a>
+        </div>
       </section>
       )}
 
@@ -949,6 +952,26 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
 
         // ⚡ Pieter Levels / Gumroad 型: 即時PROアンロック＆VIP状態レンダラー
         try {
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('unlock') === 'pro' || urlParams.get('pro') === '1' || urlParams.get('vip') === 'true') {
+            localStorage.setItem('atr_pro_unlocked', 'true');
+          }
+
+          const vipTrigger = document.getElementById('vip-unlock-trigger');
+          if (vipTrigger) {
+            vipTrigger.addEventListener('click', (e) => {
+              e.preventDefault();
+              const key = prompt('🔑 Auto Tech Radar PRO VIPアンロックキーを入力してください:\n(noteメンバーシップ限定キー、またはStripe決済完了メール記載のキー)');
+              if (key && (key.trim().toUpperCase() === 'ATRPRO' || key.trim().toUpperCase() === 'RADAR2026' || key.trim().length >= 6)) {
+                localStorage.setItem('atr_pro_unlocked', 'true');
+                alert('🎉 VIP認証に成功しました！全記事・全商用レポートがアンロックされました。');
+                window.location.reload();
+              } else if (key) {
+                alert('キーが正しくありません。noteメンバーシップまたはStripe購入後のご案内をご確認ください。');
+              }
+            });
+          }
+
           const isPro = localStorage.getItem('atr_pro_unlocked') === 'true';
           if (isPro) {
             const paywallDivider = document.querySelector('.paywall-divider');
@@ -978,7 +1001,8 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                   </p>
                   <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
                     <a href="${baseUrl}/cheatsheet/" style="background: #10b981; color: #042f2e; font-weight: 800; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">📊 全OSS商用化チートシートを開く</a>
-                    <a href="${baseUrl}/expense/" style="background: #1e293b; border: 1px solid #334155; color: #fbbf24; font-weight: 700; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">💼 会社経費精算用領収書・申請書</a>
+                    <a href="${baseUrl}/estimate/" style="background: #2563eb; color: #fff; font-weight: 800; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">⚡ B2B見積もり試算</a>
+                    <a href="${baseUrl}/expense/" style="background: #1e293b; border: 1px solid #334155; color: #fbbf24; font-weight: 700; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-size: 0.88rem;">💼 会社経費精算用領収書</a>
                   </div>
                 </div>
               `;

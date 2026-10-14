@@ -75,9 +75,11 @@
   },
   "pdfcraft": {
     "note": true,
-    "noteAt": "2026-10-13",
+    "noteAt": "2026-10-14",
     "x": true,
-    "xAt": "2026-10-13"
+    "xAt": "2026-10-14",
+    "zenn": true,
+    "zennAt": "2026-10-14"
   },
   "dsh-our-free-model": {
     "note": true,
@@ -89,6 +91,18 @@
   },
   "magpie": {
     "note": true,
-    "noteAt": "2026-10-14"
+    "noteAt": "2026-10-14",
+    "x": true,
+    "xAt": "2026-10-14",
+    "zenn": true,
+    "zennAt": "2026-10-14"
+  },
+  "wordcraft": {
+    "note": true,
+    "noteAt": "2026-10-14",
+    "x": true,
+    "xAt": "2026-10-14",
+    "zenn": true,
+    "zennAt": "2026-10-14"
   }
 }
