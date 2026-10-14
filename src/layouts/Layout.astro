@@ -737,6 +737,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
 
       // Code blocks 1-click copy button
       document.querySelectorAll('pre').forEach((pre) => {
+        if (pre.querySelector('code.language-mermaid') || pre.classList.contains('mermaid') || pre.classList.contains('mermaid-container')) return;
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
         pre.parentNode.insertBefore(wrapper, pre);
@@ -754,9 +755,12 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
         btn.style.padding = '2px 8px';
         btn.style.fontSize = '12px';
         btn.style.cursor = 'pointer';
+        btn.style.zIndex = '5';
 
         btn.addEventListener('click', () => {
-          navigator.clipboard.writeText(pre.innerText).then(() => {
+          const codeEl = pre.querySelector('code');
+          const codeText = codeEl ? codeEl.innerText : pre.innerText;
+          navigator.clipboard.writeText(codeText.trim()).then(() => {
             btn.textContent = '完了！';
             btn.style.color = '#10b981';
             setTimeout(() => {

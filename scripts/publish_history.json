@@ -54,5 +54,41 @@
   "jev-ultrafast": {
     "note": true,
     "noteAt": "2026-10-10"
+  },
+  "filmcraft": {
+    "note": true,
+    "noteAt": "2026-10-12",
+    "x": true,
+    "xAt": "2026-10-12"
+  },
+  "lightcraft": {
+    "note": true,
+    "noteAt": "2026-10-12"
+  },
+  "compositor": {
+    "note": true,
+    "noteAt": "2026-10-12"
+  },
+  "how-to-live-better": {
+    "note": true,
+    "noteAt": "2026-10-12"
+  },
+  "pdfcraft": {
+    "note": true,
+    "noteAt": "2026-10-13",
+    "x": true,
+    "xAt": "2026-10-13"
+  },
+  "dsh-our-free-model": {
+    "note": true,
+    "noteAt": "2026-10-13"
+  },
+  "diplay": {
+    "note": true,
+    "noteAt": "2026-10-14"
+  },
+  "magpie": {
+    "note": true,
+    "noteAt": "2026-10-14"
   }
 }
