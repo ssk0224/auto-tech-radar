@@ -17,7 +17,7 @@
 - 📩 **法人・企業向け受託開発 ＆ AI導入相談窓口**: https://ssk0224.github.io/auto-tech-radar/contact/
 - 📗 **note 公式メンバーシップ（全レポート読み放題）**: https://note.com/vast_ixora7005
 - 💼 **企業研修・スキルアップ経費精算ガイド（稟議テンプレ付）**: https://ssk0224.github.io/auto-tech-radar/expense/
-- 💳 **Stripe 単発レポート即時購入（¥980）**: [Stripe即時決済](https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000)
+- 💳 **単発レポート即時購入（¥980）**: [note公式 / Stripe決済ゲートウェイ](https://note.com/vast_ixora7005)
 - 𝕏 **公式速報アカウント**: [@AutoTechRadar](https://x.com/AutoTechRadar)
 
 ---

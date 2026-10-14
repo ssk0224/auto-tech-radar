@@ -551,7 +551,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                 <li>✓ 受託・自社開発マネタイズ手順書</li>
               </ul>
             </div>
-            <a href={siteConfig.stripePaymentUrl} target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">💳 Stripeで単発購入（¥980）</a>
+            <a href={siteConfig.activeSinglePaymentUrl} target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">
+              {siteConfig.isStripeLive ? "💳 Stripeで単発購入（¥980）" : "💳 単発レポート即時購入（¥980 / note決済）"}
+            </a>
           </div>
 
           <div class="price-card featured">
@@ -695,7 +697,9 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-        <a href={siteConfig.stripePaymentUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">Stripe単発(¥980)</a>
+        <a href={siteConfig.activeSinglePaymentUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
+          {siteConfig.isStripeLive ? "Stripe単発(¥980)" : "単発購入(¥980)"}
+        </a>
       </div>
     </div>
 
