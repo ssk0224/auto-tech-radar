@@ -15,6 +15,13 @@ stars: 5224
 このリポジトリの革新性は、単なる「静的な求人リンク集」ではなく、**「Gitリポジトリをデータ配信パイプライン兼コミュニティ接点（Top-of-Funnel）として機能させ、自社SaaS（自動入力拡張機能・専用プラットフォーム）へシームレスに誘導するプロダクト主導型グロース（PLG）の完成形」** である点にあります。
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart TD
+    Scraper["GitHub API / 自動巡回ボット"] --> Repo["internships-2027 リポジトリ"]
+    Repo --> Markdown["マークダウン一覧表自動更新"]
+    Markdown --> JobSeeker["グローバルテック就活生 / エンジニア"]
+```
+
 
 ### 解決する課題
 1. **情報分散と鮮度問題**: 米国の新卒・インターン採用はWorkday、Greenhouse、Ashby、Leverなどの各種Applicant Tracking System (ATS) に分散しており、募集開始から数時間〜数日で応募締め切りとなるケースが多い。

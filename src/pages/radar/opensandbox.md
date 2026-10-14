@@ -25,6 +25,14 @@ OpenSandboxは、AIエージェント向けに設計された、セキュア、�
 *   **Extensible sandbox protocol**: 定義されたサンドボックスライフサイクルおよび実行APIに基づき、カスタムランタイム統合を構築するための拡張性を提供します。
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart TD
+    UntrustedCode["AI生成コード / 外部実行スクリプト"] --> Manager["OpenSandbox デーモン"]
+    Manager --> Cgroup["Linux Namespace / Cgroups / seccomp"]
+    Cgroup --> MicroVM["ミリ秒単位の軽量セキュア隔離環境"]
+    MicroVM --> CleanReturn["安全な実行結果のみ返却"]
+```
+
 
 ### 従来の技術スタックにおける問題点
 
@@ -117,3 +125,7 @@ OpenSandboxは、これらの課題に対し、以下の技術的アプローチ
 OpenSandboxは、AIエージェントの実行環境に特化した機能セットとパフォーマンス特性により、既存の汎用的な技術スタックや商用SaaSとは異なる優位性を提供します。
 
 | 比較項目         | OpenSandbox
+
+## 💡 ビジネス・マネタイズ活用アイデア（実践例）
+### 1. AIエージェントセキュア実行サンドボックス構築（受託: 120万〜300万円）
+AIエージェントに自動シェル実行やコードテストを許可する際、ホストOSを100%破壊から保護するエンタープライズ隔離実行環境を構築納品。

@@ -320,14 +320,15 @@ function sleep(ms) {
 }
 
 async function run() {
-  console.log("=== Auto Tech Radar Pipeline 3.0 (Web + note有料 + X一括生成) ===");
+  console.log("=== Auto Tech Radar Pipeline 4.0 (Web + note有料 + X + Zenn一括生成) ===");
   const repos = await fetchTrendingRepos();
 
   const webDir = path.resolve("src/pages/radar");
   const noteDir = path.resolve("note_drafts");
   const xDir = path.resolve("x_posts");
+  const zennDir = path.resolve("zenn_drafts");
 
-  [webDir, noteDir, xDir].forEach((dir) => {
+  [webDir, noteDir, xDir, zennDir].forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
 
@@ -343,6 +344,7 @@ async function run() {
     const webFile = path.join(webDir, `${slug}.md`);
     const noteFile = path.join(noteDir, `${slug}_note.md`);
     const xFile = path.join(xDir, `${slug}_x.txt`);
+    const zennFile = path.join(zennDir, `${slug}_zenn.md`);
 
     if (fs.existsSync(webFile)) {
       continue; // 既に生成済みの場合はスキップ
@@ -362,6 +364,28 @@ async function run() {
 
       fs.writeFileSync(xFile, result.x, "utf8");
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
+
+      // Zenn / Qiita 送客用ドラフト自動生成
+      const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, '').trim();
+      const zennDraft = `---
+title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテクチャと商用展開"
+emoji: "⚡"
+type: "tech"
+topics: ["${(repo.language || 'ai').toLowerCase()}", "oss", "github", "architecture", "プログラミング"]
+published: true
+---
+
+${cleanBody}
+
+---
+
+## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
+本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
+
+👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
+`;
+      fs.writeFileSync(zennFile, zennDraft, "utf8");
+      console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
 
       try {
         const topics = Array.isArray(repo.topics) ? repo.topics : [];

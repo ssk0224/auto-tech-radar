@@ -101,3 +101,17 @@ Homebrew Caskは、[BSD-2-Clauseライセンス](https://github.com/Homebrew/hom
 -   HomebrewおよびHomebrew Caskの開発者の名前を、特定の製品の推奨や宣伝に利用しないこと。
 
 したがって、Homebrew Caskは商用環境において自由に利用することが可能です。
+
+## アーキテクチャ図解
+```mermaid
+flowchart LR
+    Brew["brew install --cask"] --> CaskRepo["homebrew-cask リポジトリ"]
+    CaskRepo --> RubyRubyDSL["Ruby Cask DSL 解析"]
+    RubyRubyDSL --> Binary["macOS GUI App (.dmg / .pkg / .app)"]
+    Binary --> Install["自動展開 ＆ /Applications 配置"]
+```
+
+
+## 💡 ビジネス・マネタイズ活用アイデア（実践例）
+### 1. macOSエンタープライズゼロタッチキッティング自動化（受託: 80万〜150万円）
+情シス部門向けに、社員のMac端末初期設定をHomebrew CaskとMDMを連携させて1コマンドで完全自動配備するスクリプトパッケージを納品。

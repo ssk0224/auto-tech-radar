@@ -29,6 +29,15 @@ LLMやAIエージェントが高度化するにつれ、開発現場では「出
 ---
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart LR
+    User["ユーザー質問"] --> LLM["LLM (Claude / GPT / Gemini)"]
+    LLM --> AMWH["answer-me-with-html 変換エンジン"]
+    AMWH --> Template["Tailwind / CSS コンポーネント"]
+    Template --> SingleHTML["単一HTMLカード出力 (図解・表組・視覚化)"]
+    SingleHTML --> View["ブラウザ / レポート即時描画 (トークン87%削減)"]
+```
+
 
 ### 1. 解決する課題
 - **認知的オーバーロード**: 端末上のモノスペースフォントによる長文ログを読む苦痛の解消。

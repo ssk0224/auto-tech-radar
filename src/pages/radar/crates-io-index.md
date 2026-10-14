@@ -122,3 +122,11 @@ GitHubリポジトリのREADMEには明示的なライセンスファイルが�
 したがって、`crates.io-index`のデータや、それを活用したツール、サービスを商用目的で利用・開発することに法的な制約はほとんどありません。安心してビジネスに組み込むことが可能です。
 
 === SECTION ===
+
+## アーキテクチャ図解
+```mermaid
+flowchart TD
+    Cargo["Cargo CLI"] --> GitIndex["crates.io-index (Git / Sparse)"]
+    GitIndex --> Mirror["ローカル / 社内ミラーキャッシュ"]
+    Mirror --> RustBuild["高速ビルド環境 (CI/CD ＆ オンプレミス)"]
+```

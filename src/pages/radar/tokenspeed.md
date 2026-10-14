@@ -16,6 +16,21 @@ stars: 2201
 PyTorch Foundationがその革新的なアーキテクチャを高く評価し、PyTorchエコシステムに迎え入れたことからも、その技術的優位性が伺えます。また、非営利団体であるLightSeek Foundationがバックアップしており、NVIDIAやAMDといった主要なハードウェアベンダーからの強力なエンジニアリングサポートを受けている点も特筆すべきです。
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart TD
+    Client["Agent Client / API Request"] --> SMG["SMG AsyncLLM Entrypoint"]
+    subgraph ControlPlane["C++ Control Plane (FSM)"]
+        FSM["Lifecycle & KV Ownership Manager"]
+    end
+    subgraph ExecPlane["Python Execution Plane"]
+        Runtime["Inference Engine Runtime"]
+        Kernels["Modular Layered Kernels (MLA on Blackwell)"]
+    end
+    SMG --> ControlPlane
+    ControlPlane --> ExecPlane
+    ExecPlane --> Hardware["NVIDIA Blackwell / AMD ROCm GPU"]
+```
+
 
 現代のLLMアプリケーション、特に複雑なタスクを自律的に実行するエージェントAIにおいては、推論速度と安定性がビジネスの成否を大きく左右します。従来のLLM推論エンジンは、汎用性や開発の容易さを追求する一方で、エージェントワークロード特有の動的なリクエストパターンやKVキャッシュ管理の課題に対して、最適なパフォーマンスを提供しきれていないケースがありました。
 

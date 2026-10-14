@@ -13,6 +13,14 @@ stars: 1270
 GPTQModelは、大規模言語モデル（LLM）の量子化、検証、およびデプロイメントを統合的に支援する拡張可能なプラットフォームです。本ツールは、GPTQ、AWQ、ParoQuant、GGUF、FP8、EXL3、QQQといった多様な量子化手法をサポートし、NVIDIA CUDA、AMD ROCm、Huawei Ascend、Intel XPU、Apple Silicon (MPS)、およびIntel/AMD/Apple CPUといった広範なハードウェア環境での高速化推論を実現します。Hugging Face Transformers、vLLM、SGLangといった主要なLLMエコシステムとのネイティブ統合により、LLMの効率的な運用と広範なアクセシビリティを可能にします。
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart TD
+    FullModel["FP16 / BF16 重みモデル"] --> GPTQ["GPTQModel 量子化パイプライン"]
+    GPTQ --> Calibration["キャリブレーションデータセット評価"]
+    Calibration --> INT4["INT4 / INT8 高圧縮モデル"]
+    INT4 --> VRAM["GPUメモリ消費 75% 削減 / 超高速推論"]
+```
+
 
 ### 従来の技術スタックにおける問題点
 

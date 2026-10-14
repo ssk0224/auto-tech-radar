@@ -17,6 +17,14 @@ PHPで書かれ、350以上の多言語対応と比類のない堅牢性を備�
 ---
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart TD
+    User["Webブラウザ"] --> PHP["MediaWiki PHP Core"]
+    PHP --> Parser["Wikitext パーサー"]
+    PHP --> DB[(MySQL / MariaDB / PostgreSQL)]
+    PHP --> Cache["Memcached / Redis キャッシュ"]
+```
+
 
 ### 1. 解決する課題
 - **ナレッジの属人化と改ざんリスク**: 全編集履歴の不変性（イミュータブルな差分管理）により、誰が・いつ・何を編集したかを1クリックで追跡・復元可能。

@@ -15,6 +15,13 @@ stars: 15615
 このリポジトリの革新性は、Homebrewエコシステムにおけるその「デフォルト」としての地位にあります。開発者が`brew install <formula>`とコマンドを打つだけで、世界中の主要なOSSツールが手元に展開されるのは、`homebrew-core`が提供する堅牢で広範なformulae群があってこそです。これにより、開発環境のセットアップが劇的に簡素化され、生産性向上に大きく貢献しています。
 
 ## 解決する主要な課題とアーキテクチャ
+```mermaid
+flowchart LR
+    CLI["brew install <formula>"] --> Formula["Formula Ruby定義"]
+    Formula --> Bottle["ビルド済みバイナリ (Bottles)"]
+    Bottle --> Target["/opt/homebrew または /usr/local 配置"]
+```
+
 
 `homebrew-core`が解決する主要な課題は、開発者がmacOSやLinux上で必要なソフトウェアを効率的かつ一貫性のある方法でインストール・管理することです。従来のパッケージ管理では、各ソフトウェアの公式サイトからダウンロードして手動でビルドしたり、依存関係を手動で解決したりする必要があり、これは時間と労力を要する作業でした。
 
