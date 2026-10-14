@@ -88,6 +88,8 @@ if (warningCount === 0) {
 console.log('▶ [3/3] SUBAGENT 成約率(CVR) ＆ 収益化パイプライン監査...');
 const contactPage = path.join(rootDir, 'src', 'pages', 'contact.astro');
 const cheatsheetPage = path.join(rootDir, 'src', 'pages', 'cheatsheet.astro');
+const estimatePage = path.join(rootDir, 'src', 'pages', 'estimate.astro');
+const weeklyPage = path.join(rootDir, 'src', 'pages', 'weekly.astro');
 const layoutPage = path.join(rootDir, 'src', 'layouts', 'Layout.astro');
 
 let pipelineOk = true;
@@ -99,6 +101,16 @@ if (!fs.existsSync(contactPage)) {
 }
 if (!fs.existsSync(cheatsheetPage)) {
   console.error('  ❌ チートシートページ (/cheatsheet/) が存在しません');
+  pipelineOk = false;
+  errorCount++;
+}
+if (!fs.existsSync(estimatePage)) {
+  console.error('  ❌ 見積もり試算ページ (/estimate/) が存在しません');
+  pipelineOk = false;
+  errorCount++;
+}
+if (!fs.existsSync(weeklyPage)) {
+  console.error('  ❌ 週間白書ページ (/weekly/) が存在しません');
   pipelineOk = false;
   errorCount++;
 }
