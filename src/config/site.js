@@ -7,11 +7,21 @@ export const siteConfig = {
   url: "https://ssk0224.github.io/auto-tech-radar",
   
   // 💳 Stripe 支払いリンク (Payment Link)
-  // 980円の買い切り決済リンク。ダッシュボードで発行したURLをここに設定します。
+  // 本番URLが未開通の場合は、決済フォールバックとして確実に購入できるnote決済へ自動誘導
   stripePaymentUrl: "https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000",
   
-  // 📗 note メンバーシップ URL (月額1,980円)
+  // 📗 note メンバーシップ URL (月額1,980円 / 単発有料記事980円)
   noteMembershipUrl: "https://note.com/vast_ixora7005",
+
+  // 100%確実に決済完了できるアクティブな単発決済URL (Stripe未開通時はnoteへ安全自動フォールバック)
+  get activeSinglePaymentUrl() {
+    const isLive = this.stripePaymentUrl && !this.stripePaymentUrl.includes('00000');
+    return isLive ? this.stripePaymentUrl : this.noteMembershipUrl;
+  },
+
+  get isStripeLive() {
+    return !!(this.stripePaymentUrl && !this.stripePaymentUrl.includes('00000'));
+  },
   
   // 📱 公式 𝕏 (Twitter) アカウント
   xAccountUrl: "https://x.com/AutoTechRadar",
