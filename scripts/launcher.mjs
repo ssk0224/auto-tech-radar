@@ -155,11 +155,11 @@ function renderHeader() {
   console.log(`   ${c.yellow}⚡ Auto Tech Radar${c.reset}  ${c.white}${c.bold}|  海外急上昇OSS 徹底解剖 ＆ 【月収100万円】収益化コンソール${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   const isStripeLive = siteConfig.stripePaymentUrl && !siteConfig.stripePaymentUrl.includes('00000');
-  const stripeStatus = isStripeLive ? `${c.green}● 本番開通済み${c.reset}` : `${c.yellow}△ 未設定 (メニュー[8]で登録)${c.reset}`;
+  const stripeStatus = isStripeLive ? `${c.green}● Stripe本番直結${c.reset}` : `${c.green}● note公式決済へ全自動直結中 (即時収益化OK)${c.reset}`;
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
   console.log(`  ${c.dim}オムニチャネル残:${c.reset} note: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | Zenn: ${zennUnpostedCount > 0 ? c.cyan + c.bold + zennUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
-  console.log(`  ${c.dim}Stripe直接決済  :${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
-  console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①Stripe単発 (¥980)  ②noteサブスク (¥1,980/月)  ③B2B協賛 (¥100,000〜)`);
+  console.log(`  ${c.dim}HP決済ゲートウェイ:${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
+  console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
 }
 
@@ -178,10 +178,10 @@ function promptMenu() {
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
-  console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(単発980円の入金確認)${c.reset}`);
+  console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(入金確認)${c.reset}`);
   console.log(`   ${c.white}[2] note メンバーシップ管理画面を開く ${c.dim}(月額1,980円の会員管理)${c.reset}`);
   console.log(`   ${c.white}[3] 今すぐ手動で最新OSSをクロール＆記事生成する ${c.dim}(緊急・テスト実行)${c.reset}`);
-  console.log(`   ${c.green}${c.bold}[8]${c.reset} ${c.bold}Stripe 支払いリンクURLを登録・即時反映する${c.reset} ${c.dim}(全自動LIVE開通)${c.reset}`);
+  console.log(`   ${c.dim}[8] Stripe 支払いリンクURLを登録・即時反映する (任意オプション: Stripe直接決済を使う場合のみ)${c.reset}`);
 
   console.log(`\n  ${c.dim}[0] 終了${c.reset}`);
   console.log(`${c.cyan}================================================================================${c.reset}`);
