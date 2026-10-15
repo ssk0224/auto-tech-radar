@@ -83,7 +83,9 @@
   },
   "dsh-our-free-model": {
     "note": true,
-    "noteAt": "2026-10-13"
+    "noteAt": "2026-10-15",
+    "x": true,
+    "xAt": "2026-10-15"
   },
   "diplay": {
     "note": true,
@@ -104,5 +106,21 @@
     "xAt": "2026-10-14",
     "zenn": true,
     "zennAt": "2026-10-14"
+  },
+  "anatomy": {
+    "note": true,
+    "noteAt": "2026-10-15",
+    "x": true,
+    "xAt": "2026-10-15",
+    "zenn": true,
+    "zennAt": "2026-10-15"
+  },
+  "kev": {
+    "note": true,
+    "noteAt": "2026-10-15",
+    "x": true,
+    "xAt": "2026-10-15",
+    "zenn": true,
+    "zennAt": "2026-10-15"
   }
 }
