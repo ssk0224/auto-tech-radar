@@ -174,6 +174,7 @@ function promptMenu() {
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト】${c.reset}`);
+  console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
 
@@ -191,7 +192,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -202,6 +203,9 @@ function handleChoice(choice) {
   switch (norm) {
     case 'a':
       runAllInOnePublish();
+      break;
+    case 'm':
+      runLeadMagnetPublish();
       break;
     case 's':
       runCloudSync();
@@ -258,6 +262,33 @@ function waitBack() {
     rl.close();
     promptMenu();
   });
+}
+
+function runLeadMagnetPublish() {
+  const leadMagnetPath = path.join(noteDir, 'LEAD_MAGNET_CHEAT_SHEET.md');
+  if (!fs.existsSync(leadMagnetPath)) {
+    try {
+      execSync('node scripts/generate_lead_magnet_note.mjs', { cwd: rootDir, stdio: 'inherit' });
+    } catch (e) {}
+  }
+
+  console.clear();
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  console.log(`   ${c.yellow}${c.bold}📗 【無料集客リードマグネット】 note 無料記事 出品アシスト${c.reset}`);
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
+
+  openUrl("https://note.com/notes/new");
+  openFile(leadMagnetPath);
+
+  console.log(`  ${c.green}✓ noteの新規投稿画面 と 無料チートシート原稿（メモ帳）を開きました！${c.reset}\n`);
+  console.log(`  ${c.white}${c.bold}【重要：出品手順（1分で完了）】${c.reset}`);
+  console.log(`  1. 開いたメモ帳を ${c.yellow}[Ctrl + A]${c.reset} → ${c.yellow}[Ctrl + C]${c.reset} で全コピー`);
+  console.log(`  2. note投稿画面に ${c.yellow}[Ctrl + V]${c.reset} で貼り付け`);
+  console.log(`  3. ${c.bold}「無料公開」${c.reset}（有料設定なし）のまま「投稿」をクリック！`);
+  console.log(`\n  ${c.dim}※この記事は完全無料で読ませることで、note内の「スキ」や検索（SEO）から大量の読者を集め、${c.reset}`);
+  console.log(`  ${c.dim}  記事内に配置された各OSSの有料レポートやメンバーシップ（月額1,980円）へ自動送客する【最強の集客ダム】です。${c.reset}\n`);
+
+  waitBack();
 }
 
 function runPublishHelper(mode) {

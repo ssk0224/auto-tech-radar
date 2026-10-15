@@ -24,16 +24,17 @@ try {
 function getDrafts() {
   if (!fs.existsSync(noteDir)) return [];
   return fs.readdirSync(noteDir)
-    .filter(f => f.endsWith('_note.md'))
+    .filter(f => f.endsWith('_note.md') || f === 'LEAD_MAGNET_CHEAT_SHEET.md')
     .map(f => {
       const fullPath = path.join(noteDir, f);
       const stat = fs.statSync(fullPath);
-      const slug = f.replace('_note.md', '');
+      const isLeadMagnet = f === 'LEAD_MAGNET_CHEAT_SHEET.md';
+      const slug = isLeadMagnet ? 'LEAD_MAGNET_CHEAT_SHEET' : f.replace('_note.md', '');
       const xFile = path.join(xDir, `${slug}_x.txt`);
       const hasX = fs.existsSync(xFile) && fs.statSync(xFile).size > 100;
       
       // 記事タイトルを1行目から抽出
-      let title = slug;
+      let title = isLeadMagnet ? '【無料集客用】2026年最新 急上昇OSS 15選商用化チートシート完全版' : slug;
       try {
         const content = fs.readFileSync(fullPath, 'utf8');
         const match = content.match(/^#\s+(.+)$/m);
@@ -45,8 +46,9 @@ function getDrafts() {
         title,
         noteFile: fullPath,
         xFile: hasX ? xFile : null,
-        mtime: stat.mtimeMs,
-        size: stat.size
+        mtime: isLeadMagnet ? Date.now() + 100000000 : stat.mtimeMs, // 無料リードマグネットを常に最上位に表示
+        size: stat.size,
+        isLeadMagnet
       };
     })
     .filter(d => d.size > 500)
@@ -128,13 +130,21 @@ rl.question('番号を入力して Enter > ', (answer) => {
     console.log('===============================================================================');
     console.log('✓ noteの新規投稿画面、原稿テキスト、専用サムネイル画像を開きました！');
     console.log('-------------------------------------------------------------------------------');
-    console.log('【出品手順（超速1分）】');
-    console.log('  1. 開いたエクスプローラーの画像（選択中）を、note画面の「画像を追加」へドラッグ＆ドロップ！');
-    console.log('     ※プロ級サイバー調サムネが即時セットされ、クリック率が爆増します');
-    console.log('  2. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
-    console.log('  3. note投稿画面に [Ctrl + V] で貼り付け');
-    console.log('  4. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
-    console.log('  5. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
+    if (selected.isLeadMagnet) {
+      console.log('【無料リードマグネット出品手順（超速1分）】');
+      console.log('  1. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
+      console.log('  2. note新規投稿画面に [Ctrl + V] で貼り付け');
+      console.log('  3. ★「無料公開」（有料設定なし）のまま「投稿」をクリック！');
+      console.log('     ※noteの強力なSEOと「スキ」で閲覧数が爆発し、有料記事・メンバーシップへ自動送客されます。');
+    } else {
+      console.log('【有料レポート出品手順（超速1分）】');
+      console.log('  1. 開いたエクスプローラーの画像（選択中）を、note画面の「画像を追加」へドラッグ＆ドロップ！');
+      console.log('     ※プロ級サイバー調サムネが即時セットされ、クリック率が爆増します');
+      console.log('  2. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
+      console.log('  3. note投稿画面に [Ctrl + V] で貼り付け');
+      console.log('  4. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
+      console.log('  5. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
+    }
     console.log('===============================================================================\n');
   } else if (mode === 'zenn') {
     // Zenn / Qiita 送客モード
