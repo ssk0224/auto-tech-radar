@@ -92,8 +92,13 @@ threadText += `#AutoTechRadar #OSS #AI #エンジニア #プログラミング\n
 
 fs.writeFileSync(outputFile, threadText, 'utf8');
 
-// 第1ツイート用Intent URL（厳格な全角140字/重み280以内判定を保証し、絶対に文字数オーバーさせない高CTR設計）
-const firstTweet = `【完全保存版】GitHub急上昇の最新AI・テックOSS 7選（${dateLabel}）\n\n注目: ${featuredNames} 等\n技術構成と商用化・受託提案の狙い目を徹底比較。DX資料やネタ帳に（保存推奨 📌）\n\n▼チートシート\nhttps://ssk0224.github.io/auto-tech-radar/cheatsheet/\n#AutoTechRadar #OSS`;
+// 第1ツイート用Intent URL（アルゴリズム激減を防ぐため外部URLを完全排除し、保存・インプを極大化）
+const firstTweet = `【完全保存版】GitHub急上昇の最新AI・テックOSS 7選（${dateLabel}）
+
+注目: ${featuredNames} 等
+技術構成と商用化・受託提案の狙い目を徹底比較。DX資料やネタ帳に最適。
+各OSSの解剖＆全チートシートはリプ欄👇（保存推奨 📌）
+#AutoTechRadar #OSS`;
 const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(firstTweet)}`;
 
 console.log('===============================================================================');
