@@ -148,7 +148,6 @@ function renderHeader() {
   const drafts = getDrafts();
   const noteUnpostedCount = drafts.filter(d => !d.isNotePosted).length;
   const xUnpostedCount = drafts.filter(d => !d.isXPosted).length;
-  const zennUnpostedCount = drafts.filter(d => !d.isZennPosted).length;
 
   console.clear();
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
@@ -157,7 +156,7 @@ function renderHeader() {
   const isStripeLive = siteConfig.stripePaymentUrl && !siteConfig.stripePaymentUrl.includes('00000');
   const stripeStatus = isStripeLive ? `${c.green}● Stripe本番直結${c.reset}` : `${c.green}● note公式決済へ全自動直結中 (即時収益化OK)${c.reset}`;
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
-  console.log(`  ${c.dim}オムニチャネル残:${c.reset} note: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | Zenn: ${zennUnpostedCount > 0 ? c.cyan + c.bold + zennUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
+  console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
   console.log(`  ${c.dim}HP決済ゲートウェイ:${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
@@ -166,14 +165,13 @@ function renderHeader() {
 function promptMenu() {
   renderHeader();
 
-  console.log(`\n  ${c.yellow}${c.bold}【🔥 日々の収益化アクション（超速ルーティン）】${c.reset}`);
-  console.log(`   ${c.magenta}${c.bold}[A]${c.reset} ${c.magenta}${c.bold}🚀 【全チャネル一括アシスト】note ＋ 𝕏 ＋ Zenn を連続パブリッシュ${c.reset} ${c.dim}(最短1分で完了)${c.reset}`);
+  console.log(`\n  ${c.yellow}${c.bold}【🔥 日々の収益化アクション（note ＆ 𝕏 最速ルーティン）】${c.reset}`);
+  console.log(`   ${c.magenta}${c.bold}[A]${c.reset} ${c.magenta}${c.bold}🚀 【最速一括アシスト】note有料出品 ＋ 𝕏拡散を連続パブリッシュ${c.reset} ${c.dim}(最短30秒で完了)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[4]${c.reset} ${c.bold}生成済み有料レポートを note に出品する${c.reset} ${c.dim}(未出品の推奨記事を最優先サジェスト)${c.reset}`);
-  console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(未投稿記事をワンクリック展開)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[9]${c.reset} ${c.bold}Zenn / Qiita 向け無料バズ用ドラフトを出力する${c.reset} ${c.dim}(恒久的SEO被リンク送客)${c.reset}`);
+  console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(URLなし高インプ設計)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
 
-  console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト】${c.reset}`);
+  console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
@@ -535,7 +533,7 @@ function runAllInOnePublish() {
     }
 
     const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl2.question(`\n${c.blue}${c.bold}[Step 2/3] X投稿画面とスレッドを開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans2) => {
+    rl2.question(`\n${c.blue}${c.bold}[Step 2/2] X投稿画面とスレッドを開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans2) => {
       rl2.close();
       if (ans2.trim().toLowerCase() !== 's' && target.xFile) {
         recordPublish(target.slug, 'x');
@@ -551,48 +549,8 @@ function runAllInOnePublish() {
         console.log(`  ${c.blue}✓ X投稿画面とスレッドテキストを開きました！${c.reset}`);
       }
 
-      const rl3 = readline.createInterface({ input: process.stdin, output: process.stdout });
-      rl3.question(`\n${c.cyan}${c.bold}[Step 3/3] Zenn送客画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans3) => {
-        rl3.close();
-        if (ans3.trim().toLowerCase() !== 's') {
-          recordPublish(target.slug, 'zenn');
-          const zennDir = path.join(rootDir, 'zenn_drafts');
-          if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });
-          const zennFile = path.join(zennDir, `${target.slug}_zenn.md`);
-          if (!fs.existsSync(zennFile)) {
-            const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${target.slug}.md`);
-            let articleContent = fs.existsSync(radarMd) ? fs.readFileSync(radarMd, 'utf8').replace(/^---[\s\S]*?---\n*/, '') : fs.readFileSync(target.noteFile, 'utf8');
-            const cleanTitle = target.title.replace(/^#\s*/, '').split(' - ')[0].trim();
-            const zennDraft = `---
-title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
-emoji: "⚡"
-type: "tech"
-topics: ["ai", "oss", "github", "architecture", "プログラミング"]
-published: true
----
-
-${articleContent}
-
----
-
-## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
-本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
-
-👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${target.slug}/)**
-`;
-            fs.writeFileSync(zennFile, zennDraft, 'utf8');
-          }
-          try {
-            execSync(`powershell -NoProfile -Command "Get-Content -LiteralPath '${zennFile.replace(/'/g, "''")}' -Raw -Encoding UTF8 | Set-Clipboard"`, { stdio: 'ignore' });
-          } catch (e) {}
-          openFile(zennFile);
-          openUrl("https://zenn.dev/articles/new");
-          console.log(`  ${c.cyan}✓ Zenn投稿画面を開き、原稿をクリップボードにコピーしました！${c.reset}`);
-        }
-
-        console.log(`\n${c.green}${c.bold}🎉 全チャネルの配信準備が完了しました！素晴らしい成果です！${c.reset}\n`);
-        waitBack();
-      });
+      console.log(`\n${c.green}${c.bold}🎉 note出品 ＆ 𝕏拡散の準備がすべて完了しました！最短マネタイズ実行完了です！${c.reset}\n`);
+      waitBack();
     });
   });
 }
