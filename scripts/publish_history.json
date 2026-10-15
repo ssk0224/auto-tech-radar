@@ -122,5 +122,11 @@
     "xAt": "2026-10-15",
     "zenn": true,
     "zennAt": "2026-10-15"
+  },
+  "droiddeck": {
+    "note": true,
+    "noteAt": "2026-10-15",
+    "x": true,
+    "xAt": "2026-10-15"
   }
 }
