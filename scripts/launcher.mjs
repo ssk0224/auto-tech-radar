@@ -50,6 +50,18 @@ function openFile(filePath) {
   exec(`start "" "${filePath}"`);
 }
 
+// テキストをクリップボードにコピー
+function copyTextToClipboard(text) {
+  if (!text) return false;
+  try {
+    const escaped = text.replace(/'/g, "''");
+    execSync(`powershell -NoProfile -Command "Set-Clipboard -Value '${escaped}'"`, { stdio: 'ignore', timeout: 4000 });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // サムネイル画像をクリップボードに直接コピー（note画面でCtrl+V即貼り付け可能にする）
 function copyImageToClipboard(imagePath) {
   if (!fs.existsSync(imagePath)) return false;
@@ -278,11 +290,19 @@ function runLeadMagnetPublish() {
   openUrl("https://note.com/notes/new");
   openFile(leadMagnetPath);
 
-  console.log(`  ${c.green}✓ noteの新規投稿画面 と 無料チートシート原稿（メモ帳）を開きました！${c.reset}\n`);
+  const thumbPng = path.join(rootDir, 'public', 'ogp', 'LEAD_MAGNET_CHEAT_SHEET.png');
+  if (fs.existsSync(thumbPng)) {
+    exec(`explorer /select,"${thumbPng}"`);
+    copyImageToClipboard(thumbPng);
+  }
+
+  console.log(`  ${c.green}✓ note新規投稿画面、原稿テキスト、専用アイキャッチ画像（PNG）を開きました！${c.reset}\n`);
   console.log(`  ${c.white}${c.bold}【重要：出品手順（1分で完了）】${c.reset}`);
-  console.log(`  1. 開いたメモ帳を ${c.yellow}[Ctrl + A]${c.reset} → ${c.yellow}[Ctrl + C]${c.reset} で全コピー`);
-  console.log(`  2. note投稿画面に ${c.yellow}[Ctrl + V]${c.reset} で貼り付け`);
-  console.log(`  3. ${c.bold}「無料公開」${c.reset}（有料設定なし）のまま「投稿」をクリック！`);
+  console.log(`  1. 開いたエクスプローラーの画像（選択中）を、note画面の「画像を追加」へドラッグ＆ドロップ！`);
+  console.log(`     ※超高視認性サイバー調アイキャッチがセットされ、クリック率とスキが爆増します`);
+  console.log(`  2. 開いたメモ帳を ${c.yellow}[Ctrl + A]${c.reset} → ${c.yellow}[Ctrl + C]${c.reset} で全コピー`);
+  console.log(`  3. note投稿画面に ${c.yellow}[Ctrl + V]${c.reset} で貼り付け`);
+  console.log(`  4. ${c.bold}「無料公開」${c.reset}（有料設定なし）のまま「投稿」をクリック！`);
   console.log(`\n  ${c.dim}※この記事は完全無料で読ませることで、note内の「スキ」や検索（SEO）から大量の読者を集め、${c.reset}`);
   console.log(`  ${c.dim}  記事内に配置された各OSSの有料レポートやメンバーシップ（月額1,980円）へ自動送客する【最強の集客ダム】です。${c.reset}\n`);
 
@@ -470,6 +490,7 @@ ${articleContent}
     } else {
       if (selected.xFile) {
         openFile(selected.xFile);
+        let replyText = '';
         try {
           const xText = fs.readFileSync(selected.xFile, 'utf8');
           const match = xText.match(/https:\/\/twitter\.com\/intent\/tweet\?text=[^\s\n\r]+/);
@@ -478,16 +499,25 @@ ${articleContent}
           } else {
             openUrl("https://twitter.com/intent/tweet");
           }
+
+          const tweet3Match = xText.match(/【ツイート 3】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
+          if (tweet3Match) {
+            replyText = tweet3Match[1].trim();
+            copyTextToClipboard(replyText);
+          }
         } catch (e) {
           openUrl("https://twitter.com/intent/tweet");
         }
 
         console.log(`\n${c.blue}${c.bold}================================================================================${c.reset}`);
-        console.log(`  ${c.blue}✓ X投稿画面（本文自動入力済み） と 全スレッドテキストを開きました！${c.reset}`);
-        console.log(`  ${c.yellow}※ この記事は「X拡散済み [✓]」としてステータスを自動記録しました。${c.reset}`);
-        console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
-        console.log(`  ブラウザの画面で ${c.cyan}「ポストする」${c.reset} を押すだけで拡散完了です。`);
-        console.log(`  （2ツリー目以降のテキストも開いたファイル内に記載されています）`);
+        console.log(`  ${c.blue}✓ X投稿画面（第1ツイート自動入力済み） と 全スレッドテキストを開きました！${c.reset}`);
+        if (replyText) {
+          console.log(`  ${c.green}${c.bold}📋 【神速成約ハック】リプ欄用の成約URL（第3ツイート）をクリップボードに自動コピーしました！${c.reset}`);
+          console.log(`  ${c.white}👉 手順：${c.reset}`);
+          console.log(`     1. ブラウザで1ツイート目を ${c.cyan}「ポストする」${c.reset}`);
+          console.log(`     2. 投稿されたツイートの ${c.yellow}「返信（リプ欄）」${c.reset} をクリックして ${c.yellow}[Ctrl + V]${c.reset} ➔ 「返信」`);
+          console.log(`     ※これだけでXの外部リンクペナルティを回避し、インプレッション爆発＋成約直結が完了します！`);
+        }
         console.log(`${c.blue}${c.bold}================================================================================${c.reset}\n`);
         waitBack();
       } else {
@@ -502,7 +532,7 @@ ${articleContent}
 // 🚀 【全チャネル一括アシスト】Turboフロー
 function runAllInOnePublish() {
   const drafts = getDrafts();
-  const target = drafts.find(d => !d.isNotePosted || !d.isXPosted || !d.isZennPosted) || drafts[0];
+  const target = drafts.find(d => !d.isNotePosted || !d.isXPosted) || drafts[0];
 
   if (!target) {
     console.log(`\n${c.red}処理対象の記事がありません。${c.reset}\n`);
@@ -512,12 +542,12 @@ function runAllInOnePublish() {
 
   console.clear();
   console.log(`${c.magenta}${c.bold}================================================================================${c.reset}`);
-  console.log(`   ${c.yellow}🚀 【全チャネル一括アシスト（Turbo）】${c.reset} 対象: ${c.white}${target.title}${c.reset}`);
+  console.log(`   ${c.yellow}🚀 【最速一括アシスト（Turbo）】${c.reset} 対象: ${c.white}${target.title}${c.reset}`);
   console.log(`${c.magenta}${c.bold}================================================================================${c.reset}\n`);
-  console.log(`最短1分で「note出品」→「X拡散」→「Zenn送客」の3大パイプラインを連続実行します。\n`);
+  console.log(`最短30秒で「note有料出品」→「𝕏拡散」のマネタイズパイプラインを連続実行します。\n`);
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  rl.question(`${c.green}${c.bold}[Step 1/3] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans) => {
+  rl.question(`${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans) => {
     rl.close();
     if (ans.trim().toLowerCase() !== 's') {
       recordPublish(target.slug, 'note');
@@ -538,15 +568,26 @@ function runAllInOnePublish() {
       if (ans2.trim().toLowerCase() !== 's' && target.xFile) {
         recordPublish(target.slug, 'x');
         openFile(target.xFile);
+        let replyText = '';
         try {
           const xText = fs.readFileSync(target.xFile, 'utf8');
           const match = xText.match(/https:\/\/twitter\.com\/intent\/tweet\?text=[^\s\n\r]+/);
           if (match) openUrl(match[0]);
           else openUrl("https://twitter.com/intent/tweet");
+
+          const tweet3Match = xText.match(/【ツイート 3】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
+          if (tweet3Match) {
+            replyText = tweet3Match[1].trim();
+            copyTextToClipboard(replyText);
+          }
         } catch (e) {
           openUrl("https://twitter.com/intent/tweet");
         }
-        console.log(`  ${c.blue}✓ X投稿画面とスレッドテキストを開きました！${c.reset}`);
+        console.log(`  ${c.blue}✓ X投稿画面を開きました！${c.reset}`);
+        if (replyText) {
+          console.log(`  ${c.green}${c.bold}📋 【神速成約ハック】リプ欄用の成約URL（第3ツイート）をクリップボードに自動コピーしました！${c.reset}`);
+          console.log(`  ${c.white}👉 1ツイート目をポストしたら、リプ欄で [Ctrl + V] ➔ 「返信」を押すだけで成約リンクが投下されます！${c.reset}`);
+        }
       }
 
       console.log(`\n${c.green}${c.bold}🎉 note出品 ＆ 𝕏拡散の準備がすべて完了しました！最短マネタイズ実行完了です！${c.reset}\n`);
