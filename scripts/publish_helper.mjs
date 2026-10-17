@@ -3,6 +3,7 @@ import path from 'path';
 import readline from 'readline';
 import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { sanitizeAndAttachUrlToTweet } from './utils/twitter_formatter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -200,29 +201,31 @@ ${articleContent}
     // X拡散モード
     if (selected.xFile) {
       openFile(selected.xFile);
-      // Xスレッドの第1ツイートからIntent URLを抽出して自動起動
+      let safeData = null;
       try {
         const xText = fs.readFileSync(selected.xFile, 'utf8');
-        const match = xText.match(/https:\/\/twitter\.com\/intent\/tweet\?text=[^\s\n\r]+/);
-        if (match) {
-          openUrl(match[0]);
-        } else {
-          openUrl("https://twitter.com/intent/tweet");
-        }
+        const t1Match = xText.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
+        const rawTweet = t1Match ? t1Match[1].trim() : selected.title;
+        safeData = sanitizeAndAttachUrlToTweet(rawTweet, selected.slug);
       } catch (e) {
-        openUrl("https://twitter.com/intent/tweet");
+        safeData = sanitizeAndAttachUrlToTweet(selected.title, selected.slug);
       }
 
+      openUrl(safeData.intentUrl);
+      copyTextToClipboard(safeData.tweet);
+
       console.log('===============================================================================');
-      console.log('✓ Xの投稿画面と、全スレッドテキスト（x_posts）を開きました！');
+      console.log('✓ Xの投稿画面を開きました（記事リンク自動挿入 ＆ 文字数安全チェック済み）！');
+      console.log(`  ・投稿文字数: ${safeData.charsJp} 文字 / 140 文字制限 (安全マージン: ${((280 - safeData.weight) / 2).toFixed(1)}文字)`);
+      console.log(`  ・挿入リンク: https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/`);
       console.log('-------------------------------------------------------------------------------');
       console.log('ブラウザの投稿画面で「ポストする」を押すだけで完了です。');
-      console.log('（2ツイート目以降のリプライ用テキストもファイル内に用意されています）');
+      console.log('（クリップボードにもポスト本文を自動コピーしてあります）');
       console.log('===============================================================================\n');
     } else {
       console.log('⚠️ この記事の専用X投稿文がありません。共通告知画面を開きます...');
-      const fallbackUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('最新OSS徹底解剖レポートを公開しました！\nhttps://ssk0224.github.io/auto-tech-radar/\n#OSS #AutoTechRadar')}`;
-      openUrl(fallbackUrl);
+      const safeData = sanitizeAndAttachUrlToTweet('最新OSS徹底解剖レポートを公開しました！', selected.slug);
+      openUrl(safeData.intentUrl);
     }
   }
 });
