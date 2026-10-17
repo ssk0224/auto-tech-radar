@@ -104,6 +104,9 @@ function recordPublish(slug, type) {
   } else if (type === 'zenn') {
     history[slug].zenn = true;
     history[slug].zennAt = todayStr;
+  } else if (type === 'qiita') {
+    history[slug].qiita = true;
+    history[slug].qiitaAt = todayStr;
   }
   saveHistory(history);
 }
@@ -142,7 +145,9 @@ function getDrafts() {
         isXPosted: !!h.x,
         xPostedAt: h.xAt || null,
         isZennPosted: !!h.zenn,
-        zennPostedAt: h.zennAt || null
+        zennPostedAt: h.zennAt || null,
+        isQiitaPosted: !!h.qiita,
+        qiitaPostedAt: h.qiitaAt || null
       };
     })
     .filter(d => d.size > 500)
@@ -200,6 +205,7 @@ function promptMenu() {
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.cyan}${c.bold}⚡ 【Zenn自動デプロイ】GitHub公式連携コンソール（全36記事・完全全自動化）${c.reset} ${c.dim}(0クリック自動公開)${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
+  console.log(`   ${c.green}${c.bold}[Q]${c.reset} ${c.green}${c.bold}⚡ 【Qiitaマルチポスト】技術記事をQiitaに出品${c.reset} ${c.dim}(国内2大巨頭完全制覇)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
@@ -216,7 +222,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -227,6 +233,9 @@ function handleChoice(choice) {
   switch (norm) {
     case 'a':
       runAllInOnePublish();
+      break;
+    case 'q':
+      runPublishHelper('qiita');
       break;
     case 'm':
       runLeadMagnetPublish();
@@ -351,7 +360,7 @@ function runPublishHelper(mode) {
 
   drafts.forEach((d, idx) => {
     const num = `[${idx + 1}]`.padEnd(5, ' ');
-    const isPosted = mode === 'note' ? d.isNotePosted : (mode === 'zenn' ? d.isZennPosted : d.isXPosted);
+    const isPosted = mode === 'note' ? d.isNotePosted : (mode === 'zenn' ? d.isZennPosted : (mode === 'qiita' ? d.isQiitaPosted : d.isXPosted));
     
     // バッジ表示
     let statusBadge = '';
@@ -505,6 +514,36 @@ ${articleContent}
       console.log(`  3. 「公開」を押すだけで、Auto Tech Radarへの恒久的SEO被リンクが完成！`);
       console.log(`  ※ Qiitaにも同じ文面を https://qiita.com/drafts/new でそのまま貼り付け可能です。`);
       console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
+      waitBack();
+    } else if (mode === 'qiita') {
+      const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${selected.slug}.md`);
+      let articleContent = '';
+      if (fs.existsSync(radarMd)) {
+        articleContent = fs.readFileSync(radarMd, 'utf8');
+        articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
+      } else {
+        articleContent = fs.readFileSync(selected.noteFile, 'utf8');
+      }
+      const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
+      const qiitaText = `# 【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開\n\n` +
+        articleContent + '\n\n---\n\n' +
+        `## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて\n` +
+        `本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や自社SaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。\n\n` +
+        `👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/)**\n`;
+
+      copyTextToClipboard(qiitaText);
+      openUrl("https://qiita.com/drafts/new");
+
+      console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
+      console.log(`  ${c.green}✓ Qiita新規投稿画面を開きました！${c.reset}`);
+      console.log(`  ${c.cyan}📋 【神機能】Qiita用送客記事（${selected.slug}）をクリップボードに自動コピーしました！${c.reset}`);
+      console.log(`  ${c.dim}※ この記事は「Qiita送客済み [✓]」としてステータスを自動記録しました。${c.reset}`);
+      console.log(`${c.green}--------------------------------------------------------------------------------${c.reset}`);
+      console.log(`  【投稿手順 (最短15秒)】`);
+      console.log(`  1. ブラウザの本文欄で ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け`);
+      console.log(`  2. タグ欄に ${c.yellow}Python, OSS, GitHub, AI, アーキテクチャ${c.reset} 等を入力`);
+      console.log(`  3. 「Qiitaに投稿」をクリックするだけで、国内最大の技術コミュニティからアクセスを独占！`);
+      console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
       waitBack();
     } else {
       if (selected.xFile) {
