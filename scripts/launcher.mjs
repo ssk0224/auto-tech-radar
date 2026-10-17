@@ -171,14 +171,27 @@ function renderHeader() {
   console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
   console.log(`  ${c.dim}HP決済ゲートウェイ:${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
+
+  const unpostedDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
+  if (unpostedDraft) {
+    const unpostedStatus = (!unpostedDraft.isNotePosted && !unpostedDraft.isXPosted) 
+      ? 'note出品 ＆ 𝕏拡散 未完了' 
+      : (!unpostedDraft.isNotePosted ? 'note未出品' : '𝕏未拡散');
+    console.log(`${c.yellow}--------------------------------------------------------------------------------${c.reset}`);
+    console.log(`  ${c.yellow}${c.bold}★ 本日推奨の未処理レポート:${c.reset} ${c.white}${c.bold}【${unpostedDraft.title.slice(0, 36)}】${c.reset} ${c.yellow}(${unpostedStatus})${c.reset}`);
+    console.log(`     👉 メニュー ${c.magenta}${c.bold}[A]${c.reset} を押すだけで最短30秒で一括出品アシストが起動します！`);
+  }
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
 }
 
 function promptMenu() {
   renderHeader();
+  const drafts = getDrafts();
+  const topDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
+  const targetLabel = topDraft ? `（最新: ${topDraft.slug}）` : '';
 
   console.log(`\n  ${c.yellow}${c.bold}【🔥 日々の収益化アクション（note ＆ 𝕏 最速ルーティン）】${c.reset}`);
-  console.log(`   ${c.magenta}${c.bold}[A]${c.reset} ${c.magenta}${c.bold}🚀 【最速一括アシスト】note有料出品 ＋ 𝕏拡散を連続パブリッシュ${c.reset} ${c.dim}(最短30秒で完了)${c.reset}`);
+  console.log(`   ${c.magenta}${c.bold}[A]${c.reset} ${c.magenta}${c.bold}🚀 【最速一括アシスト】note有料出品 ＋ 𝕏拡散を連続パブリッシュ${c.reset} ${c.cyan}${targetLabel}${c.reset} ${c.dim}(最短30秒で完了)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[4]${c.reset} ${c.bold}生成済み有料レポートを note に出品する${c.reset} ${c.dim}(未出品の推奨記事を最優先サジェスト)${c.reset}`);
   console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(URLなし高インプ設計)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);

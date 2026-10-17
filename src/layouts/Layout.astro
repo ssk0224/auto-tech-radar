@@ -35,6 +35,34 @@ const currentSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || '';
 const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar') 
   ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.png` 
   : "https://ssk0224.github.io/auto-tech-radar/og-card.png";
+
+// 🎯 ThoughtWorks 成熟度リング自動判定 (ADOPT / TRIAL / ASSESS / HOLD)
+const starsCount = Number(frontmatter?.stars) || 0;
+let ringLabel = "TRIAL";
+let ringBadgeColor = "#60a5fa";
+let ringBadgeBg = "rgba(59, 130, 246, 0.18)";
+let ringBadgeBorder = "rgba(59, 130, 246, 0.4)";
+if (starsCount >= 15000) {
+  ringLabel = "ADOPT";
+  ringBadgeColor = "#34d399";
+  ringBadgeBg = "rgba(16, 185, 129, 0.18)";
+  ringBadgeBorder = "rgba(16, 185, 129, 0.4)";
+} else if (starsCount >= 5000) {
+  ringLabel = "TRIAL";
+  ringBadgeColor = "#60a5fa";
+  ringBadgeBg = "rgba(59, 130, 246, 0.18)";
+  ringBadgeBorder = "rgba(59, 130, 246, 0.4)";
+} else if (starsCount >= 1000) {
+  ringLabel = "ASSESS";
+  ringBadgeColor = "#fbbf24";
+  ringBadgeBg = "rgba(245, 158, 11, 0.18)";
+  ringBadgeBorder = "rgba(245, 158, 11, 0.4)";
+} else {
+  ringLabel = "HOLD";
+  ringBadgeColor = "#94a3b8";
+  ringBadgeBg = "rgba(148, 163, 184, 0.18)";
+  ringBadgeBorder = "rgba(148, 163, 184, 0.4)";
+}
 ---
 <!doctype html>
 <html lang="ja">
@@ -510,7 +538,7 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
       </div>
     </header>
 
-    <main>
+    <main data-stars={starsCount} data-ring={ringLabel} data-ring-color={ringBadgeColor} data-ring-bg={ringBadgeBg} data-ring-border={ringBadgeBorder}>
       {isArticle && (
         <div class="article-hero-banner" style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6); background: #0b0f19;">
           <img 
@@ -805,10 +833,20 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
           const readMinutes = Math.max(1, Math.ceil(textLength / 600)); // 日本語約600字/分
           const articleTitle = document.title.split('|')[0].trim();
           const pageUrl = window.location.href;
+          const mainEl = document.querySelector('main');
+          const ringLabel = mainEl ? (mainEl.getAttribute('data-ring') || 'TRIAL') : 'TRIAL';
+          const ringColor = mainEl ? (mainEl.getAttribute('data-ring-color') || '#60a5fa') : '#60a5fa';
+          const ringBg = mainEl ? (mainEl.getAttribute('data-ring-bg') || 'rgba(59, 130, 246, 0.18)') : 'rgba(59, 130, 246, 0.18)';
+          const ringBorder = mainEl ? (mainEl.getAttribute('data-ring-border') || 'rgba(59, 130, 246, 0.4)') : 'rgba(59, 130, 246, 0.4)';
+
           const metaBar = document.createElement('div');
           metaBar.className = 'reading-meta-bar';
           metaBar.innerHTML = `
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+              <a href="${baseUrl}/radar-map/" title="ThoughtWorksモデル技術成熟度判定" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
+                <span>●</span>
+                <span>ThoughtWorks: ${ringLabel}</span>
+              </a>
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
               <span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>
@@ -893,17 +931,34 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
               <span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>
               <span>💡 商用リスク: PRO分析セクション参照</span>
             </div>
-            <div style="margin-top: 0.9rem; padding: 0.6rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
-              <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span style="color: #10b981; font-weight: 700;">⚡ 3秒クイック検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
+            <div style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="padding: 0.55rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+                <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  <span style="color: #10b981; font-weight: 700;">⚡ 3秒検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                  <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
+                    コピー
+                  </button>
+                  <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ＆商用化レポート。\n80万〜250万受託開発の提案書付き👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                    🐦 𝕏 でシェア
+                  </a>
+                </div>
               </div>
-              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
-                  コピー
-                </button>
-                <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ＆商用化レポート。\n80万〜250万受託開発の提案書付き👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
-                  🐦 𝕏 でシェア
-                </a>
+
+              <div style="padding: 0.55rem 0.8rem; background: rgba(30, 27, 75, 0.45); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; flex-wrap: wrap;">
+                <div style="color: #c4b5fd; display: flex; align-items: center; gap: 0.4rem;">
+                  <span style="color: #a78bfa; font-weight: 700;">⚡ 2026最新規格:</span>
+                  <span>Claude / Cursor / Windsurf 向け即時開発キット</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                  <button id="copy-mcp-btn" style="background: rgba(139, 92, 246, 0.25); border: 1px solid #a78bfa; color: #e9d5ff; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    ⚡ 1-Click MCP設定
+                  </button>
+                  <button id="copy-cursor-btn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #bae6fd; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    🤖 .cursorrules コピー
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -920,6 +975,57 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
                   quickRunBtn.textContent = 'コピー';
                   quickRunBtn.style.color = '#94a3b8';
                 }, 2000);
+              });
+            });
+          }
+
+          const copyMcpBtn = summaryBox.querySelector('#copy-mcp-btn');
+          if (copyMcpBtn) {
+            copyMcpBtn.addEventListener('click', () => {
+              const slug = window.location.pathname.split('/').filter(Boolean).pop() || 'oss-server';
+              const mcpConfig = {
+                "mcpServers": {
+                  [slug]: {
+                    "command": "npx",
+                    "args": ["-y", `@modelcontextprotocol/server-${slug}`],
+                    "env": {}
+                  }
+                }
+              };
+              navigator.clipboard.writeText(JSON.stringify(mcpConfig, null, 2)).then(() => {
+                copyMcpBtn.textContent = '✓ MCPコピー完了！';
+                copyMcpBtn.style.color = '#34d399';
+                copyMcpBtn.style.borderColor = '#34d399';
+                setTimeout(() => {
+                  copyMcpBtn.textContent = '⚡ 1-Click MCP設定';
+                  copyMcpBtn.style.color = '#e9d5ff';
+                  copyMcpBtn.style.borderColor = '#a78bfa';
+                }, 2500);
+              });
+            });
+          }
+
+          const copyCursorBtn = summaryBox.querySelector('#copy-cursor-btn');
+          if (copyCursorBtn) {
+            copyCursorBtn.addEventListener('click', () => {
+              const slug = window.location.pathname.split('/').filter(Boolean).pop() || 'oss';
+              const cursorRules = `# Cursor Rules & AI Agent System Prompt: ${articleTitle}\n\n` +
+                `## Role & Objective\n` +
+                `You are a Senior Solutions Architect specialized in production integration of ${slug}.\n\n` +
+                `## Implementation Guidelines\n` +
+                `- Strictly adhere to official clean-room architecture and zero-trust standards.\n` +
+                `- Implement robust error boundaries, structured logging, and containerized deployment (Docker/Compose).\n` +
+                `- Avoid hardcoded credentials; enforce environment variables (.env.example).\n` +
+                `- Optimize for low-latency, deterministic execution, and enterprise security compliance.\n`;
+              navigator.clipboard.writeText(cursorRules).then(() => {
+                copyCursorBtn.textContent = '✓ Rulesコピー完了！';
+                copyCursorBtn.style.color = '#38bdf8';
+                copyCursorBtn.style.borderColor = '#38bdf8';
+                setTimeout(() => {
+                  copyCursorBtn.textContent = '🤖 .cursorrules コピー';
+                  copyCursorBtn.style.color = '#bae6fd';
+                  copyCursorBtn.style.borderColor = '#38bdf8';
+                }, 2500);
               });
             });
           }
