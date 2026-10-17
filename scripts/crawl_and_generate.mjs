@@ -355,8 +355,9 @@ async function run() {
   const noteDir = path.resolve("note_drafts");
   const xDir = path.resolve("x_posts");
   const zennDir = path.resolve("zenn_drafts");
+  const articlesDir = path.resolve("articles");
 
-  [webDir, noteDir, xDir, zennDir].forEach((dir) => {
+  [webDir, noteDir, xDir, zennDir, articlesDir].forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
 
@@ -414,6 +415,14 @@ ${cleanBody}
 `;
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
+
+      // 📘 Zenn公式GitHub連携用 (articles/*.md) 完全自動デプロイ対応
+      let zennSlug = slug;
+      if (zennSlug.length < 12) zennSlug = `${zennSlug}-tech-radar`;
+      if (zennSlug.length > 50) zennSlug = zennSlug.slice(0, 50).replace(/[-_]$/, "");
+      const zennArticleFile = path.join(articlesDir, `${zennSlug}.md`);
+      fs.writeFileSync(zennArticleFile, zennDraft, "utf8");
+      console.log(`✓ Zenn公式GitHub自動連携保存 (articles/): ${zennArticleFile}`);
 
       try {
         const topics = Array.isArray(repo.topics) ? repo.topics : [];
