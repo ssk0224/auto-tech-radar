@@ -8,10 +8,11 @@ GitHub急上昇OSS「crates.io-index」が注目。
 Registry index for crates.io...
 ⭐ スター: 751
 #Tcl #OSS #AI開発
-▼ 詳細はツリーへ↓
+▼ 詳細はツリーへ↓ 👇
+https://ssk0224.github.io/auto-tech-radar/radar/crates-io-index/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=GitHub%E6%80%A5%E4%B8%8A%E6%98%87OSS%E3%80%8Ccrates.io-index%E3%80%8D%E3%81%8C%E6%B3%A8%E7%9B%AE%E3%80%82%0ARegistry%20index%20for%20crates.io...%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%3A%20751%0A%23Tcl%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93
+https://twitter.com/intent/tweet?text=GitHub%E6%80%A5%E4%B8%8A%E6%98%87OSS%E3%80%8Ccrates.io-index%E3%80%8D%E3%81%8C%E6%B3%A8%E7%9B%AE%E3%80%82%0D%0ARegistry%20index%20for%20crates.io...%0D%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%3A%20751%0D%0A%23Tcl%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%0D%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%20%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fcrates-io-index%2F
 --------------------------------------------------
 
 --------------------------------------------------

@@ -8,11 +8,11 @@ GitHubで急上昇中のOSS「tokenspeed」が凄すぎる。
 TokenSpeed is a speed-of-light LLM inference engine.
 ⭐ スター数: 2201
 主要技術: #Python #OSS #AI開発 #LLM #エージェントAI
-▼ 詳細とビジネス活用の考察はツリーへ↓
-https://github.com/lightseekorg/tokenspeed
+▼ 詳細とビジネス活用の考察はツリーへ↓ 👇
+https://ssk0224.github.io/auto-tech-radar/radar/tokenspeed/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%80%A5%E4%B8%8A%E6%98%87%E4%B8%AD%E3%81%AEOSS%E3%80%8Ctokenspeed%E3%80%8D%E3%81%8C%E5%87%84%E3%81%99%E3%81%8E%E3%82%8B%E3%80%82%0ATokenSpeed%20is%20a%20speed-of-light%20LLM%20inference%20engine.%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%E6%95%B0%3A%202201%0A%E4%B8%BB%E8%A6%81%E6%8A%80%E8%A1%93%3A%20%23Python%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%20%23LLM%20%23%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88AI%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%A8%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E6%B4%BB%E7%94%A8%E3%81%AE%E8%80%83%E5%AF%9F%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%0Ahttps%3A%2F%2Fgithub.com%2Flightseekorg%2Ftokenspeed
+https://twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%80%A5%E4%B8%8A%E6%98%87%E4%B8%AD%E3%81%AEOSS%E3%80%8Ctokenspeed%E3%80%8D%E3%81%8C%E5%87%84%E3%81%99%E3%81%8E%E3%82%8B%E3%80%82%0D%0ATokenSpeed%20is%20a%20speed-of-light%20LLM%20inference%20engine.%0D%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%E6%95%B0%3A%202201%0D%0A%E4%B8%BB%E8%A6%81%E6%8A%80%E8%A1%93%3A%20%23Python%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%20%23LLM%20%23%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88AI%0D%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%A8%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E6%B4%BB%E7%94%A8%E3%81%AE%E8%80%83%E5%AF%9F%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%20%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Ftokenspeed%2F
 --------------------------------------------------
 
 --------------------------------------------------

@@ -3,6 +3,7 @@ import path from "path";
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
+import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -220,16 +221,16 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いた�
 
 === X THREAD ===
 ※重要規則：
-1. TWEET 1には絶対に外部URLを含めないこと（Xアルゴリズムによるインプレッション激減を防ぐため）。全角110文字以内厳守。
-2. TWEET 2もURLなし。全角110文字以内厳守。
-3. TWEET 3にリプ欄用としてURLを配置すること。全角110文字以内厳守。
+1. TWEET 1には必ず末尾に「▼ 深層レポート＆受託骨子はこちら👇\nhttps://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/」を配置すること。全体の文字数は全角110文字以内厳守（X文字数140文字制限対策）。
+2. TWEET 2はURLなし。全角100文字以内厳守。
+3. TWEET 3は補足まとめ。全角100文字以内厳守。
 
 [TWEET 1]
 【案件単価80万〜250万の秘密】
 世界で★${repo.stargazers_count}急増中の「${repo.name}」が凄い。
 ${repo.description.slice(0, 45)}...
-高額SaaSを自社代替できる新星OSS。
-提案骨子と商用手順を完全解剖👇（保存推奨 📌）
+▼ 深層レポート＆受託骨子はこちら👇
+https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 [TWEET 2]
 【従来のツールとの違い】
@@ -238,7 +239,7 @@ ${repo.description.slice(0, 45)}...
 [TWEET 3]
 【💡 商用化マニュアル ＆ 提案書完全版】
 受託提案書スライド構成・見積内訳・即起動Dockerキット付きの深層レポートを公開中。
-▼ 詳細レポートはこちら（リプ欄）
+▼ 詳細レポートはこちら
 https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 `;
@@ -311,28 +312,28 @@ ${webContent}`;
   const slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
   xContent = xContent.replace(/REPO_SLUG/g, slug);
 
-  // X投稿文にワンクリック投稿リンクを付加（厳密な130文字制限チェック）
+  // X投稿文にワンクリック投稿リンクを付加（厳密な140文字制限・リンク保証）
   let enhancedXContent = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
   const tweets = xContent.split(/\[TWEET \d+\]/gi).map((t) => t.trim()).filter(Boolean);
 
-  // Xの文字数計算（URLは一律23文字換算）
-  function calcTweetLen(text) {
-    const urlRegex = /https?:\/\/[^\s]+/g;
-    const cleanText = text.replace(urlRegex, "");
-    const urlCount = (text.match(urlRegex) || []).length;
-    return cleanText.length + (urlCount * 11.5); // 日本語全角1文字=1、半角/URL=0.5相当
-  }
-
   tweets.forEach((rawTweet, idx) => {
     let tweet = rawTweet.replace(/REPO_SLUG/g, slug);
-    // URL以外の本文が長すぎる場合は安全にトリミング
-    const lines = tweet.split("\n");
-    if (lines.length > 5) {
-      tweet = lines.slice(0, 5).join("\n");
+    let intentUrl = '';
+
+    if (idx === 0) {
+      // 第1ツイートは必ず記事リンクを付加し、140文字（280 weight）厳守で安全整形
+      const safeData = sanitizeAndAttachUrlToTweet(tweet, slug);
+      tweet = safeData.tweet;
+      intentUrl = safeData.intentUrl;
+    } else {
+      const lines = tweet.split("\n");
+      if (lines.length > 5) {
+        tweet = lines.slice(0, 5).join("\n");
+      }
+      intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     }
 
     const tweetNum = idx + 1;
-    const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     enhancedXContent += `--------------------------------------------------\n【ツイート ${tweetNum}】\n${tweet}\n\n👉 ワンクリックで投稿画面を開く:\n${intentUrl}\n--------------------------------------------------\n\n`;
   });
 

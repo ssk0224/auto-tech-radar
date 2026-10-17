@@ -89,7 +89,9 @@
   },
   "diplay": {
     "note": true,
-    "noteAt": "2026-10-14"
+    "noteAt": "2026-10-17",
+    "x": true,
+    "xAt": "2026-10-17"
   },
   "magpie": {
     "note": true,

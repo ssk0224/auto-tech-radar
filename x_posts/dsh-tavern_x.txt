@@ -6,13 +6,12 @@
 【ツイート 1】
 GitHubで急上昇中のOSS「dsh-tavern」が凄すぎる。
 基于DSH的Agent酒馆。类酒馆文字游戏Agent。兼容SillyTavern生态，人物卡直接导入就能玩。更快、更稳、更鲜活。所有模型都能用。手机也能玩。
-⭐ スター数: 819
-主要技術: #JavaScript #OSS #AI開発
-▼ 詳細とビジネス活用の考察はツリーへ↓
-https://github.com/flizzywine/dsh-tavern
+...
+▼ 詳細とビジネス活用の考察はツリーへ↓ 👇
+https://ssk0224.github.io/auto-tech-radar/radar/dsh-tavern/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%80%A5%E4%B8%8A%E6%98%87%E4%B8%AD%E3%81%AEOSS%E3%80%8Cdsh-tavern%E3%80%8D%E3%81%8C%E5%87%84%E3%81%99%E3%81%8E%E3%82%8B%E3%80%82%0A%E5%9F%BA%E4%BA%8EDSH%E7%9A%84Agent%E9%85%92%E9%A6%86%E3%80%82%E7%B1%BB%E9%85%92%E9%A6%86%E6%96%87%E5%AD%97%E6%B8%B8%E6%88%8FAgent%E3%80%82%E5%85%BC%E5%AE%B9SillyTavern%E7%94%9F%E6%80%81%EF%BC%8C%E4%BA%BA%E7%89%A9%E5%8D%A1%E7%9B%B4%E6%8E%A5%E5%AF%BC%E5%85%A5%E5%B0%B1%E8%83%BD%E7%8E%A9%E3%80%82%E6%9B%B4%E5%BF%AB%E3%80%81%E6%9B%B4%E7%A8%B3%E3%80%81%E6%9B%B4%E9%B2%9C%E6%B4%BB%E3%80%82%E6%89%80%E6%9C%89%E6%A8%A1%E5%9E%8B%E9%83%BD%E8%83%BD%E7%94%A8%E3%80%82%E6%89%8B%E6%9C%BA%E4%B9%9F%E8%83%BD%E7%8E%A9%E3%80%82%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%E6%95%B0%3A%20819%0A%E4%B8%BB%E8%A6%81%E6%8A%80%E8%A1%93%3A%20%23JavaScript%20%23OSS%20%23AI%E9%96%8B%E7%99%BA%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%A8%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E6%B4%BB%E7%94%A8%E3%81%AE%E8%80%83%E5%AF%9F%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%0Ahttps%3A%2F%2Fgithub.com%2Fflizzywine%2Fdsh-tavern
+https://twitter.com/intent/tweet?text=GitHub%E3%81%A7%E6%80%A5%E4%B8%8A%E6%98%87%E4%B8%AD%E3%81%AEOSS%E3%80%8Cdsh-tavern%E3%80%8D%E3%81%8C%E5%87%84%E3%81%99%E3%81%8E%E3%82%8B%E3%80%82%0A%E5%9F%BA%E4%BA%8EDSH%E7%9A%84Agent%E9%85%92%E9%A6%86%E3%80%82%E7%B1%BB%E9%85%92%E9%A6%86%E6%96%87%E5%AD%97%E6%B8%B8%E6%88%8FAgent%E3%80%82%E5%85%BC%E5%AE%B9SillyTavern%E7%94%9F%E6%80%81%EF%BC%8C%E4%BA%BA%E7%89%A9%E5%8D%A1%E7%9B%B4%E6%8E%A5%E5%AF%BC%E5%85%A5%E5%B0%B1%E8%83%BD%E7%8E%A9%E3%80%82%E6%9B%B4%E5%BF%AB%E3%80%81%E6%9B%B4%E7%A8%B3%E3%80%81%E6%9B%B4%E9%B2%9C%E6%B4%BB%E3%80%82%E6%89%80%E6%9C%89%E6%A8%A1%E5%9E%8B%E9%83%BD%E8%83%BD%E7%94%A8%E3%80%82%E6%89%8B%E6%9C%BA%E4%B9%9F%E8%83%BD%E7%8E%A9%E3%80%82%0A...%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%A8%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9%E6%B4%BB%E7%94%A8%E3%81%AE%E8%80%83%E5%AF%9F%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%20%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fdsh-tavern%2F
 --------------------------------------------------
 
 --------------------------------------------------
