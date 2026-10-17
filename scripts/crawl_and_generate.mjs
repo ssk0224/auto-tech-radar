@@ -135,8 +135,15 @@ stars: ${repo.stargazers_count}
 ---
 
 # ${repo.name}: 概要と革新性
+## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
+※スター数、コミュニティの活発度、本番利用実績から客観的な技術成熟度ランクを判定し、その根拠と推奨活用フェーズを簡潔に明記してください。
+
 ## 解決する主要な課題とアーキテクチャ
 ※必須：このセクション内に、コンポーネント構成やデータフローを示すMermaidダイアグラム（\`\`\`mermaid ... \`\`\` / graph TD 等）を必ず1つ以上含めて視覚的に図解してください。
+
+## ⚡ 1-Click MCP (Model Context Protocol) ＆ Cursor Rules 設定キット
+※必須：Claude DesktopやCursor、Antigravityで本OSSを即座にAIツールとして連携するための完全なJSON設定（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング開発用の \`\`\`.cursorrules\`\`\` 設定スニペットを提示してください。
+
 ## 競合ツール/商用SaaSとの徹底比較
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 ## インストール & クイックスタート手順
@@ -193,6 +200,9 @@ stars: ${repo.stargazers_count}
 
 ## 🛠️ 【即時本番起動】Docker Compose & 本番設定キット
 ※コピペで即時起動できる完全な \`\`\`docker-compose.yml\`\`\` および \`\`\`.env.example\`\`\` を出力してください。ダミーではなく実稼働する設定にしてください。
+
+## ⚡ 【2026年最新規格】Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 完全定義
+※クライアントに「このOSSを社内AIエージェントに即座に道具（Tool）として持たせられる」とアピールできる、即コピペ可能なMCPサーバーJSON（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング用の \`\`\`.cursorrules\`\`\` 定義を出力してください。
 
 ## 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答
 - 経営層・CTOから出る典型的な懸念（セキュリティ、保守性、障害対応）に対する説得回答テンプレートを提示。

@@ -100,11 +100,27 @@ const allTags = Array.from(
               modelTier = "高速バックエンド基盤";
             }
 
+            // 🎯 ThoughtWorks 成熟度リング判定
+            const starsRaw = Number(post.frontmatter?.stars) || 0;
+            let ringBadge = { label: "TRIAL", color: "#60a5fa", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)" };
+            if (starsRaw >= 15000) {
+              ringBadge = { label: "ADOPT", color: "#34d399", bg: "rgba(16, 185, 129, 0.15)", border: "rgba(16, 185, 129, 0.3)" };
+            } else if (starsRaw >= 5000) {
+              ringBadge = { label: "TRIAL", color: "#60a5fa", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)" };
+            } else if (starsRaw >= 1000) {
+              ringBadge = { label: "ASSESS", color: "#fbbf24", bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.3)" };
+            } else {
+              ringBadge = { label: "HOLD", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", border: "rgba(148, 163, 184, 0.3)" };
+            }
+
             return (
-              <tr class="matrix-row" data-search={`${title} ${desc} ${tags.join(' ')}`.toLowerCase()} style="border-bottom: 1px solid #1f2937; transition: background 0.15s;">
+              <tr class="matrix-row" data-search={`${title} ${desc} ${tags.join(' ')} ${ringBadge.label}`.toLowerCase()} style="border-bottom: 1px solid #1f2937; transition: background 0.15s;">
                 <td style="padding: 1rem; vertical-align: top;">
-                  <div style="font-weight: 700; color: #fff; font-size: 0.95rem; margin-bottom: 0.25rem;">
-                    <a href={post.url} style="color: #60a5fa; text-decoration: none;">{shortName}</a>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                    <a href={post.url} style="color: #60a5fa; text-decoration: none; font-weight: 700; font-size: 0.95rem;">{shortName}</a>
+                    <span style={`background: ${ringBadge.bg}; border: 1px solid ${ringBadge.border}; color: ${ringBadge.color}; font-size: 0.68rem; font-weight: 800; padding: 0.08rem 0.38rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;`}>
+                      ● {ringBadge.label}
+                    </span>
                   </div>
                   <div style="font-size: 0.78rem; color: #94a3b8; max-width: 280px; line-height: 1.4;">
                     {desc.length > 70 ? desc.slice(0, 70) + '...' : desc}
@@ -204,19 +220,20 @@ const allTags = Array.from(
     const copyMdBtn = document.getElementById('copy-cheatsheet-md');
     if (copyMdBtn) {
       copyMdBtn.addEventListener('click', () => {
-        let md = '| OSS | 技術領域 | Stars | 推奨受託単価目安 | 商用ポテンシャル | 記事URL |\n';
-        md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
+        let md = '| OSS | 成熟度 (ThoughtWorks) | 技術領域 | Stars | 推奨受託単価目安 | 商用ポテンシャル | 記事URL |\n';
+        md += '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
             const tds = row.querySelectorAll('td');
             if (tds.length >= 6) {
               const name = tds[0].querySelector('a')?.textContent?.trim() || '';
               const link = tds[0].querySelector('a')?.href || '';
+              const ring = tds[0].querySelector('span')?.textContent?.replace('●', '')?.trim() || '';
               const tags = Array.from(tds[1].querySelectorAll('span')).map(s => s.textContent?.trim()).join(', ');
               const stars = tds[2].textContent?.trim() || '';
               const price = tds[3].textContent?.trim() || '';
               const model = tds[4].textContent?.trim() || '';
-              md += `| [${name}](${link}) | ${tags} | ${stars} | ${price} | ${model} | [詳細](${link}) |\n`;
+              md += `| [${name}](${link}) | ${ring} | ${tags} | ${stars} | ${price} | ${model} | [詳細](${link}) |\n`;
             }
           }
         });
@@ -236,18 +253,19 @@ const allTags = Array.from(
     const exportCsvBtn = document.getElementById('export-cheatsheet-csv');
     if (exportCsvBtn) {
       exportCsvBtn.addEventListener('click', () => {
-        let csv = 'OSS,技術領域,Stars,推奨受託単価目安,商用ポテンシャル,記事URL\n';
+        let csv = 'OSS,成熟度(ThoughtWorks),技術領域,Stars,推奨受託単価目安,商用ポテンシャル,記事URL\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
             const tds = row.querySelectorAll('td');
             if (tds.length >= 6) {
               const name = `"${(tds[0].querySelector('a')?.textContent?.trim() || '').replace(/"/g, '""')}"`;
+              const ring = `"${(tds[0].querySelector('span')?.textContent?.replace('●', '')?.trim() || '').replace(/"/g, '""')}"`;
               const link = `"${(tds[0].querySelector('a')?.href || '').replace(/"/g, '""')}"`;
               const tags = `"${Array.from(tds[1].querySelectorAll('span')).map(s => s.textContent?.trim()).join(', ').replace(/"/g, '""')}"`;
               const stars = `"${(tds[2].textContent?.trim() || '').replace(/"/g, '""')}"`;
               const price = `"${(tds[3].textContent?.trim() || '').replace(/"/g, '""')}"`;
               const model = `"${(tds[4].textContent?.trim() || '').replace(/"/g, '""')}"`;
-              csv += `${name},${tags},${stars},${price},${model},${link}\n`;
+              csv += `${name},${ring},${tags},${stars},${price},${model},${link}\n`;
             }
           }
         });
