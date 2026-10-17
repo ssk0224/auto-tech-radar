@@ -31,6 +31,7 @@ export const siteConfig = {
   githubUrl: "https://github.com/ssk0224/auto-tech-radar",
   
   // 🏢 協賛・受託開発案内
+  contactEmail: "free17110224@gmail.com",
   b2bStartingPrice: "¥100,000〜",
   singleArticlePrice: "¥980",
   membershipMonthlyPrice: "¥1,980"
