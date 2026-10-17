@@ -492,16 +492,17 @@ ${articleContent}
       } catch (e) {}
 
       openFile(zennFile);
-      openUrl("https://zenn.dev/articles/new");
+      openUrl("https://zenn.dev/");
 
       console.log(`\n${c.cyan}${c.bold}================================================================================${c.reset}`);
-      console.log(`  ${c.cyan}✓ Zenn新規投稿画面 と 送客ドラフト（${selected.slug}_zenn.md）を開きました！${c.reset}`);
+      console.log(`  ${c.cyan}✓ Zennホーム画面 と 送客ドラフト（${selected.slug}_zenn.md）を開きました！${c.reset}`);
       console.log(`  ${c.green}📋 【神機能】記事全文をクリップボードに自動コピーしました！${c.reset}`);
       console.log(`  ${c.dim}※ この記事は「Zenn送客済み [✓]」としてステータスを自動記録しました。${c.reset}`);
       console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
       console.log(`  ${c.bold}【投稿手順 (最短20秒)】${c.reset}`);
-      console.log(`  1. ブラウザで開いたZennの画面で ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け`);
-      console.log(`  2. 「下書き保存」または「公開」を押すだけで、Auto Tech Radarへの恒久的SEO被リンクが完成！`);
+      console.log(`  1. ブラウザ右上の青い ${c.cyan}「投稿する」${c.reset} ボタンをクリック`);
+      console.log(`  2. エディタが開いたら ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け（クリップボードから即貼付け）`);
+      console.log(`  3. 「公開」を押すだけで、Auto Tech Radarへの恒久的SEO被リンクが完成！`);
       console.log(`  ※ Qiitaにも同じ文面を https://qiita.com/drafts/new でそのまま貼り付け可能です。`);
       console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
       waitBack();
