@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
@@ -49,7 +50,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             件名・相談テンプレが自動入力された状態でメールソフトが起動します。
           </p>
         </div>
-        <a href="mailto:contact@autotechradar.com?subject=%E3%80%90%E5%8F%97%E8%A8%97%E9%96%8B%E7%99%BA%E3%83%BB%E5%B0%8E%E5%85%A5%E7%9B%B8%E8%AB%87%E3%80%91Auto%20Tech%20Radar&body=%E2%96%A0%E8%B2%B4%E7%A4%BE%E5%90%8D%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E6%8B%85%E5%BD%93%E8%80%85%E6%A7%98%E3%81%8A%E5%90%8D%E5%89%8D%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E6%A4%9C%E8%A8%8E%E4%B8%AD%E3%81%AEOSS%EF%BC%8F%E3%83%86%E3%83%BC%E3%83%9E%EF%BC%9A%0D%0A%E2%96%A0%E6%83%B3%E5%AE%9A%E4%BA%88%E7%AE%97%E8%A6%8F%E6%A8%A1%EF%BC%88%E4%BE%8B%EF%BC%9A80%E4%B8%87%E3%80%9C250%E4%B8%87%E5%86%86%EF%BC%89%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E7%9B%B8%E8%AB%87%E5%86%85%E5%AE%B9%EF%BC%9A" style="background: #2563eb; color: #fff; font-weight: 700; padding: 0.65rem 1.2rem; border-radius: 8px; font-size: 0.88rem; text-decoration: none; display: block;">
+        <a href={`mailto:${siteConfig.contactEmail}?subject=%E3%80%90%E5%8F%97%E8%A8%97%E9%96%8B%E7%99%BA%E3%83%BB%E5%B0%8E%E5%85%A5%E7%9B%B8%E8%AB%87%E3%80%91Auto%20Tech%20Radar&body=%E2%96%A0%E8%B2%B4%E7%A4%BE%E5%90%8D%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E6%8B%85%E5%BD%93%E8%80%85%E6%A7%98%E3%81%8A%E5%90%8D%E5%89%8D%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E6%A4%9C%E8%A8%8E%E4%B8%AD%E3%81%AEOSS%EF%BC%8F%E3%83%86%E3%83%BC%E3%83%9E%EF%BC%9A%0D%0A%E2%96%A0%E6%83%B3%E5%AE%9A%E4%BA%88%E7%AE%97%E8%A6%8F%E6%A8%A1%EF%BC%88%E4%BE%8B%EF%BC%9A80%E4%B8%87%E3%80%9C250%E4%B8%87%E5%86%86%EF%BC%89%EF%BC%9A%0D%0A%E2%96%A0%E3%81%94%E7%9B%B8%E8%AB%87%E5%86%85%E5%AE%B9%EF%BC%9A`} style="background: #2563eb; color: #fff; font-weight: 700; padding: 0.65rem 1.2rem; border-radius: 8px; font-size: 0.88rem; text-decoration: none; display: block;">
           メールソフトで送信
         </a>
       </div>
@@ -165,10 +166,21 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     </section>
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ targetEmail: siteConfig.contactEmail }}>
     const form = document.getElementById('contact-form');
     const successMsg = document.getElementById('form-success-msg');
     const submitBtn = document.getElementById('form-submit-btn');
+
+    // 見積もりシミュレーターからのクエリパラメータ自動反映
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan');
+    const price = urlParams.get('price');
+    if (plan) {
+      const msgEl = document.getElementById('form-message');
+      if (msgEl) {
+        msgEl.value = `【概算見積もりシミュレーター経由のご相談】\n検討中OSS基盤: ${plan}\n概算試算額: ¥${Number(price || 0).toLocaleString()}（税別）\n\n上記プランをベースに、要件定義・社内PoC構築の実現可能性および正式お見積もりをご相談したいです。`;
+      }
+    }
 
     if (form) {
       form.addEventListener('submit', (e) => {
@@ -183,24 +195,46 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         submitBtn.disabled = true;
         submitBtn.textContent = '送信中...';
 
-        // mailtoのフォールバック生成
         const subject = encodeURIComponent(`【受託開発・導入相談】${company}様（${name}様）`);
-        const body = encodeURIComponent(
-          `■ 貴社名: ${company}\n` +
+        const rawBody = `■ 貴社名: ${company}\n` +
           `■ お名前: ${name}\n` +
           `■ メールアドレス: ${email}\n` +
           `■ ご相談種別: ${type}\n` +
           `■ 想定予算規模: ${budget}\n\n` +
-          `■ ご相談内容:\n${message}\n`
-        );
+          `■ ご相談内容:\n${message}\n`;
+        const body = encodeURIComponent(rawBody);
 
-        // クライアント側での安全な送信処理
         setTimeout(() => {
           form.style.display = 'none';
-          if (successMsg) successMsg.style.display = 'block';
-          // メーラーの自動起動トリガー（フォールバック）
-          window.location.href = `mailto:contact@autotechradar.com?subject=${subject}&body=${body}`;
-        }, 800);
+          if (successMsg) {
+            successMsg.style.display = 'block';
+            successMsg.innerHTML = `
+              <div style="font-size: 1.1rem; margin-bottom: 0.6rem;">✓ お問い合わせを受け付けました！</div>
+              <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 1rem;">
+                メールソフトが自動起動します。もしメーラーが起動しない場合は、以下のボタンからGmailで開くか、文面をコピーして <strong>${targetEmail}</strong> 宛にお送りください。
+              </p>
+              <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
+                  📮 Gmailで作成して送信
+                </a>
+                <button type="button" id="copy-consult-btn" style="background: #374151; color: #fff; border: 1px solid #4b5563; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                  📋 相談内容をコピー
+                </button>
+              </div>
+            `;
+
+            const copyConsultBtn = document.getElementById('copy-consult-btn');
+            if (copyConsultBtn) {
+              copyConsultBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(`宛先: ${targetEmail}\n件名: 【受託開発・導入相談】${company}様\n\n${rawBody}`).then(() => {
+                  copyConsultBtn.textContent = '✓ コピー完了！';
+                  setTimeout(() => { copyConsultBtn.textContent = '📋 相談内容をコピー'; }, 2000);
+                });
+              });
+            }
+          }
+          window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
+        }, 600);
       });
     }
   </script>
