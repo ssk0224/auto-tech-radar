@@ -198,7 +198,7 @@ function promptMenu() {
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.bold}🚀 【Zenn集客】エンジニア向け技術記事をZennに投稿する${c.reset} ${c.dim}(Google検索SEO・大量送客)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.cyan}${c.bold}⚡ 【Zenn自動デプロイ】GitHub公式連携コンソール（全36記事・完全全自動化）${c.reset} ${c.dim}(0クリック自動公開)${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「完全保存版・急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
 
@@ -236,7 +236,7 @@ function handleChoice(choice) {
       break;
     case 'z':
     case '9':
-      runPublishHelper('zenn');
+      runZennConsole();
       break;
     case '4':
       runPublishHelper('note');
@@ -544,6 +544,58 @@ ${articleContent}
         openUrl(fallbackUrl);
         waitBack();
       }
+    }
+  });
+}
+
+// ⚡ Zenn 公式GitHub自動連携コンソール
+function runZennConsole() {
+  console.clear();
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  console.log(`   ${c.yellow}⚡ Zenn 公式GitHub自動連携コンソール${c.reset}  ${c.white}${c.bold}|  完全自動デプロイ管理${c.reset}`);
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+
+  const articlesDir = path.join(rootDir, 'articles');
+  const count = fs.existsSync(articlesDir) ? fs.readdirSync(articlesDir).filter(f => f.endsWith('.md')).length : 0;
+
+  console.log(`  ${c.dim}連携ステータス:${c.reset} ${c.green}${c.bold}● 完全全自動化対応済み (GitHub Actions連動)${c.reset}`);
+  console.log(`  ${c.dim}対象リポジトリ:${c.reset} ${c.cyan}ssk0224/auto-tech-radar${c.reset}  |  ${c.dim}ブランチ:${c.reset} ${c.white}main${c.reset}`);
+  console.log(`  ${c.dim}連携ディレクトリ:${c.reset} ${c.yellow}articles/*.md${c.reset}  (${c.white}${c.bold}全 ${count} 本のレポート待機中${c.reset})`);
+  console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
+  console.log(`  ${c.bold}【完全自動化の仕組み】${c.reset}`);
+  console.log(`  1. 毎朝6:00 JSTにGitHub Actionsが急上昇OSSを自動巡回・日本語記事化。`);
+  console.log(`  2. 自動的に ${c.yellow}articles/xxx.md${c.reset} を生成し、GitHubに自動プッシュ。`);
+  console.log(`  3. Zenn公式GitHub連携が検知し、${c.green}${c.bold}ユーザーの操作不要（0クリック）で自動公開${c.reset}されます！`);
+  console.log(`${c.yellow}--------------------------------------------------------------------------------${c.reset}`);
+  console.log(`  ${c.yellow}${c.bold}★ 初回のみ必要な1回限りの設定（所要時間：1分）:${c.reset}`);
+  console.log(`     Zennの連携画面で [GitHubと連携する] を押し、当リポジトリを選んで保存するだけ！`);
+  console.log(`${c.cyan}================================================================================${c.reset}`);
+
+  console.log(`\n  ${c.white}${c.bold}[1]${c.reset} ${c.cyan}${c.bold}Zenn公式 GitHub連携設定画面を開く${c.reset} ${c.dim}(https://zenn.dev/dashboard/deploys - 初回1回のみ)${c.reset}`);
+  console.log(`  ${c.white}${c.bold}[2]${c.reset} ${c.white}Zenn ダッシュボードを開く${c.reset} ${c.dim}(https://zenn.dev/dashboard - 公開状況・閲覧数チェック)${c.reset}`);
+  console.log(`  ${c.white}${c.bold}[3]${c.reset} ${c.white}Qiitaや他媒体に手動でマルチポストする${c.reset} ${c.dim}(個別記事をクリップボードコピー)${c.reset}`);
+  console.log(`  ${c.dim}[0] メインメニューに戻る${c.reset}`);
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter > ${c.reset}`, (ans) => {
+    rl.close();
+    const a = ans.trim();
+    if (a === '1') {
+      console.log(`\n${c.cyan}ZennのGitHub連携設定画面を開きます...${c.reset}`);
+      openUrl("https://zenn.dev/dashboard/deploys");
+      waitBack();
+    } else if (a === '2') {
+      console.log(`\n${c.cyan}Zennのダッシュボードを開きます...${c.reset}`);
+      openUrl("https://zenn.dev/dashboard");
+      waitBack();
+    } else if (a === '3') {
+      runPublishHelper('zenn');
+    } else {
+      promptMenu();
     }
   });
 }

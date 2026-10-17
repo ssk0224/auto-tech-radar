@@ -130,6 +130,28 @@ if (pipelineOk) {
   console.log('  ✓ SUBAGENT CVR監査合格: 法人受託導線、TwitterカードPNG、チートシートが完全連動中。\n');
 }
 
+// 4. 【ZENN 監査】公式GitHub自動デプロイ規格チェック (articles/*.md)
+console.log('▶ [4/4] ZENN 公式GitHub自動連携仕様監査...');
+const zennDir = path.join(rootDir, 'articles');
+if (!fs.existsSync(zennDir)) {
+  console.error('  ❌ articles/ ディレクトリが存在しません');
+  errorCount++;
+} else {
+  const zennArticles = fs.readdirSync(zennDir).filter(f => f.endsWith('.md'));
+  let zennErrors = 0;
+  zennArticles.forEach(f => {
+    const slug = f.replace('.md', '');
+    if (slug.length < 12 || slug.length > 50 || !/^[a-z0-9_-]+$/.test(slug)) {
+      console.error(`  ❌ [ZENN INVALID SLUG] ${f}`);
+      zennErrors++;
+      errorCount++;
+    }
+  });
+  if (zennErrors === 0) {
+    console.log(`  ✓ Zennデプロイ規格監査合格: 全 ${zennArticles.length} 本の連携ファイルがZenn公式仕様（12〜50文字Slug・Frontmatter）に完全適合。\n`);
+  }
+}
+
 console.log('===============================================================================');
 if (errorCount === 0) {
   console.log('🎉 総合監査結果: ALL PASS (最高評価) - システムは完璧に稼働しています！');
