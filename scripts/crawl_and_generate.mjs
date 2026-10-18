@@ -150,6 +150,21 @@ stars: ${repo.stargazers_count}
 ## インストール & クイックスタート手順
 ## 商用利用可否 & ライセンス考察
 
+---
+
+## 🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル ＆ 実務キット
+### 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版
+※重要：案件名、導入目的、システム全体構成、投資対効果ROI（既存SaaSとの価格差比較・年間削減額）、4〜8週間導入スケジュールを含む、クライアントへそのまま出せる完全なMarkdownを出力してください。
+
+### 💰 【クライアント提示用】詳細工数・見積シミュレーション表
+※要件定義、環境構築、カスタム実装、テスト、運用の各人日・単価・小計・合計を明記したテーブルを出力してください。
+
+### 🛠️ 【即時本番起動】Docker Compose & 本番設定キット
+※コピペで動く実稼働 docker-compose.yml および .env.example を出力してください。
+
+### 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答
+※CTOや経営層のセキュリティ・保守性への懸念を打破する営業トークを出力してください。
+
 === NOTE ARTICLE ===
 # 【受託80万〜250万】海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
 
@@ -415,8 +430,23 @@ async function run() {
       fs.writeFileSync(xFile, result.x, "utf8");
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
 
-      // Zenn / Qiita 送客用ドラフト自動生成
+      // Zenn / Qiita 送客用ドラフト自動生成（アーキテクチャまででカットし、自社サイトへ完全送客）
       const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, '').trim();
+      let teaserBody = cleanBody;
+      const cutMarkers = [
+        '## 💡 ビジネス・マネタイズ活用アイデア',
+        '## 💡 このOSSを活用した具体的なマネタイズ戦略',
+        '## インストール & クイックスタート手順',
+        '## 🛠️ 【Auto Tech Radar PRO限定】'
+      ];
+      for (const m of cutMarkers) {
+        const idx = teaserBody.indexOf(m);
+        if (idx !== -1) {
+          teaserBody = teaserBody.substring(0, idx).trim();
+          break;
+        }
+      }
+
       const zennDraft = `---
 title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテクチャと商用展開"
 emoji: "⚡"
@@ -425,7 +455,22 @@ topics: ["${(repo.language || 'ai').toLowerCase()}", "oss", "github", "architect
 published: true
 ---
 
-${cleanBody}
+${teaserBody}
+
+---
+
+## 🔒 【続き】ビジネス・マネタイズ実践・本番Docker・社内DX提案書
+これ以降の：
+- 💡 **業界特化SaaS化・社内DX受託（80万〜250万円）の具体的マネタイズ実践シナリオ**
+- 📋 **そのままクライアントや社内稟議に出せる「社内DX・AI導入提案書」Markdown完全版**
+- 💰 **クライアント提示用「詳細工数・人日・単価見積シミュレーション内訳表」**
+- 🛠️ **コピペで即時起動する本番環境Docker Compose ＆ .env 実稼働設定**
+- 🤖 **Cursor / Claude DesktopですぐにAIツール化できる「1-Click MCPサーバー設定」**
+- ⚖️ **商用利用リスク・ライセンス完全評価**
+
+は、専門メディア「Auto Tech Radar」にて完全公開されています。
+
+👉 **[【続きを読む】Auto Tech Radar 公式レポートで今すぐアンロックする（一部PRO限定） →](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
 
 ---
 
@@ -433,17 +478,6 @@ ${cleanBody}
 - ⚡ **[EffectCraft: After EffectsをRustで再実装した次世代モーショングラフィックス](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/)**
 - ⚡ **[CADCraft: AutoCAD互換の2D/3DエンジンをPure Rustでフルスクラッチ実装](https://ssk0224.github.io/auto-tech-radar/radar/cadcraft/)**
 - ⚡ **[Laya-MLX: Apple Silicon上で型付き意思決定モデルを7msで爆速推論](https://ssk0224.github.io/auto-tech-radar/radar/laya-mlx/)**
-
-## 🛠️ 【即実務投入】本番Docker設定・社内DX提案書・MCP設定キット
-本OSSを社内DXや受託開発で即座にフル活用するための：
-1. **コピペで即時起動する本番環境Docker Compose ＆ .env 実稼働設定**
-2. **クライアント・社内稟議にそのまま出せる「社内DX・AI導入提案書（単価80万〜250万円）」Markdown完全版**
-3. **Cursor / Claude DesktopですぐにAIツール化できる「1-Click MCPサーバー設定」**
-4. **詳細工数・人日・単価見積シミュレーション内訳**
-
-は、専門メディア「Auto Tech Radar」にて完全公開されています。
-
-👉 **[【実務設定キット＆提案書】Auto Tech Radarで今すぐアンロックする →](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
 `;
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);

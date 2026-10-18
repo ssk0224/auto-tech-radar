@@ -139,6 +139,7 @@ if (!fs.existsSync(zennDir)) {
 } else {
   const zennArticles = fs.readdirSync(zennDir).filter(f => f.endsWith('.md'));
   let zennErrors = 0;
+  let funnelCount = 0;
   zennArticles.forEach(f => {
     const slug = f.replace('.md', '');
     if (slug.length < 12 || slug.length > 50 || !/^[a-z0-9_-]+$/.test(slug)) {
@@ -146,9 +147,16 @@ if (!fs.existsSync(zennDir)) {
       zennErrors++;
       errorCount++;
     }
+    const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8');
+    if (zContent.includes('Auto Tech Radar 公式レポート')) {
+      funnelCount++;
+    }
   });
-  if (zennErrors === 0) {
-    console.log(`  ✓ Zennデプロイ規格監査合格: 全 ${zennArticles.length} 本の連携ファイルがZenn公式仕様（12〜50文字Slug・Frontmatter）に完全適合。\n`);
+  if (zennErrors === 0 && funnelCount === zennArticles.length) {
+    console.log(`  ✓ Zennデプロイ規格＆送客ファネル監査合格: 全 ${zennArticles.length} 本がZenn公式規格に適合し、自社サイト送客バナーを100%配備中。\n`);
+  } else if (funnelCount < zennArticles.length) {
+    console.error(`  ❌ Zenn記事の送客バナーが不足しています (${funnelCount}/${zennArticles.length})`);
+    errorCount++;
   }
 }
 
