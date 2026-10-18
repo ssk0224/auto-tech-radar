@@ -324,6 +324,10 @@ ${webContent}`;
     webContent = webContent.replace(/^---\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
   }
 
+  // 異常な連続空白（Geminiがテーブル等で生成する過剰な空白パディング）を自動クレンジング
+  webContent = webContent.split('\n').map(l => l.includes('|') ? l.replace(/ {2,}/g, ' ') : l).join('\n');
+  noteContent = noteContent.split('\n').map(l => l.includes('|') ? l.replace(/ {2,}/g, ' ') : l).join('\n');
+
   const slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
   xContent = xContent.replace(/REPO_SLUG/g, slug);
 

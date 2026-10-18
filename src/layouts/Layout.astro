@@ -1204,8 +1204,10 @@ if (starsCount >= 15000) {
           } else {
             // ⚡ 世界最強フリーミアム：実務ノウハウ・商用化セクションを本物のブラー＆施錠ゲートでロック
             if (articleEl) {
-              const headings = Array.from(articleEl.querySelectorAll('h2'));
-              let lockTargetH2 = headings.find(h => /ビジネス|マネタイズ|1-Click MCP|商用化アーキテクチャ|受託開発/i.test(h.textContent)) || (headings.length >= 3 ? headings[2] : null);
+              // 優先順位: 1. PRO限定実務キット → 2. ビジネス/マネタイズ → 3. 後半セクション
+              let lockTargetH2 = headings.find(h => /PRO限定|商用化マニュアル|実務キット/i.test(h.textContent)) ||
+                                 headings.find(h => /ビジネス|マネタイズ|受託開発/i.test(h.textContent)) ||
+                                 (headings.length >= 4 ? headings[headings.length - 2] : headings[2]);
               
               if (lockTargetH2) {
                 const parent = lockTargetH2.parentNode;

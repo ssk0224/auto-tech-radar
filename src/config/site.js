@@ -8,7 +8,7 @@ export const siteConfig = {
   
   // 💳 Stripe 支払いリンク (Payment Link)
   // 本番URLが未開通の場合は、決済フォールバックとして確実に購入できるnote決済へ自動誘導
-  stripePaymentUrl: "https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000",
+  stripePaymentUrl: (typeof process !== 'undefined' && process.env?.STRIPE_PAYMENT_URL) || (typeof import.meta !== 'undefined' && import.meta.env?.STRIPE_PAYMENT_URL) || "https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000",
   
   // 📗 note メンバーシップ URL (月額1,980円 / 単発有料記事980円)
   noteMembershipUrl: "https://note.com/vast_ixora7005",

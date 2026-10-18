@@ -76,12 +76,30 @@ articles.forEach(file => {
     console.warn(`  ⚠️ [NO MONETIZATION] 商用マネタイズ分析が不足しています: ${file}`);
     warningCount++;
   }
+
+  // D. PRO実務キット完全具備チェック（提案書、工数見積、Docker、MCP）
+  const hasPro = content.includes('【Auto Tech Radar PRO限定】');
+  const hasProposal = content.includes('社内DX・AI導入提案書') || content.includes('導入提案書 Markdown完全版');
+  const hasEstimate = content.includes('詳細工数・見積') || content.includes('見積シミュレーション表') || content.includes('提案見積金額');
+  const hasDocker = content.includes('docker-compose') || content.includes('Docker Compose');
+  const hasMcp = content.includes('mcpServers');
+
+  if (!hasPro || !hasProposal || !hasEstimate || !hasDocker || !hasMcp) {
+    console.error(`  ❌ [INCOMPLETE PRO KIT] ${file}: PRO実務キットの重要要素が不足しています`);
+    errorCount++;
+  }
+
+  // E. 異常空白スペース混入チェック
+  if (/\s{500,}/.test(content)) {
+    console.error(`  ❌ [CORRUPTED WHITESPACE] ${file}: 異常な長大空白が検出されました`);
+    errorCount++;
+  }
 });
 
-if (warningCount === 0) {
-  console.log(`  ✓ SUPERPOWERS品質監査合格: 全 ${articles.length} 本のレポートが最高基準（PNGサムネ・Mermaid図解・商用分析）を完全充足。\n`);
-} else {
-  console.log(`  ℹ️ SUPERPOWERS監査完了: 警告 ${warningCount} 件（運用上の許容範囲）。\n`);
+if (errorCount === 0 && warningCount === 0) {
+  console.log(`  ✓ SUPERPOWERS品質監査合格: 全 ${articles.length} 本のレポートが最高基準（PNGサムネ・Mermaid図解・提案書・工数見積・Docker・MCP）を100%完全充足。\n`);
+} else if (errorCount === 0) {
+  console.log(`  ℹ️ SUPERPOWERS監査完了: エラー 0 件、警告 ${warningCount} 件（運用上の許容範囲）。\n`);
 }
 
 // 3. 【SUBAGENT 監査】CVRトリガー ＆ 収益化導線チェック
