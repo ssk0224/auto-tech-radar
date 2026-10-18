@@ -23,18 +23,34 @@ for (const f of files) {
   if (!content.startsWith('---')) {
     errors.push(`${f}: Missing YAML frontmatter start (---).`);
   }
-  if (!/^title:\s*.+$/m.test(content)) {
-    errors.push(`${f}: Missing title.`);
+  const titleMatch = content.match(/^title:\s*["']?(.*?)["']?$/m);
+  if (!titleMatch || !titleMatch[1].trim()) {
+    errors.push(`${f}: Missing or empty title.`);
+  } else if (titleMatch[1].trim().length > 70) {
+    errors.push(`${f}: Title length (${titleMatch[1].trim().length}) exceeds Zenn's 70-character limit.`);
   }
+
   if (!/^type:\s*"(tech|idea)"$/m.test(content)) {
     errors.push(`${f}: Missing or invalid type (must be "tech" or "idea").`);
   }
   if (!/^emoji:\s*.+$/m.test(content)) {
     errors.push(`${f}: Missing emoji.`);
   }
-  if (!/^topics:\s*\[.*\]/m.test(content)) {
-    errors.push(`${f}: Missing topics.`);
+
+  const topicsMatch = content.match(/^topics:\s*(\[.*?\])/m);
+  if (!topicsMatch) {
+    errors.push(`${f}: Missing topics array.`);
+  } else {
+    try {
+      const parsedTopics = JSON.parse(topicsMatch[1]);
+      if (!Array.isArray(parsedTopics) || parsedTopics.length === 0 || parsedTopics.length > 5) {
+        errors.push(`${f}: Topics count (${Array.isArray(parsedTopics) ? parsedTopics.length : 0}) must be between 1 and 5.`);
+      }
+    } catch (e) {
+      errors.push(`${f}: Failed to parse topics JSON array.`);
+    }
   }
+
   if (!/^published:\s*(true|false)/m.test(content)) {
     errors.push(`${f}: Missing published.`);
   }

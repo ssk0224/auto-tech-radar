@@ -594,12 +594,14 @@ function runZennConsole() {
   console.log(`  ${c.dim}連携ディレクトリ:${c.reset} ${c.yellow}articles/*.md${c.reset}  (${c.white}${c.bold}全 ${count} 本のレポート待機中${c.reset})`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
   console.log(`  ${c.bold}【完全自動化の仕組み】${c.reset}`);
-  console.log(`  1. 毎朝6:00 JSTにGitHub Actionsが急上昇OSSを自動巡回・日本語記事化。`);
+  console.log(`  1. 毎朝6:17 JSTにGitHub Actionsが急上昇OSSを自動巡回・日本語記事化。`);
   console.log(`  2. 自動的に ${c.yellow}articles/xxx.md${c.reset} を生成し、GitHubに自動プッシュ。`);
-  console.log(`  3. Zenn公式GitHub連携が検知し、${c.green}${c.bold}ユーザーの操作不要（0クリック）で自動公開${c.reset}されます！`);
+  console.log(`  3. Zenn公式GitHub連携が検知し、${c.green}${c.bold}ユーザーの操作不要で自動公開${c.reset}されます！`);
   console.log(`${c.yellow}--------------------------------------------------------------------------------${c.reset}`);
-  console.log(`  ${c.yellow}${c.bold}★ 初回のみ必要な1回限りの設定（所要時間：1分）:${c.reset}`);
-  console.log(`     Zennの連携画面で [GitHubと連携する] を押し、当リポジトリを選んで保存するだけ！`);
+  console.log(`  ${c.yellow}${c.bold}💡 【完全自動同期（完全放置）の重要設定】:${c.reset}`);
+  console.log(`     GitHubのセキュリティ仕様上、標準GITHUB_TOKENのPushはZennの自動検知が抑制される場合があります。`);
+  console.log(`     リポジトリの Secrets に ${c.cyan}${c.bold}GH_PAT${c.reset} (Personal Access Token) を登録すると、100%完全放置でZennへ自動同期されます。`);
+  console.log(`     ※未登録の場合でも、Zennデプロイ画面で「同期」を押すだけでいつでも最新記事が一括反映されます！`);
   console.log(`${c.cyan}================================================================================${c.reset}`);
 
   console.log(`\n  ${c.white}${c.bold}[1]${c.reset} ${c.cyan}${c.bold}Zenn公式 GitHub連携設定画面を開く${c.reset} ${c.dim}(https://zenn.dev/dashboard/deploys - 初回1回のみ)${c.reset}`);
