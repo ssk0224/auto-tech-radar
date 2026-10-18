@@ -429,10 +429,16 @@ ${cleanBody}
 
 ---
 
-## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
-本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
+## 🛠️ 【即実務投入】本番Docker設定・社内DX提案書・MCP設定キット
+本OSSを社内DXや受託開発で即座にフル活用するための：
+1. **コピペで即時起動する本番環境Docker Compose ＆ .env 実稼働設定**
+2. **クライアント・社内稟議にそのまま出せる「社内DX・AI導入提案書（単価80万〜250万円）」Markdown完全版**
+3. **Cursor / Claude DesktopですぐにAIツール化できる「1-Click MCPサーバー設定」**
+4. **詳細工数・人日・単価見積シミュレーション内訳**
 
-👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
+は、専門メディア「Auto Tech Radar」にて完全公開されています。
+
+👉 **[【実務設定キット＆提案書】Auto Tech Radarで今すぐアンロックする →](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
 `;
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
