@@ -94,7 +94,7 @@ async function getReadme(owner, repo) {
 
 // 1回のAI呼び出しで「Web記事」「note有料記事ドラフト」「Xスレッド」を3点一括生成
 async function generateAllContent(repo, readme) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
   const licenseName = repo.license?.name || repo.license?.spdx_id || "オープンソース (要確認)";
 
   const systemInstruction = `
@@ -361,6 +361,26 @@ async function run() {
   [webDir, noteDir, xDir, zennDir, articlesDir].forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
+
+  // 多重スケジュール（遅延救済バックアップ便）実行時の安全ガード：本日分が既に生成済みならスキップ
+  const jstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
+  let todayCount = 0;
+  if (fs.existsSync(webDir)) {
+    const existing = fs.readdirSync(webDir).filter(f => f.endsWith('.md'));
+    for (const f of existing) {
+      try {
+        const c = fs.readFileSync(path.join(webDir, f), 'utf8');
+        if (c.includes(`pubDate: "${jstToday}"`)) {
+          todayCount++;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (todayCount >= TARGET_NEW_COUNT) {
+    console.log(`✓ 本日（${jstToday} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);
+    return;
+  }
 
   let generatedCount = 0;
 
