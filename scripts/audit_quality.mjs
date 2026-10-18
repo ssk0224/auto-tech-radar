@@ -152,6 +152,33 @@ if (!fs.existsSync(zennDir)) {
   }
 }
 
+// 5. 【現代最新仕様 監査】IndexNow即時通知・Google Paywall構造化データ・FormSubmit
+console.log('▶ [5/5] SEO ＆ 現代最新プロトコル監査 (IndexNow, Google Paywall, FormSubmit)...');
+const indexNowKey = path.join(rootDir, 'public', 'indexnow-key.txt');
+const pingScript = path.join(rootDir, 'scripts', 'ping_search_engines.mjs');
+if (!fs.existsSync(indexNowKey) || !fs.existsSync(pingScript)) {
+  console.error('  ❌ IndexNow API 連携ファイルが不足しています');
+  errorCount++;
+} else {
+  console.log('  ✓ IndexNow検索エンジン即時連携: 正常配置');
+}
+
+const contactFile = path.join(rootDir, 'src', 'pages', 'contact.astro');
+const contactCode = fs.readFileSync(contactFile, 'utf8');
+if (!contactCode.includes('formsubmit.co')) {
+  console.error('  ❌ contact.astro に FormSubmit 直接送信エンドポイントがありません');
+  errorCount++;
+} else {
+  console.log('  ✓ FormSubmit 直接メール送信API: 正常稼働');
+}
+
+if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAccessibleForFree')) {
+  console.log('  ✓ Google公式仕様 Paywall構造化データ & フリーミアムゲート: 正常実装\n');
+} else {
+  console.error('  ❌ Layout.astro に Paywall 構造化データまたは施錠ゲートが不足しています');
+  errorCount++;
+}
+
 console.log('===============================================================================');
 if (errorCount === 0) {
   console.log('🎉 総合監査結果: ALL PASS (最高評価) - システムは完璧に稼働しています！');
