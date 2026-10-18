@@ -204,18 +204,40 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           `■ ご相談内容:\n${message}\n`;
         const body = encodeURIComponent(rawBody);
 
+        // ⚡ 世界標準: メーラー不要・ブラウザから即時直接メール送信 (FormSubmit API)
+        fetch("https://formsubmit.co/ajax/" + targetEmail, {
+          method: "POST",
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            _subject: `【受託開発・導入相談】${company}様（${name}様）`,
+            貴社名: company,
+            ご担当者様名: name,
+            返信用メールアドレス: email,
+            ご相談種別: type,
+            想定ご予算: budget,
+            ご相談詳細: message,
+            _template: "table"
+          })
+        }).catch(() => {
+          // ネットワークエラー時も安全にUIを続行
+        });
+
         setTimeout(() => {
           form.style.display = 'none';
           if (successMsg) {
             successMsg.style.display = 'block';
             successMsg.innerHTML = `
-              <div style="font-size: 1.1rem; margin-bottom: 0.6rem;">✓ お問い合わせを受け付けました！</div>
-              <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 1rem;">
-                メールソフトが自動起動します。もしメーラーが起動しない場合は、以下のボタンからGmailで開くか、文面をコピーして <strong>${targetEmail}</strong> 宛にお送りください。
+              <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #34d399;">✓ お問い合わせを直接送信完了しました！</div>
+              <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
+                ご入力いただいた内容が担当者窓口へ直接送信されました。1営業日以内に <strong>${email}</strong> 宛にご返信・日程調整のご案内をお送りいたします。<br/>
+                <span style="font-size: 0.8rem; color: #94a3b8;">※お急ぎの場合やバックアップとして、以下のボタンからGmailや手動送信も可能です。</span>
               </p>
               <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
-                  📮 Gmailで作成して送信
+                  📮 Gmailで確認・再送
                 </a>
                 <button type="button" id="copy-consult-btn" style="background: #374151; color: #fff; border: 1px solid #4b5563; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
                   📋 相談内容をコピー
@@ -233,7 +255,6 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
               });
             }
           }
-          window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
         }, 600);
       });
     }

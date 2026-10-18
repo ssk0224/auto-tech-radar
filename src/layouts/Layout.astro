@@ -94,6 +94,12 @@ if (starsCount >= 15000) {
         "description": pageDesc,
         "url": `https://ssk0224.github.io${Astro.url.pathname}`,
         "datePublished": frontmatter?.pubDate || "2026-10-09",
+        "isAccessibleForFree": false,
+        "hasPart": {
+          "@type": "WebPageElement",
+          "isAccessibleForFree": false,
+          "cssSelector": ".atr-paywall-gate"
+        },
         "author": {
           "@type": "Organization",
           "name": "Auto Tech Radar",
@@ -104,7 +110,7 @@ if (starsCount >= 15000) {
           "name": "Auto Tech Radar",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://ssk0224.github.io/auto-tech-radar/og-card.svg"
+            "url": "https://ssk0224.github.io/auto-tech-radar/og-card.png"
           }
         },
         "keywords": (frontmatter?.tags || ["OSS", "Tech"]).join(", ")
@@ -682,7 +688,7 @@ if (starsCount >= 15000) {
               商用環境構築、社内データ連携、オンプレミス運用、NDA締結対応。専任エンジニアチームが最短2週間で構築します。
             </p>
           </div>
-          <a href={`${baseUrl}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+          <a href={`${baseUrl}/contact/?plan=${currentSlug}&price=800000`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
             📩 無料相談・見積もり依頼 →
           </a>
         </section>

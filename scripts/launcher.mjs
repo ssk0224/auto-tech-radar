@@ -108,8 +108,12 @@ function recordPublish(slug, type) {
   } else if (type === 'qiita') {
     history[slug].qiita = true;
     history[slug].qiitaAt = todayStr;
-  }
   saveHistory(history);
+
+  // バックグラウンドで即座にクラウド同期（ユーザーの追加操作不要・完全自動）
+  try {
+    exec('git add scripts/publish_history.json && git commit -m "chore(history): record published articles" && git push origin main', { cwd: rootDir });
+  } catch (e) {}
 }
 
 // 記事原稿リスト取得（履歴と紐付け）
