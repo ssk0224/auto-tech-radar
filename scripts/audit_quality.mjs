@@ -230,6 +230,33 @@ if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAcce
   errorCount++;
 }
 
+// 6. 【リンク完全性 監査】Zenn記事 ＆ サイト内リンク 404ゼロ欠陥チェック
+console.log('▶ [6/6] リンク完全性 ＆ 404リンク切れ0件監査...');
+const existingWebSlugs = fs.readdirSync(radarDir).filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
+let brokenLinkCount = 0;
+
+if (fs.existsSync(zennDir)) {
+  const zArticles = fs.readdirSync(zennDir).filter(f => f.endsWith('.md'));
+  zArticles.forEach(zf => {
+    const content = fs.readFileSync(path.join(zennDir, zf), 'utf8');
+    const matches = content.matchAll(/auto-tech-radar\/radar\/([a-z0-9_-]+)\//g);
+    for (const match of matches) {
+      const linkedSlug = match[1];
+      if (!existingWebSlugs.includes(linkedSlug)) {
+        console.error(`  ❌ [BROKEN LINK] ${zf} -> /radar/${linkedSlug}/ (対象Web記事が存在しません)`);
+        brokenLinkCount++;
+        errorCount++;
+      }
+    }
+  });
+}
+
+if (brokenLinkCount === 0) {
+  console.log('  ✓ リンク完全性監査合格: 全Zenn記事の送客先URLが100%実在Webページと一致（404リンク切れゼロ）。\n');
+} else {
+  console.error(`  ❌ リンク完全性監査失敗: リンク切れが ${brokenLinkCount} 件検出されました。\n`);
+}
+
 console.log('===============================================================================');
 if (errorCount === 0) {
   console.log('🎉 総合監査結果: ALL PASS (最高評価) - システムは完璧に稼働しています！');
