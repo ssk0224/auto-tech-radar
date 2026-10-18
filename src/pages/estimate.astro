@@ -204,10 +204,11 @@ const ossList = posts.map(p => {
       document.getElementById('result-roi').textContent = '約 ¥' + annualSaving.toLocaleString() + ' /年';
       document.getElementById('result-payback').textContent = '約 ' + paybackMonths + ' ヶ月';
 
-      // 相談リンク更新
+      // 相談リンク更新（環境依存ゼロの相対パス解決）
       const consultLink = document.getElementById('consult-link');
       if (consultLink) {
-        consultLink.href = `${window.location.origin}/auto-tech-radar/contact/?plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
+        const rootPath = window.location.pathname.replace(/\/estimate\/?$/, '');
+        consultLink.href = `${rootPath}/contact/?plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
       }
     }
 

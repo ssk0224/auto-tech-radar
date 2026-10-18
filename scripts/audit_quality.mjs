@@ -152,15 +152,26 @@ if (!fs.existsSync(zennDir)) {
   }
 }
 
-// 5. 【現代最新仕様 監査】IndexNow即時通知・Google Paywall構造化データ・FormSubmit
-console.log('▶ [5/5] SEO ＆ 現代最新プロトコル監査 (IndexNow, Google Paywall, FormSubmit)...');
+// 5. 【現代最新仕様 監査】IndexNow即時通知・Google Paywall構造化データ・FormSubmit・robots.txt
+console.log('▶ [5/5] SEO ＆ 現代最新プロトコル監査 (IndexNow, Google Paywall, FormSubmit, robots.txt, CI Safe)...');
 const indexNowKey = path.join(rootDir, 'public', 'indexnow-key.txt');
 const pingScript = path.join(rootDir, 'scripts', 'ping_search_engines.mjs');
+const robotsTxt = path.join(rootDir, 'public', 'robots.txt');
+const workflowFile = path.join(rootDir, '.github', 'workflows', 'daily-crawl.yml');
+const sponsorPage = path.join(rootDir, 'src', 'pages', 'sponsor.astro');
+
 if (!fs.existsSync(indexNowKey) || !fs.existsSync(pingScript)) {
   console.error('  ❌ IndexNow API 連携ファイルが不足しています');
   errorCount++;
 } else {
   console.log('  ✓ IndexNow検索エンジン即時連携: 正常配置');
+}
+
+if (!fs.existsSync(robotsTxt) || !fs.readFileSync(robotsTxt, 'utf8').includes('sitemap-index.xml')) {
+  console.error('  ❌ robots.txt が不足しているか、Sitemap記述がありません');
+  errorCount++;
+} else {
+  console.log('  ✓ robots.txt ＆ 検索エンジンSitemap連携: 正常配置');
 }
 
 const contactFile = path.join(rootDir, 'src', 'pages', 'contact.astro');
@@ -172,10 +183,24 @@ if (!contactCode.includes('formsubmit.co')) {
   console.log('  ✓ FormSubmit 直接メール送信API: 正常稼働');
 }
 
-if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAccessibleForFree')) {
-  console.log('  ✓ Google公式仕様 Paywall構造化データ & フリーミアムゲート: 正常実装\n');
+if (fs.existsSync(sponsorPage) && fs.readFileSync(sponsorPage, 'utf8').includes('/contact/')) {
+  console.log('  ✓ スポンサー募集ページ (/sponsor/) お問い合わせ直結: 正常稼働');
 } else {
-  console.error('  ❌ Layout.astro に Paywall 構造化データまたは施錠ゲートが不足しています');
+  console.error('  ❌ sponsor.astro に /contact/ への直結リンクがありません');
+  errorCount++;
+}
+
+if (fs.existsSync(workflowFile) && fs.readFileSync(workflowFile, 'utf8').includes('[skip ci]')) {
+  console.log('  ✓ GitHub Actions CI二重起動抑止 ([skip ci]): 正常稼働');
+} else {
+  console.error('  ❌ daily-crawl.yml に [skip ci] が設定されていません');
+  errorCount++;
+}
+
+if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAccessibleForFree') && layoutContent.includes('copy-article-url-btn')) {
+  console.log('  ✓ Google公式仕様 Paywall構造化データ ＆ フリーミアムゲート ＆ ソーシャルシェア: 正常実装\n');
+} else {
+  console.error('  ❌ Layout.astro に Paywall 構造化データ、施錠ゲート、またはシェアバーが不足しています');
   errorCount++;
 }
 

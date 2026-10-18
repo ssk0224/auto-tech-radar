@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ssk0224.github.io/auto-tech-radar/sitemap-index.xml

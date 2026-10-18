@@ -375,12 +375,14 @@ if (starsCount >= 15000) {
       /* World-Class Freemium Content Gate */
       .atr-locked-preview {
         position: relative;
-        max-height: 220px;
+        max-height: 240px;
         overflow: hidden;
-        filter: blur(5px);
-        opacity: 0.35;
+        filter: blur(4px);
+        opacity: 0.55;
         user-select: none;
         pointer-events: none;
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 35%, transparent 100%);
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 35%, transparent 100%);
         transition: filter 0.3s ease, opacity 0.3s ease, max-height 0.3s ease;
       }
       .atr-locked-preview.unlocked {
@@ -388,18 +390,20 @@ if (starsCount >= 15000) {
         overflow: visible !important;
         filter: none !important;
         opacity: 1 !important;
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
         user-select: auto !important;
         pointer-events: auto !important;
       }
       .atr-paywall-gate {
         position: relative;
-        margin: 2rem 0;
-        background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+        margin: -40px 0 2.5rem;
+        background: linear-gradient(135deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
         border: 2px solid #6366f1;
         border-radius: 16px;
         padding: 2.2rem 1.8rem;
         text-align: center;
-        box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.35);
+        box-shadow: 0 20px 45px -5px rgba(99, 102, 241, 0.4);
         z-index: 10;
       }
 
@@ -629,7 +633,7 @@ if (starsCount >= 15000) {
               <div class="price-val">¥1,980 <span>/ 月額（解約自由）</span></div>
               <ul class="feature-list">
                 <li>✓ 毎朝配信される全有料記事が即日読み放題</li>
-                <li>✓ 過去アーカイブ全技術レポート（15本以上）完全閲覧</li>
+                <li>✓ 過去アーカイブ全技術レポート（40本以上）完全閲覧</li>
                 <li>✓ noteアプリで通勤・スキマ時間に通知読込</li>
               </ul>
             </div>
@@ -648,7 +652,7 @@ if (starsCount >= 15000) {
             </div>
             <div style="display: flex; gap: 0.4rem; flex-direction: column;">
               <a href={`${baseUrl}/sponsor/`} class="cta-btn" style="background: #4338ca; color: #fff !important; font-size: 0.88rem; padding: 0.55rem;">📢 スポンサー詳細・掲載メニューを見る →</a>
-              <a href={siteConfig.xAccountUrl} target="_blank" class="cta-btn" style="background: #000; color: #fff !important; border: 1px solid #374151; font-size: 0.82rem; padding: 0.45rem;">💬 公式𝕏のDMで相談</a>
+              <a href={`${baseUrl}/contact/?plan=sponsor&price=100000`} class="cta-btn" style="background: #2563eb; color: #fff !important; font-size: 0.84rem; padding: 0.5rem;">📩 協賛・タイアップ相談（無料） →</a>
             </div>
           </div>
         </div>
@@ -718,6 +722,41 @@ if (starsCount >= 15000) {
             </a>
           </div>
         </section>
+      )}
+
+      <!-- 📢 ソーシャルシェア ＆ はてブ拡散バー -->
+      {isArticle && (
+        <div style="margin: 2rem 0; padding: 1.1rem 1.4rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📢</span>
+            <span>この記事をシェア・ブックマークする</span>
+          </div>
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <a 
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${pageTitle} | Auto Tech Radar`)}&url=${encodeURIComponent(`https://ssk0224.github.io/auto-tech-radar${Astro.url.pathname}`)}&via=AutoTechRadar`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style="background: #000; border: 1px solid #334155; color: #fff; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;"
+            >
+              𝕏 でポスト
+            </a>
+            <a 
+              href={`https://b.hatena.ne.jp/entry/s/ssk0224.github.io/auto-tech-radar${Astro.url.pathname}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style="background: #00a4de; color: #fff; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;"
+            >
+              B! はてブ
+            </a>
+            <button 
+              id="copy-article-url-btn" 
+              style="background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;"
+              onclick="navigator.clipboard.writeText(window.location.href); this.textContent='✓ コピー完了'; setTimeout(() => this.textContent='🔗 リンクコピー', 2000);"
+            >
+              🔗 リンクコピー
+            </button>
+          </div>
+        </div>
       )}
 
       {isArticle && relatedPosts.length > 0 && (
@@ -1169,19 +1208,9 @@ if (starsCount >= 15000) {
               let lockTargetH2 = headings.find(h => /ビジネス|マネタイズ|1-Click MCP|商用化アーキテクチャ|受託開発/i.test(h.textContent)) || (headings.length >= 3 ? headings[2] : null);
               
               if (lockTargetH2) {
+                const parent = lockTargetH2.parentNode;
                 const wrapper = document.createElement('div');
                 wrapper.className = 'atr-locked-preview';
-
-                let current = lockTargetH2;
-                const nodesToWrap = [];
-                while (current) {
-                  const next = current.nextSibling;
-                  nodesToWrap.push(current);
-                  current = next;
-                }
-
-                articleEl.appendChild(wrapper);
-                nodesToWrap.forEach(n => wrapper.appendChild(n));
 
                 const gateCard = document.createElement('div');
                 gateCard.className = 'atr-paywall-gate';
@@ -1204,12 +1233,29 @@ if (starsCount >= 15000) {
                     </a>
                   </div>
                   <div style="border-top: 1px solid #312e81; padding-top: 1rem; margin-top: 1rem; font-size: 0.84rem; color: #94a3b8; display: flex; justify-content: center; gap: 1.4rem; flex-wrap: wrap;">
-                    <a href="${baseUrl}/contact/" style="color: #60a5fa; font-weight: 700; text-decoration: none;">🏢 【法人向け】本OSSの自社環境導入・PoC構築代行（無料相談） →</a>
+                    <a href="${baseUrl}/contact/?plan=${currentSlug}&price=800000" style="color: #60a5fa; font-weight: 700; text-decoration: none;">🏢 【法人向け】本OSSの自社環境導入・PoC構築代行（無料相談） →</a>
                     <a href="#unlock-vip" class="inline-vip-trigger" style="color: #cbd5e1; text-decoration: underline; cursor: pointer;">🔑 すでに購入済みの方はこちら</a>
                   </div>
                 `;
 
-                articleEl.insertBefore(gateCard, wrapper);
+                // 正確な順序: フェードアウトプレビュー(wrapper) → 施錠ゲート(gateCard)
+                parent.insertBefore(wrapper, lockTargetH2);
+
+                let current = lockTargetH2;
+                const nodesToWrap = [];
+                while (current) {
+                  const next = current.nextSibling;
+                  nodesToWrap.push(current);
+                  current = next;
+                }
+                nodesToWrap.forEach(n => wrapper.appendChild(n));
+
+                // wrapperの直後にgateCardを配置（CSSのネガティブマージンで自然にオーバーラップ）
+                if (wrapper.nextSibling) {
+                  parent.insertBefore(gateCard, wrapper.nextSibling);
+                } else {
+                  parent.appendChild(gateCard);
+                }
 
                 const inlineVip = gateCard.querySelector('.inline-vip-trigger');
                 if (inlineVip) {
