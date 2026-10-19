@@ -110,10 +110,13 @@ console.log(`⚡ 【X集客ブースト】週間まとめスレッドテキス�
 console.log(`📄 保存先: ${outputFile}`);
 console.log('===============================================================================\n');
 
-// メモ帳（テキストファイル）と ブラウザ（X投稿画面）を対話型GUIで確実に起動
-exec(`start "" "${outputFile}"`);
-exec(`rundll32 url.dll,FileProtocolHandler "${tweetUrl}"`, (err) => {
-  if (err) {
-    exec(`start "" "${tweetUrl}"`);
-  }
-});
+// メモ帳（テキストファイル）と ブラウザ（X投稿画面）を対話型GUIで起動（Windows TTY環境のみ）
+if (process.platform === 'win32' && process.stdout.isTTY) {
+  exec(`start "" "${outputFile}"`);
+  exec(`rundll32 url.dll,FileProtocolHandler "${tweetUrl}"`, (err) => {
+    if (err) {
+      exec(`start "" "${tweetUrl}"`);
+    }
+  });
+}
+

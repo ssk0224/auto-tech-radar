@@ -60,7 +60,7 @@ function getTopRepos() {
 
 export function generateLeadMagnetNote() {
   const repos = getTopRepos().slice(0, 15);
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   let md = `# 海外で注目を集めるオープンソース15選 早見表（${today} 時点・GitHub スター数順）\n\n`;
 
@@ -117,7 +117,7 @@ export function generateLeadMagnetNote() {
 }
 
 export function generateLeadMagnetOgCard() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
   const ogpDir = path.join(rootDir, 'public', 'ogp');
   if (!fs.existsSync(ogpDir)) fs.mkdirSync(ogpDir, { recursive: true });
 

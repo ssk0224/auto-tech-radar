@@ -5,7 +5,7 @@ import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
-import { openNoteForPublishing } from './utils/note_vault.mjs';
+import { openNoteForPublishing, loadPrivateKeys } from './utils/note_vault.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 
@@ -201,6 +201,7 @@ function loadNoteUrls() {
     'crates-io-index': { url: 'https://note.com/vast_ixora7005/n/na4995221c9ec', price: 980 },
     'homebrew-core': { url: 'https://note.com/vast_ixora7005/n/n78b928e2598d', price: 980 },
     'internships-2027': { url: 'https://note.com/vast_ixora7005/n/n8b1178d06273', price: 980 },
+    'mediawiki': { url: 'https://note.com/dashboard/contents', price: 980 },
   };
   try {
     return { ...knownNoiseUrls, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8')) };
@@ -282,6 +283,7 @@ function promptMenu() {
   console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(URLなし高インプ設計)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
   console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[N]${c.reset} ${c.cyan}${c.bold}⚡ 【note API 全自動同期】未出品・修正版を一括全自動パブリッシュ${c.reset} ${c.dim}(0クリックAPI直結)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -303,7 +305,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q / U) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q / U / N) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -314,6 +316,9 @@ function handleChoice(choice) {
   switch (norm) {
     case 'a':
       runAllInOnePublish();
+      break;
+    case 'n':
+      runNoteApiSync();
       break;
     case 'q':
       runPublishHelper('qiita');
@@ -476,7 +481,7 @@ function runNoteUpdates() {
   }
   // CI が取得した記事 URL（scripts/note_urls.json）があればその記事を直接開く。無ければ記事一覧
   const noteUrl = item.url;
-  openUrl(noteUrl || 'https://note.com/notes');
+  openUrl(noteUrl || 'https://note.com/dashboard/contents');
   item.duplicates.forEach((u) => openUrl(u));
   if (noteUrl) console.log(`  ${c.cyan}🔗 この記事の note ページを開きました（右上のメニューから編集できます）${c.reset}`);
 
@@ -603,8 +608,10 @@ function runPublishHelper(mode) {
       }
     }
 
-    // 投稿履歴を即時記録
-    recordPublish(selected.slug, mode);
+    // 投稿履歴の記録（note 以外は即時、note は出品完了確認後に記録）
+    if (mode !== 'note') {
+      recordPublish(selected.slug, mode);
+    }
 
     if (mode === 'note') {
       openUrl("https://note.com/notes/new");
@@ -633,7 +640,7 @@ function runPublishHelper(mode) {
           console.log(`  ${c.cyan}📋 【神機能】サムネイル画像をクリップボードに自動コピーしました！${c.reset}`);
         }
       }
-      console.log(`  ${c.dim}※ この記事は「出品済み [✓]」としてステータスを自動記録しました。${c.reset}`);
+      console.log(`  ${c.dim}※ ブラウザで出品完了後、Enterキーを押すと「出品済み [✓]」として記録され、URL対応表が同期されます。${c.reset}`);
       console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
       console.log(`  ${c.bold}【出品手順 (最短30秒)】${c.reset}`);
       if (hasImage) {
@@ -641,12 +648,26 @@ function runPublishHelper(mode) {
         console.log(`     ・noteの「画像を追加」をクリックして ${c.cyan}[Ctrl + V]${c.reset}（クリップボードから即貼付け）`);
         console.log(`     ・または、自動で開いたフォルダから画像をドラッグ＆ドロップ！`);
       }
-      console.log(`  1. 開いたメモ帳で ${c.cyan}[Ctrl + A]${c.reset} → ${c.cyan}[Ctrl + C]${c.reset} で全コピー`);
-      console.log(`  2. note投稿画面に ${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
+      console.log(`  1. 開いたメモ帳でタイトル（1行目の # の後ろ）をタイトル欄にコピー`);
+      console.log(`  2. 2行目以降の本文を全選択して note 本文欄に ${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
       console.log(`  3. 「有料エリア」の手前で「有料ライン」を挿入`);
       console.log(`  4. 価格を ${c.yellow}¥980${c.reset} に設定し、メンバーシップ特典にも追加して公開！`);
       console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
-      waitBack();
+
+      const rlConfirm = readline.createInterface({ input: process.stdin, output: process.stdout });
+      rlConfirm.question(`\n${c.yellow}${c.bold}note での出品が完了したら Enter を押してください（スキップ: s / メニューへ: 0） > ${c.reset}`, (cAns) => {
+        rlConfirm.close();
+        if (cAns.trim() !== '0' && cAns.trim().toLowerCase() !== 's') {
+          recordPublish(selected.slug, 'note');
+          console.log(`\n  ${c.green}✓ note出品完了を記録しました。note_urls.json を同期中...${c.reset}`);
+          try {
+            execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
+          } catch (e) {}
+        } else {
+          console.log(`\n  ${c.yellow}出品をスキップしました（ステータスは未完了のまま保持されます）。${c.reset}`);
+        }
+        waitBack();
+      });
     } else if (mode === 'zenn') {
       const zennDir = path.join(rootDir, 'zenn_drafts');
       if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });
@@ -952,6 +973,49 @@ function runWeeklyThread() {
   waitBack();
 }
 
+function runNoteApiSync() {
+  console.clear();
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}⚡ 【note API 全自動同期】ローカルAPIブリッジ ＆ ブラウザ自動パブリッシュ${c.reset}`);
+  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
+
+  try {
+    loadPrivateKeys();
+  } catch (e) {
+    console.log(`  ${c.red}❌ 秘密鍵が見つかりません: ${e.message}${c.reset}\n`);
+    waitBack();
+    return;
+  }
+
+  console.log(`1. ローカルAPIサーバー (port 18921) を起動中...`);
+  const serverProc = exec(`node scripts/note_api_server.mjs`, { cwd: rootDir });
+  serverProc.stdout.on('data', (d) => process.stdout.write(d));
+  serverProc.stderr.on('data', (d) => process.stderr.write(d));
+
+  setTimeout(() => {
+    console.log(`\n2. note.com 記事管理画面を開きます...`);
+    openUrl('https://note.com/notes');
+
+    console.log(`\n${c.green}${c.bold}【自動実行の案内】${c.reset}`);
+    console.log(`  開いた Chrome の DevTools コンソール（F12 → Console）で全自動同期を実行できます。`);
+    console.log(`  ブラウザ内API処理が完了すると、サーバーが自動終了し、URL対応表が同期されます。\n`);
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(`\n${c.yellow}同期が完了したら Enter を押して note_urls を更新 (キャンセル: 0) > ${c.reset}`, (ans) => {
+      rl.close();
+      try {
+        serverProc.kill();
+      } catch (e) {}
+      if (ans.trim() !== '0') {
+        console.log(`\n${c.green}✓ note_urls.json を同期中...${c.reset}`);
+        try {
+          execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
+        } catch (e) {}
+      }
+      waitBack();
+    });
+  }, 1200);
+}
 
 // 起動
 promptMenu();

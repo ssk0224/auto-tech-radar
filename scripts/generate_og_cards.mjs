@@ -347,6 +347,9 @@ export function generateOgCardForPost(postData) {
   try {
     const chromeCandidates = [
       process.env.CHROME_BIN,
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium',
+      '/usr/bin/chromium-browser',
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
       'google-chrome',

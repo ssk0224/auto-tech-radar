@@ -1,10 +1,11 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: Homebrew Cask - macOS/Linux向けバイナリソフトウェア管理ツール
-description: Homebrew Caskは、macOSおよびLinux上でGUIアプリケーション、CLIツール、フォントなどのバイナリソフトウェアをコマンドラインから簡単にインストールおよび管理するためのHomebrew拡張です。
-pubDate: 2024-07-30
+title: "Homebrew Cask - macOS/Linux向けバイナリソフトウェア管理ツール"
+description: "Homebrew Caskは、macOSおよびLinux上でGUIアプリケーション、CLIツール、フォントなどのバイナリソフトウェアをコマンドラインから簡単にインストールおよび管理するためのHomebrew拡張です。"
+pubDate: "2024-07-30"
+stars: 22400
 tags: ["Homebrew", "Cask", "macOS", "Linux", "パッケージマネージャー", "ソフトウェア管理", "GUIアプリ", "CLIツール"]
-repoUrl: https://github.com/Homebrew/homebrew-cask
+repoUrl: "https://github.com/Homebrew/homebrew-cask"
 ---
 
 ## 概要

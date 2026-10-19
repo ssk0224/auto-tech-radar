@@ -8,7 +8,8 @@ import { stripProSection } from "./utils/pro_boundary.mjs";
 import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems } from "./utils/note_vault.mjs";
 import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
-import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
+import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
+import { findForbiddenClaims } from "./utils/claims_check.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -536,7 +537,7 @@ async function run() {
     for (const f of existing) {
       try {
         const c = fs.readFileSync(path.join(webDir, f), "utf8");
-        if (c.includes(`pubDate: "${jstToday}"`)) {
+        if (new RegExp(`pubDate:\\s*["']?${jstToday}["']?`).test(c)) {
           todayCount++;
         }
       } catch (e) {}
@@ -606,6 +607,16 @@ async function run() {
       if (/"mcpServers"/.test(noteText) && !/mcp/i.test(readme)) {
         throw new Error("READMEにMCPの記載が無いのにMCP設定が含まれています");
       }
+      // 禁止表現・誇張表現の有無を厳格検査（テスト・監査と共通定義）
+      const forbiddenHits = [
+        ...findForbiddenClaims(noteText),
+        ...findForbiddenClaims(result.web),
+        ...findForbiddenClaims(result.x)
+      ];
+      if (forbiddenHits.length) {
+        throw new Error(`生成文面に禁止・誇張表現が含まれています（${forbiddenHits.join(" / ")}）`);
+      }
+
       writeSealedNote(noteFile, noteText);
       console.log(`✓ note有料記事ドラフト保存（有料部分は暗号化）: ${noteFile}`);
 
@@ -656,7 +667,7 @@ title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテク
 emoji: "⚡"
 type: "tech"
 topics: ${JSON.stringify(zennTopics)}
-published: true
+published: ${!isNoise(slug)}
 ---
 
 ${teaserBody}

@@ -28,11 +28,11 @@ stars: 7929
 
 ```mermaid
 graph TD
-    User(["開発者 / オペレーター"]) -->|プロンプト・要件定義| Orchestrator[mod-orchestrator<br>監督エージェント]
+    User(["開発者 / オペレーター"]) -->|プロンプト・要件定義| Orchestrator["mod-orchestrator<br>監督エージェント"]
     
     subgraph "universal-modder コアアーキテクチャ"
-        Orchestrator -->|タスク指示 & ログ照合| OfflineWorker[mod-offline-worker<br>設計・解析・スタブ検証]
-        Orchestrator -->|実行指示| GameWorker[mod-game-worker<br>実機ビルド・インジェクト・実機検証]
+        Orchestrator -->|タスク指示 & ログ照合| OfflineWorker["mod-offline-worker<br>設計・解析・スタブ検証"]
+        Orchestrator -->|実行指示| GameWorker["mod-game-worker<br>実機ビルド・インジェクト・実機検証"]
         
         OfflineWorker -->|検索・知見共有| KB[("Knowledge Base<br>AI written field notes")]
         OfflineWorker -->|アセット生成| FalMCP["fal.ai MCP / ComfyUI<br>2D/3D/SFX/PBR"]

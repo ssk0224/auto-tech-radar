@@ -1,8 +1,9 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "Nixpkgs: 再現可能なシステム構築とパッケージ管理の基盤"
+title: "Nixpkgs - 再現可能なシステム構築とパッケージ管理の基盤"
 description: "NixOS/nixpkgsリポジトリは、Nixパッケージマネージャーが利用する14万以上のソフトウェアパッケージのコレクションであり、純粋関数型LinuxディストリビューションであるNixOSの実装を提供します。本ドキュメントでは、そのアーキテクチャ、機能、およびエコシステムについて、技術的視点から解説します。"
 pubDate: "2023-10-27"
+stars: 26000
 tags: ["Nix", "Nixpkgs", "NixOS", "パッケージマネージャー", "Linuxディストリビューション", "純粋関数型", "DevOps", "再現性"]
 repoUrl: "https://github.com/NixOS/nixpkgs"
 ---

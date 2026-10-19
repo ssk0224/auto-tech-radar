@@ -4,13 +4,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
 
-const FORBIDDEN = [
-  [/想定受託単価|推奨受託単価/, "スター数・カテゴリから機械的に決めた受託単価"],
-  [/完全保存版|ドル箱|完全無人化|完全網羅/, "根拠のない誇張"],
-  [/Trending直結/, "GitHub Trending ではなく検索 API で収集している"],
-  [/社内稟議テンプレ付|社内稟議・提案書ドラフト|見積内訳付き/, "無料部分・画像に含まれない有料特典の表示"],
-  [/累計[\d,]+\+? ?Stars/, "集計していないスター数の合計"],
-];
+import { FORBIDDEN } from "../scripts/utils/claims_check.mjs";
 
 test("OGP 画像・リードマグネット・README・サイトページとその生成スクリプトに禁止表現が無い", () => {
   const files = [

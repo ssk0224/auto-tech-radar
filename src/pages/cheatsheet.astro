@@ -5,15 +5,8 @@ import { getArticles } from "../utils/articles.js";
 const posts = getArticles() as any[];
 const sortedPosts = posts;
 
-// 全ユニークタグの抽出
-const allTags = Array.from(
-  new Set(
-    posts.flatMap(p => (Array.isArray(p.frontmatter?.tags) ? p.frontmatter.tags : []))
-  )
-).slice(0, 10);
-
 import noteUrlsRaw from "../../scripts/note_urls.json";
-const noteUrls = noteUrlsRaw as Record<string, { url?: string }>;
+const noteUrls = (noteUrlsRaw || {}) as Record<string, { url?: string }>;
 const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note.com/vast_ixora7005";
 ---
 
@@ -80,7 +73,6 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
         </thead>
         <tbody id="matrix-tbody">
           {sortedPosts.map((post) => {
-            const rawSlug = post.url ? post.url.replace(/^.*[\\\/]/, '').replace('.html', '') : 'oss';
             const title = post.frontmatter?.title || 'OSS Entry';
             const shortName = title.split(' - ')[0].split(':')[0].trim();
             const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];

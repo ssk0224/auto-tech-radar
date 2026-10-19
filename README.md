@@ -79,6 +79,20 @@ flowchart TD
 
 ---
 
+## ⚙️ 環境変数 ＆ GitHub Actions Secrets 設定
+リポジトリの **Settings → Secrets and variables → Actions** に以下を設定します（`.env.example` 参照）：
+
+| Secret 名 | 必須 / 任意 | 用途 |
+|---|:---:|---|
+| `GEMINI_API_KEY` | **必須** | クローラーによる技術解剖・原稿自動生成用 Google Gemini API キー |
+| `GH_PAT` | 任意 | GitHub Search API のレート制限緩和および Pages 自動コミット用 Personal Access Token（未設定時は `GITHUB_TOKEN` を使用） |
+| `X_API_KEY` | 任意 | 毎朝の自動ツイート用 X (Twitter) API Key |
+| `X_API_SECRET` | 任意 | 毎朝の自動ツイート用 X (Twitter) API Secret |
+| `X_ACCESS_TOKEN` | 任意 | 毎朝の自動ツイート用 X (Twitter) Access Token |
+| `X_ACCESS_TOKEN_SECRET` | 任意 | 毎朝の自動ツイート用 X (Twitter) Access Token Secret |
+
+---
+
 ## 🛡️ ECC × SUPERPOWERS × SUBAGENT 品質保証体制
 本プロジェクトは、3重の品質・境界統制プロトコルにより運用されています：
 1. **ECC (Enterprise & Confidentiality Guard)**: プライベートリポジトリや機密情報の完全隔離・有料本文の平文コミット防止。

@@ -45,17 +45,44 @@ export function inlineMd(s) {
 }
 
 function parseTableCells(line) {
-  return line
-    .trim()
-    .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map((c) => c.trim());
+  let s = line.trim();
+  if (s.startsWith("|")) s = s.slice(1);
+  if (s.endsWith("|")) s = s.slice(0, -1);
+
+  const cells = [];
+  let cur = "";
+  let inCode = false;
+
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "\\") {
+      if (i + 1 < s.length && s[i + 1] === "|") {
+        cur += "|";
+        i++;
+        continue;
+      }
+      cur += ch;
+      continue;
+    }
+    if (ch === "`") {
+      inCode = !inCode;
+      cur += ch;
+      continue;
+    }
+    if (ch === "|" && !inCode) {
+      cells.push(cur.trim());
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  cells.push(cur.trim());
+  return cells;
 }
 
 function isTableSeparator(line) {
   const t = line.trim();
-  if (!t.startsWith("|") || !t.includes("-")) return false;
+  if (!t.includes("-") || !t.includes("|")) return false;
   const cells = parseTableCells(t);
   return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c));
 }
@@ -157,11 +184,11 @@ export function mdToNoteHtml(md) {
           const pId = uuid();
           let itemHtml = "";
           if (headers.length === 2 && cells.length >= 2) {
-            const k = inlineMd(cells[0].replace(/^\*\*|\*\*$/g, ""));
+            const k = inlineMd(cells[0].replace(/^#+\s*/, "").replace(/^\*\*|\*\*$/g, ""));
             const v = inlineMd(cells[1]);
             itemHtml = `<strong>${k}</strong>：${v}`;
           } else {
-            const lead = inlineMd(cells[0].replace(/^\*\*|\*\*$/g, ""));
+            const lead = inlineMd(cells[0].replace(/^#+\s*/, "").replace(/^\*\*|\*\*$/g, ""));
             const details = [];
             for (let cIdx = 1; cIdx < cells.length; cIdx++) {
               const val = cells[cIdx];

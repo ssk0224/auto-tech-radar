@@ -12,8 +12,6 @@ const topPosts = (getArticles() as any[])
     return t !== null && nowMs - t <= WEEK_MS && t <= nowMs + 24 * 60 * 60 * 1000;
   })
   .slice(0, 7);
-
-const today = new Date().toISOString().split('T')[0];
 ---
 
 <Layout

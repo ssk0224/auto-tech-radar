@@ -89,7 +89,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         以下のフォームより送信いただけます。原則1営業日以内にご返信いたします。（機密保持契約 / NDA対応可能）
       </p>
 
-      <form id="contact-form" style="display: flex; flex-direction: column; gap: 1.2rem;">
+      <form id="contact-form" method="POST" action={`https://formsubmit.co/${siteConfig.contactEmail}`} style="display: flex; flex-direction: column; gap: 1.2rem;">
         <div>
           <label for="form-company" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
             貴社名・組織名 <span style="color: #ef4444;">*</span>

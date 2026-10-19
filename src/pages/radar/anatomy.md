@@ -35,10 +35,10 @@ graph TD
     Agent -->|SKILL.md 読み込み| Skill[Anatomy Workflow Engine]
     
     subgraph IterativeDesignLoop ["Iterative Design Loop"]
-        Skill --> Step1[1. 数値・制約抽出<br>閾値, レート, 容量]
-        Step1 --> Step2[2. 物理メタファー策定<br>機械構造・パーツリスト化]
+        Skill --> Step1["1. 数値・制約抽出<br>閾値, レート, 容量"]
+        Step1 --> Step2["2. 物理メタファー策定<br>機械構造・パーツリスト化"]
         Step2 --> Step3["3. 幾何モデリング kit/<br>iso-kit, lathe, tube"]
-        Step3 --> Step4[4. レンダリング生成<br>SVG階層 + WebGL Canvas]
+        Step3 --> Step4["4. レンダリング生成<br>SVG階層 + WebGL Canvas"]
         Step4 --> Step5["5. 自動検証 & 監査<br>kit/audit.mjs & Chrome"]
         Step5 -->|干渉・浮遊検知| Step3
     end

@@ -793,28 +793,30 @@ if (starsCount >= 15000) {
       )}
     </main>
 
-    <!-- Floating Sticky Action Bar (読者が50%スクロールした際にフワッと出現する高成約バー) -->
-    <div id="sticky-bar" style="position: fixed; bottom: -80px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #312e81; padding: 0.75rem 1.2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; z-index: 9998; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
-      <div style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;" class="sticky-text">
-        ⚡ <span style="color: #60a5fa;">毎朝の最新OSS解体新書</span> の実務キットは note で（メンバーシップ 月額1,980円）
+    <!-- Floating Sticky Action Bar (読者が50%スクロールした際にフワッと出現する高成約バー: note販売中の記事のみ表示) -->
+    {isArticle && noteItem?.url && (
+      <div id="sticky-bar" style="position: fixed; bottom: -80px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #312e81; padding: 0.75rem 1.2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; z-index: 9998; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
+        <div style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;" class="sticky-text">
+          ⚡ <span style="color: #60a5fa;">本記事の実務キット</span> は note で（メンバーシップ 月額1,980円 / 単発 ¥980）
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
+          <a href={noteItem.url} target="_blank" rel="noopener noreferrer" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
+            単発購入(¥980)
+          </a>
+        </div>
       </div>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-        <a href={noteItem?.url || siteConfig.noteProfileUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
-          単発購入(¥980)
-        </a>
-      </div>
-    </div>
+    )}
 
-    <footer>
+    <footer style={isArticle && noteItem?.url ? "padding-bottom: 5.5rem;" : ""}>
       <p style="margin-bottom: 0.8rem;">
         <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
-        <a href={`${baseUrl}/api/radar.json`} target="_blank" style="margin: 0 0.6rem; color: #c084fc; font-weight: 700;">🤖 AI Agent API (JSON)</a> |
+        <a href={`${baseUrl}/api/radar.json`} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem; color: #c084fc; font-weight: 700;">🤖 AI Agent API (JSON)</a> |
         <a href={`${baseUrl}/sponsor/`} style="margin: 0 0.6rem;">📢 広告・協賛</a> |
         <a href={`${baseUrl}/privacy/`} style="margin: 0 0.6rem;">プライバシーポリシー</a> |
-        <a href={siteConfig.xAccountUrl} target="_blank" style="margin: 0 0.6rem;">公式 𝕏 ({siteConfig.xHandle})</a> |
-        <a href={siteConfig.noteMembershipUrl} target="_blank" style="margin: 0 0.6rem;">公式 note</a> |
-        <a href={siteConfig.githubUrl} target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
+        <a href={siteConfig.xAccountUrl} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem;">公式 𝕏 ({siteConfig.xHandle})</a> |
+        <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem;">公式 note</a> |
+        <a href={siteConfig.githubUrl} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
       </p>
       <p>© 2026 Auto Tech Radar. Global Open Source Intelligence & Monetization Architecture. All rights reserved.</p>
     </footer>

@@ -292,7 +292,9 @@ const posts = getArticles() as any[];
       btn.addEventListener("click", () => {
         const text = "【注目OSS】" + (btn.getAttribute("data-title") || "") + " \nhttps://ssk0224.github.io" + (btn.getAttribute("data-url") || "");
         navigator.clipboard.writeText(text).then(() => {
-          alert("社内Slack/Discord用テキストをコピーしました！");
+          const orig = btn.innerText;
+          btn.innerText = "✓ コピー完了！";
+          setTimeout(() => { btn.innerText = orig; }, 2000);
         });
       });
     });

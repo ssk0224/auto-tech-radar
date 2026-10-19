@@ -41,3 +41,17 @@ test("note_html: Markdownの表・インラインコード・Mermaid・有料境
     assert.ok(!/推奨ハッシュタグ/.test(res.fullBody), `${file}: 末尾の出品用ハッシュタグ注記が本文に残らないこと`);
   }
 });
+
+test("note_html: エスケープされたパイプやインラインコード内のパイプを含む表を正しく分解できる", () => {
+  const sample = `# テスト記事
+
+| 項目 | 説明 | 備考 |
+|---|---|---|
+| コマンド | \`cat file \\| grep text\` | パイプ連結 |
+| 記号 | A \\| B | エスケープ記号 |
+`;
+  const res = parseDraftToNotePayload(sample, false);
+  assert.ok(!res.fullBody.includes("|---|"), "デリミタ行が残らないこと");
+  assert.ok(res.fullBody.includes("<code>cat file | grep text</code>"), "コード内パイプがそのまま維持されること");
+  assert.ok(res.fullBody.includes("A | B"), "エスケープされたパイプが1つのセル内で維持されること");
+});

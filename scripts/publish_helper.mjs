@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { openNoteForPublishing } from './utils/note_vault.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
+import { isNoise } from './utils/noise_filter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -28,6 +29,10 @@ function getDrafts() {
   if (!fs.existsSync(noteDir)) return [];
   return fs.readdirSync(noteDir)
     .filter(f => f.endsWith('_note.md') || f === 'LEAD_MAGNET_CHEAT_SHEET.md')
+    .filter(f => {
+      const s = f === 'LEAD_MAGNET_CHEAT_SHEET.md' ? 'LEAD_MAGNET_CHEAT_SHEET' : f.replace('_note.md', '');
+      return s === 'LEAD_MAGNET_CHEAT_SHEET' || !isNoise(s);
+    })
     .map(f => {
       const fullPath = path.join(noteDir, f);
       const stat = fs.statSync(fullPath);
@@ -116,6 +121,17 @@ rl.question('番号を入力して Enter > ', (answer) => {
 
   function openFile(filePath) {
     exec(`start "" "${filePath}"`);
+  }
+
+  function copyTextToClipboard(text) {
+    if (!text) return false;
+    try {
+      const escaped = text.replace(/'/g, "''");
+      execSync(`powershell -NoProfile -Command "Set-Clipboard -Value '${escaped}'"`, { stdio: 'ignore', timeout: 4000 });
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   if (mode === 'note') {

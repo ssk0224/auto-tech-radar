@@ -58,6 +58,10 @@ jobs:
         continue-on-error: true
         run: node scripts/sync_note_urls.mjs
 
+      # 新規生成物も含めた品質テスト（禁止表現・暗号化境界・送客リンク整合性）
+      - name: Post-Crawl Quality Test Gate
+        run: npm test
+
       - name: Build Astro SSG
         run: npm run build
 
