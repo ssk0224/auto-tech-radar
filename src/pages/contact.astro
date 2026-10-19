@@ -162,12 +162,12 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       <h3 style="margin: 0 0 1.2rem; font-size: 1.2rem; font-weight: 800; color: #f3f4f6;">🛡️ 法人向け開発・導入支援の安心ポリシー</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; font-size: 0.88rem; color: #94a3b8; line-height: 1.65;">
         <div>
-          <h4 style="color: #93c5fd; margin: 0 0 0.4rem; font-size: 0.95rem;">🔒 秘密保持契約 (NDA) 完備</h4>
-          <p style="margin: 0;">商談前のNDA締結に対応しております。貴社独自の業務データや機密仕様を外部に漏らすことは一切ありません。</p>
+          <h4 style="color: #93c5fd; margin: 0 0 0.4rem; font-size: 0.95rem;">🔒 秘密保持契約 (NDA) の締結</h4>
+          <p style="margin: 0;">ご希望に応じて商談前にNDAを締結します。お預かりした業務データや仕様は、NDAに基づいて取り扱います。</p>
         </div>
         <div>
-          <h4 style="color: #93c5fd; margin: 0 0 0.4rem; font-size: 0.95rem;">📋 適格請求書 (インボイス) 対応</h4>
-          <p style="margin: 0;">銀行振込・適格請求書発行に対応。法人経費・開発外注費としてスムーズに会計処理いただけます。</p>
+          <h4 style="color: #93c5fd; margin: 0 0 0.4rem; font-size: 0.95rem;">📋 お支払い・請求書</h4>
+          <p style="margin: 0;">お支払い方法・請求書の形式は、お見積もりの際にご案内します。</p>
         </div>
         <div>
           <h4 style="color: #93c5fd; margin: 0 0 0.4rem; font-size: 0.95rem;">🚀 納品後1ヶ月の無償サポート</h4>
@@ -209,7 +209,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         // 法人経費・チームライセンス経由
         if (typeEl) typeEl.value = 'その他';
         if (msgEl) {
-          msgEl.value = `【法人一括ライセンス・チーム導入のご相談】\n検討プラン: Auto Tech Radar PRO（適格請求書・銀行振込対応）\n\nチーム利用人数、社内稟議手続き、法人契約の手続きについてご案内をお願いいたします。`;
+          msgEl.value = `【法人一括ライセンス・チーム導入のご相談】\n検討プラン: 複数名での利用\n\nチーム利用人数、社内稟議手続き、法人契約の手続きについてご案内をお願いいたします。`;
         }
       } else {
         // OSS受託開発・自社AI導入経由
