@@ -52,6 +52,16 @@ const radarItems = posts.map(p => {
     tags: front.tags || []
   };
 });
+
+// リング番号 → 表示名・バッジ配色 (0: ADOPT, 1: TRIAL, 2: ASSESS, 3: HOLD)
+const RING_NAMES = ["ADOPT", "TRIAL", "ASSESS", "HOLD"];
+const RING_BADGE_STYLES = [
+  "background: rgba(16, 185, 129, 0.2); color: #34d399;",
+  "background: rgba(59, 130, 246, 0.2); color: #60a5fa;",
+  "background: rgba(245, 158, 11, 0.2); color: #fbbf24;",
+  "background: rgba(148, 163, 184, 0.2); color: #94a3b8;",
+];
+const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_STYLES[1];
 ---
 
 <Layout title="4象限インタラクティブ・テックレーダー | Auto Tech Radar" description="ThoughtWorks・ByteByteGoモデルを採用した次世代技術レーダー。世界の急上昇OSSをADOPT（本番採用）・TRIAL（検証）・ASSESS（注目）の4象限で可視化。">
@@ -121,8 +131,8 @@ const radarItems = posts.map(p => {
             {radarItems.filter(item => item.quadrant === 0).map(item => (
               <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
-                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
-                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${ringBadgeStyle(item.ring)}`}>
+                  {RING_NAMES[item.ring] ?? 'TRIAL'}
                 </span>
               </li>
             ))}
@@ -138,8 +148,8 @@ const radarItems = posts.map(p => {
             {radarItems.filter(item => item.quadrant === 1).map(item => (
               <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
-                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
-                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${ringBadgeStyle(item.ring)}`}>
+                  {RING_NAMES[item.ring] ?? 'TRIAL'}
                 </span>
               </li>
             ))}
@@ -155,8 +165,8 @@ const radarItems = posts.map(p => {
             {radarItems.filter(item => item.quadrant === 2).map(item => (
               <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
-                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
-                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${ringBadgeStyle(item.ring)}`}>
+                  {RING_NAMES[item.ring] ?? 'TRIAL'}
                 </span>
               </li>
             ))}
@@ -172,8 +182,8 @@ const radarItems = posts.map(p => {
             {radarItems.filter(item => item.quadrant === 3).map(item => (
               <li style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <a href={item.url} style="color: #f1f5f9; font-weight: 600; text-decoration: none;">{item.title}</a>
-                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${item.ring === 0 ? 'background: rgba(16, 185, 129, 0.2); color: #34d399;' : item.ring === 1 ? 'background: rgba(59, 130, 246, 0.2); color: #60a5fa;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'}`}>
-                  {item.ring === 0 ? 'ADOPT' : item.ring === 1 ? 'TRIAL' : 'ASSESS'}
+                <span style={`font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 4px; ${ringBadgeStyle(item.ring)}`}>
+                  {RING_NAMES[item.ring] ?? 'TRIAL'}
                 </span>
               </li>
             ))}
@@ -193,17 +203,19 @@ const radarItems = posts.map(p => {
       const radius = center - 40;
 
       const rings = [
-        { label: 'ADOPT', r: radius * 0.35, color: 'rgba(16, 185, 129, 0.15)', stroke: '#10b981' },
-        { label: 'TRIAL', r: radius * 0.65, color: 'rgba(59, 130, 246, 0.08)', stroke: '#3b82f6' },
-        { label: 'ASSESS', r: radius * 0.95, color: 'rgba(245, 158, 11, 0.05)', stroke: '#f59e0b' },
+        { label: 'ADOPT', r: radius * 0.28, color: 'rgba(16, 185, 129, 0.15)', stroke: '#10b981' },
+        { label: 'TRIAL', r: radius * 0.52, color: 'rgba(59, 130, 246, 0.08)', stroke: '#3b82f6' },
+        { label: 'ASSESS', r: radius * 0.76, color: 'rgba(245, 158, 11, 0.05)', stroke: '#f59e0b' },
+        { label: 'HOLD', r: radius * 0.95, color: 'rgba(148, 163, 184, 0.04)', stroke: '#94a3b8' },
       ];
 
       // 各アイテムの座標を事前計算
       const placedItems = items.map((item, idx) => {
         let baseR = 0;
-        if (item.ring === 0) baseR = radius * (0.12 + Math.random() * 0.18);
-        else if (item.ring === 1) baseR = radius * (0.38 + Math.random() * 0.22);
-        else baseR = radius * (0.68 + Math.random() * 0.22);
+        if (item.ring === 0) baseR = radius * (0.08 + Math.random() * 0.14);
+        else if (item.ring === 1) baseR = radius * (0.31 + Math.random() * 0.16);
+        else if (item.ring === 2) baseR = radius * (0.55 + Math.random() * 0.16);
+        else baseR = radius * (0.79 + Math.random() * 0.12);
 
         // 象限ごとの角度範囲 (Q0: 0~90°, Q1: 90~180°, Q2: 180~270°, Q3: 270~360°)
         const qOffset = item.quadrant * (Math.PI / 2);
@@ -257,6 +269,7 @@ const radarItems = posts.map(p => {
           let color = '#34d399';
           if (item.ring === 1) color = '#60a5fa';
           else if (item.ring === 2) color = '#fbbf24';
+          else if (item.ring === 3) color = '#94a3b8';
 
           ctx.fillStyle = color;
           ctx.shadowColor = color;
@@ -313,8 +326,8 @@ const radarItems = posts.map(p => {
             titleEl.textContent = hoveredItem.title;
             descEl.textContent = hoveredItem.desc;
 
-            const ringLabels = ['ADOPT (本番採用)', 'TRIAL (先行検証)', 'ASSESS (注目調査)'];
-            const ringColors = ['#10b981', '#3b82f6', '#f59e0b'];
+            const ringLabels = ['ADOPT (本番採用)', 'TRIAL (先行検証)', 'ASSESS (注目調査)', 'HOLD (様子見)'];
+            const ringColors = ['#10b981', '#3b82f6', '#f59e0b', '#64748b'];
             ringEl.textContent = ringLabels[hoveredItem.ring] || 'TRIAL';
             ringEl.style.background = ringColors[hoveredItem.ring] || '#3b82f6';
             ringEl.style.color = '#fff';
