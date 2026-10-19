@@ -442,6 +442,70 @@ if (!clientScriptMatch) {
   }
 }
 
+// 8. 【note_drafts 原稿完全性 ＆ 有料ライン漏洩 監査】
+console.log('▶ [8/9] note_drafts 原稿完全性 ＆ 有料ライン漏洩監査...');
+const noteDraftsDir = path.join(rootDir, 'note_drafts');
+if (fs.existsSync(noteDraftsDir)) {
+  const noteFiles = fs.readdirSync(noteDraftsDir).filter(f => f.endsWith('.md'));
+  let noteErrors = 0;
+  noteFiles.forEach(file => {
+    if (file.includes('LEAD_MAGNET') || file.includes('cheat_sheet')) return;
+    const content = fs.readFileSync(path.join(noteDraftsDir, file), 'utf8');
+    if (content.length === 0) {
+      console.error(`  ❌ [EMPTY NOTE DRAFT] ${file}: 0バイトの空ファイルです！`);
+      noteErrors++;
+      errorCount++;
+      return;
+    }
+    const hasPaywall = content.includes('【有料ライン') || content.includes('有料会員限定') || content.includes('ここから先は有料');
+    if (!hasPaywall) {
+      console.error(`  ❌ [MISSING PAYWALL] ${file}: 有料境界マーカーがありません！`);
+      noteErrors++;
+      errorCount++;
+      return;
+    }
+    let pIdx = -1;
+    ['【有料ライン', '有料会員限定', 'ここから先は有料'].forEach(m => {
+      const idx = content.indexOf(m);
+      if (idx !== -1 && (pIdx === -1 || idx < pIdx)) pIdx = idx;
+    });
+    const freeText = content.substring(0, pIdx);
+    if (freeText.includes('mcpServers') || freeText.includes('docker-compose') || freeText.includes('■ 案件名:')) {
+      console.error(`  ❌ [PRO LEAK IN NOTE FREE PART] ${file}: 有料ライン手前にPROキットが漏洩しています！`);
+      noteErrors++;
+      errorCount++;
+    }
+  });
+  if (noteErrors === 0) {
+    console.log(`  ✓ note_drafts 監査合格: 全 ${noteFiles.length} 本のnote原稿で有料ライン設置・PRO漏洩ゼロ。\n`);
+  }
+}
+
+// 9. 【x_posts 投稿原稿完全性 ＆ PRO漏洩 監査】
+console.log('▶ [9/9] x_posts 投稿原稿完全性 ＆ PRO漏洩監査...');
+const xPostsDir = path.join(rootDir, 'x_posts');
+if (fs.existsSync(xPostsDir)) {
+  const xFiles = fs.readdirSync(xPostsDir).filter(f => f.endsWith('.txt'));
+  let xErrors = 0;
+  xFiles.forEach(file => {
+    const content = fs.readFileSync(path.join(xPostsDir, file), 'utf8');
+    if (content.length === 0) {
+      console.error(`  ❌ [EMPTY X POST] ${file}: 0バイトの空ファイルです！`);
+      xErrors++;
+      errorCount++;
+      return;
+    }
+    if (content.includes('mcpServers') || content.includes('docker-compose.yml') || content.includes('■ 案件名:')) {
+      console.error(`  ❌ [PRO LEAK IN X POST] ${file}: X投稿にPRO実務キットが漏洩しています！`);
+      xErrors++;
+      errorCount++;
+    }
+  });
+  if (xErrors === 0) {
+    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・完全性確認。\n`);
+  }
+}
+
 console.log('===============================================================================');
 if (errorCount === 0) {
   console.log('🎉 総合監査結果: ALL PASS (最高評価) - システムは完璧に稼働しています！');
