@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/audit_quality.mjs && astro build",
+    "build": "node scripts/audit_quality.mjs && astro build && node scripts/audit_dist.mjs",
     "crawl": "node scripts/crawl_and_generate.mjs",
-    "audit": "node scripts/audit_quality.mjs"
+    "audit": "node scripts/audit_quality.mjs && node scripts/audit_dist.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

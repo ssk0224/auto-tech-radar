@@ -76,6 +76,7 @@ if (starsCount >= 15000) {
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="Auto Tech Radar" />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={`https://ssk0224.github.io${Astro.url.pathname}`} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@AutoTechRadar" />
     <meta name="twitter:creator" content="@AutoTechRadar" />
@@ -733,7 +734,7 @@ if (starsCount >= 15000) {
           </div>
           <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
             <a 
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${pageTitle} | Auto Tech Radar`)}&url=${encodeURIComponent(`https://ssk0224.github.io/auto-tech-radar${Astro.url.pathname}`)}&via=AutoTechRadar`} 
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${pageTitle} | Auto Tech Radar`)}&url=${encodeURIComponent(`https://ssk0224.github.io${Astro.url.pathname}`)}&via=AutoTechRadar`} 
               target="_blank" 
               rel="noopener noreferrer"
               style="background: #000; border: 1px solid #334155; color: #fff; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;"
@@ -741,7 +742,7 @@ if (starsCount >= 15000) {
               𝕏 でポスト
             </a>
             <a 
-              href={`https://b.hatena.ne.jp/entry/s/ssk0224.github.io/auto-tech-radar${Astro.url.pathname}`} 
+              href={`https://b.hatena.ne.jp/entry/s/ssk0224.github.io${Astro.url.pathname}`} 
               target="_blank" 
               rel="noopener noreferrer"
               style="background: #00a4de; color: #fff; padding: 0.45rem 0.9rem; border-radius: 6px; font-size: 0.82rem; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;"
@@ -1115,7 +1116,7 @@ if (starsCount >= 15000) {
               const infographDiv = document.createElement('div');
               infographDiv.style.cssText = 'margin: 1.5rem 0 2rem; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #030712; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7); text-align: center;';
               infographDiv.innerHTML = `
-                <img src="${window.location.origin}/auto-tech-radar/ogp/${slug}.svg" 
+                <img src="${baseUrl}/ogp/${slug}.svg" 
                      alt="${articleTitle} アーキテクチャ・商用分析インフォグラフィック" 
                      style="width: 100%; max-height: 420px; object-fit: cover; display: block;" 
                      onerror="this.parentElement.style.display='none';" />

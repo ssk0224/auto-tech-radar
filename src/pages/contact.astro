@@ -183,7 +183,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     }
 
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const company = document.getElementById('form-company').value;
         const name = document.getElementById('form-name').value;
@@ -204,36 +204,44 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           `■ ご相談内容:\n${message}\n`;
         const body = encodeURIComponent(rawBody);
 
-        // ⚡ 世界標準: メーラー不要・ブラウザから即時直接メール送信 (FormSubmit API)
-        fetch("https://formsubmit.co/ajax/" + targetEmail, {
-          method: "POST",
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            _subject: `【受託開発・導入相談】${company}様（${name}様）`,
-            貴社名: company,
-            ご担当者様名: name,
-            返信用メールアドレス: email,
-            ご相談種別: type,
-            想定ご予算: budget,
-            ご相談詳細: message,
-            _template: "table"
-          })
-        }).catch(() => {
-          // ネットワークエラー時も安全にUIを続行
-        });
+        let isSuccess = false;
+        try {
+          const res = await fetch("https://formsubmit.co/ajax/" + targetEmail, {
+            method: "POST",
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              _subject: `【受託開発・導入相談】${company}様（${name}様）`,
+              _replyto: email,
+              _captcha: "false",
+              貴社名: company,
+              ご担当者様名: name,
+              返信用メールアドレス: email,
+              ご相談種別: type,
+              想定ご予算: budget,
+              ご相談詳細: message,
+              _template: "table"
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success !== 'false') {
+            isSuccess = true;
+          }
+        } catch (err) {
+          console.warn('FormSubmit AJAX notice:', err);
+        }
 
-        setTimeout(() => {
-          form.style.display = 'none';
-          if (successMsg) {
-            successMsg.style.display = 'block';
+        form.style.display = 'none';
+        if (successMsg) {
+          successMsg.style.display = 'block';
+          if (isSuccess) {
             successMsg.innerHTML = `
               <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #34d399;">✓ お問い合わせを直接送信完了しました！</div>
               <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
                 ご入力いただいた内容が担当者窓口へ直接送信されました。1営業日以内に <strong>${email}</strong> 宛にご返信・日程調整のご案内をお送りいたします。<br/>
-                <span style="font-size: 0.8rem; color: #94a3b8;">※お急ぎの場合やバックアップとして、以下のボタンからGmailや手動送信も可能です。</span>
+                <span style="font-size: 0.8rem; color: #94a3b8;">※バックアップとして、以下のボタンからGmailや手動送信も可能です。</span>
               </p>
               <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
@@ -244,18 +252,39 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
                 </button>
               </div>
             `;
-
-            const copyConsultBtn = document.getElementById('copy-consult-btn');
-            if (copyConsultBtn) {
-              copyConsultBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(`宛先: ${targetEmail}\n件名: 【受託開発・導入相談】${company}様\n\n${rawBody}`).then(() => {
-                  copyConsultBtn.textContent = '✓ コピー完了！';
-                  setTimeout(() => { copyConsultBtn.textContent = '📋 相談内容をコピー'; }, 2000);
-                });
-              });
-            }
+          } else {
+            successMsg.style.borderColor = '#fbbf24';
+            successMsg.style.background = 'rgba(245, 158, 11, 0.15)';
+            successMsg.innerHTML = `
+              <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #fbbf24;">⚡ ワンクリックでメール送信を完了してください</div>
+              <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
+                ブラウザ環境（アドブロッカー等）によりフォームAPI送信が保留された可能性があります。<br/>
+                ご入力内容は保持されていますので、以下の<strong>「Gmailで送信」</strong>または<strong>「メーラーで送信」</strong>を1クリックするだけで送信完了します。
+              </p>
+              <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; text-decoration: none;">
+                  📮 Gmailで送信する →
+                </a>
+                <a href="mailto:${targetEmail}?subject=${subject}&body=${body}" style="background: #2563eb; color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; text-decoration: none;">
+                  ✉️ お手元のメールソフトで送信
+                </a>
+                <button type="button" id="copy-consult-btn" style="background: #374151; color: #fff; border: 1px solid #4b5563; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
+                  📋 相談内容をコピー
+                </button>
+              </div>
+            `;
           }
-        }, 600);
+
+          const copyConsultBtn = document.getElementById('copy-consult-btn');
+          if (copyConsultBtn) {
+            copyConsultBtn.addEventListener('click', () => {
+              navigator.clipboard.writeText(`宛先: ${targetEmail}\n件名: 【受託開発・導入相談】${company}様\n\n${rawBody}`).then(() => {
+                copyConsultBtn.textContent = '✓ コピー完了！';
+                setTimeout(() => { copyConsultBtn.textContent = '📋 相談内容をコピー'; }, 2000);
+              });
+            });
+          }
+        }
       });
     }
   </script>
