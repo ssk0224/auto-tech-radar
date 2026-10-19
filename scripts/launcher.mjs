@@ -177,16 +177,37 @@ function getPendingNoteUpdates() {
     return [];
   }
   const history = loadHistory();
-  return Object.entries(spec.items || {})
+  const noteUrls = loadNoteUrls();
+  const fileOf = (slug) => path.join(noteDir, slug === 'LEAD_MAGNET_CHEAT_SHEET' ? `${slug}.md` : `${slug}_note.md`);
+  const items = Object.entries(spec.items || {})
     .filter(([slug]) => !(history[slug]?.noteUpdatedAt >= spec.since))
-    .map(([slug, item]) => ({ slug, ...item, noteFile: path.join(noteDir, `${slug}_note.md`) }))
-    // 非公開にするものを先に。それ以外は note_updates.json の並び順（後回しにした記事は末尾）
-    .sort((a, b) => (a.action === b.action ? 0 : a.action === 'unpublish' ? -1 : 1));
+    .map(([slug, item]) => ({ slug, ...item }));
+  // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
+  for (const [slug, v] of Object.entries(noteUrls)) {
+    if (!v.duplicates?.length || history[slug]?.noteDedupedAt || items.some((i) => i.slug === slug)) continue;
+    items.push({ slug, action: 'replace', reason: '修正版への差し替えと重複出品の整理' });
+  }
+  return items
+    .map((item) => ({ ...item, noteFile: fileOf(item.slug), url: noteUrls[item.slug]?.url || null, duplicates: noteUrls[item.slug]?.duplicates || [] }))
+    // 非公開にするもの → 重複出品があるもの → その他（note_updates.json の並び順、後回しにした記事は末尾）
+    .sort((a, b) => {
+      const rank = (i) => (i.action === 'unpublish' ? 0 : i.duplicates.length > 0 ? 1 : 2);
+      return rank(a) - rank(b);
+    });
 }
 
-function recordNoteUpdated(slug) {
+function loadNoteUrls() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'));
+  } catch (e) {
+    return {};
+  }
+}
+
+function recordNoteUpdated(slug, deduped) {
   const history = loadHistory();
-  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString().split('T')[0] };
+  const today = new Date().toISOString().split('T')[0];
+  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: today, ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   try {
     exec('git add scripts/publish_history.json && git commit -m "chore(history): record note updates" && git push origin main', { cwd: rootDir });
@@ -369,6 +390,14 @@ function runLeadMagnetPublish() {
   console.log(`   ${c.yellow}${c.bold}📗 【無料集客リードマグネット】 note 無料記事 出品アシスト${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
 
+  // 公開済みなら新規投稿しない（過去に同じ記事が 5 本公開された）。内容の更新はメニュー [U]
+  if (loadHistory().LEAD_MAGNET_CHEAT_SHEET?.note || loadNoteUrls().LEAD_MAGNET_CHEAT_SHEET) {
+    console.log(`  ${c.yellow}このチートシートは note に公開済みです。新しく投稿すると重複になります。${c.reset}`);
+    console.log(`  内容を最新にするときは、メニュー ${c.red}${c.bold}[U]${c.reset} から既存の記事を差し替えてください。`);
+    waitBack();
+    return;
+  }
+  recordPublish('LEAD_MAGNET_CHEAT_SHEET', 'note');
   openUrl("https://note.com/notes/new");
   openFile(leadMagnetPath);
 
@@ -414,6 +443,11 @@ function runNoteUpdates() {
   })();
   console.log(`\n  ${c.white}${c.bold}【${title}】${c.reset} (${item.slug})`);
   console.log(`  ${c.dim}理由: ${item.reason}${c.reset}\n`);
+  if (item.duplicates.length > 0) {
+    console.log(`  ${c.red}${c.bold}⚠ note に同じ記事が ${item.duplicates.length + 1} 本あります。いちばん古い 1 本を残し、次の ${item.duplicates.length} 本を「非公開」にしてください:${c.reset}`);
+    item.duplicates.forEach((u) => console.log(`     ${c.red}✕ ${u}${c.reset}`));
+    console.log(`     ${c.green}○ 残す: ${item.url}${c.reset}\n`);
+  }
 
   if (item.action === 'unpublish') {
     console.log(`  ${c.bold}手順:${c.reset} note の記事一覧でこの記事を開き、「非公開」にするか削除してください。`);
@@ -437,11 +471,9 @@ function runNoteUpdates() {
     console.log(`  4. 「有料エリア」の手前に有料ラインを入れ直し、価格・メンバーシップ設定を確認して更新`);
   }
   // CI が取得した記事 URL（scripts/note_urls.json）があればその記事を直接開く。無ければ記事一覧
-  let noteUrl = null;
-  try {
-    noteUrl = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'))[item.slug]?.url || null;
-  } catch (e) {}
+  const noteUrl = item.url;
   openUrl(noteUrl || 'https://note.com/notes');
+  item.duplicates.forEach((u) => openUrl(u));
   if (noteUrl) console.log(`  ${c.cyan}🔗 この記事の note ページを開きました（右上のメニューから編集できます）${c.reset}`);
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -457,7 +489,7 @@ function runNoteUpdates() {
       fs.writeFileSync(noteUpdatesFile, JSON.stringify(spec, null, 2) + '\n', 'utf8');
       return runNoteUpdates();
     }
-    recordNoteUpdated(item.slug);
+    recordNoteUpdated(item.slug, item.duplicates.length > 0);
     runNoteUpdates();
   });
 }
@@ -541,6 +573,20 @@ function runPublishHelper(mode) {
       return;
     }
 
+    // 公開済みの記事を選んだら、新規投稿（重複出品・重複ポスト）になる前に確認する
+    const alreadyPosted = mode === 'note' ? selected.isNotePosted : mode === 'x' ? selected.isXPosted : false;
+    if (alreadyPosted) {
+      const rlc = readline.createInterface({ input: process.stdin, output: process.stdout });
+      rlc.question(`\n${c.red}${c.bold}この記事は公開済みです。もう一度出すと重複になります（note の修正はメニュー [U]）。それでも開きますか？ (y/N) > ${c.reset}`, (yn) => {
+        rlc.close();
+        if (yn.trim().toLowerCase() === 'y') proceed();
+        else promptMenu();
+      });
+      return;
+    }
+    proceed();
+
+    function proceed() {
     // 有料部分を復号した出品用の完全版（リポジトリ外に保存）を用意。鍵が無ければ記録せずに戻る
     let noteOpenPath = null;
     if (mode === 'note') {
@@ -711,6 +757,7 @@ ${zennCta(selected.slug)}`;
         waitBack();
       }
     }
+    }
   });
 }
 
@@ -786,10 +833,14 @@ function runAllInOnePublish() {
   console.log(`最短30秒で「note有料出品」→「𝕏拡散」のマネタイズパイプラインを連続実行します。\n`);
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  rl.question(`${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans) => {
+  // note に公開済みの記事を再び新規投稿すると重複出品になる（過去に 7 本が二重に公開された原因）。X だけ進める
+  const step1 = target.isNotePosted
+    ? `${c.dim}[Step 1/2] note は公開済みのためスキップします（修正版への差し替えはメニュー [U]）。Enter で次へ > ${c.reset}`
+    : `${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`;
+  rl.question(step1, (ans) => {
     rl.close();
     let noteOpenPath = null;
-    if (ans.trim().toLowerCase() !== 's') {
+    if (!target.isNotePosted && ans.trim().toLowerCase() !== 's') {
       try {
         noteOpenPath = openNoteForPublishing(target.noteFile);
       } catch (e) {

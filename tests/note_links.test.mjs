@@ -62,3 +62,20 @@ test("プロジェクト名が完全一致する記事を、名前を含むだ�
   assert.equal(m.laya.url, "https://note.com/x/n/a");
   assert.equal(m["laya-mlx"].url, "https://note.com/x/n/b");
 });
+
+test("同じタイトルの重複出品は最も古い記事にリンクし、残りを duplicates に記録する", () => {
+  const notes = [
+    { name: "# 海外急上昇OSS「ZCode」商用化マニュアル", noteUrl: "https://note.com/x/n/new", price: 980, publishAt: "2026-10-17T10:00:00+09:00" },
+    { name: "# 海外急上昇OSS「ZCode」商用化マニュアル", noteUrl: "https://note.com/x/n/old", price: 980, publishAt: "2026-10-16T10:00:00+09:00" },
+    { name: "# 【完全保存版】「海外急上昇オープンソース15選」チートシート", noteUrl: "https://note.com/x/n/l1", price: 0, publishAt: "" },
+    { name: "# 【完全保存版】「海外急上昇オープンソース15選」チートシート", noteUrl: "https://note.com/x/n/l2", price: 0, publishAt: "" },
+  ];
+  const m = matchNotesToSlugs(notes, [
+    { slug: "zcode", title: "海外急上昇OSS「ZCode」商用化マニュアル" },
+    { slug: "LEAD_MAGNET_CHEAT_SHEET", title: "海外で注目を集めるオープンソース15選 早見表", alias: "オープンソース15選" },
+  ]);
+  assert.equal(m.zcode.url, "https://note.com/x/n/old");
+  assert.deepEqual(m.zcode.duplicates, ["https://note.com/x/n/new"]);
+  assert.equal(m.LEAD_MAGNET_CHEAT_SHEET.url, "https://note.com/x/n/l2", "publishAt が無いときは API の並び（新しい順）で最後のものを最古とする");
+  assert.deepEqual(m.LEAD_MAGNET_CHEAT_SHEET.duplicates, ["https://note.com/x/n/l1"]);
+});
