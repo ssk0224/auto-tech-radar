@@ -51,23 +51,23 @@ export function splitPaid(content) {
   const lines = content.split("\n");
   const m = lines.findIndex((l) => PAYWALL_MARKERS.some((mk) => l.includes(mk)));
   if (m === -1) return null;
-  // フッターは原稿の末尾（通常は最後の30行以内）に配置されるため末尾優先で探索
+  // フッターは原稿の末尾（通常最後の35行以内）に配置されるため末尾領域から探索
+  // これにより有料本文内の途中見出しをフッターと誤認せず、かつフッター冒頭（メンバーシップ案内等）を正確に捉える
   let t = -1;
-  const searchStart = Math.max(m + 1, lines.length - 30);
+  const searchStart = Math.max(m + 1, lines.length - 35);
   for (let i = searchStart; i < lines.length; i++) {
     if (TAIL_RE.test(lines[i])) {
       t = i;
       break;
     }
   }
-  if (t === -1) {
-    t = lines.findIndex((l, i) => i > m && TAIL_RE.test(l));
-  }
   const hasTail = t !== -1;
   if (!hasTail) t = lines.length;
   else if (t - 1 > m && lines[t - 1].trim() === "---") t -= 1;
   return { head: lines.slice(0, m + 1), paid: lines.slice(m + 1, t), tail: lines.slice(t), hasTail };
 }
+
+
 
 // 公開側（無料部分 + 末尾）が出品・監査の要件を満たすか。満たさない理由の配列を返す
 export function noteDraftProblems(fullContent) {

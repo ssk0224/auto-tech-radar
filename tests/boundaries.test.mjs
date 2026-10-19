@@ -227,3 +227,27 @@ test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォー
     }
   }
 });
+
+test("全Astroテンプレート内のtarget=_blankリンクには必ずrel=noopener noreferrerが付与されている", () => {
+  function walk(dir) {
+    let files = [];
+    for (const f of fs.readdirSync(dir)) {
+      const fp = path.join(dir, f);
+      if (fs.statSync(fp).isDirectory()) files = files.concat(walk(fp));
+      else if (fp.endsWith(".astro")) files.push(fp);
+    }
+    return files;
+  }
+  const files = walk("src");
+  for (const file of files) {
+    const content = fs.readFileSync(file, "utf8");
+    const matches = content.match(/<a\s+[^>]*?target="_blank"[^>]*?>/gs) || [];
+    for (const m of matches) {
+      assert.ok(
+        m.includes('rel="noopener') || m.includes("rel='noopener"),
+        `${file} 内のリンクに rel="noopener noreferrer" がありません:\n${m}`
+      );
+    }
+  }
+});
+

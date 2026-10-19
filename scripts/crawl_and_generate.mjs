@@ -5,7 +5,8 @@ import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 import { stripProSection } from "./utils/pro_boundary.mjs";
-import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems } from "./utils/note_vault.mjs";
+import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, sealedFileFor } from "./utils/note_vault.mjs";
+
 import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
@@ -649,7 +650,20 @@ async function run() {
         throw new Error(`生成文面に禁止・誇張表現が含まれています（${forbiddenHits.join(" / ")}）`);
       }
 
+      // X投稿スレッドの完全性検証（途中で切れた不完全なスレッドの書き込み防止）
+      const cleanXBody = (result.x || "").replace(/^[=\-\s\n📱]+.*?X \(Twitter\) 投稿用スレッド[=\-\s\n]+/m, "").trim();
+      if (!result.x || result.x.length < 200 || cleanXBody.length < 50) {
+        throw new Error(`X投稿スレッドが不完全または不足しています（全体: ${result.x ? result.x.length : 0}B, 本文: ${cleanXBody.length}文字）`);
+      }
+
+      // Web記事のコードブロック構文不変条件保証（未クローズのバッククォートを自動補正）
+      const webBackticks = (result.web.match(/```/g) || []).length;
+      if (webBackticks % 2 !== 0) {
+        result.web += "\n```\n";
+      }
+
       writeSealedNote(noteFile, noteText);
+
       console.log(`✓ note有料記事ドラフト保存（有料部分は暗号化）: ${noteFile}`);
 
       fs.writeFileSync(webFile, result.web, "utf8");
@@ -765,13 +779,21 @@ ${zennCta(slug)}
       rejections.push(`${repo.full_name}: ${err.message}`);
       // ロールバック: 途中で失敗した場合は不完全なファイルを削除して安全な状態を維持
       const cleanupTargets = [
-        webFile, noteFile, `${noteFile}.paid.enc`, `${noteFile}.paid.json`,
-        xFile, zennFile, path.join(articlesDir, `${slug}.md`), path.join(articlesDir, `${slug}-tech-radar.md`),
-        path.join(path.resolve("public/ogp"), `${slug}.png`)
+        webFile,
+        noteFile,
+        sealedFileFor(noteFile),
+        noteFile.replace(/\.md$/, ".paid.json"),
+        xFile,
+        zennFile,
+        path.join(articlesDir, `${slug}.md`),
+        path.join(articlesDir, `${slug}-tech-radar.md`),
+        path.join(path.resolve("public/ogp"), `${slug}.png`),
+        path.join(path.resolve("public/ogp"), `${slug}.svg`)
       ];
       for (const f of cleanupTargets) {
         try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
       }
+
     }
   }
 
