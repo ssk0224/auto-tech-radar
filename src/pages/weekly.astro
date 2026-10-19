@@ -1,22 +1,24 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-const postModules = import.meta.glob("./radar/*.md", { eager: true });
-const posts = Object.values(postModules) as any[];
+import { getArticles, pubTime } from "../utils/articles.js";
 
-// スター数順 Top 7
-const topPosts = posts.sort((a, b) => {
-  const starsA = a.frontmatter?.stars || 0;
-  const starsB = b.frontmatter?.stars || 0;
-  return starsB - starsA;
-}).slice(0, 7);
+// 直近7日（ビルド時点）に公開された記事のみ。pubDate 降順・ノイズ除外は getArticles 側
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const nowMs = Date.now();
+const topPosts = (getArticles() as any[])
+  .filter((p) => {
+    const t = pubTime(p);
+    return t !== null && nowMs - t <= WEEK_MS && t <= nowMs + 24 * 60 * 60 * 1000;
+  })
+  .slice(0, 7);
 
 const today = new Date().toISOString().split('T')[0];
 ---
 
 <Layout
-  title="【今週の急上昇OSS 7選】週間テックレーダー白書 | Auto Tech Radar"
-  description="GitHub Trendingでスター急上昇中の最先端AI・開発基盤OSS Top 7を徹底解剖。想定受託単価、SaaS化の狙い目、社内DX活用法をまとめたエグゼクティブ向け週間技術白書。"
+  title="【今週の新着OSS】週間テックレーダー白書 | Auto Tech Radar"
+  description="直近7日間に当サイトで取り上げたOSSの一覧。各記事へのリンクと概要をまとめた週間ダイジェストです。"
 >
   <div style="max-width: 860px; margin: 0 auto; padding-bottom: 3rem;">
     <!-- ヘッダー -->
@@ -26,10 +28,10 @@ const today = new Date().toISOString().split('T')[0];
       </div>
       <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
         【完全保存版】GitHub急上昇の<br/>
-        <span style="background: linear-gradient(135deg, #a5b4fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">最新AI・テックOSS 7選（週間ダイジェスト）</span>
+        <span style="background: linear-gradient(135deg, #a5b4fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">今週取り上げたOSS（週間ダイジェスト）</span>
       </h1>
       <p style="font-size: 1rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.5rem; line-height: 1.7;">
-        世界中の新星オープンソースから、商用価値・受託提案力・SaaS代替性が極めて高い7件をシニアアーキテクト視点で厳選。経営企画・新規事業・DX部門のネタ帳として即戦力化。
+        直近7日間に当サイトで取り上げたオープンソースの一覧です。詳細は各記事をご覧ください。
       </p>
 
       <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
@@ -45,11 +47,17 @@ const today = new Date().toISOString().split('T')[0];
       </div>
     </div>
 
-    <!-- 7大OSS カード一覧 -->
+    <!-- 直近7日の新着OSS カード一覧 -->
+    {topPosts.length === 0 && (
+      <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 2rem 1.5rem; text-align: center; color: #94a3b8; font-size: 0.95rem; line-height: 1.7;">
+        直近7日間に公開された記事はまだありません。過去の記事は<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/`} style="color: #60a5fa;">トップページ</a>からご覧いただけます。
+      </div>
+    )}
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
       {topPosts.map((post, idx) => {
         const slug = post.url.replace(/\/$/, '').split('/').pop();
-        const stars = post.frontmatter?.stars || 1000;
+        // スター数が無い記事は表示しない（仮の数値を出さない）
+        const stars = Number(post.frontmatter?.stars) || 0;
         const lang = (post.frontmatter?.tags && post.frontmatter.tags[0]) || 'AI';
         const title = (post.frontmatter?.title || slug).split(' - ')[0].trim();
         const desc = post.frontmatter?.description || '';
@@ -59,14 +67,14 @@ const today = new Date().toISOString().split('T')[0];
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; align-items: center; gap: 0.6rem;">
                 <span style="background: #2563eb; color: #fff; font-size: 0.78rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 6px;">
-                  TOP #{idx + 1}
+                  NEW #{idx + 1}
                 </span>
                 <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff;">
                   <a href={post.url} style="color: #fff; text-decoration: none;">{title}</a>
                 </h3>
               </div>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span style="font-size: 0.8rem; color: #fbbf24; font-family: 'JetBrains Mono', monospace; font-weight: 700;">★ {stars.toLocaleString()}</span>
+                {stars > 0 && <span style="font-size: 0.8rem; color: #fbbf24; font-family: 'JetBrains Mono', monospace; font-weight: 700;">★ {stars.toLocaleString()}</span>}
                 <span style="font-size: 0.75rem; background: #1f2937; color: #94a3b8; padding: 0.15rem 0.5rem; border-radius: 4px;">{lang}</span>
               </div>
             </div>
@@ -77,10 +85,7 @@ const today = new Date().toISOString().split('T')[0];
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 8px; font-size: 0.82rem;">
               <div>
-                <span style="color: #64748b;">想定受託単価:</span> <strong style="color: #10b981;">80万〜250万円</strong>
-              </div>
-              <div>
-                <span style="color: #64748b;">狙い目活用:</span> <strong style="color: #38bdf8;">社内DX基盤 / 独自SaaS化</strong>
+                <span style="color: #64748b;">公開日:</span> <strong style="color: #38bdf8;">{post.frontmatter?.pubDate}</strong>
               </div>
               <div style="text-align: right;">
                 <a href={post.url} style="color: #60a5fa; font-weight: 700; text-decoration: none;">完全解剖レポートを読む →</a>
@@ -95,7 +100,7 @@ const today = new Date().toISOString().split('T')[0];
     <div style="margin-top: 2.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; text-align: center;">
       <h3 style="margin: 0 0 0.5rem; color: #fff; font-size: 1.2rem;">社内DX・AIエージェントの受託開発・導入をご検討の企業様へ</h3>
       <p style="color: #94a3b8; font-size: 0.9rem; margin: 0 0 1.2rem;">
-        本白書に掲載の急上昇OSSを用いたセキュアな社内導入、クラウド配備、UIカスタマイズを最短納期で支援いたします。
+        本ページに掲載のOSSを用いた社内導入・クラウド配備・UIカスタマイズなどについて、導入支援のご相談を受け付けています。
       </p>
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
         <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/estimate/`} style="background: #10b981; color: #042f2e; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 800; font-size: 0.88rem; text-decoration: none;">
@@ -112,7 +117,7 @@ const today = new Date().toISOString().split('T')[0];
     const copyBtn = document.getElementById('copy-summary-btn');
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
-        let text = `【GitHub急上昇の最新AI・テックOSS 7選（週間ダイジェスト）】\n\n`;
+        let text = `【今週取り上げたOSS（週間ダイジェスト）】\n\n`;
         document.querySelectorAll('h3 a').forEach((a, idx) => {
           text += `${idx + 1}. ${a.textContent.trim()} - ${a.href}\n`;
         });

@@ -47,7 +47,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#d946ef',
       patternType,
       seed,
-      price: '¥180万〜¥400万',
       subtext: '自律型マルチエージェント基盤・業務完全無人化DX'
     };
   } else if (/llm|qwen|gpt|model|weights|inference|neural|speculative/i.test(text)) {
@@ -60,7 +59,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#0284c7',
       patternType,
       seed,
-      price: '¥150万〜¥350万',
       subtext: 'オープンウェイトローカル推論基盤・内製LLM構築'
     };
   } else if (/rust|perf|speed|fast|kernel|wasm|low-latency/i.test(text)) {
@@ -73,7 +71,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#f97316',
       patternType,
       seed,
-      price: '¥140万〜¥300万',
       subtext: '超高速ネイティブエンジン・高負荷バックエンド刷新'
     };
   } else if (/browser|automation|crawl|scrap|web-agent/i.test(text)) {
@@ -86,7 +83,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#06b6d4',
       patternType,
       seed,
-      price: '¥120万〜¥280万',
       subtext: '爆速ブラウザ操作エージェント・次世代Web自動化'
     };
   } else if (/cli|tool|terminal|developer|devops|infra|nix|brew/i.test(text)) {
@@ -99,7 +95,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#10b981',
       patternType,
       seed,
-      price: '¥100万〜¥220万',
       subtext: 'エンジニア生産性極大化・モダンDevOps/環境整備'
     };
   } else if (/python|data|analytics|pipeline|database/i.test(text)) {
@@ -112,7 +107,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#22c55e',
       patternType,
       seed,
-      price: '¥110万〜¥260万',
       subtext: 'リアルタイム分析基盤・MLデータパイプライン'
     };
   } else if (/security|auth|privacy|sandbox|audit/i.test(text)) {
@@ -125,7 +119,6 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#f43f5e',
       patternType,
       seed,
-      price: '¥160万〜¥380万',
       subtext: 'セキュア実行サンドボックス・企業情報漏洩対策'
     };
   } else {
@@ -138,8 +131,7 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#f59e0b',
       patternType,
       seed,
-      price: '¥120万〜¥300万',
-      subtext: '受託開発高単価提案・マイクロSaaS月額課金化'
+      subtext: '受託開発での活用・マイクロSaaS化'
     };
   }
 }
@@ -300,12 +292,12 @@ export function generateOgCardForPost(postData) {
     </text>
   </g>
 
-  <!-- 【超高視認性】キラー帯（想定受託単価 ＆ 収益化モデル） -->
+  <!-- 【超高視認性】キラー帯（活用領域） -->
   <g transform="translate(60, 282)">
     <rect width="1080" height="66" rx="12" fill="${archetype.badgeBg}" stroke="${archetype.badgeBorder}" stroke-width="1.6" filter="url(#cardShadow)" />
     <rect x="0" y="0" width="10" height="66" rx="5" fill="${archetype.accentGradient[0]}" />
     <text x="32" y="42" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="900">
-      💰 想定受託単価: <tspan fill="${archetype.accentGradient[0]}">${archetype.price}</tspan> ｜ <tspan fill="#f1f5f9" font-weight="700">${archetype.subtext}</tspan>
+      <tspan fill="#f1f5f9" font-weight="700">${archetype.subtext}</tspan>
     </text>
   </g>
 

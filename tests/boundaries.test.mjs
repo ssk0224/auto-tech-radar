@@ -79,3 +79,44 @@ test("生成物の参照抽出（イメージ・npm・PyPI）", () => {
   assert.deepEqual(r.npm, ["@scope/pkg"]);
   assert.deepEqual(r.pypi, ["foo-bar"]);
 });
+
+// 根拠のない主張（景品表示法の優良誤認リスク）を再発させないための検査。
+// 記事本文（src/pages/radar）に書かれた「想定」の見積もりは対象外で、サイトのテンプレートと生成スクリプトだけを見る
+function templateSources() {
+  const out = [];
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) { if (e.name !== "radar") walk(p); }
+    else if (/\.(astro|js|ts)$/.test(e.name)) out.push([p, read(p)]);
+  });
+  walk("src");
+  if (fs.existsSync("scripts/generate_og_cards.mjs")) out.push(["scripts/generate_og_cards.mjs", read("scripts/generate_og_cards.mjs")]);
+  return out;
+}
+const TEMPLATE_FORBIDDEN = [
+  [/商用活用可能/, "全OSSに同じ「商用活用可能」を返す FAQ（ライセンスの根拠データが無い）"],
+  [/"FAQPage"/, "根拠データの無い FAQ 構造化データ"],
+  [/100%\s*経費/, "「100%経費精算可能」という断定（経費可否は所属先の規定による）"],
+  [/100%遮断/, "漏洩リスクの「100%遮断」という断定"],
+  [/専任(エンジニア)?チーム/, "運営は個人のため、専任チームがいるかのような表現"],
+  [/想定受託単価|推奨受託単価|RANK #/, "スター数・タグから機械的に決めた単価・順位の表示"],
+  [/annualSaving\s*=\s*\d/, "全OSS共通の固定の年間削減額"],
+  [/document\.querySelector\(['"]article['"]\)/, "記事ページに存在しないセレクタ（#article-body を使う）"],
+  [/Object\.values\(postModules\)|import\.meta\.glob\([^)]*radar\/\*\.md/, "ノイズ除外を通らない記事読み込み（src/utils/articles.js を使う）"],
+];
+test("サイトのテンプレートに根拠のない主張・再発させたくない実装が無い", () => {
+  const hits = [];
+  for (const [f, text] of templateSources()) {
+    if (f.endsWith(path.join("utils", "articles.js"))) continue; // 共通ヘルパー自身は glob を持つ
+    for (const [re, why] of TEMPLATE_FORBIDDEN) if (re.test(text)) hits.push(`${f}: ${why}`);
+  }
+  assert.deepEqual(hits, []);
+});
+
+test("公開文面に「100%経費精算可能」「専任エンジニアチームが」が無い", () => {
+  const hits = [];
+  for (const [f, text] of publicTexts()) {
+    if (/100%\s*経費精算可能|専任エンジニアチームが/.test(text)) hits.push(f);
+  }
+  assert.deepEqual(hits, []);
+});
