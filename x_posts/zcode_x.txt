@@ -31,9 +31,9 @@ https://twitter.com/intent/tweet?text=%E3%80%90%E5%BE%93%E6%9D%A5%E3%81%AE%E3%83
 【💡 商用化マニュアル ＆ 提案書完全版】
 受託提案書スライド構成・見積内訳・即起動Dockerキット付きの深層レポートを公開中。
 ▼ 詳細レポートはこちら（リプ欄）
-https://ssk0224.github.io/auto-tech-radar/radar/zai-org-zcode/
+https://ssk0224.github.io/auto-tech-radar/radar/zcode/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=%E3%80%90%F0%9F%92%A1%20%E5%95%86%E7%94%A8%E5%8C%96%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%20%EF%BC%86%20%E6%8F%90%E6%A1%88%E6%9B%B8%E5%AE%8C%E5%85%A8%E7%89%88%E3%80%91%0A%E5%8F%97%E8%A8%97%E6%8F%90%E6%A1%88%E6%9B%B8%E3%82%B9%E3%83%A9%E3%82%A4%E3%83%89%E6%A7%8B%E6%88%90%E3%83%BB%E8%A6%8B%E7%A9%8D%E5%86%85%E8%A8%B3%E3%83%BB%E5%8D%B3%E8%B5%B7%E5%8B%95Docker%E3%82%AD%E3%83%83%E3%83%88%E4%BB%98%E3%81%8D%E3%81%AE%E6%B7%B1%E5%B1%A4%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88%E3%82%92%E5%85%AC%E9%96%8B%E4%B8%AD%E3%80%82%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%EF%BC%88%E3%83%AA%E3%83%97%E6%AC%84%EF%BC%89%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fzai-org-zcode%2F
+https://twitter.com/intent/tweet?text=%E3%80%90%F0%9F%92%A1%20%E5%95%86%E7%94%A8%E5%8C%96%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%20%EF%BC%86%20%E6%8F%90%E6%A1%88%E6%9B%B8%E5%AE%8C%E5%85%A8%E7%89%88%E3%80%91%0A%E5%8F%97%E8%A8%97%E6%8F%90%E6%A1%88%E6%9B%B8%E3%82%B9%E3%83%A9%E3%82%A4%E3%83%89%E6%A7%8B%E6%88%90%E3%83%BB%E8%A6%8B%E7%A9%8D%E5%86%85%E8%A8%B3%E3%83%BB%E5%8D%B3%E8%B5%B7%E5%8B%95Docker%E3%82%AD%E3%83%83%E3%83%88%E4%BB%98%E3%81%8D%E3%81%AE%E6%B7%B1%E5%B1%A4%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88%E3%82%92%E5%85%AC%E9%96%8B%E4%B8%AD%E3%80%82%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%EF%BC%88%E3%83%AA%E3%83%97%E6%AC%84%EF%BC%89%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fzcode%2F
 --------------------------------------------------
 

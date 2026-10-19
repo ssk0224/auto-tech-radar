@@ -99,7 +99,7 @@ if (starsCount >= 15000) {
         "hasPart": {
           "@type": "WebPageElement",
           "isAccessibleForFree": false,
-          "cssSelector": ".atr-paywall-gate"
+          "cssSelector": ".atr-locked-preview"
         },
         "author": {
           "@type": "Organization",
@@ -334,13 +334,17 @@ if (starsCount >= 15000) {
         border-collapse: collapse;
         margin: 1.5rem 0;
         font-size: 0.92rem;
+        display: block;
+        overflow-x: auto;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
       }
       article th, article td {
         border: 1px solid var(--color-card-border);
         padding: 0.7rem 0.9rem;
         text-align: left;
       }
-      article th { background: #1e293b; color: #f1f5f9; }
+      article th { background: #1e293b; color: #f1f5f9; white-space: nowrap; }
       article td { background: #0f172a; }
 
       /* Visual Paywall & Content Lock */
@@ -859,11 +863,15 @@ if (starsCount >= 15000) {
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="margin: 0 0.6rem;">公式 note</a> |
         <a href={siteConfig.githubUrl} target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
       </p>
-      <p>© 2026 Auto Tech Radar. Powered by Gemini 3.8 & GitHub Actions.</p>
+      <p>© 2026 Auto Tech Radar. Global Open Source Intelligence & Monetization Architecture. All rights reserved.</p>
     </footer>
 
     <!-- UX & Reading Performance Script -->
     <script is:inline>
+      // Runtime URL & Path Helpers (Zero ReferenceError guarantee)
+      const baseUrl = window.location.pathname.startsWith('/auto-tech-radar') ? '/auto-tech-radar' : '';
+      const currentSlug = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
       // Reading progress bar & Sticky action bar trigger
       window.addEventListener('scroll', () => {
         const winScroll = document.documentElement.scrollTop;
@@ -885,7 +893,12 @@ if (starsCount >= 15000) {
 
       // Code blocks 1-click copy button
       document.querySelectorAll('pre').forEach((pre) => {
-        if (pre.querySelector('code.language-mermaid') || pre.classList.contains('mermaid') || pre.classList.contains('mermaid-container')) return;
+        if (
+          pre.querySelector('code.language-mermaid') || 
+          pre.classList.contains('mermaid') || 
+          pre.classList.contains('mermaid-container') ||
+          pre.getAttribute('data-language') === 'mermaid'
+        ) return;
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
         pre.parentNode.insertBefore(wrapper, pre);
@@ -931,7 +944,7 @@ if (starsCount >= 15000) {
           const list = tocBox.querySelector('ul');
 
           headings.forEach((h, idx) => {
-            const id = 'heading-' + idx;
+            const id = h.id || ('heading-' + idx);
             h.id = id;
             const li = document.createElement('li');
             li.style.marginLeft = h.tagName === 'H3' ? '1rem' : '0';
@@ -1043,7 +1056,7 @@ if (starsCount >= 15000) {
               <span>💡 商用リスク: PRO分析セクション参照</span>
             </div>
             <div style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;">
-              <div style="padding: 0.55rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">
+              <div style="padding: 0.55rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; flex-wrap: wrap;">
                 <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                   <span style="color: #10b981; font-weight: 700;">⚡ 3秒検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
                 </div>
@@ -1244,12 +1257,14 @@ if (starsCount >= 15000) {
                                  (headings.length >= 4 ? headings[headings.length - 2] : headings[2]);
               
               if (lockTargetH2) {
+                lockTargetH2.id = 'pro-kit';
                 const parent = lockTargetH2.parentNode;
                 const wrapper = document.createElement('div');
                 wrapper.className = 'atr-locked-preview';
 
                 const gateCard = document.createElement('div');
                 gateCard.className = 'atr-paywall-gate';
+                gateCard.id = 'pro-gate';
                 gateCard.innerHTML = `
                   <div style="display: inline-block; background: rgba(99, 102, 241, 0.25); color: #c7d2fe; padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 800; margin-bottom: 0.8rem;">
                     🔒 Auto Tech Radar PRO 会員限定エリア
@@ -1291,6 +1306,12 @@ if (starsCount >= 15000) {
                   parent.insertBefore(gateCard, wrapper.nextSibling);
                 } else {
                   parent.appendChild(gateCard);
+                }
+
+                if (window.location.hash === '#pro-kit' || window.location.hash === '#pro-gate') {
+                  setTimeout(() => {
+                    gateCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 150);
                 }
 
                 const inlineVip = gateCard.querySelector('.inline-vip-trigger');
@@ -1357,8 +1378,8 @@ if (starsCount >= 15000) {
           }
         });
 
-        // pre code.language-mermaid を検出してSVGダイアグラムに変換
-        const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid, pre.mermaid');
+        // pre code.language-mermaid および pre[data-language="mermaid"] を検出してSVGダイアグラムに変換
+        const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid, pre.mermaid, pre[data-language="mermaid"]');
         if (mermaidBlocks.length > 0) {
           for (let i = 0; i < mermaidBlocks.length; i++) {
             const block = mermaidBlocks[i];

@@ -54,9 +54,6 @@ jobs:
       - name: Build Astro SSG
         run: npm run build
 
-      - name: Notify Search Engines (IndexNow)
-        run: node scripts/ping_search_engines.mjs
-
       - name: Auto Tweet to X
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
@@ -125,3 +122,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Notify Search Engines (IndexNow)
+        run: node scripts/ping_search_engines.mjs

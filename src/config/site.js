@@ -11,7 +11,7 @@ export const siteConfig = {
   stripePaymentUrl: (typeof process !== 'undefined' && process.env?.STRIPE_PAYMENT_URL) || (typeof import.meta !== 'undefined' && import.meta.env?.STRIPE_PAYMENT_URL) || "https://buy.stripe.com/aFaeVd8GV1CYgQG0NY00000",
   
   // 📗 note メンバーシップ URL (月額1,980円 / 単発有料記事980円)
-  noteMembershipUrl: "https://note.com/vast_ixora7005",
+  noteMembershipUrl: "https://note.com/vast_ixora7005/membership",
 
   // 100%確実に決済完了できるアクティブな単発決済URL (Stripe未開通時はnoteへ安全自動フォールバック)
   get activeSinglePaymentUrl() {

@@ -481,8 +481,8 @@ if (fs.existsSync(noteDraftsDir)) {
   }
 }
 
-// 9. 【x_posts 投稿原稿完全性 ＆ PRO漏洩 監査】
-console.log('▶ [9/9] x_posts 投稿原稿完全性 ＆ PRO漏洩監査...');
+// 9. 【x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性 監査】
+console.log('▶ [9/11] x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性監査...');
 const xPostsDir = path.join(rootDir, 'x_posts');
 if (fs.existsSync(xPostsDir)) {
   const xFiles = fs.readdirSync(xPostsDir).filter(f => f.endsWith('.txt'));
@@ -500,9 +500,82 @@ if (fs.existsSync(xPostsDir)) {
       xErrors++;
       errorCount++;
     }
+
+    // X投稿内の記事URL実在チェック（404リンクゼロ保証）
+    const xUrls = content.match(/auto-tech-radar\/radar\/([a-zA-Z0-9_-]+)/g) || [];
+    for (const u of xUrls) {
+      const slug = u.split('/').pop();
+      if (!existingWebSlugs.includes(slug)) {
+        console.error(`  ❌ [X POST 404 LINK] ${file}: ${slug} (対象Web記事が存在しません)`);
+        xErrors++;
+        errorCount++;
+      }
+    }
   });
   if (xErrors === 0) {
-    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・完全性確認。\n`);
+    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・URL実在性100%確認。\n`);
+  }
+}
+
+// 10. 【Mermaid ダイアグラム構文完全性 監査】
+console.log('▶ [10/11] Mermaid ダイアグラム構文完全性 ＆ レンダリング保証監査...');
+const checkMermaidFiles = [
+  ...fs.readdirSync(radarDir).filter(f => f.endsWith('.md')).map(f => path.join(radarDir, f)),
+  ...(fs.existsSync(zennDir) ? fs.readdirSync(zennDir).filter(f => f.endsWith('.md')).map(f => path.join(zennDir, f)) : [])
+];
+let mermaidErrors = 0;
+checkMermaidFiles.forEach(fp => {
+  const fileRel = path.relative(rootDir, fp);
+  const content = fs.readFileSync(fp, 'utf8');
+  const mermaidBlocks = content.match(/```mermaid[\s\S]*?```/g) || [];
+  for (const block of mermaidBlocks) {
+    // 1. HTMLエスケープ漏れ (--&gt;) チェック
+    if (block.includes('&gt;') || block.includes('&lt;')) {
+      console.error(`  ❌ [MERMAID HTML ENTITY] ${fileRel}: HTML実体参照 (&gt;/&lt;) が含まれています`);
+      mermaidErrors++;
+      errorCount++;
+    }
+    // 2. subgraph の構文チェック（括弧やスラッシュ、スペースがクォートなしで使われていないか）
+    const lines = block.split('\n');
+    for (const line of lines) {
+      const subMatch = line.match(/^\s*subgraph\s+([^\[\n]+)$/);
+      if (subMatch) {
+        const rawLabel = subMatch[1].trim();
+        // 引用符で囲まれていないのに空白や記号を含む場合は警告/エラー
+        if (!rawLabel.startsWith('"') && !rawLabel.endsWith('"')) {
+          if (/[\(\)\/\&\+\s]/.test(rawLabel)) {
+            console.error(`  ❌ [MERMAID UNQUOTED SUBGRAPH] ${fileRel}: "subgraph ${rawLabel}" に特殊文字またはスペースが含まれています。subgraph ID ["Label"] 形式にしてください`);
+            mermaidErrors++;
+            errorCount++;
+          }
+        }
+      }
+    }
+  }
+});
+if (mermaidErrors === 0) {
+  console.log(`  ✓ Mermaid 構文監査合格: 全 ${checkMermaidFiles.length} ファイルのダイアグラムが規格準拠。\n`);
+}
+
+// 11. 【note_drafts URL 整合性 監査】
+console.log('▶ [11/11] note_drafts 送客URL整合性 ＆ 404ゼロ欠陥監査...');
+if (fs.existsSync(noteDraftsDir)) {
+  const noteFiles = fs.readdirSync(noteDraftsDir).filter(f => f.endsWith('.md'));
+  let noteUrlErrors = 0;
+  noteFiles.forEach(file => {
+    const content = fs.readFileSync(path.join(noteDraftsDir, file), 'utf8');
+    const matches = content.match(/auto-tech-radar\/radar\/([a-zA-Z0-9_-]+)/g) || [];
+    for (const m of matches) {
+      const slug = m.split('/').pop();
+      if (!existingWebSlugs.includes(slug)) {
+        console.error(`  ❌ [NOTE DRAFT 404 LINK] ${file}: ${slug} (対象Web記事が存在しません)`);
+        noteUrlErrors++;
+        errorCount++;
+      }
+    }
+  });
+  if (noteUrlErrors === 0) {
+    console.log(`  ✓ note_drafts URL 整合性監査合格: 全URLが実在ページと100%一致。\n`);
   }
 }
 
