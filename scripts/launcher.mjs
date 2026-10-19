@@ -14,6 +14,7 @@ const noteDir = path.join(rootDir, 'note_drafts');
 const xDir = path.join(rootDir, 'x_posts');
 const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
+const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 
 // 起動時にリモート（GitHub Actionsが朝自動巡回生成した最新レポート）を自動同期
 try {
@@ -162,6 +163,44 @@ function getDrafts() {
     .sort((a, b) => b.mtime - a.mtime);
 }
 
+// note に公開済みで、原稿の修正を note 側へ反映する必要がある記事（scripts/note_updates.json）。
+// 反映したら publish_history の noteUpdatedAt に記録し、一覧から消える
+function getPendingNoteUpdates() {
+  if (!fs.existsSync(noteUpdatesFile)) return [];
+  let spec;
+  try {
+    spec = JSON.parse(fs.readFileSync(noteUpdatesFile, 'utf8'));
+  } catch (e) {
+    return [];
+  }
+  const history = loadHistory();
+  return Object.entries(spec.items || {})
+    .filter(([slug]) => !(history[slug]?.noteUpdatedAt >= spec.since))
+    .map(([slug, item]) => ({ slug, ...item, noteFile: path.join(noteDir, `${slug}_note.md`) }))
+    // 非公開にするものを先に。それ以外は note_updates.json の並び順（後回しにした記事は末尾）
+    .sort((a, b) => (a.action === b.action ? 0 : a.action === 'unpublish' ? -1 : 1));
+}
+
+function recordNoteUpdated(slug) {
+  const history = loadHistory();
+  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString().split('T')[0] };
+  saveHistory(history);
+  try {
+    exec('git add scripts/publish_history.json && git commit -m "chore(history): record note updates" && git push origin main', { cwd: rootDir });
+  } catch (e) {}
+}
+
+// 長い本文は PowerShell の引数に渡せない（コマンドライン長の上限）ため、ファイルから読み込んでコピーする
+function copyFileToClipboard(filePath) {
+  try {
+    const escaped = filePath.replace(/'/g, "''");
+    execSync(`powershell -NoProfile -Command "Get-Content -Raw -Encoding UTF8 -LiteralPath '${escaped}' | Set-Clipboard"`, { stdio: 'ignore', timeout: 8000 });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // 記事総数
 function getPublishedCount() {
   if (!fs.existsSync(radarDir)) return 0;
@@ -182,6 +221,13 @@ function renderHeader() {
   console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
   console.log(`  ${c.dim}販売:${c.reset} note（有料記事・メンバーシップ）  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
+
+  const pendingUpdates = getPendingNoteUpdates();
+  if (pendingUpdates.length > 0) {
+    console.log(`${c.red}--------------------------------------------------------------------------------${c.reset}`);
+    console.log(`  ${c.red}${c.bold}⚠ note に公開済みの記事 ${pendingUpdates.length} 本が古い内容のままです（購入者が読む有料部分を含む）${c.reset}`);
+    console.log(`     👉 メニュー ${c.red}${c.bold}[U]${c.reset} で1本ずつ差し替えられます（全文のコピーと編集画面の表示は自動）`);
+  }
 
   const unpostedDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
   if (unpostedDraft) {
@@ -206,6 +252,7 @@ function promptMenu() {
   console.log(`   ${c.green}${c.bold}[4]${c.reset} ${c.bold}生成済み有料レポートを note に出品する${c.reset} ${c.dim}(未出品の推奨記事を最優先サジェスト)${c.reset}`);
   console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(URLなし高インプ設計)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
+  console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -227,7 +274,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q / U) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -241,6 +288,9 @@ function handleChoice(choice) {
       break;
     case 'q':
       runPublishHelper('qiita');
+      break;
+    case 'u':
+      runNoteUpdates();
       break;
     case 'm':
       runLeadMagnetPublish();
@@ -336,6 +386,70 @@ function runLeadMagnetPublish() {
   console.log(`  ${c.dim}  記事内に配置された各OSSの有料レポートやメンバーシップ（月額1,980円）へ自動送客する【最強の集客ダム】です。${c.reset}\n`);
 
   waitBack();
+}
+
+// note 公開済み記事の差し替えアシスト。1本ずつ、復号した全文をクリップボードへコピーし、
+// note の記事一覧と原稿を開く。オーナーが note で差し替えて Enter を押したら反映済みとして記録する
+function runNoteUpdates() {
+  const pending = getPendingNoteUpdates();
+  console.clear();
+  console.log(`${c.red}${c.bold}================================================================================${c.reset}`);
+  console.log(`   ${c.red}${c.bold}🛠 note 公開済み記事の差し替え（残り ${pending.length} 本）${c.reset}`);
+  console.log(`${c.red}${c.bold}================================================================================${c.reset}`);
+  if (pending.length === 0) {
+    console.log(`\n  ${c.green}✓ すべて反映済みです。${c.reset}`);
+    waitBack();
+    return;
+  }
+  const item = pending[0];
+  const title = (() => {
+    try {
+      return fs.readFileSync(item.noteFile, 'utf8').match(/^#\s+(.+)$/m)?.[1].trim() || item.slug;
+    } catch (e) {
+      return item.slug;
+    }
+  })();
+  console.log(`\n  ${c.white}${c.bold}【${title}】${c.reset} (${item.slug})`);
+  console.log(`  ${c.dim}理由: ${item.reason}${c.reset}\n`);
+
+  if (item.action === 'unpublish') {
+    console.log(`  ${c.bold}手順:${c.reset} note の記事一覧でこの記事を開き、「非公開」にするか削除してください。`);
+    console.log(`  ${c.dim}（購入済みの方がいる場合、削除すると読めなくなります。返金方針は note の規約に従ってください）${c.reset}`);
+  } else {
+    let fullPath;
+    try {
+      fullPath = openNoteForPublishing(item.noteFile);
+    } catch (e) {
+      console.log(`\n${c.red}❌ ${e.message}${c.reset}`);
+      waitBack();
+      return;
+    }
+    const copied = copyFileToClipboard(fullPath);
+    openFile(fullPath);
+    console.log(`  ${copied ? c.cyan + '📋 修正版の全文をクリップボードにコピーしました。' : c.yellow + '開いたメモ帳で [Ctrl + A] → [Ctrl + C] で全文をコピーしてください。'}${c.reset}`);
+    console.log(`  ${c.bold}手順:${c.reset}`);
+    console.log(`  1. 開いた note の記事一覧でこの記事を探し、編集画面を開く`);
+    console.log(`  2. 本文をすべて選択して削除し、${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
+    console.log(`  3. 「有料エリア」の手前に有料ラインを入れ直し、価格・メンバーシップ設定を確認して更新`);
+  }
+  openUrl('https://note.com/notes');
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  rl.question(`\n${c.yellow}${c.bold}note で反映したら Enter（後回し: s / メニューに戻る: 0） > ${c.reset}`, (ans) => {
+    rl.close();
+    const a = ans.trim().toLowerCase();
+    if (a === '0') return promptMenu();
+    if (a === 's') {
+      // 後回しにした記事は今回のループでは末尾へ回す
+      const spec = JSON.parse(fs.readFileSync(noteUpdatesFile, 'utf8'));
+      const { [item.slug]: moved, ...rest } = spec.items;
+      spec.items = { ...rest, [item.slug]: moved };
+      fs.writeFileSync(noteUpdatesFile, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+      return runNoteUpdates();
+    }
+    recordNoteUpdated(item.slug);
+    runNoteUpdates();
+  });
 }
 
 function runPublishHelper(mode) {
