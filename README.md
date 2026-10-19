@@ -15,7 +15,7 @@
 - 🌐 **全世界公開メディア（公式自社HP）**: https://ssk0224.github.io/auto-tech-radar/
 - 📊 **全OSS商用化チートシート（Markdown/CSV出力・A4印刷対応）**: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
 - 📩 **法人・企業向け受託開発 ＆ AI導入相談窓口**: https://ssk0224.github.io/auto-tech-radar/contact/
-- 📗 **note 公式メンバーシップ（全レポート読み放題）**: https://note.com/vast_ixora7005
+- 📗 **note 公式メンバーシップ（特典に追加した有料記事を閲覧可能）**: https://note.com/vast_ixora7005
 - 💼 **企業研修・スキルアップ経費精算ガイド（稟議テンプレ付）**: https://ssk0224.github.io/auto-tech-radar/expense/
 - 💳 **単発レポート（¥980）**: [note公式](https://note.com/vast_ixora7005)（有料記事の販売は note のみ）
 - 𝕏 **公式速報アカウント**: [@AutoTechRadar](https://x.com/AutoTechRadar)

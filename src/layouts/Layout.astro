@@ -676,7 +676,7 @@ if (starsCount >= 15000) {
           </div>
 
           <div class="price-card featured">
-            <span class="badge-rec">おすすめ・全記事読み放題</span>
+            <span class="badge-rec">おすすめ</span>
             <div>
               <h4>note メンバーシップ（定期購読）</h4>
               <div class="price-val">¥1,980 <span>/ 月額（解約自由）</span></div>
@@ -835,7 +835,7 @@ if (starsCount >= 15000) {
     <!-- Floating Sticky Action Bar (読者が50%スクロールした際にフワッと出現する高成約バー) -->
     <div id="sticky-bar" style="position: fixed; bottom: -80px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #312e81; padding: 0.75rem 1.2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; z-index: 9998; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
       <div style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;" class="sticky-text">
-        ⚡ <span style="color: #60a5fa;">毎朝の最新OSS解体新書</span> を全編読み放題（月額1,980円）
+        ⚡ <span style="color: #60a5fa;">毎朝の最新OSS解体新書</span> の実務キットは note で（メンバーシップ 月額1,980円）
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
@@ -966,10 +966,6 @@ if (starsCount >= 15000) {
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
               <span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>
-              <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.15); padding: 0.15rem 0.5rem; border-radius: 9999px;">
-                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
-                <span>現在 <strong>${Math.floor(Math.random() * 8) + 12} 名</strong>が閲覧・研究中</span>
-              </span>
             </div>
             <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
               <button id="print-article-btn" onclick="window.print()" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
