@@ -31,16 +31,16 @@
 
 ## 未完了（要対応）
 1. **修正後の生成スクリプトの本番初回**: 次の定期実行（6:17 JST）。6:40 JST に確認を予約済み。
-2. **`public/og-card.png` の再生成**: `og-card.svg` は修正済み。日本語フォントのある環境で 1200x630 に再生成する。
+2. ~~`public/og-card.png` の再生成~~（2026-10-19 済）。
 3. **単価表示**: スター数・カテゴリから機械的に決めた「想定受託単価」（OGP `scripts/generate_og_cards.mjs`、`src/pages/index.astro` / `cheatsheet.astro` / `weekly.astro`）は根拠が無いため削除する方針（未着手）。記事本文の「想定」見積もりは残す。
 4. **調査で見つかった不足**（優先順）:
    - FAQ 構造化データ（Layout.astro 120-135 付近）が全 OSS に「商用利用可能」と答えている → 実際のライセンス（SPDX）から生成する。
    - Layout の「専任エンジニアチームが最短2週間で構築」、contact の適格請求書の記載 → 事実確認できるまで断定しない表現に。
    - AI 生成であることの表示、スポンサー枠の「PR/広告」表示（ステマ規制）。
-   - 計測が無い（cookie を使わない解析＋ UTM）。導入時はプライバシーポリシーに外部送信規律の記載を追加。
-   - メールでの読者リスト（週次まとめ）。特定電子メール法に沿って同意と配信停止を用意。
-   - robots.txt で AI クローラーを拒否している点を、方針として決める。
-5. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。法務確認を推奨。Google Fonts（fonts.googleapis.com / gstatic）への送信が記載漏れ。
+   - 計測が無い（cookie を使わない解析＋ UTM）。**オーナーのアカウント作成が必要**（例: GoatCounter 無料・cookie 不使用）。導入時は `privacy.astro` の外部送信一覧に追記する。
+   - メールでの読者リスト（週次まとめ）。**配信サービスのアカウントが必要**。特定電子メール法に沿って同意と配信停止を用意。
+   - robots.txt は**効いていない**: サイトは `ssk0224.github.io/auto-tech-radar/` 配下のため、クローラーが読むのはホスト直下の `/robots.txt`（RFC 9309 §2.3「top-level path」）。`public/robots.txt` の AI クローラー拒否もサイトマップ指定も無効。サイトマップは Google Search Console / Bing Webmaster Tools に手動で登録する（オーナー作業）。独自ドメインにすれば robots.txt が有効になる。
+5. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。法務確認を推奨。外部送信（GitHub Pages / Google Fonts / jsDelivr）は 2026-10-19 に記載済み。外部サービスを足したら必ずここに追記する。
 6. **独立レビューの未修正バグ（2026-10-19、20件、重い順）**
    1. `scripts/auto_tweet_x.mjs`: X が 4xx を返した記事を履歴に記録しないため、同じ記事を毎回再試行し、キューが永久に止まる。ツイート後に push が失敗しても同様（重複で 4xx）。→ 4xx（429以外）は `x:"failed"` を記録して次へ。
    2. `src/pages/sponsor.astro:35-93`: 読者属性 78%/42%/100%・「月間2枠限定」・dofollow・全ページヘッダー/RSS の掲載を約束しているが根拠も実装も無い。→ 削除か「目標値」と明記。
