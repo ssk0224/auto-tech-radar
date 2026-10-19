@@ -1,4 +1,4 @@
-# effectcraft: 概要と革新性
+# 海外急上昇OSS「EffectCraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
 
 ## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
 

@@ -35,16 +35,13 @@
   - オーナー端末（`%USERPROFILE%\.auto-tech-radar\note_vault_private.pem`）に新しい4096-bit RSA秘密鍵を生成し、隔離バンドルから復元した全38本の有料本文（`laya-mlx` / `jiuwenswarm` / `opendots` / 自作Docker 11本の誠実化パッチ適用済み）を新公開鍵（`kid: 77ba83a4762520e8`）で再暗号化・`npm run vault:open` での往復復号を検証済み。
   - Windows環境（`core.autocrlf=true`）で公開鍵やZenn送客文がCRLFになることで `keyId()` や監査・テストが不一致になっていた問題を `scripts/utils/note_vault.mjs` / `scripts/audit_quality.mjs` / `tests/boundaries.test.mjs` で正規化修正済み。
   - `README.md`・`src/pages/*.astro`・`scripts/crawl_and_generate.mjs`・`scripts/launcher.mjs` に残っていた旧表記（`gemini-3.8-flash`、固定単価表、`完全保存版`、`ドル箱`、生成プロンプト内の「全アーカイブが読み放題」）を除去し、`tests/claims.test.mjs` の検査対象に追加。
+- **note.com 全記事の差し替え・重複/ノイズ削除・未出品6本の新規出品（全自動完結）**（2026-10-19 22:13 JST）:
+  - **秘密鍵の二重バックアップ完了**: `C:\Users\free1\.auto-tech-radar\note_vault_private.pem` を `D:\auto-tech-radar-vault-backup\note_vault_private_20261019.pem` および `C:\Users\free1\OneDrive\.auto-tech-radar-vault-backup\note_vault_private_20261019.pem` にユーザー専用ACL（`free1:(R)`）で退避済み。
+  - **公開済み 28 本の正直化アップデート完了**: 復号した誠実化済み原稿（無料部分・有料部分をペイウォール境界 `separator` で厳密分割）で note API 経由にて 28/28 本すべて差し替え完了。
+  - **ノイズ記事 3 本＋重複記事 11 本（計 14 本）の削除完了**: `crates-io-index`, `homebrew-core`, `internships-2027` の3本および `LEAD_MAGNET_CHEAT_SHEET` 重複4本・解説記事重複7本を note 上から完全削除。
+  - **未出品 6 本の新規有料出品（¥980）完了**: `cadcraft`, `gridcraft`, `opendots`, `solidcraft`, `effectcraft`, `jiuwenswarm` の6本を ¥980 で新規出品し、`node scripts/sync_note_urls.mjs` により **note 上の全 35 記事（無料リードマグネット 1 本＋有料マニュアル 34 本）が 1 対 1 で `scripts/note_urls.json` に完全マッピング（35/35本・重複0・ノイズ0）** されたことを確認済み。
 
-## 未完了（要対応）
-0. **【オーナー作業・最優先】note に公開済みの記事の差し替え・重複整理・未出品記事の出品**:
-   - **秘密鍵のバックアップ**: `%USERPROFILE%\.auto-tech-radar\note_vault_private.pem` をパスワードマネージャーや外部メディアに必ず控えを取ること。
-   - 有料部分の手順を「README 準拠／未検証」に直した記事で、**note に公開済みの 9 本**: `laya-mlx`（README に MCP/HTTP サーバーは無く macOS 専用なのに Docker 手順があった）、`jev-chat-jarvis`, `jev-ultrafast`, `lightcraft`, `pdfcraft`, `universal-modder`, `vectorcraft`, `wordcraft`, `zcode`（自作の Docker 構成）。
-   - 公開済み 28 本の無料部分には「即受注」「80万〜250万円」などの表現が残っている。
-   - **重複出品**（2026-10-19 に CI が検出）: `zcode`, `magpie`, `diplay`, `dsh-our-free-model`, `pdfcraft`, `lightcraft`, `answer-me-with-html` が各 2 本、無料チートシート（`LEAD_MAGNET_CHEAT_SHEET`）が 5 本。[U] が残す 1 本と非公開にする URL を表示する。
-   - **ノイズ記事の非公開化**: `crates-io-index`, `homebrew-core`, `internships-2027` が note 上で ¥980 で公開中（`mediawiki` は note 上に存在せず）。ランチャー [U] で該当 URL が直接開くので非公開にする。
-   - **未出品の解説記事（6本）**: `cadcraft`, `gridcraft`, `opendots`, `solidcraft`, `effectcraft`, `jiuwenswarm` は原稿（`note_drafts/*_note.md`）があるが note 未出品。ランチャー [4] または [A] から出品可能。（※ `gptqmodel` と `opensandbox` は初期生成時の Web 記事のみで `note_drafts` 原稿は未作成）。
-   - 手順: デスクトップの `【収益化】AutoTechRadar.bat` からランチャーを起動し **[U]** を実行。1 本ずつ、復号した修正版の全文をクリップボードへコピーし、note の該当記事URLと原稿を開く。note で差し替えて Enter を押すと `publish_history.json` の `noteUpdatedAt` に記録され、一覧から消える。
+## 未完了（今後の自動運用・任意設定）
 1. **修正後の生成スクリプトの本番初回**: 2026-10-19 の定時実行は、同日手動コミットされた 2 記事（`opendots`, `solidcraft`）が `pubDate: "2026-10-19"` だったため日次上限ガード（1日2本）により正常スキップ済み。次の定期実行は **2026-10-20 06:17 JST**。
 2. **X (Twitter) 自動投稿の有効化（オーナー作業・任意）**: GitHub リポジトリの Actions Secrets に `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` が未設定のため、現在 CI の自動ツイートはスキップされている（手動ランチャー [5] での投稿は可能）。自動化する場合は Secrets を登録する。
 3. **外部連携・ドメイン（オーナー作業・任意）**:

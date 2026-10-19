@@ -1,15 +1,18 @@
 {
   "pinvou-agent": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "mediawiki": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "potatotool": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "crates-io-index": {
     "note": true,
@@ -18,63 +21,77 @@
   },
   "md3music": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "tokenspeed": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "internships-2027": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "homebrew-core": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "dsh-tavern": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "answer-me-with-html": {
     "note": true,
-    "noteAt": "2026-10-09"
+    "noteAt": "2026-10-09",
+    "noteUpdatedAt": "2026-10-19"
   },
   "laya": {
     "note": true,
-    "noteAt": "2026-10-10"
+    "noteAt": "2026-10-10",
+    "noteUpdatedAt": "2026-10-19"
   },
   "photocraft": {
     "note": true,
-    "noteAt": "2026-10-10"
+    "noteAt": "2026-10-10",
+    "noteUpdatedAt": "2026-10-19"
   },
   "strata": {
     "note": true,
-    "noteAt": "2026-10-10"
+    "noteAt": "2026-10-10",
+    "noteUpdatedAt": "2026-10-19"
   },
   "jev-ultrafast": {
     "note": true,
-    "noteAt": "2026-10-10"
+    "noteAt": "2026-10-10",
+    "noteUpdatedAt": "2026-10-19"
   },
   "filmcraft": {
     "note": true,
     "noteAt": "2026-10-12",
     "x": true,
-    "xAt": "2026-10-12"
+    "xAt": "2026-10-12",
+    "noteUpdatedAt": "2026-10-19"
   },
   "lightcraft": {
     "note": true,
     "noteAt": "2026-10-17",
     "x": true,
-    "xAt": "2026-10-17"
+    "xAt": "2026-10-17",
+    "noteUpdatedAt": "2026-10-19"
   },
   "compositor": {
     "note": true,
-    "noteAt": "2026-10-12"
+    "noteAt": "2026-10-12",
+    "noteUpdatedAt": "2026-10-19"
   },
   "how-to-live-better": {
     "note": true,
-    "noteAt": "2026-10-12"
+    "noteAt": "2026-10-12",
+    "noteUpdatedAt": "2026-10-19"
   },
   "pdfcraft": {
     "note": true,
@@ -82,19 +99,22 @@
     "x": true,
     "xAt": "2026-10-14",
     "zenn": true,
-    "zennAt": "2026-10-14"
+    "zennAt": "2026-10-14",
+    "noteUpdatedAt": "2026-10-19"
   },
   "dsh-our-free-model": {
     "note": true,
     "noteAt": "2026-10-15",
     "x": true,
-    "xAt": "2026-10-15"
+    "xAt": "2026-10-15",
+    "noteUpdatedAt": "2026-10-19"
   },
   "diplay": {
     "note": true,
     "noteAt": "2026-10-17",
     "x": true,
-    "xAt": "2026-10-17"
+    "xAt": "2026-10-17",
+    "noteUpdatedAt": "2026-10-19"
   },
   "magpie": {
     "note": true,
@@ -102,7 +122,8 @@
     "x": true,
     "xAt": "2026-10-14",
     "zenn": true,
-    "zennAt": "2026-10-14"
+    "zennAt": "2026-10-14",
+    "noteUpdatedAt": "2026-10-19"
   },
   "wordcraft": {
     "note": true,
@@ -110,7 +131,8 @@
     "x": true,
     "xAt": "2026-10-14",
     "zenn": true,
-    "zennAt": "2026-10-14"
+    "zennAt": "2026-10-14",
+    "noteUpdatedAt": "2026-10-19"
   },
   "anatomy": {
     "note": true,
@@ -118,7 +140,8 @@
     "x": true,
     "xAt": "2026-10-15",
     "zenn": true,
-    "zennAt": "2026-10-15"
+    "zennAt": "2026-10-15",
+    "noteUpdatedAt": "2026-10-19"
   },
   "kev": {
     "note": true,
@@ -126,31 +149,36 @@
     "x": true,
     "xAt": "2026-10-15",
     "zenn": true,
-    "zennAt": "2026-10-15"
+    "zennAt": "2026-10-15",
+    "noteUpdatedAt": "2026-10-19"
   },
   "droiddeck": {
     "note": true,
     "noteAt": "2026-10-15",
     "x": true,
-    "xAt": "2026-10-15"
+    "xAt": "2026-10-15",
+    "noteUpdatedAt": "2026-10-19"
   },
   "vectorcraft": {
     "note": true,
     "noteAt": "2026-10-15",
     "x": true,
-    "xAt": "2026-10-15"
+    "xAt": "2026-10-15",
+    "noteUpdatedAt": "2026-10-19"
   },
   "zcode": {
     "note": true,
     "noteAt": "2026-10-16",
     "x": true,
-    "xAt": "2026-10-16"
+    "xAt": "2026-10-16",
+    "noteUpdatedAt": "2026-10-19"
   },
   "universal-modder": {
     "note": true,
     "noteAt": "2026-10-16",
     "x": true,
-    "xAt": "2026-10-16"
+    "xAt": "2026-10-16",
+    "noteUpdatedAt": "2026-10-19"
   },
   "aihot": {
     "note": true,
@@ -158,18 +186,51 @@
     "x": true,
     "xAt": "2026-10-17",
     "zenn": true,
-    "zennAt": "2026-10-17"
+    "zennAt": "2026-10-17",
+    "noteUpdatedAt": "2026-10-19"
   },
   "jev-chat-jarvis": {
     "note": true,
     "noteAt": "2026-10-17",
     "x": true,
-    "xAt": "2026-10-17"
+    "xAt": "2026-10-17",
+    "noteUpdatedAt": "2026-10-19"
   },
   "laya-mlx": {
     "note": true,
     "noteAt": "2026-10-18",
     "x": true,
-    "xAt": "2026-10-18"
+    "xAt": "2026-10-18",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "cadcraft": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "effectcraft": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "gridcraft": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "jiuwenswarm": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "opendots": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
+  },
+  "solidcraft": {
+    "note": true,
+    "noteAt": "2026-10-19",
+    "noteUpdatedAt": "2026-10-19"
   }
 }
