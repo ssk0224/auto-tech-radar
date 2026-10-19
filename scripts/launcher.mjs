@@ -108,6 +108,7 @@ function recordPublish(slug, type) {
   } else if (type === 'qiita') {
     history[slug].qiita = true;
     history[slug].qiitaAt = todayStr;
+  }
   saveHistory(history);
 
   // バックグラウンドで即座にクラウド同期（ユーザーの追加操作不要・完全自動）

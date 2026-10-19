@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -577,6 +578,74 @@ if (fs.existsSync(noteDraftsDir)) {
   if (noteUrlErrors === 0) {
     console.log(`  ✓ note_drafts URL 整合性監査合格: 全URLが実在ページと100%一致。\n`);
   }
+}
+
+// 12. 【全スクリプト構文完全性 監査】
+console.log('▶ [12/13] リポジトリ内全スクリプト構文完全性 (node -c) 監査...');
+const scriptsDir = path.join(rootDir, 'scripts');
+const scriptFiles = fs.readdirSync(scriptsDir).filter(f => f.endsWith('.mjs') || f.endsWith('.js'));
+let scriptErrors = 0;
+scriptFiles.forEach(file => {
+  const filePath = path.join(scriptsDir, file);
+  try {
+    execSync(`node -c "${filePath}"`, { stdio: 'pipe' });
+  } catch (err) {
+    console.error(`  ❌ [SCRIPT SYNTAX ERROR] scripts/${file}: 構文エラーが検出されました！\n  ${err.message}`);
+    scriptErrors++;
+    errorCount++;
+  }
+});
+if (scriptErrors === 0) {
+  console.log(`  ✓ スクリプト構文監査合格: 全 ${scriptFiles.length} 本のスクリプトで構文エラーゼロ。\n`);
+}
+
+// 13. 【デスクトップ起動導線 ＆ ショートカット完全性 監査】
+console.log('▶ [13/13] デスクトップ起動導線 ＆ ショートカット整合性 監査...');
+const desktopDir = 'C:\\Users\\free1\\OneDrive\\Desktop\\SSK OS 9.bat関連';
+if (fs.existsSync(desktopDir)) {
+  const batPath = path.join(desktopDir, '【収益化】AutoTechRadar.bat');
+  const lnkPath = path.join(desktopDir, '【収益化】AutoTechRadar.lnk');
+  let desktopErrors = 0;
+
+  if (!fs.existsSync(batPath)) {
+    console.error(`  ❌ [DESKTOP BAT MISSING] ${batPath} が見つかりません！`);
+    desktopErrors++;
+    errorCount++;
+  }
+
+  if (!fs.existsSync(lnkPath)) {
+    console.error(`  ❌ [DESKTOP LNK MISSING] ${lnkPath} が見つかりません！`);
+    desktopErrors++;
+    errorCount++;
+  } else {
+    // ショートカットの TargetPath が実在するか（文字化けしていないか）の精密検証
+    try {
+      const ps = `
+        $sh = New-Object -ComObject WScript.Shell
+        $s = $sh.CreateShortcut("${lnkPath}")
+        $exists = Test-Path -LiteralPath $s.TargetPath
+        [PSCustomObject]@{ Target = $s.TargetPath; Exists = $exists } | ConvertTo-Json
+      `;
+      const buf = Buffer.from(ps, 'utf16le');
+      const out = execSync(`powershell -NoProfile -EncodedCommand ${buf.toString('base64')}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+      const info = JSON.parse(out.replace(/#<[\s\S]*?>/g, '').trim());
+      if (!info.Exists) {
+        console.error(`  ❌ [CORRUPTED SHORTCUT TARGET] ショートカットの参照先が存在しません（文字化け破損の疑い）: ${info.Target}`);
+        desktopErrors++;
+        errorCount++;
+      }
+    } catch (e) {
+      console.error(`  ❌ [SHORTCUT INSPECTION FAILED] ショートカット解析エラー: ${e.message}`);
+      desktopErrors++;
+      errorCount++;
+    }
+  }
+
+  if (desktopErrors === 0) {
+    console.log(`  ✓ デスクトップ起動導線監査合格: バッチ＆ショートカット完全開通・文字化けゼロ保証。\n`);
+  }
+} else {
+  console.log(`  ℹ デスクトップ起動導線監査: 非Windows/CI環境のためスキップ。\n`);
 }
 
 console.log('===============================================================================');
