@@ -623,6 +623,13 @@ if (starsCount >= 15000) {
       )}
       {isArticle ? <article id="article-body"><slot /></article> : <slot />}
 
+      <!-- AI 生成であることの表示（読者が一次情報を確認できるように） -->
+      {isArticle && (
+        <p class="ai-disclosure" style="margin: 1.5rem 0 0; padding: 0.8rem 1rem; border: 1px solid #1f2937; border-radius: 8px; font-size: 0.82rem; color: #94a3b8; line-height: 1.6;">
+          この記事は、GitHub の公開情報（README・リポジトリ情報）をもとに AI（Google Gemini）が下書きし、自動検査を通して公開しています。導入前に、公式リポジトリで最新の内容・ライセンスをご確認ください。
+        </p>
+      )}
+
       <!-- ビジュアル・ペイウォール境界線（記事詳細のみ表示） -->
       {isArticle && (
         <div class="paywall-divider atr-paywall-gate">

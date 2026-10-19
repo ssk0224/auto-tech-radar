@@ -50,55 +50,55 @@
 
     <!-- 特大注目バッジ -->
     <rect x="230" y="0" width="260" height="42" rx="21" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.5" />
-    <text x="360" y="26" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">⭐ 累計200,000+ Stars 厳選</text>
+    <text x="360" y="26" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">⭐ スター数順 15件</text>
 
     <!-- 完全無料公開バッジ -->
     <rect x="510" y="0" width="160" height="42" rx="21" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" stroke-width="1.5" />
-    <text x="590" y="26" fill="#4ade80" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">🎁 完全無料公開</text>
+    <text x="590" y="26" fill="#4ade80" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">🎁 無料</text>
   </g>
 
   <!-- メインタイトル -->
   <g transform="translate(60, 150)">
     <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="24" font-weight="700" letter-spacing="2">
-      【2026年最新 完全保存版】
+      【2026-10-19 時点】
     </text>
     <text x="0" y="60" fill="url(#cyanGrad)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="54" font-weight="900" letter-spacing="-0.5">
       海外急上昇オープンソース15選
     </text>
     <text x="0" y="115" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="36" font-weight="800">
-      現場で即戦力になる商用化 ＆ 社内DXチートシート
+      GitHub スター数順の早見表
     </text>
   </g>
 
-  <!-- 想定単価・キラー帯 -->
+  <!-- 内容の帯（記事に実際に含まれるものだけを書く） -->
   <g transform="translate(60, 340)">
     <rect width="1080" height="74" rx="14" fill="rgba(15, 23, 42, 0.8)" stroke="#38bdf8" stroke-width="1.8" />
     <rect x="0" y="0" width="12" height="74" rx="6" fill="url(#cyanGrad)" />
     <text x="36" y="47" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="24" font-weight="900">
-      💰 想定受託単価: <tspan fill="#38bdf8">¥80万〜¥350万円</tspan> ｜ <tspan fill="#e2e8f0" font-weight="700">社内DX・AIエージェント・脱課金SaaS</tspan>
+      📖 README ベースの概要 ｜ <tspan fill="#e2e8f0" font-weight="700">AIエージェント・ローカルLLM・開発ツール</tspan>
     </text>
   </g>
 
   <!-- サブ説明文 -->
   <g transform="translate(60, 465)">
     <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="500">
-      世界中のGitHubから急上昇OSSを徹底厳選。アーキテクチャ図解・社内稟議提案書・見積内訳付き。
+      各プロジェクトの公式リポジトリと、無料のアーキテクチャ解説記事へのリンク付き。
     </text>
   </g>
 
-  <!-- フッター実績プルーフバッジ群 -->
+  <!-- フッターバッジ群 -->
   <g transform="translate(60, 520)">
     <!-- バッジ 1 -->
     <rect x="0" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#38bdf8" stroke-width="1.4" />
-    <text x="125" y="32" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 商用化チートシート</text>
+    <text x="125" y="32" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ スター数順の早見表</text>
 
     <!-- バッジ 2 -->
     <rect x="270" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#818cf8" stroke-width="1.4" />
-    <text x="395" y="32" fill="#a5b4fc" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 社内稟議テンプレ付</text>
+    <text x="395" y="32" fill="#a5b4fc" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 公式リポジトリ付</text>
 
     <!-- バッジ 3 -->
     <rect x="540" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#34d399" stroke-width="1.4" />
-    <text x="665" y="32" fill="#6ee7b7" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 想定受託単価一覧</text>
+    <text x="665" y="32" fill="#6ee7b7" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 無料の解説記事へ</text>
 
     <!-- バッジ 4 -->
     <rect x="810" y="0" width="270" height="52" rx="10" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.4" />

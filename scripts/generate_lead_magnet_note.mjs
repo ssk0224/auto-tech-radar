@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { isNoise } from './utils/noise_filter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -10,9 +11,6 @@ const noteDir = path.join(rootDir, 'note_drafts');
 
 if (!fs.existsSync(noteDir)) fs.mkdirSync(noteDir, { recursive: true });
 
-// ノイズフィルター
-const NOISE_FILTER_REGEX = /(index$|core$|cask$|nixpkgs|mediawiki|internship|cheatsheet)/i;
-
 function getTopRepos() {
   if (!fs.existsSync(radarDir)) return [];
   const files = fs.readdirSync(radarDir).filter(f => f.endsWith('.md'));
@@ -20,7 +18,7 @@ function getTopRepos() {
   const repos = [];
   for (const f of files) {
     const slug = f.replace('.md', '');
-    if (NOISE_FILTER_REGEX.test(slug)) continue;
+    if (isNoise(slug)) continue;
 
     const content = fs.readFileSync(path.join(radarDir, f), 'utf8');
     const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -44,11 +42,8 @@ function getTopRepos() {
     const urlM = fm.match(/^repoUrl:\s*"?(.*?)"?$/m);
     if (urlM) repoUrl = urlM[1];
 
-    // 単価やカテゴリの推定
+    // スター数から受託単価を決める根拠は無いため、単価は載せない（カテゴリはタグの先頭）
     let category = tags[0] || 'AI / OSS';
-    let priceRange = '¥100万〜¥250万';
-    if (stars > 5000) priceRange = '¥150万〜¥350万';
-    else if (stars < 1500) priceRange = '¥80万〜¥200万';
 
     repos.push({
       slug,
@@ -56,7 +51,6 @@ function getTopRepos() {
       desc,
       category,
       stars,
-      priceRange,
       repoUrl
     });
   }
@@ -68,55 +62,44 @@ export function generateLeadMagnetNote() {
   const repos = getTopRepos().slice(0, 15);
   const today = new Date().toISOString().split('T')[0];
 
-  let md = `# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース15選」商用化チートシート（社内DX・受託開発・AI導入の決定版）\n\n`;
+  let md = `# 海外で注目を集めるオープンソース15選 早見表（${today} 時点・GitHub スター数順）\n\n`;
 
-  md += `## はじめに：なぜ今、世界のトップ企業は「オープンソースのセルフホスト・商用化」に舵を切っているのか？\n\n`;
-  md += `月額数万円〜数十万円を支払い続けている商用SaaS。API利用料が毎月跳ね上がるクラウドAIサービス。\n`;
-  md += `2026年現在、シリコンバレーのテック企業や先進的な国内スタートアップは、**「急上昇中の高品質オープンソース（OSS）を自社クラウドへセルフホストし、内製化・自社DX基盤として運用する」** ことで、年間数百万円単位のコスト削減とデータセキュリティの完全保護を両立させています。\n\n`;
-  md += `さらに受託開発やフリーランスエンジニアにとっても、これら急上昇OSSを活用した**「社内AI導入・DX支援パッケージ（案件単価80万〜250万円）」** は、今最も需要が高く利益率の高いドル箱領域です。\n\n`;
-  md += `本記事では、世界中のGitHubで直近スター数が急増している厳選オープンソース15選を、**「商用化の狙い目」「想定受託単価」「競合SaaSとの比較」** の視点で完全網羅した【商用化チートシート】として完全無料公開します。\n\n`;
-  md += `日々の技術リサーチや新規事業のネタ帳、クライアントへのDX提案資料としてぜひ末永くご活用ください（**「スキ」「保存」推奨 📌**）。\n\n`;
+  md += `## はじめに\n\n`;
+  md += `Auto Tech Radar が毎朝 GitHub から収集し、README などの公開情報をもとに解説してきたオープンソースのうち、スター数の多い15件を一覧にしました。\n\n`;
+  md += `各プロジェクトの概要は README の説明文の抜粋です。ライセンスや動作環境はプロジェクトごとに異なるため、導入前に必ず公式リポジトリでご確認ください。\n\n`;
+  md += `技術リサーチや社内での検討の下調べにご活用ください（**「スキ」「保存」推奨 📌**）。\n\n`;
 
   md += `--- \n\n`;
-  md += `## 📊 【全OSS横断】商用化・受託開発チートシート早見表\n\n`;
-  md += `| プロジェクト名 | カテゴリ / 言語 | GitHub Stars | 想定受託単価 | 商用化・自社DXの狙い目 | 詳細レポート |\n`;
-  md += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+  md += `## 📊 早見表\n\n`;
+  md += `| プロジェクト名 | カテゴリ / 言語 | GitHub Stars | 概要 | 詳細レポート |\n`;
+  md += `| :--- | :--- | :--- | :--- | :--- |\n`;
 
   repos.forEach(r => {
-    const starStr = r.stars > 0 ? `⭐ ${r.stars.toLocaleString()}` : '急上昇中';
+    const starStr = r.stars > 0 ? `⭐ ${r.stars.toLocaleString()}` : '—';
     const cleanDesc = r.desc.length > 30 ? r.desc.slice(0, 30) + '...' : r.desc;
-    md += `| **${r.title}** | ${r.category} | ${starStr} | ${r.priceRange} | ${cleanDesc} | [詳細解説 →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/) |\n`;
+    md += `| **${r.title}** | ${r.category} | ${starStr} | ${cleanDesc} | [詳細解説 →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/) |\n`;
   });
 
   md += `\n--- \n\n`;
-  md += `## 🏆 厳選！注目急上昇OSS 15選の徹底解説\n\n`;
+  md += `## 🔎 15件の概要\n\n`;
 
   repos.forEach((r, idx) => {
-    const starStr = r.stars > 0 ? `★ ${r.stars.toLocaleString()}` : '急上昇中';
+    const starStr = r.stars > 0 ? `★ ${r.stars.toLocaleString()}` : '—';
     md += `### ${idx + 1}. ${r.title}（${starStr} / ${r.category}）\n\n`;
     md += `- **プロジェクト概要**: ${r.desc}\n`;
-    md += `- **想定受託単価**: ${r.priceRange}\n`;
-    md += `- **商用化・SaaS代替の狙い目**:\n`;
-    md += `  - 既存の高額課金SaaSからのリプレイスによる月額ランニングコスト削減\n`;
-    md += `  - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託\n`;
-    md += `  - 自社マイクロSaaSへの機能組み込み・バックエンド活用\n\n`;
-    md += `👉 **[「${r.title}」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/)**\n\n`;
+    if (r.repoUrl) md += `- **公式リポジトリ**: ${r.repoUrl}\n`;
+    md += `\n👉 **[「${r.title}」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/)**\n\n`;
     md += `----\n\n`;
   });
 
-  md += `## 💼 法人向け受託開発 ＆ 自社AI導入支援について\n\n`;
-  md += `Auto Tech Radar では、上記OSSを活用した以下のソリューションを提供しております：\n\n`;
-  md += `- **社内専用AIエージェント・DX基盤の構築受託**（80万円〜250万円）\n`;
-  md += `- **月額課金SaaSのセルフホスト化による脱課金コンサルティング**\n`;
-  md += `- **技術顧問・PoC（概念実証）の超高速プロトタイピング**\n\n`;
-  md += `受託開発のご相談やお見積もりのご依頼は、公式Webサイトよりお気軽にお問い合わせください：\n`;
-  md += `👉 **[受託開発・導入支援の無料相談窓口（/contact/）](https://ssk0224.github.io/auto-tech-radar/contact/)**\n\n`;
+  md += `## 💼 導入支援のご相談\n\n`;
+  md += `上記のようなOSSを使った社内向けシステムの構築・導入支援のご相談を受け付けています。内容・お見積もりはご相談のうえご案内します。\n\n`;
+  md += `👉 **[お問い合わせ（/contact/）](https://ssk0224.github.io/auto-tech-radar/contact/)**\n\n`;
 
   md += `--- \n\n`;
   md += `## 🎁 【note公式メンバーシップのご案内】\n\n`;
   md += `Auto Tech Radar noteメンバーシップ（月額1,980円）では、\n`;
   md += `メンバーシップ特典に追加された有料記事（導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順など）を読むことができます。\n\n`;
-  md += `「最短で受託案件を獲得したい」「自社のAI内製化を最速で成功させたい」エンジニアや経営者の方は、ぜひご参加ください！\n\n`;
   md += `👉 **[note公式メンバーシップを見る](https://note.com/vast_ixora7005)**\n\n`;
 
   md += `--- \n`;
@@ -134,6 +117,7 @@ export function generateLeadMagnetNote() {
 }
 
 export function generateLeadMagnetOgCard() {
+  const today = new Date().toISOString().split('T')[0];
   const ogpDir = path.join(rootDir, 'public', 'ogp');
   if (!fs.existsSync(ogpDir)) fs.mkdirSync(ogpDir, { recursive: true });
 
@@ -189,55 +173,55 @@ export function generateLeadMagnetOgCard() {
 
     <!-- 特大注目バッジ -->
     <rect x="230" y="0" width="260" height="42" rx="21" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.5" />
-    <text x="360" y="26" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">⭐ 累計200,000+ Stars 厳選</text>
+    <text x="360" y="26" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">⭐ スター数順 15件</text>
 
     <!-- 完全無料公開バッジ -->
     <rect x="510" y="0" width="160" height="42" rx="21" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" stroke-width="1.5" />
-    <text x="590" y="26" fill="#4ade80" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">🎁 完全無料公開</text>
+    <text x="590" y="26" fill="#4ade80" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="900" text-anchor="middle">🎁 無料</text>
   </g>
 
   <!-- メインタイトル -->
   <g transform="translate(60, 150)">
     <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="24" font-weight="700" letter-spacing="2">
-      【2026年最新 完全保存版】
+      【${today} 時点】
     </text>
     <text x="0" y="60" fill="url(#cyanGrad)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="54" font-weight="900" letter-spacing="-0.5">
       海外急上昇オープンソース15選
     </text>
     <text x="0" y="115" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="36" font-weight="800">
-      現場で即戦力になる商用化 ＆ 社内DXチートシート
+      GitHub スター数順の早見表
     </text>
   </g>
 
-  <!-- 想定単価・キラー帯 -->
+  <!-- 内容の帯（記事に実際に含まれるものだけを書く） -->
   <g transform="translate(60, 340)">
     <rect width="1080" height="74" rx="14" fill="rgba(15, 23, 42, 0.8)" stroke="#38bdf8" stroke-width="1.8" />
     <rect x="0" y="0" width="12" height="74" rx="6" fill="url(#cyanGrad)" />
     <text x="36" y="47" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="24" font-weight="900">
-      💰 想定受託単価: <tspan fill="#38bdf8">¥80万〜¥350万円</tspan> ｜ <tspan fill="#e2e8f0" font-weight="700">社内DX・AIエージェント・脱課金SaaS</tspan>
+      📖 README ベースの概要 ｜ <tspan fill="#e2e8f0" font-weight="700">AIエージェント・ローカルLLM・開発ツール</tspan>
     </text>
   </g>
 
   <!-- サブ説明文 -->
   <g transform="translate(60, 465)">
     <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="500">
-      世界中のGitHubから急上昇OSSを徹底厳選。アーキテクチャ図解・社内稟議提案書・見積内訳付き。
+      各プロジェクトの公式リポジトリと、無料のアーキテクチャ解説記事へのリンク付き。
     </text>
   </g>
 
-  <!-- フッター実績プルーフバッジ群 -->
+  <!-- フッターバッジ群 -->
   <g transform="translate(60, 520)">
     <!-- バッジ 1 -->
     <rect x="0" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#38bdf8" stroke-width="1.4" />
-    <text x="125" y="32" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 商用化チートシート</text>
+    <text x="125" y="32" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ スター数順の早見表</text>
 
     <!-- バッジ 2 -->
     <rect x="270" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#818cf8" stroke-width="1.4" />
-    <text x="395" y="32" fill="#a5b4fc" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 社内稟議テンプレ付</text>
+    <text x="395" y="32" fill="#a5b4fc" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 公式リポジトリ付</text>
 
     <!-- バッジ 3 -->
     <rect x="540" y="0" width="250" height="52" rx="10" fill="#0b1329" stroke="#34d399" stroke-width="1.4" />
-    <text x="665" y="32" fill="#6ee7b7" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 想定受託単価一覧</text>
+    <text x="665" y="32" fill="#6ee7b7" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="17" font-weight="800" text-anchor="middle">✓ 無料の解説記事へ</text>
 
     <!-- バッジ 4 -->
     <rect x="810" y="0" width="270" height="52" rx="10" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.4" />
@@ -252,14 +236,15 @@ export function generateLeadMagnetOgCard() {
 
   try {
     const chromeCandidates = [
+      process.env.CHROME_BIN,
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
       'google-chrome',
       'chromium',
       'chromium-browser'
     ];
-    const chromeBin = chromeCandidates.find(c => fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --screenshot="${pngPath}" --window-size=1200,630 "${svgPath}"`, { stdio: 'ignore' });
+    const chromeBin = chromeCandidates.find(c => c && fs.existsSync(c)) || 'google-chrome';
+    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${svgPath}"`, { stdio: 'ignore', timeout: 60000 });
     console.log(`✓ リードマグネット専用アイキャッチPNGを生成しました: ${pngPath}`);
   } catch (e) {
     console.warn(`PNG生成スキップ: ${e.message}`);

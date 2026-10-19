@@ -47,7 +47,7 @@ function getVisualArchetype(tags, title, desc, slug) {
       glow: '#d946ef',
       patternType,
       seed,
-      subtext: '自律型マルチエージェント基盤・業務完全無人化DX'
+      subtext: '自律型マルチエージェント基盤・業務自動化'
     };
   } else if (/llm|qwen|gpt|model|weights|inference|neural|speculative/i.test(text)) {
     return {
@@ -201,7 +201,18 @@ export function generateOgCardForPost(postData) {
   const shortTitle = escapeXml(rawShortTitle);
   const starCount = stars ? `★ ${stars.toLocaleString()}` : '急上昇';
   const tagList = Array.isArray(tags) ? tags.slice(0, 3) : ['OSS', 'Tech'];
-  const safeDesc = escapeXml((desc || '').slice(0, 72) + '...');
+  // 幅 1080px・22px で収まる長さに切る（全角は半角の約 2 倍の幅）。短い説明には … を付けない
+  const fitWidth = (text, maxUnits) => {
+    let out = '';
+    let units = 0;
+    for (const ch of text) {
+      units += ch.codePointAt(0) > 0xff ? 2 : 1;
+      if (units > maxUnits) return out + '…';
+      out += ch;
+    }
+    return out;
+  };
+  const safeDesc = escapeXml(fitWidth(desc || '', 88));
 
   const archetype = getVisualArchetype(tags, title, desc, slug);
   // エスケープ前の文字から切り出す（&amp; などの実体参照を途中で切ると SVG が壊れる）
@@ -288,7 +299,7 @@ export function generateOgCardForPost(postData) {
       ${shortTitle}
     </text>
     <text x="0" y="45" fill="url(#accent)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="25" font-weight="800">
-      海外急上昇OSS 徹底解剖 ＆ 商用手順書
+      海外急上昇OSS 日本語解説
     </text>
   </g>
 
@@ -308,23 +319,23 @@ export function generateOgCardForPost(postData) {
     </text>
   </g>
 
-  <!-- フッター実績プルーフバッジ群（4大キラープルーフ） -->
+  <!-- フッターバッジ群（Web 記事＝無料部分に実際に含まれるものだけを書く） -->
   <g transform="translate(60, 480)">
-    <!-- バッジ 1: 商用SaaS活用手順 -->
+    <!-- バッジ 1: 解説の根拠 -->
     <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="${archetype.accentGradient[0]}" stroke-width="1.3" />
-    <text x="130" y="31" fill="${archetype.accentGradient[0]}" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 商用SaaS化・構築手順付</text>
+    <text x="130" y="31" fill="${archetype.accentGradient[0]}" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ README ベースの解説</text>
 
-    <!-- バッジ 2: 社内稟議テンプレ -->
+    <!-- バッジ 2: 図解（Web 記事は Mermaid 図が必須） -->
     <rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.3" />
-    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ 社内稟議・提案書ドラフト</text>
+    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ アーキテクチャ図解</text>
 
     <!-- バッジ 3: 技術タグ -->
     <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.3" />
     <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">${tagList.map(escapeXml).join(' ｜ ')}</text>
 
-    <!-- バッジ 4: PRO限定 -->
+    <!-- バッジ 4: 日本語解説 -->
     <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.3" />
-    <text x="970" y="31" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">🔒 完全保存版 PRO</text>
+    <text x="970" y="31" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">📖 日本語で解説</text>
   </g>
 </svg>`;
 
@@ -335,14 +346,15 @@ export function generateOgCardForPost(postData) {
   const pngPath = path.join(ogpDir, `${slug}.png`);
   try {
     const chromeCandidates = [
+      process.env.CHROME_BIN,
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
       'google-chrome',
       'chromium',
       'chromium-browser'
     ];
-    const chromeBin = chromeCandidates.find(c => fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
+    const chromeBin = chromeCandidates.find(c => c && fs.existsSync(c)) || 'google-chrome';
+    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
   } catch (e) {
     // Chromeが使えない環境でもエラーで中断しないフェイルセーフ設計
   }
