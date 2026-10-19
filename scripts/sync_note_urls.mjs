@@ -101,15 +101,14 @@ async function main() {
     drafts.push({ slug: 'LEAD_MAGNET_CHEAT_SHEET', title, alias: 'オープンソース15選' });
   }
   const mapped = matchNotesToSlugs(notes, drafts);
-  // 既存の対応は残し、今回見つかったものだけ上書きする（note 側の一時的な欠落でリンクを消さない）
   let prev = {};
   try {
     prev = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
   } catch (e) {}
-  // 今回の結果で各記事を丸ごと置き換える（重複が解消されたら duplicates も消える）
-  const merged = { ...prev, ...mapped };
-  fs.writeFileSync(OUT_FILE, JSON.stringify(Object.fromEntries(Object.entries(merged).sort()), null, 2) + '\n', 'utf8');
-  console.log(`✓ note の記事 ${notes.length} 本中 ${Object.keys(mapped).length} 本を原稿と対応づけました（対応表 ${Object.keys(merged).length} 本）`);
+  // note.com から正常に取得できた場合、現在公開中の記事マップを採用する（非公開化された記事が 404 のまま残存するのを防ぐ）
+  const finalMap = notes.length > 0 ? mapped : { ...prev, ...mapped };
+  fs.writeFileSync(OUT_FILE, JSON.stringify(Object.fromEntries(Object.entries(finalMap).sort()), null, 2) + '\n', 'utf8');
+  console.log(`✓ note の記事 ${notes.length} 本中 ${Object.keys(mapped).length} 本を原稿と対応づけました（対応表 ${Object.keys(finalMap).length} 本）`);
   // 対応づけられなかったもの（公開情報のタイトルのみ）を記録し、取り違えや未対応を確認できるようにする
   const linked = new Set(Object.values(mapped).flatMap((v) => [v.url, ...(v.duplicates || [])]));
   for (const [slug, v] of Object.entries(mapped)) {

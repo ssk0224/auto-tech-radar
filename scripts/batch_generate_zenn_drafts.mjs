@@ -38,7 +38,7 @@ for (const file of files) {
 title: "【徹底解剖】海外急上昇OSS「${title}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["${tag}", "oss", "github", "architecture", "プログラミング"]
+topics: ["${tag}", "oss", "github", "architecture", "programming"]
 published: true
 ---
 

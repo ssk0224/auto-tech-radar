@@ -184,7 +184,7 @@ if (!fs.existsSync(zennDir)) {
       errorCount++;
     }
     const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8').replace(/\r\n/g, '\n');
-    const zSlug = (zContent.match(/auto-tech-radar\/radar\/([a-z0-9_-]+)\//) || [])[1];
+    const zSlug = path.basename(f).replace(/(-tech-radar)?\.md$/, "").replace(/_zenn\.md$/, "");
     if (zSlug && zContent.includes(zennCta(zSlug))) {
       funnelCount++;
     }

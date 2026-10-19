@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「laya-mlx」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "プログラミング"]
+topics: ["python", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -77,10 +77,9 @@ graph TD
 
 このアーキテクチャにより、`laya-mlx`はテキスト生成を伴わない特定の意思決定タスクにおいて、極めて高速かつ効率的なオンデバイスAI推論を実現します。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/laya-mlx/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/laya-mlx_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

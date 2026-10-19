@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「pinvou-agent」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -66,7 +66,7 @@ graph TD
 
 ### 1. セキュア企業向け「オフラインAIワークスペース」導入支援
 - **概要**: 金融、医療、防衛などの機密データを扱う企業に対し、オンプレミスGPUサーバー（vLLM）とpinvou-agentを組み合わせたゼロデータリーク環境を構築。
-- **マネタイズ**: 環境構築費（初期80万〜200万円）＋ 社内MCPコネクタ開発（1コネクタあたり30万〜50万円）＋ 保守保守運用費。
+- **マネタイズ**: 環境構築費（要件・規模に応じた初期構築費）＋ 社内MCPコネクタ開発（1コネクタあたり30万〜50万円）＋ 保守保守運用費。
 
 ### 2. 業界特化型「Skillパック」の作成と販売
 - **概要**: 法務レビュー、特許調査、SEO記事・図解自動作成など、pinvou-agent上で動く専用プロンプト・ワークフロー・`SKILL.md`定義をモジュール化して販売。
@@ -120,10 +120,9 @@ export DEEPSEEK_MODEL="deepseek-ai/DeepSeek-V3"
   - コアエンジンである`CodeWhale`サブモジュールを含め、フォークポリシー（`docs/fork-policy.md`）に従う必要があります。
   - プロプライエタリな自社製品としてリブランディングして配備する場合は、サードパーティライセンス通知（`THIRD_PARTY_NOTICES.md`）を同梱し、MIT著作権表示を保持してください。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/pinvou-agent/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/pinvou-agent_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

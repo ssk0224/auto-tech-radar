@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「PotatoTool」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["java", "oss", "github", "architecture", "プログラミング"]
+topics: ["java", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -114,10 +114,9 @@ PotatoToolは**Apache License 2.0**の下で公開されています。このラ
 
 この寛容なライセンスモデルは、企業がPotatoToolを自社のセキュリティソリューションに組み込んだり、カスタマイズして新しいサービスを開発したりする上で大きなメリットとなります。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/potatotool/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/potatotool_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「universal-modder」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "プログラミング"]
+topics: ["python", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -74,7 +74,7 @@ graph TD
 
 `universal-modder`の技術スタックは、ゲームModの枠を越え、産業用ソフトウェアのリバースエンジニアリングや自律型QAエージェント事業へと直結します。
 
-### 1. レガシーデスクトップアプリのモダナイゼーション受託（想定単価: 150万〜300万円）
+### 1. レガシーデスクトップアプリのモダナイゼーション受託
 - **ターゲット**: ソースコードを喪失した古いWindows業務用システム（VB6、Delphi、C++ MFC）を運用している企業。
 - **提供価値**: `universal-modder`のリバースエンジニアリング自動化パイプラインを活用し、バイナリ解析からAPIフック、モダンWebフロントエンドへのデータバイパス（DLLインジェクション型プロキシ）を短期間で構築。
 
@@ -136,10 +136,9 @@ um scan "C:\Games\Terraria"
   1. **アンチチート/オンライン対戦**: 規約上、オンライン対戦ゲームのバイパスやチートツール開発をプロンプト・コードレベルで明示的にブロック（セーフティガイドラインに準拠）。
   2. **著作権法遵守**: ゲーム本体のバイナリや逆コンパイルされた生コードを再配布せず、パッチ（差分ファイル）または独自アセットのみを出力する設計を維持すること。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/universal-modder/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/universal-modder_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

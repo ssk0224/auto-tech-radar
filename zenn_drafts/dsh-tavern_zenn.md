@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「dsh-tavern」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["javascript", "oss", "github", "architecture", "プログラミング"]
+topics: ["javascript", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -40,7 +40,7 @@ dsh-tavernでは、ワークフローを有向グラフ（DAG）のように分�
 ```text
 [ユーザー入力] 
       │
-      ├─► [本文生成Agent (Frontend)] ──► 小説クオリティの描写に100%集中
+      ├─► [本文生成Agent (Frontend)] ──► 小説クオリティの描写に専念
       │          │
       │          ▼ (生成完了本文を渡す)
       ├─► [変数決済Agent (Backend)] ──► ルール・MVU定義に基づきステータス更新 (UI側で固定レンダリング)
@@ -122,10 +122,9 @@ dsh-tavernは **GNU Affero General Public License v3.0 (AGPL-3.0)** の下でラ
 3. **商用化の安全なアプローチ**:
    コアエンジン（dsh-tavern）自体をクローズドSaaSに組み込むのではなく、「導入支援コンサルティング」「キャラクターカード・スクリプトの作成代行」「独自の外部API連携プラグインの受託開発」といった**プロフェッショナルサービス型**のビジネスモデルが最も法的リスクを回避できます。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/dsh-tavern/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/dsh-tavern_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

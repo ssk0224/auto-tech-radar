@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「tokenspeed」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "プログラミング"]
+topics: ["python", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -157,10 +157,9 @@ TokenSpeedは**MIT License**の下で公開されています。これは、最�
 
 このライセンスモデルは、企業がTokenSpeedを自社製品やサービスに組み込む際の法的な障壁を極めて低くします。さらに、LightSeek Foundationという非営利団体がプロジェクトを支援しているため、特定の商業的利益に左右されることなく、コミュニティ主導で技術進化が進むという信頼性も大きなメリットです。商用利用を検討する企業にとって、TokenSpeedは非常に魅力的な選択肢となるでしょう。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/tokenspeed/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/tokenspeed_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

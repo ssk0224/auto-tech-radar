@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「anatomy」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["javascript", "oss", "github", "architecture", "プログラミング"]
+topics: ["javascript", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -129,10 +129,9 @@ anatomyは **MITライセンス** で公開されています。
 - **著作権表示**: MITライセンスの全文および著作権表示を保持することが唯一の法的な要件です。
 - **実務上のポイント**: anatomyが生成するSVG、HTML、Reactコンポーネント自体はコード成果物であるため、クライアントへの納品物コードベースに安心してそのまま組み込むことができます。また、外部依存が0であるため、商用環境におけるサプライチェーン攻撃やライセンス汚染のリスクが極めて低い点も特筆すべきメリットです。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/anatomy/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/anatomy_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

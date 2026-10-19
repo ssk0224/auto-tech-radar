@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「jev-chat-jarvis」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["kotlin", "oss", "github", "architecture", "プログラミング"]
+topics: ["kotlin", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -65,7 +65,7 @@ graph TD
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-### 1. カスタマーサポート（CS）炎上防止・オペレータ支援システム（受託案件：150万円〜）
+### 1. カスタマーサポート（CS）炎上防止・オペレータ支援システム
 企業の問い合わせ窓口（LINE公式アカウント、WhatsApp、Slack対応）に導入。経験の浅い一次受けオペレータ向けに、顧客のクレーム温度感や法的なリスク度をリアルタイムで警告し、適切な「丁重な謝罪」「代替案提示」「エスカレーション推奨」の返信テンプレートを提示する仕組みを受託開発。
 
 ### 2. エグゼクティブ・VIP専用「失言防止」チャットアシスタント（月額制マイクロSaaS）
@@ -95,10 +95,9 @@ graph TD
 - **商標・名称の制限**: 「Jev Chat Assistant」や「chatjevs.com」の名称を、原作者が公認・推奨しているかのように誤認させる形で使用することは禁止されています。自社ソリューションとしてリブランドして提供する際は、独自ブランド名を冠して展開することが推奨されます。
 - **利用先アプリの規約**: サードパーティアプリ（WhatsApp、X、Slack等）の規約に配慮し、自己責任での運用設計が必要です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-chat-jarvis/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-chat-jarvis_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

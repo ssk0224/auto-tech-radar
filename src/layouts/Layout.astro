@@ -82,7 +82,7 @@ if (starsCount >= 15000) {
     <meta name="description" content={pageDesc} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDesc} />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content={isArticle ? "article" : "website"} />
     <meta property="og:site_name" content="Auto Tech Radar" />
     <meta property="og:image" content={ogImage} />
     <meta property="og:url" content={`https://ssk0224.github.io${Astro.url.pathname}`} />
@@ -103,8 +103,10 @@ if (starsCount >= 15000) {
         "@type": "TechArticle",
         "headline": pageTitle,
         "description": pageDesc,
+        "image": ogImage,
         "url": `https://ssk0224.github.io${Astro.url.pathname}`,
         "datePublished": frontmatter?.pubDate || "2026-10-09",
+        "dateModified": frontmatter?.pubDate || "2026-10-19",
         "isAccessibleForFree": true,
         "author": {
           "@type": "Organization",
@@ -251,20 +253,6 @@ if (starsCount >= 15000) {
       .post-card:hover .post-thumb-img {
         transform: scale(1.04);
       }
-      .post-thumb-price {
-        position: absolute;
-        bottom: 8px;
-        left: 8px;
-        background: rgba(10, 15, 30, 0.88);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(16, 185, 129, 0.5);
-        color: #6ee7b7;
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 0.15rem 0.5rem;
-        border-radius: 6px;
-        font-family: 'JetBrains Mono', monospace;
-      }
       .post-card-content {
         flex: 1;
         min-width: 0;
@@ -382,29 +370,6 @@ if (starsCount >= 15000) {
         box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4);
       }
 
-      /* World-Class Freemium Content Gate */
-      .atr-locked-preview {
-        position: relative;
-        max-height: 240px;
-        overflow: hidden;
-        filter: blur(4px);
-        opacity: 0.55;
-        user-select: none;
-        pointer-events: none;
-        -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 35%, transparent 100%);
-        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 35%, transparent 100%);
-        transition: filter 0.3s ease, opacity 0.3s ease, max-height 0.3s ease;
-      }
-      .atr-locked-preview.unlocked {
-        max-height: none !important;
-        overflow: visible !important;
-        filter: none !important;
-        opacity: 1 !important;
-        -webkit-mask-image: none !important;
-        mask-image: none !important;
-        user-select: auto !important;
-        pointer-events: auto !important;
-      }
       .atr-paywall-gate {
         position: relative;
         margin: -40px 0 2.5rem;
@@ -741,7 +706,7 @@ if (starsCount >= 15000) {
             明日の海外急上昇OSS解剖レポートを見逃さないために
           </h3>
           <p style="font-size: 0.9rem; color: #94a3b8; max-width: 580px; margin: 0 auto 1.3rem; line-height: 1.6;">
-            GitHub Trendingから厳選された最新OSSのアーキテクチャ図解・受託開発提案シナリオを毎朝自動配信中。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
+            GitHub 上の急上昇リポジトリから厳選された最新OSSのアーキテクチャ図解・受託開発提案シナリオを毎朝自動配信中。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
           </p>
           <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
             <a href="https://x.com/AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #475569; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
@@ -835,7 +800,7 @@ if (starsCount >= 15000) {
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-        <a href={siteConfig.noteProfileUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
+        <a href={noteItem?.url || siteConfig.noteProfileUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
           単発購入(¥980)
         </a>
       </div>

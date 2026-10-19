@@ -3,19 +3,19 @@
   "items": {
     "aihot": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "anatomy": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "answer-me-with-html": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "compositor": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "crates-io-index": {
       "action": "unpublish",
@@ -23,23 +23,23 @@
     },
     "diplay": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "droiddeck": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "dsh-our-free-model": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "dsh-tavern": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "filmcraft": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "homebrew-core": {
       "action": "unpublish",
@@ -47,7 +47,7 @@
     },
     "how-to-live-better": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "internships-2027": {
       "action": "unpublish",
@@ -63,11 +63,11 @@
     },
     "kev": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "laya": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "laya-mlx": {
       "action": "replace",
@@ -79,11 +79,11 @@
     },
     "magpie": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "md3music": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "mediawiki": {
       "action": "unpublish",
@@ -95,23 +95,23 @@
     },
     "photocraft": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "pinvou-agent": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "potatotool": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "strata": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "tokenspeed": {
       "action": "replace",
-      "reason": "無料部分の誇張表現（即受注・80万〜250万円等）を修正"
+      "reason": "無料部分の誇張表現（80万〜250万円等）を修正"
     },
     "universal-modder": {
       "action": "replace",

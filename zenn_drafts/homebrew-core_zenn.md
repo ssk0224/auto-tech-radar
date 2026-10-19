@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「homebrew-core」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["ruby", "oss", "github", "architecture", "プログラミング"]
+topics: ["ruby", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -105,10 +105,9 @@ flowchart LR
 
 ただし、`homebrew-core`を通じてインストールされる個々のソフトウェア（formulae）は、それぞれ独自のライセンスを持っています。例えば、`git`はGPLv2、`wget`はGPLv3などです。ビジネスで特定のソフトウェアを利用する際は、そのソフトウェア自体のライセンスを個別に確認し、遵守する必要があります。`homebrew-core`はあくまで「配布の仕組み」であり、配布されるソフトウェアのライセンスを上書きするものではない点に注意が必要です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/homebrew-core/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/homebrew-core_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

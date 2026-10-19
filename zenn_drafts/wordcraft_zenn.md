@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「wordcraft」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -68,7 +68,7 @@ graph TD
 | **起動・動作速度** | 普通〜やや重い | 重い（起動に数秒） | ネットワーク依存 | **極小（ミリ秒単位起動・1.4ms再描画）** |
 | **AIエージェント連携** | Copilot (要追加料金/閉域) | プラグイン拡張が困難 | スクリプトベース | **MCP / CLI / JSON制御が標準装備** |
 | **メモリ消費量** | 500MB〜1.5GB | 300MB〜800MB | ブラウザ依存（大） | **数十MB〜（GPUネイティブ）** |
-| **データプライバシー** | クラウド同期が基本 | ローカル完結 | クラウド送信必須 | **100% オフライン完全動作** |
+| **データプライバシー** | クラウド同期が基本 | ローカル完結 | クラウド送信必須 | **完全オフライン動作** |
 
 ---
 
@@ -130,10 +130,9 @@ WordCraftは **MIT License または Apache License 2.0 のデュアルライセ
 - **特許・クリーンルーム設計**: Microsoft Officeのバイナリ解析やリバースエンジニアリングではなく、ECMA-376（OOXML仕様書）などの公開仕様に基づいたクリーンルーム実装であるため、法的な知財リスクが極小化されています。
 - **商標に関する注意**: 「ArtCraft」およびそのブランドロゴは保護されているため、フォークして独自のSaaSや再配布パッケージを作成する場合はロゴの差し替えが必要です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/wordcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/wordcraft_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

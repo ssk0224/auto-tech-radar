@@ -2,8 +2,8 @@
 title: "【徹底解剖】海外急上昇OSS「Internships-2027」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["html", "oss", "github", "architecture", "プログラミング"]
-published: true
+topics: ["html", "oss", "github", "architecture", "programming"]
+published: false
 ---
 
 # Internships-2027: 概要と革新性
@@ -119,10 +119,9 @@ if __name__ == "__main__":
   2. **求人データの公知性**: 掲載されている求人情報（社名、職種、リンク先URL）自体は各企業の公知事実ですが、クローリング対象となるATS（Workday等）の利用規約およびRobots.txtを遵守した独自クローラーの構築が推奨されます。
   3. **アフィリエイト・リファラルパラメータ**: 本リポジトリ内のリンクには `s=gh-internships-2027` などのトラッキングパラメータが付与されています。独自ビジネスに組み込む際は、独自のリファラル基盤または企業直接URLへ正規化して取り扱う必要があります。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/internships-2027/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/internships-2027_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

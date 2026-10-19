@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「mediawiki」のアーキテクチ
 emoji: "⚡"
 type: "tech"
 topics: ["php", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # mediawiki: 概要と革新性
@@ -49,10 +49,9 @@ MediaWikiはLAMP/LEMPスタックを基盤としつつ、極めて洗練され�
 | **スケーラビリティ** | **数千万PV/月の大規模対応実績あり** | SaaS側のプラン・制限に依存 | 静的配信のため高負荷に強いが更新頻度に限界 |
 | **学習コスト** | 中（Wikitext記法・サーバー運用知識が必要） | 低（直感的なリッチUI） | 中（Markdown + Git運用） |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/mediawiki/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

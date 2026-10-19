@@ -33,7 +33,7 @@ test("note 原稿は有料ライン以降がすべて暗号化されている", 
 test("Zenn 記事の送客文は共通の文面（funnel_copy）と一致する", () => {
   for (const f of [...list("articles", /\.md$/), ...list("zenn_drafts", /\.md$/)]) {
     const c = read(f);
-    const slug = c.match(/auto-tech-radar\/radar\/([a-z0-9_-]+)\//)[1];
+    const slug = path.basename(f).replace(/(-tech-radar)?\.md$/, "").replace(/_zenn\.md$/, "");
     assert.ok(c.includes(zennCta(slug)), `${f}: 送客文が古い`);
   }
 });
@@ -47,6 +47,8 @@ const FORBIDDEN = [
   [/Math\.random\(\)[^\n]{0,40}名/, "乱数で作った閲覧者数"],
   [/全編読み放題|全記事読み放題|全レポート読み放題/, "メンバーシップで全記事が読めるかのような表現（特典に追加した記事のみ）"],
   [/完全公開されています|全編公開されています/, "サイトで有料キットを公開しているかのような表現"],
+  [/社内稟議・提案書ドラフト|社内稟議テンプレ付|見積内訳付き/, "誇張表現（導入企画・提案書テンプレートを使用する）"],
+  [/^===\s*(SECTION|WEB ARTICLE|NOTE ARTICLE|X THREAD)\s*===$/m, "AIプロンプトのセクション区切り文字が漏洩"],
 ];
 function publicTexts() {
   const out = [];
@@ -57,11 +59,12 @@ function publicTexts() {
   });
   ["src", "articles", "zenn_drafts", "public"].forEach(walk);
   for (const f of list("note_drafts", /\.md$/)) out.push([f, read(f)]);
-  const history = JSON.parse(read("scripts/publish_history.json"));
-  for (const f of list("x_posts", /_x\.txt$/)) {
-    // 投稿用URLに埋め込まれた本文も検査する（エンコードされた部分だけをデコード）
+  for (const f of list("x_posts", /\.txt$/)) {
     const text = read(f).replace(/intent\/tweet\?text=([^\s&]+)/g, (m, q) => { try { return decodeURIComponent(q); } catch (e) { return m; } });
-    if (!history[path.basename(f).replace(/_x\.txt$/, "")]?.x) out.push([f, text]);
+    out.push([f, text]);
+  }
+  for (const f of ["scripts/note_urls.json", "scripts/note_updates.json", "scripts/launcher.mjs", "scripts/publish_helper.mjs", "README.md"]) {
+    if (fs.existsSync(f)) out.push([f, read(f)]);
   }
   return out;
 }
@@ -118,6 +121,32 @@ test("公開文面に「100%経費精算可能」「専任エンジニアチー�
   const hits = [];
   for (const [f, text] of publicTexts()) {
     if (/100%\s*経費精算可能|専任エンジニアチームが/.test(text)) hits.push(f);
+  }
+  assert.deepEqual(hits, []);
+});
+
+test("復号可能な環境では有料本文に禁止表現・根拠なき固定単価が無く、無料部分の予告と一致する", () => {
+  let keys = [];
+  try {
+    keys = loadPrivateKeys();
+  } catch {}
+  if (keys.length === 0) return;
+
+  const hits = [];
+  for (const f of list("note_drafts", /_note\.md$/)) {
+    if (isNoise(path.basename(f).replace("_note.md", ""))) continue;
+    const full = assembleNote(f, keys);
+    const parts = splitPaid(full);
+    assert.ok(parts, `${f}: 有料ラインが分割できること`);
+    const paidText = parts.paid.join("\n");
+    for (const [re, why] of FORBIDDEN) {
+      if (re.test(paidText)) hits.push(`${f} [有料部]: ${why} (${paidText.match(re)?.[0]})`);
+    }
+    const hasPrice = /80万|250万|150万|300万/.test(paidText);
+    if (hasPrice) {
+      const hasBasis = /\|\s*工程.*\|\s*作業内容.*\|\s*工数.*\|\s*単価.*\|\s*小計/s.test(paidText);
+      assert.ok(hasBasis, `${f}: 有料部内の価格表記には積算根拠表（工程・工数・単価・小計）が必須`);
+    }
   }
   assert.deepEqual(hits, []);
 });

@@ -71,10 +71,9 @@ graph TD
 | **確実性 / 衝突検証** | 実行直前に座標・遮蔽・DOM鮮度を自動検証 | 座標推定のズレによる空振りリスク有 | プロプライエタリ（内部ブラックボックス） |
 | **ライセンス** | **MIT License（完全商用フリー）** | MIT / Apache 2.0 | プロプライエタリ（ソース非公開） |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

@@ -159,12 +159,12 @@ export function loadPrivateKeys() {
 const PAID_FEATURES = [
   [/提案書/, "導入提案書テンプレート（Markdown）"],
   [/見積/, "工数・見積表"],
-  [/Docker|導入手順|インストール|セットアップ|起動/, "導入手順"],
+  [/Docker|導入手順|インストール|セットアップ|起動|カスタマイズ|実装の勘所|設定/, "導入手順"],
   [/マネタイズ|活用/, "活用・収益化の考え方"],
   [/想定問答|Q&A/, "導入時の想定問答"],
 ];
 export function paidContentSummary(paidText) {
-  const h2 = paidText.split(/\r?\n/).filter((l) => /^## /.test(l));
+  const h2 = paidText.split(/\r?\n/).filter((l) => /^#{2,3} /.test(l));
   const features = [];
   for (const [re, label] of PAID_FEATURES) {
     const hit = h2.filter((l) => re.test(l));

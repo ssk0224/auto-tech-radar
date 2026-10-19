@@ -63,10 +63,9 @@ graph TD
 | **外部自動化 / AI統合** | ExtendScript / UXP (重厚) | Script-Fu / Python-fu | REST API / プラグイン | **ローカルファイル直書き換え型 (超高速)** |
 | **ソースコード改変** | 不可 | 可能 (難解なCベース) | 不可 | **可能 (モダンSwift/Xcode)** |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/compositor/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

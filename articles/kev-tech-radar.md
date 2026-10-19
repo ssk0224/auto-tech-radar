@@ -86,10 +86,9 @@ graph TD
 | **ドメイン特化学習** | Modal / 独自GPUで安価にLoRA・FT可能 | 不可（事前提供モデルのみ） | Fine-tuningは高額かつ制御困難 |
 | **月額インフラコスト** | ゼロ〜自社GPU代（Modalスケールtoゼロ可）| リクエスト従量課金（大規模運用で高額）| 高額（トークン従量課金） |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/kev/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

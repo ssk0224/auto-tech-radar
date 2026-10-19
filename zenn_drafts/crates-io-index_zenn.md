@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「crates.io-index」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["tcl", "oss", "github", "architecture", "プログラミング"]
+topics: ["tcl", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -119,7 +119,7 @@ GitHubリポジトリのREADMEには明示的なライセンスファイルが�
 
 したがって、`crates.io-index`のデータや、それを活用したツール、サービスを商用目的で利用・開発することに法的な制約はほとんどありません。安心してビジネスに組み込むことが可能です。
 
-=== SECTION ===
+
 
 ## アーキテクチャ図解
 ```mermaid
@@ -129,10 +129,9 @@ flowchart TD
     Mirror --> RustBuild["高速ビルド環境 (CI/CD ＆ オンプレミス)"]
 ```
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/crates-io-index/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/crates-io-index_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

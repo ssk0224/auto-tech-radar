@@ -35,11 +35,12 @@
   - オーナー端末（`%USERPROFILE%\.auto-tech-radar\note_vault_private.pem`）に新しい4096-bit RSA秘密鍵を生成し、隔離バンドルから復元した全38本の有料本文（`laya-mlx` / `jiuwenswarm` / `opendots` / 自作Docker 11本の誠実化パッチ適用済み）を新公開鍵（`kid: 77ba83a4762520e8`）で再暗号化・`npm run vault:open` での往復復号を検証済み。
   - Windows環境（`core.autocrlf=true`）で公開鍵やZenn送客文がCRLFになることで `keyId()` や監査・テストが不一致になっていた問題を `scripts/utils/note_vault.mjs` / `scripts/audit_quality.mjs` / `tests/boundaries.test.mjs` で正規化修正済み。
   - `README.md`・`src/pages/*.astro`・`scripts/crawl_and_generate.mjs`・`scripts/launcher.mjs` に残っていた旧表記（`gemini-3.8-flash`、固定単価表、`完全保存版`、`ドル箱`、生成プロンプト内の「全アーカイブが読み放題」）を除去し、`tests/claims.test.mjs` の検査対象に追加。
-- **note.com 全記事の差し替え・重複/ノイズ削除・未出品6本の新規出品（全自動完結）**（2026-10-19 22:13 JST）:
+- **note.com 全記事の差し替え・重複/ノイズ削除・全37本の完全同期（全自動完結）**（2026-10-19 23:05 JST）:
   - **秘密鍵の二重バックアップ完了**: `C:\Users\free1\.auto-tech-radar\note_vault_private.pem` を `D:\auto-tech-radar-vault-backup\note_vault_private_20261019.pem` および `C:\Users\free1\OneDrive\.auto-tech-radar-vault-backup\note_vault_private_20261019.pem` にユーザー専用ACL（`free1:(R)`）で退避済み。
-  - **公開済み 28 本の正直化アップデート完了**: 復号した誠実化済み原稿（無料部分・有料部分をペイウォール境界 `separator` で厳密分割）で note API 経由にて 28/28 本すべて差し替え完了。
-  - **ノイズ記事 3 本＋重複記事 11 本（計 14 本）の削除完了**: `crates-io-index`, `homebrew-core`, `internships-2027` の3本および `LEAD_MAGNET_CHEAT_SHEET` 重複4本・解説記事重複7本を note 上から完全削除。
-  - **未出品 6 本の新規有料出品（¥980）完了**: `cadcraft`, `gridcraft`, `opendots`, `solidcraft`, `effectcraft`, `jiuwenswarm` の6本を ¥980 で新規出品し、`node scripts/sync_note_urls.mjs` により **note 上の全 35 記事（無料リードマグネット 1 本＋有料マニュアル 34 本）が 1 対 1 で `scripts/note_urls.json` に完全マッピング（35/35本・重複0・ノイズ0）** されたことを確認済み。
+  - **note.com ProseMirror HTML レンダラーの開発・テスト整備** (`scripts/utils/note_html.mjs`, `tests/note_html.test.mjs`): note.com では Markdown の `|---|---|` 表が解釈されず `<p>` になってしまう仕様を解決するため、表を構造化された定義リスト・箇条書きに変換し、インラインコード・太字・リンク・改行を note.com ProseMirror エディタと 100% 互換にする変換パイプラインを構築。
+  - **全40原稿の誠実化＆未出品2本（`gptqmodel`, `opensandbox`）の追加**: 根拠のない価格表記・未検証のコマンドを正直化・注釈付きに修正し、欠落していた `gptqmodel` と `opensandbox` の有料版（社内提案書・工数見積表付き）を新規作成・暗号化封印。
+  - **note 上の全 37 記事（無料リードマグネット 1 本＋有料マニュアル 36 本）の完全同期**: `note_api_server.mjs` 経由で既存 35 本の更新および新規 2 本の出品（¥980）を全自動完了。`node scripts/sync_note_urls.mjs` により **37 本中 37 本が原稿と 1 対 1 で `scripts/note_urls.json` に完全対応（37/37本・重複0・ノイズ0・タイトル正規化済み）**。
+  - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
 1. **修正後の生成スクリプトの本番初回**: 2026-10-19 の定時実行は、同日手動コミットされた 2 記事（`opendots`, `solidcraft`）が `pubDate: "2026-10-19"` だったため日次上限ガード（1日2本）により正常スキップ済み。次の定期実行は **2026-10-20 06:17 JST**。

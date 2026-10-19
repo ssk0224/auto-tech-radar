@@ -941,8 +941,8 @@ function runCrawlerManual() {
 
 function runWeeklyThread() {
   console.clear();
-  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 完全保存版まとめスレッド発行 ===${c.reset}\n`);
-  console.log(`ストックされた急上昇OSSからTop 7を厳選し、ブックマーク爆弾用の完全版スレッドテキストを生成します...\n`);
+  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 週次まとめスレッド発行 ===${c.reset}\n`);
+  console.log(`ストックされた急上昇OSSからTop 7を厳選し、週次まとめスレッドテキストを生成します...\n`);
   try {
     execSync('node scripts/generate_weekly_thread.mjs', { stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ スレッド生成とX投稿画面の起動が完了しました！${c.reset}\n`);

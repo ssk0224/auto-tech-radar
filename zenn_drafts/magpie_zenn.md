@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「magpie」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["go", "oss", "github", "architecture", "プログラミング"]
+topics: ["go", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -94,7 +94,7 @@ graph TD
 ### 1. 開発組織向け「AIエージェント開発環境統合パック」（受託・導入支援）
 - **ターゲット**: エンジニア数十名を抱える受託開発会社・スタートアップ。
 - **提供価値**: Claude Code、Cursor、VS Code Copilotを全員が利用しつつ、裏側のモデルを会社契約のAzure OpenAI、DeepSeek、自社ホストLLMに一本化。月々のAPIコストを50〜70%削減。
-- **提供価格**: 導入コンサルティング＋セキュア設定パッケージで**80万円〜150万円**。
+- **提供モデル**: 要件定義・導入コンサルティング＋セキュア設定パッケージ（工数に応じた個別見積もり）。
 
 ### 2. ローカルLLM/オンプレミス接続アプライアンス化
 - **ターゲット**: 金融・医療など社外へコードを送信できない機密保持企業。
@@ -147,10 +147,9 @@ magpie claude group/opus-anywhere
 - **特記事項**:
   - 本リポジトリは外部からの直接Pull Requestを受け付けておらず、開発チームが主導する運用ポリシーを採っています。独自の社内機能を追加したい場合は、フォークして管理するか、提供されている「Bunベースのミドルウェア/プラグイン機構」を活用して非侵入的に拡張するのがベストプラクティスです。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/magpie/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/magpie_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

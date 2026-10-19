@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「jiuwenswarm」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "programming"]
+topics: ["python", "oss", "github", "architecture", "ai"]
 published: true
 ---
 
@@ -22,6 +22,7 @@ flowchart TD
     AgentA & AgentB & AgentC --> Memory["共有スウォームメモリ"]
     Memory --> Result["高精度な最終納品物自動生成"]
 ```
+
 
 現代のビジネス環境では、複雑なタスクの自動化と効率化が喫緊の課題です。しかし、従来のAIエージェントは単一タスクに特化しがちで、複数のステップや専門知識を要する複雑なプロセスには対応が困難でした。JiuwenSwarmは以下の課題を解決します。
 
@@ -43,10 +44,46 @@ JiuwenSwarmは、既存の商用AIエージェントSaaSや他のオープンソ
 | **HITL (人間介入)** | ◎ Swarmflowによる決定論的制御 | △ 設定柔軟性が低い | × 制御困難 |
 | **導入・運用コスト** | ◎ OSSのためライセンス料ゼロ・API費のみ | × 月額従量課金＋高額シート費用 | △ 機能に対して割高 |
 
----
+## 💡 ビジネス・マネタイズ活用アイデア（実践例）
+
+1.  **社内チャットツール（Slack / Teams / Feishu）連携型マルチエージェント基盤の導入**:
+    *   日常業務で利用しているチャットツールをインターフェースとし、調査・集計・レポート作成・コードレビューを複数の専門エージェントが協調して処理する社内業務支援システムを構築します。
+2.  **Human-in-the-Loop（人間承認ステップ）を組み込んだ業務自動化ワークフロー**:
+    *   Swarmflow を活用し、AIエージェントによる自動処理と人間の最終承認ステップ（`human_session`）を組み合わせた安全な業務オペレーション基盤を設計・構築します。
+3.  **社内固有ナレッジに適応するスキル継続改善（Skill Self-Evolution）運用支援**:
+    *   業務フィードバックをもとにエージェントのスキル定義を継続的に改善する運用体制を整備し、社内DX推進チームの定着化を支援します。
+
+## インストール & クイックスタート手順
+
+### 1. Python パッケージ（workswarm）によるインストールと起動
+
+```bash
+# パッケージのインストール（Python 3.11 以上）
+pip install workswarm
+
+# 初回セットアップ（設定ディレクトリの初期化）
+jiuwenswarm-init
+
+# サーバー＆フロントエンドの起動（http://localhost:5173）
+jiuwenswarm-start
+```
+
+### 2. ソースコードからの開発環境構築（uv 利用）
+
+```bash
+git clone https://github.com/openJiuwen-ai/jiuwenswarm.git
+cd jiuwenswarm
+uv venv
+uv pip install -e .
+```
+
+## 商用利用可否 & ライセンス考察
+
+JiuwenSwarmは **Apache License 2.0** の下で公開されており、商用利用、改変、社内システムや受託開発案件への組み込みが可能です。利用にあたってはリポジトリ内の `LICENSE` ファイルに基づき著作権表示とライセンス通知を保持してください。接続するLLM API（OpenAI互換APIやローカルLLM等）の利用規約・データ取り扱いポリシーもあわせて確認することを推奨します。
 
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

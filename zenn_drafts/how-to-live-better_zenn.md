@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「how-to-live-better」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["html", "oss", "github", "architecture", "プログラミング"]
+topics: ["html", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -78,7 +78,7 @@ graph TD
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-### 1. 医療現場・船舶・航空機向け「完全閉域オフラインマニュアル」受託（想定単価: 120万〜200万円）
+### 1. 医療現場・船舶・航空機向け「完全閉域オフラインマニュアル」受託
 ネットワーク接続が制限される、あるいは災害時に通信インフラが途絶する現場（医療従事者向け緊急対応マニュアル、工場ラインのトラブルシューティング、船舶マニュアル）向けに、本OSSのビルドエンジンをベースとした**「1クリック生成型オフラインWebリーダー」**を構築・納品します。端末にファイルを配布するだけで動作するため、MDM（モバイルデバイス管理）による一括配布とも抜群の親和性があります。
 
 ### 2. 規制業界向け「社内コンプライアンス・エビデンス辞書」基盤
@@ -124,10 +124,9 @@ python build.py 1 2 16 -o custom.html --repo /tmp/upstream
 
 **結論**: 企業内システムの受託開発や、コードをベースにした商用SaaS・独自ツールの構築・販売に関して、ライセンス表示義務すら課されない極めて自由度の高い設計となっています。受託開発のテンプレート資産として安全に組み込み可能です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/how-to-live-better/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/how-to-live-better_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

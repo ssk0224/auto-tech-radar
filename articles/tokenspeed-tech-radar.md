@@ -70,10 +70,9 @@ LLM推論エンジン市場には、vLLM、TensorRT-LLM、OpenVINOなど、様�
 *   **ベンダー中立性と信頼性:** 非営利団体LightSeek Foundationの支援と、NVIDIA、AMDといった複数ベンダーからのサポートは、特定のベンダーにロックインされるリスクを低減し、長期的なプロジェクトにおける信頼性を高めます。
 *   **モジュール性と拡張性:** カーネルのモジュール化により、将来的な新しいハードウェアや最適化技術への対応が容易であり、システムの寿命と適応性を向上させます。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/tokenspeed/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

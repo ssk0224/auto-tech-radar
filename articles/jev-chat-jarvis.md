@@ -63,10 +63,9 @@ graph TD
 | **対応環境** | Android, Win, macOS, iOS | モバイルまたはブラウザ限定 | Webブラウザ・特定CRM限定 |
 | **導入コスト** | **無料（MITライセンス）＋LLM従量課金** | 月額$10〜$30 / ユーザー | 初期数十万＋月額数十万円〜 |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-chat-jarvis/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

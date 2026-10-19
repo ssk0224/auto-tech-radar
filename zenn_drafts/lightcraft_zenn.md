@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「lightcraft」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -91,7 +91,7 @@ graph TD
 LightCraftのApache-2.0 / MITデュアルライセンスと堅牢なヘッドレス・MCPアーキテクチャは、以下のような高付加価値ビジネスの基盤として活用可能です。
 
 ### 1. EC・アパレル向け「AI自律型カタログ写真現像パイプライン」の受託開発
-スタジオ撮影された数千〜数万枚のRAW/JPEG画像に対し、Claude等のLLMエージェントがMCP経由でLightCraftを操作。商品種別を画像認識し、「肌色トーンの保護」「背景白飛び補正」「ブランド規定カラー（OkLCh空間での特定色域保持）」を自動適用してバッチ書き出しを行う完全自動現像システムの構築（受託単価：150万〜300万円規模）。
+スタジオ撮影された数千〜数万枚のRAW/JPEG画像に対し、Claude等のLLMエージェントがMCP経由でLightCraftを操作。商品種別を画像認識し、「肌色トーンの保護」「背景白飛び補正」「ブランド規定カラー（OkLCh空間での特定色域保持）」を自動適用してバッチ書き出しを行う完全自動現像システムの構築。
 
 ### 2. 写真スタジオ・不動産撮影向けプライベートクラウド現像SaaS
 自社サーバーまたはオンプレミスインフラ上にLightCraftのCLI/WASMコンテナを展開。機密性の高い写真データを外部クラウド（Adobe Creative Cloud等）に一切送信することなく、Webブラウザ上でスタッフがリアルタイム現像・共同校正できる社内限定SaaSの提供。
@@ -154,10 +154,9 @@ LightCraftは、**Apache License 2.0 および MIT License のデュアルライ
 - **GPL汚染の完全回避**: 開発方針として「Clean-Room（クリーンルーム設計）」が徹底されており、Adobeバイナリの解析や、GPLライセンスで提供されている競合ツール（darktable, RawTherapee, LibRaw等）のコードを参照・混入させない運用規約が敷かれています。これにより、企業の法務・知財コンプライアンス基準を極めて容易にクリアできます。
 - **配布要件**: 成果物を配布または再頒布する際には、著作権表示およびライセンス通知を保持するだけで運用可能です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/lightcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/lightcraft_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

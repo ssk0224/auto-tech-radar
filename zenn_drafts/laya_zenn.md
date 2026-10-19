@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「laya」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "プログラミング"]
+topics: ["python", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -76,7 +76,7 @@ graph TD
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-### 1. 超低遅延カスタマーサポート・トリアージ基盤の受託開発（単価80万〜180万円）
+### 1. 超低遅延カスタマーサポート・トリアージ基盤の受託開発
 - **ターゲット**: 月間数万件以上の問い合わせを抱えるEC・SaaS事業者。
 - **課題**: 現在OpenAI APIで自動分類しているが、月額API費用が30万円を超え、さらに返答遅延でオペレーター画面のロードが遅い。
 - **解決策**: `laya`を用いたオンプレミス/プライベートクラウド推論サーバー（FastAPI + Docker）を構築。社内チケットを33msで「部署振り分け」「緊急度（1-3）」「解約リスク（Yes/No）」に同時判定。
@@ -158,10 +158,9 @@ print("使用モデル:", result["routing"]["model"])                 # multilin
 
 自社独自の決定ロジックをRLCDでファインチューニングした場合も、その重み（チェックポイント）の所有権は自社に帰属させることが可能です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/laya/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/laya_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

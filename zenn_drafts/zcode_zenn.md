@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「ZCode」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["typescript", "oss", "github", "architecture", "プログラミング"]
+topics: ["typescript", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -88,7 +88,7 @@ ZCodeはTypeScriptで統一されたモノレポ構成（`pnpm workspace`）を�
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-### 1. 金融・医療向け「完全閉域AIコーディング基盤」構築受託（単価：150万円〜300万円）
+### 1. 金融・医療向け「完全閉域AIコーディング基盤」構築受託
 クラウドサービスへのソースコード流出がコンプライアンス上禁止されている企業に対し、オンプレミスサーバー（または専用VPC）上にZCodeのWeb/Server構成を構築。ローカルLLM（Llama 3、DeepSeek Coder等）やAzure OpenAIプライベートエンドポイントと接続することで、セキュアな開発環境を一括納品。
 
 ### 2. 社内開発プラットフォーム（Internal Developer Platform）への組み込み
@@ -140,10 +140,9 @@ ZCodeは **Apache License 2.0** で公開されています。
 
 ベンダーロックインを回避し、自社の知的財産として自律型AIコーディング基盤を内製化したい企業にとって、ZCodeは現在最も堅牢かつ実用的な選択肢です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/zcode/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/zcode_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

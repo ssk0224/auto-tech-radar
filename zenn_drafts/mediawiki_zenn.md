@@ -2,8 +2,8 @@
 title: "【徹底解剖】海外急上昇OSS「mediawiki」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["php", "oss", "github", "architecture", "プログラミング"]
-published: true
+topics: ["php", "oss", "github", "architecture", "programming"]
+published: false
 ---
 
 # mediawiki: 概要と革新性
@@ -55,7 +55,7 @@ MediaWikiはLAMP/LEMPスタックを基盤としつつ、極めて洗練され�
 
 ### 1. 企業内「セキュア・ナレッジベース」構築受託（情シス向け）
 - **対象**: 社内情報漏洩を極度に警戒する製造業、金融機関、医療機関。
-- **提案**: クラウドSaaS（Notion等）にアップロードできない機密マニュアルや特許情報、社内技術手順をオンプレミス/プライベートクラウド環境のMediaWikiで構築。LDAP/SAML認証連携をセットアップして納品（単価: 80万〜150万円）。
+- **提案**: クラウドSaaS（Notion等）にアップロードできない機密マニュアルや特許情報、社内技術手順をオンプレミス/プライベートクラウド環境のMediaWikiで構築。LDAP/SAML認証連携をセットアップして納品。
 
 ### 2. 業界特化型バーティカルWikiメディアの運営
 - **対象**: ゲーム攻略、専門資格、BtoB特定産業（医療機器・法務ガイドなど）。
@@ -123,10 +123,9 @@ MediaWikiは **GNU General Public License (GPL) v2.0 or later** でライセン�
 - **再配布とソースコード公開義務（コピーレフト）**: MediaWikiのコアコードを改変して外部へ「配布・販売」する場合、改変したソースコードをGPLv2に基づいて公開する義務が発生します。
 - **プライベート利用の特例**: 自社サーバー上でのみ稼働させ、外部にソフトウェアそのものを配布しない場合（いわゆるASP/社内利用）、コードを公開する義務は生じません（AGPLではなくGPLであるため）。自社専用ナレッジツールとしての構築・受託は安心して展開可能です。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/mediawiki/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/mediawiki_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

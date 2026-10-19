@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「Internships-2027」のアーキ�
 emoji: "⚡"
 type: "tech"
 topics: ["html", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # Internships-2027: 概要と革新性
@@ -59,10 +59,9 @@ flowchart TD
 | **応募UX** | 専用Chrome拡張で自動入力連携 | 各社ATSへリダイレクト後、手動入力 | プラットフォーム内完結 or 手動 |
 | **トラフィック獲得** | GitHubスターを活用したバイラル獲得 | SEO / 有料広告依存 | 大学提携依存 |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/internships-2027/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

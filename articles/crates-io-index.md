@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「crates.io-index」のアーキテ
 emoji: "⚡"
 type: "tech"
 topics: ["tcl", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # crates.io-index: 概要と革新性
@@ -119,7 +119,7 @@ GitHubリポジトリのREADMEには明示的なライセンスファイルが�
 
 したがって、`crates.io-index`のデータや、それを活用したツール、サービスを商用目的で利用・開発することに法的な制約はほとんどありません。安心してビジネスに組み込むことが可能です。
 
-=== SECTION ===
+
 
 ## アーキテクチャ図解
 ```mermaid
@@ -131,18 +131,9 @@ flowchart TD
 
 ---
 
-
----
-
-### 🧭 あわせて読みたい急上昇OSS解剖レポート
-- ⚡ **[EffectCraft: After EffectsをRustで再実装した次世代モーショングラフィックス](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/)**
-- ⚡ **[CADCraft: AutoCAD互換の2D/3DエンジンをPure Rustでフルスクラッチ実装](https://ssk0224.github.io/auto-tech-radar/radar/cadcraft/)**
-- ⚡ **[Laya-MLX: Apple Silicon上で型付き意思決定モデルを7msで爆速推論](https://ssk0224.github.io/auto-tech-radar/radar/laya-mlx/)**
-
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/crates-io-index/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「filmcraft」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -127,10 +127,9 @@ FilmCraftは **Apache License 2.0 および MIT License のデュアルライセ
 - **特許権**: Apache 2.0に基づき、コントリビューターからの明示的な特許ライセンス供与が含まれています。
 - **コーデック特許の注意点**: ソフトウェアのライセンス自体はオープンですが、H.264やHEVC等の商用エンコード/デコードを大規模に製品化する場合は、各コーデックの特許プール（MPEG LA / Via Licensing等）のライセンス条項に留意する必要があります。なお、ProResや非特許コーデック（VP9、AV1等）を中心としたワークフローを構築することで特許リスクを極小化できます。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/filmcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/filmcraft_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

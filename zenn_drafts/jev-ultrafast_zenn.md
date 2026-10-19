@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「jev-ultrafast」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["python", "oss", "github", "architecture", "プログラミング"]
+topics: ["python", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -79,7 +79,7 @@ graph TD
 従来、スクレイピング対策が厳しい動的旅行サイト（Google Flights、Skyscanner等）のデータ収集には高額なプロキシと重厚なヘッドレスブラウザ保守が必要でした。jev-ultrafastを活用すれば、数秒で検索結果画面まで到達して構造化データを取得するワーカーを極小リソースで運用可能。月額数千円〜数万円のニッチ旅行・出張手配最適化SaaSを構築できます。
 
 ### 2. レガシー社内システム（ERP/経費精算）のRPAリプレイス受託
-APIが存在せず、UI変更に弱い従来型RPA（UiPathやWinActor）で自動化されていた社内業務を、自然言語指示で動く自律ブラウザエージェントへ置き換えるDX受託開発。1案件あたり150万〜300万円規模で受注し、維持管理コストを劇的に下げる提案が可能です。
+APIが存在せず、UI変更に弱い従来型RPA（UiPathやWinActor）で自動化されていた社内業務を、自然言語指示で動く自律ブラウザエージェントへ置き換えるDX受託開発。業務規模に応じた受託開発として提案し、維持管理コストを劇的に下げる提案が可能です。
 
 ### 3. Eコマース競合価格自動調査＆自動発注エージェント
 EC事業者向けに、特定商品の仕入れ元サイトや競合モールを巡回し、在庫復活の検知からカート投入、購入フローの手前までを全自動化する自社プロダクトの展開。
@@ -144,10 +144,9 @@ jev-ultrafastは**MIT License**のもとで公開されています。
 1. **APIキーの依存関係**: デフォルトではTypeSafeの投機的推論エンドポイントとOpenRouter（またはOpenAI互換API）を呼び出します。完全オンプレミス環境で運用する場合は、モデルインターフェース（`model.py`）を社内ホストのvLLM/Ollama等のエンドポイントに差し替える設計が必要です。
 2. **DOM取得の制約**: 現状のMVPではShadow DOMの深層展開、Canvas内部描画、複雑なiframe、ファイルアップロードが対象外となっています。社内システムでこれらを利用している場合は、`snapshot.js`に拡張スクリプトを追加定義して対応する必要があります。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

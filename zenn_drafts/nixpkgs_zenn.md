@@ -2,8 +2,8 @@
 title: "【徹底解剖】海外急上昇OSS「Nixpkgs: 再現可能なシステム構築とパッケージ管理の基盤」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["nix", "oss", "github", "architecture", "プログラミング"]
-published: true
+topics: ["nix", "oss", "github", "architecture", "programming"]
+published: false
 ---
 
 ## 概要
@@ -141,13 +141,12 @@ flowchart LR
 
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-### 1. 開発環境の完全再現性保証・DevOpsコンサル（受託: 100万〜250万円）
+### 1. 開発環境の完全再現性保証・DevOpsコンサル
 「自分の環境では動くが本番で動かない」問題をゼロにする、Nix/Devboxを活用した企業向け再現可能開発基盤を設計・導入。
-
----
 
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/nixpkgs/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/nixpkgs_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

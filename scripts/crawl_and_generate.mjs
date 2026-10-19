@@ -664,13 +664,6 @@ ${teaserBody}
 ---
 
 ${zennCta(slug)}
-
----
-
-### 🧭 あわせて読みたい急上昇OSS解剖レポート
-- ⚡ **[EffectCraft: After EffectsをRustで再実装した次世代モーショングラフィックス](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/)**
-- ⚡ **[CADCraft: AutoCAD互換の2D/3DエンジンをPure Rustでフルスクラッチ実装](https://ssk0224.github.io/auto-tech-radar/radar/cadcraft/)**
-- ⚡ **[Laya-MLX: Apple Silicon上で型付き意思決定モデルを7msで爆速推論](https://ssk0224.github.io/auto-tech-radar/radar/laya-mlx/)**
 `;
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);

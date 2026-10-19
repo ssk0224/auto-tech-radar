@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「Homebrew Cask」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["homebrew", "oss", "github", "architecture", "プログラミング"]
+topics: ["homebrew", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -112,13 +112,12 @@ flowchart LR
 
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-### 1. macOSエンタープライズゼロタッチキッティング自動化（受託: 80万〜150万円）
+### 1. macOSエンタープライズゼロタッチキッティング自動化
 情シス部門向けに、社員のMac端末初期設定をHomebrew CaskとMDMを連携させて1コマンドで完全自動配備するスクリプトパッケージを納品。
-
----
 
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/homebrew-cask/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/homebrew-cask_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

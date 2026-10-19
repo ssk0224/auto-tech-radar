@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「answer-me-with-html」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["javascript", "oss", "github", "architecture", "プログラミング"]
+topics: ["javascript", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -101,7 +101,7 @@ flowchart LR
 ### 1. エンタープライズ開発における「AI設計書・PRレビュー自動生成」パッケージ
 - **概要**: CI/CDパイプラインやプルリクエスト（PR）のトリガーで、変更差分のコールグラフやアーキテクチャ影響図を `answer-me-with-html` で1枚のHTMLレポートとして出力。
 - **提供価値**: レビュアーのコードリーディング時間を半減。セキュアな閉域網内（オンプレミス/プライベートクラウド）で完全完結するため、機密コードが外部SaaSに漏洩しない。
-- **マネタイズ**: 大手SIerやエンタープライズ企業向けの開発プロセス高速化コンサルティングおよび環境構築（1案件あたり80万〜150万円の導入支援費用）。
+- **マネタイズ**: 大手SIerやエンタープライズ企業向けの開発プロセス高速化コンサルティングおよび環境構築（要件に応じた導入支援・環境構築）。
 
 ### 2. 「インシデント・ポストモーテム（障害報告書）」のワンクリックビジュアライズSaaS
 - **概要**: 障害ログ、Datadog/CloudWatchのメトリクス推移、Slackのやり取りをLLMに要約させ、`timeline` や `flow LR` を用いた障害タイムライン兼再発防止策レポートを単一HTMLで書き出す仕組み。
@@ -155,10 +155,9 @@ npx skills add QingYunA/answer-me-with-html
   - 本ツール自体が単一ファイル出力（バンドル済み）設計であるため、自社SaaSのレポート出力エンジンとしてバックエンドに組み込んでもライセンス感染のリスクはありません。
   - レポート内に独自の企業ロゴやカスタムCSSを挿入するカスタマイズも容易であり、ホワイトラベル展開が可能な点も大きなビジネスメリットです。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/answer-me-with-html/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/answer-me-with-html_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

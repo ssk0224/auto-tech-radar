@@ -40,7 +40,7 @@ dsh-tavernでは、ワークフローを有向グラフ（DAG）のように分�
 ```text
 [ユーザー入力] 
       │
-      ├─► [本文生成Agent (Frontend)] ──► 小説クオリティの描写に100%集中
+      ├─► [本文生成Agent (Frontend)] ──► 小説クオリティの描写に専念
       │          │
       │          ▼ (生成完了本文を渡す)
       ├─► [変数決済Agent (Backend)] ──► ルール・MVU定義に基づきステータス更新 (UI側で固定レンダリング)
@@ -63,10 +63,9 @@ dsh-tavernでは、ワークフローを有向グラフ（DAG）のように分�
 | **拡張性・カード資産** | 膨大な既存資産あり | 互換性なし | **既存のSillyTavern資産を即座にインポート可能** |
 | **モバイル対応** | WebUIのレスポンシブ / リバースプロキシ | アプリ提供（閉鎖的） | **AndroidネイティブAPK / QRコード即時共有** |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/dsh-tavern/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

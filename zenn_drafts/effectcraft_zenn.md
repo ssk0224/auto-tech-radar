@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「effectcraft」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -85,10 +85,9 @@ graph TD
 *   **Pure Rust Codecs**: FFmpegに依存しない、自社開発のRust製ビデオ/オーディオコーデック。
 *   **Agent Control**: MCPサーバー、コマンドラインインターフェース、コントロールチャンネルを通じて、外部システムやAIエージェントからの操作を可能にする。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/effectcraft_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

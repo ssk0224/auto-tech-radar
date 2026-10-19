@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「pdfcraft」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["rust", "oss", "github", "architecture", "プログラミング"]
+topics: ["rust", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -93,7 +93,7 @@ graph TD
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-1. **金融・医療向け「完全エアギャップ型」高セキュアPDF基盤構築（受託単価: 150万〜300万円）**
+1. **金融・医療向け「完全エアギャップ型」高セキュアPDF基盤構築**
    クラウドへの機密文書アップロードが厳禁されている病院や金融機関に対し、外部通信が一切発生しないPdfCraftを社内端末および閉域イントラネット環境に展開。
 2. **LLMエージェント駆動型「契約書レビュー・自動赤入れ」ソリューション**
    `pdfcraft-cli mcp`を社内ローカルLLM環境（OllamaやローカルvLLM）と統合し、契約書の特定条項を自動検索してハイライト注釈やコメントスレッドを付与する自動校閲基盤の販売。
@@ -155,10 +155,9 @@ PdfCraftのソースコードは **Apache License 2.0 および MIT License の�
 - リポジトリ内のロゴおよび「ArtCraft」の名称（`docs/brand/`配下）はArtCraft Teamの商標であり、オープンソースライセンスの適用外です。
 - 独自製品としてリブランド・再配布・SaaS提供を行う場合は、**ブランドロゴを差し替え、自社名称でビルド**する必要があります。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/pdfcraft/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/pdfcraft_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

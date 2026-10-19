@@ -2,7 +2,7 @@
   "LEAD_MAGNET_CHEAT_SHEET": {
     "url": "https://note.com/vast_ixora7005/n/na51f69c2da02",
     "price": 0,
-    "title": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース15選」商用化チートシート（社内DX・受託開発・AI導入の決定版）"
+    "title": "海外で注目を集めるオープンソース15選 早見表（2026-10-19 時点・GitHub スター数順）"
   },
   "aihot": {
     "url": "https://note.com/vast_ixora7005/n/n002178c660d1",
@@ -17,7 +17,7 @@
   "answer-me-with-html": {
     "url": "https://note.com/vast_ixora7005/n/n0522512f3c91",
     "price": 980,
-    "title": "【最新OSS解体新書】answer-me-with-htmlとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「answer-me-with-html」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "cadcraft": {
     "url": "https://note.com/vast_ixora7005/n/nbf94ef5bca83",
@@ -47,7 +47,7 @@
   "dsh-tavern": {
     "url": "https://note.com/vast_ixora7005/n/n361864a9c821",
     "price": 980,
-    "title": "【最新OSS解体新書】dsh-tavernとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「dsh-tavern」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "effectcraft": {
     "url": "https://note.com/vast_ixora7005/n/n6d872b00a5d6",
@@ -58,6 +58,11 @@
     "url": "https://note.com/vast_ixora7005/n/na7f1ced4070d",
     "price": 980,
     "title": "海外急上昇OSS「filmcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
+  },
+  "gptqmodel": {
+    "url": "https://note.com/vast_ixora7005/n/nf2ee8a39a6f4",
+    "price": 980,
+    "title": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "gridcraft": {
     "url": "https://note.com/vast_ixora7005/n/n5e60feb21b51",
@@ -112,12 +117,17 @@
   "md3music": {
     "url": "https://note.com/vast_ixora7005/n/nebd5728f26cb",
     "price": 980,
-    "title": "【最新OSS解体新書】md3Musicとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「md3Music」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "opendots": {
     "url": "https://note.com/vast_ixora7005/n/ncb575fb13dce",
     "price": 980,
     "title": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
+  },
+  "opensandbox": {
+    "url": "https://note.com/vast_ixora7005/n/nd440f516fbd0",
+    "price": 980,
+    "title": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "pdfcraft": {
     "url": "https://note.com/vast_ixora7005/n/nb350209914ed",
@@ -132,12 +142,12 @@
   "pinvou-agent": {
     "url": "https://note.com/vast_ixora7005/n/ne48c2e4d4f93",
     "price": 980,
-    "title": "【最新OSS解体新書】pinvou-agentとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「pinvou-agent」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "potatotool": {
     "url": "https://note.com/vast_ixora7005/n/nc9b7a83e8e4a",
     "price": 980,
-    "title": "【最新OSS解体新書】PotatoToolとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「PotatoTool」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "solidcraft": {
     "url": "https://note.com/vast_ixora7005/n/n6cb8cee29713",
@@ -152,7 +162,7 @@
   "tokenspeed": {
     "url": "https://note.com/vast_ixora7005/n/na8fdb7f5673b",
     "price": 980,
-    "title": "【最新OSS解体新書】tokenspeedとは？機能解説とビジネス活用・マネタイズ実践法"
+    "title": "海外急上昇OSS「tokenspeed」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
   "universal-modder": {
     "url": "https://note.com/vast_ixora7005/n/n6e674d9e47dc",

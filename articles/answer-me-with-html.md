@@ -94,10 +94,9 @@ flowchart LR
 | **外部通信・プライバシー**| **完全ローカル (オフライン)** | API次第 | 外部API依存の場合あり | クラウド環境への依存 |
 | **エージェント親和性** | **70+以上のAgent CLIに対応** | 任意プロンプト | 専用連携が必要 | 独自チャット画面前提 |
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/answer-me-with-html/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

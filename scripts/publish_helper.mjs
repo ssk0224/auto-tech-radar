@@ -37,7 +37,7 @@ function getDrafts() {
       const hasX = fs.existsSync(xFile) && fs.statSync(xFile).size > 100;
       
       // 記事タイトルを1行目から抽出
-      let title = isLeadMagnet ? '【無料集客用】2026年最新 急上昇OSS 15選商用化チートシート完全版' : slug;
+      let title = isLeadMagnet ? '【無料集客用】2026年最新 急上昇OSS 15選商用化早見表' : slug;
       try {
         const content = fs.readFileSync(fullPath, 'utf8');
         const match = content.match(/^#\s+(.+)$/m);
@@ -174,7 +174,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
 title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["ai", "oss", "github", "architecture", "プログラミング"]
+topics: ["ai", "oss", "github", "architecture", "programming"]
 published: true
 ---
 

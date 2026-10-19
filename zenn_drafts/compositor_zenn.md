@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「Compositor」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["swift", "oss", "github", "architecture", "プログラミング"]
+topics: ["swift", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -66,7 +66,7 @@ graph TD
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
 1. **EC事業者向けバナー大量自動生成ローカルパイプライン受託**:
-   クラウドSaaSの画像生成API（CloudinaryやBannerbear等）を利用すると毎月数十万のAPI従量課金が発生します。Compositorの`.comp`書き換えアーキテクチャを活用し、ローカルMac Studioで数千枚の多言語・多サイズバナーを全自動バッチ出力するシステムを構築・納品する受託モデル（想定開発費：150万円〜）。
+   クラウドSaaSの画像生成API（CloudinaryやBannerbear等）を利用すると毎月数十万のAPI従量課金が発生します。Compositorの`.comp`書き換えアーキテクチャを活用し、ローカルMac Studioで数千枚の多言語・多サイズバナーを全自動バッチ出力するシステムを構築・納品する受託モデル。
 2. **広告代理店向け「AIアシスト型社内画像編集スイート」の内製化支援**:
    Compositorをフォークし、自社ファインチューニング済みのStable Diffusionや背景除去モデルをワンクリックで起動・差し替えできるプラグインを組み込んだ専用ビルドを提供。月額保守または開発ライセンスで収益化。
 3. **ゲームアセット・2Dスプライト制作の自動化パイプライン**:
@@ -101,10 +101,9 @@ Compositorは**MIT License**の下で公開されています。
 - **改変と組み込み**: 自社独自の機能を追加して社内ツールとして配備することや、クローズドソースの製品に組み込んで配布することも許容されています（著作権表示およびMIT許諾表示の保持のみが必要）。
 - **GPLとの違い**: コピーレフト条項がないため、自社で開発したプラグインや追加コードをオープンソース化する義務が一切発生しません。エンタープライズ受託開発において極めて採用しやすいライセンスです。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/compositor/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/compositor_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

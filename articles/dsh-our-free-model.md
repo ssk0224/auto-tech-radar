@@ -108,10 +108,9 @@ graph TD
 
 「dsh-our-free-model」は、商用AI SaaSの高額な利用料とAPIキー管理の煩雑さ、そしてデータプライバシーの懸念という三大課題を解決します。また、他のOSSラッパーと比較しても、最先端モデルの無料提供、設定不要の即時利用、そしてトークン削減や高度なルーティングといった豊富な機能セットで一線を画しています。特にDeepSeek Harnessユーザーにとっては、シームレスな統合と強力な機能拡張を提供します。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/dsh-our-free-model/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+

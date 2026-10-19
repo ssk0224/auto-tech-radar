@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「Strata」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["c++", "oss", "github", "architecture", "プログラミング"]
+topics: ["c++", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -71,7 +71,7 @@ graph TD
 
 ## 💡 ビジネス・マネタイズ活用アイデア（実践例）
 
-1. **セキュアコーディング特化の社内開発基盤受託（受託単価：150万〜250万円）**
+1. **セキュアコーディング特化の社内開発基盤受託**
    - 金融・医療・製造業など、ソースコードのクラウド送信が厳禁されている企業向けに、Cursor / Claude Code完全対応のローカル推論端末をパッケージ構築。
    - 既存のPC資産（RTX 4070搭載ワークステーション等）を活用し、社内ネットワーク完結の開発環境を提供。
 
@@ -142,10 +142,9 @@ print(response.choices[0].message.content)
 - **モデル（Qwen3.8-Flash-Next）**: Qwenのオープンウェイトライセンスに基づきます。商用利用は許諾されていますが、モデル固有の利用規約（倫理規定・大規模商業展開時の条項など）を事前に確認してください。
 - **派生コンポーネント**: 一部に `llama.cpp` / `ggml` のコードベースを含んでいるため、該当モジュールを静的・動的リンクする際はクレジット表記要件に留意してください。
 
----
-
 ## 📖 続きと実務キットについて
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
-- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/strata/)
+- 📖 **無料**: アーキテクチャ・競合比較・ライセンス考察の全文 → [Auto Tech Radar で読む](https://ssk0224.github.io/auto-tech-radar/radar/strata_zenn/)
 - 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順 → [note の有料記事・メンバーシップ](https://note.com/vast_ixora7005/membership)
+
