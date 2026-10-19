@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
+import { stripProSection } from "./utils/pro_boundary.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -156,6 +157,12 @@ async function generateAllContent(repo, readme) {
 3. X (Twitter) 用のバズ・スレッド投稿文（3ツイート構成）
 
 必ず指定のデリミタ（=== SECTION ===）で正確に区切って出力してください。
+
+【事実性の厳守】
+- Dockerイメージ名、パッケージ名、CLIコマンド、ポート番号、設定キー、MCPサーバーの起動方法は、与えられたREADMEに記載があるものだけを使うこと。記載がないものを推測で作らないこと。
+- READMEに公式Dockerイメージの記載がない場合は、架空のイメージ名を書かず「公式イメージは案内されていない」と明記し、READMEのインストール手順を示すこと。
+- READMEにMCPサーバーとしての起動方法の記載がない場合は、mcpServers の設定例を作らず「公式のMCPサーバー手段は案内されていない」と明記すること。
+- 金額・削減率・ROI・性能値は、見積表の工数×単価など計算の前提を示せるものだけを書くこと。前提が示せない数値は書かないこと。
 `;
 
   const prompt = `
@@ -196,32 +203,13 @@ stars: ${repo.stargazers_count}
 ## 競合ツール/商用SaaSとの徹底比較
 ## 商用利用可否 & ライセンス考察
 
----
-
-## 🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル ＆ 実務キット
-### ⚡ 1-Click MCP (Model Context Protocol) ＆ Cursor Rules 設定キット
-※必須：Claude DesktopやCursor、Antigravityで本OSSを即座にAIツールとして連携するための完全なJSON設定（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング開発用の \`\`\`.cursorrules\`\`\` 設定スニペットを提示してください。
-
-### 💡 ビジネス・マネタイズ活用アイデア（受託提案・自社SaaS構築シナリオ）
-
-### 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版
-※重要：案件名、導入目的、システム全体構成、投資対効果ROI（既存SaaSとの価格差比較・年間削減額）、4〜8週間導入スケジュールを含む、クライアントへそのまま出せる完全なMarkdownを出力してください。
-
-### 💰 【クライアント提示用】詳細工数・見積シミュレーション表
-※要件定義、環境構築、カスタム実装、テスト、運用の各人日・単価・小計・合計を明記したテーブルを出力してください。
-
-### 🛠️ 【即時本番起動】Docker Compose & 本番設定キット
-※コピペで動く実稼働 docker-compose.yml および .env.example を出力してください。
-
-### 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答
-※CTOや経営層のセキュリティ・保守性への懸念を打破する営業トークを出力してください。
 
 === NOTE ARTICLE ===
-# 【受託80万〜250万】海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
 
 ## はじめに：なぜ今、世界中で爆発的に注目されているのか？
 （無料公開エリア：魅力的な導入、解決する課題、革新性の概要）
-※重要：冒頭で「この記事を読めば、クライアントに80万〜250万円の受託開発・AI導入を即提案できる理由」を明確に提示してください。
+※重要：冒頭で「この記事で、クライアントへの導入提案に必要な材料（提案書・工数見積・導入手順）がそろう理由」を明確に提示してください。
 
 ## 主な機能とアーキテクチャ概要
 （無料公開エリア：技術的な特徴、クイックスタート手順）
@@ -229,7 +217,7 @@ stars: ${repo.stargazers_count}
 ### 📊 商用化・受託開発シミュレーション早見表
 | 項目 | 分析結果 |
 |---|---|
-| **想定受託開発単価** | 80万円 〜 250万円 |
+| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
 | **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ |
 | **商用SaaS化の狙い目** | 独自ワークフロー特化型マイクロSaaS |
 | **実装・導入難易度** | 中級（Docker / API連携 / TypeScript/Python） |
@@ -241,7 +229,7 @@ stars: ${repo.stargazers_count}
 - 発注即決を勝ち取る「キラー営業トーク ＆ 想定問答集」
 
 > 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円（ランチ1回分）** です。しかし、この記事に記載されている『提案書テンプレート』と『本番環境構築手順』を活用すれば、**1件80万円〜250万円の受託案件受注や、社内の高額SaaSコスト削減** に直結します。
+> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
 > ※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。
 
 --------------------------------------------------
@@ -250,7 +238,7 @@ stars: ${repo.stargazers_count}
 
 ## 💡 このOSSを活用した具体的なマネタイズ戦略（受託・自社サービス化）
 ※極めて重要：有料ライン以降は購入者が「980円以上の価値があった」と絶賛する超高密度な実用情報（最低2,000文字以上）を執筆してください。絶対に数行で要約を終わらせたり途中で切らないこと。
-1. クライアントへの提案シナリオと受託開発モデル（想定単価：80万円〜250万円、提案先ターゲット、ペイン、受注構成案を具体的に深掘り）
+1. クライアントへの提案シナリオと受託開発モデル（想定規模は下記の工数見積表から算出、提案先ターゲット、ペイン、受注構成案を具体的に深掘り）
 2. 自社マイクロSaaS / 有料ツールとしての構築アイデア（具体的なプロダクト名、機能要件、ターゲット価格設定を2つ以上提示）
 3. 競合ツール（商用SaaS）に対する圧倒的なコスト削減提案の作り方（価格差比較テーブル、意思決定者を説得する営業キラーフレーズ）
 
@@ -266,10 +254,10 @@ stars: ${repo.stargazers_count}
 ※要件定義、環境構築、カスタマイズ実装、テスト、運用引き継ぎの各人日・単価・小計・合計を明記した具体的な見積テーブルを出力してください。
 
 ## 🛠️ 【即時本番起動】Docker Compose & 本番設定キット
-※コピペで即時起動できる完全な \`\`\`docker-compose.yml\`\`\` および \`\`\`.env.example\`\`\` を出力してください。ダミーではなく実稼働する設定にしてください。
+※READMEに記載された公式の導入手順（公式Dockerイメージ／docker-compose がREADMEにある場合はそれ）に基づく \`\`\`docker-compose.yml\`\`\` と \`\`\`.env.example\`\`\` を出力してください。READMEに公式イメージの記載がない場合は、架空のイメージ名を作らず、その旨を明記したうえでREADMEのインストール手順（ソースからのビルド等）を示してください。
 
 ## ⚡ 【2026年最新規格】Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 完全定義
-※クライアントに「このOSSを社内AIエージェントに即座に道具（Tool）として持たせられる」とアピールできる、即コピペ可能なMCPサーバーJSON（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング用の \`\`\`.cursorrules\`\`\` 定義を出力してください。
+※READMEにMCPサーバーとしての起動方法が記載されている場合のみ、その手順に基づくMCPサーバーJSON（\`\`\`json { "mcpServers": ... } \`\`\`）を出力してください。記載がない場合はJSONを作らず「公式のMCPサーバー手段は案内されていない」と明記してください。あわせて、AIコーディング用の \`\`\`.cursorrules\`\`\` 定義を出力してください。
 
 ## 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答
 - 経営層・CTOから出る典型的な懸念（セキュリティ、保守性、障害対応）に対する説得回答テンプレートを提示。
@@ -279,7 +267,7 @@ stars: ${repo.stargazers_count}
 
 ---
 ### 🎁 【メンバーシップのご案内】
-Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いただくと、本日公開のこの記事を含む全アーカイブ（15本以上・総額14,700円相当）が初月即時読み放題になります。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いただくと、本日公開のこの記事を含む全アーカイブが読み放題になります。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
@@ -292,8 +280,8 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いた�
 3. TWEET 3は補足まとめ。全角100文字以内厳守。
 
 [TWEET 1]
-【案件単価80万〜250万の秘密】
-世界で★${repo.stargazers_count}急増中の「${repo.name}」が凄い。
+【受託提案の骨子付き】
+GitHubで★${repo.stargazers_count}の「${repo.name}」が凄い。
 ${repo.description.slice(0, 45)}...
 ▼ 深層レポート＆受託骨子はこちら👇
 https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
@@ -397,31 +385,6 @@ function fixMermaidInContent(content) {
   });
 }
 
-// PRO実務キット・品質ゲート完全保証（Geminiの欠落をフォールバックで100%補完）
-function ensureProKitCompliance(content, repo) {
-  let enriched = content;
-
-  if (!enriched.includes('```mermaid')) {
-    enriched += `\n\n## 解決する主要な課題とアーキテクチャ\n\`\`\`mermaid\ngraph TD\n    Client["クライアント / アプリケーション"] --> Gateway["API Gateway / CLI"]\n    Gateway --> CoreEngine["${repo.name} コアエンジン"]\n    CoreEngine --> Worker["非同期ワーカー / モデル推論"]\n    CoreEngine --> Storage[("ローカルストレージ / DB")]\n\`\`\`\n`;
-  }
-
-  if (!enriched.includes('ビジネス') && !enriched.includes('受託') && !enriched.includes('マネタイズ')) {
-    enriched += `\n\n## 💡 ビジネス・マネタイズ活用アイデア（実践例）\n- **受託開発・DX導入モデル**: 想定単価 80万円〜250万円。社内AIエージェント統合および閉域網配備。\n- **独自マイクロSaaS化**: 業界特化ワークフロー向けに月額サブスクリプション型サービスを展開。\n`;
-  }
-
-  const hasPro = enriched.includes('【Auto Tech Radar PRO限定】');
-  const hasProposal = enriched.includes('社内DX・AI導入提案書') || enriched.includes('導入提案書 Markdown完全版');
-  const hasEstimate = enriched.includes('詳細工数・見積') || enriched.includes('見積シミュレーション表') || enriched.includes('提案見積金額');
-  const hasDocker = enriched.includes('docker-compose') || enriched.includes('Docker Compose');
-  const hasMcp = enriched.includes('mcpServers');
-
-  if (!hasPro || !hasProposal || !hasEstimate || !hasDocker || !hasMcp) {
-    enriched += `\n\n---\n\n## 🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル ＆ 実務キット\n\n### 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版\n\`\`\`markdown\n# 「${repo.name}」を活用した社内DX・AI導入提案書\n\n## 1. 導入目的と解決する課題\n- 業務の自動化および外部APIコスト・クラウド依存の削減。\n- 機密データを外部送信しない完全閉域型インフラの構築。\n\n## 2. システム全体構成\n\`\`\`text\n[社内ユーザー / 業務担当者]\n        │\n        ▼ (チャット指示 / API)\n[${repo.name} 実行基盤 (Dockerコンテナ)]\n        │\n        ▼ (MCP / JSON-RPC)\n[完成成果物・データ出力 / 社内DB保存]\n\`\`\`\n\n## 3. 投資対効果（ROI）\n- 年間コスト削減見込み: 300万円〜500万円\n- 投資回収期間: 約3〜5ヶ月\n\`\`\`\n\n### 💰 【クライアント提示用】詳細工数・見積シミュレーション表\n| 業務工程 | 詳細作業内容 | 工数 (人日) | 標準単価 (円) | 小計金額 (円) |\n|---|---|---|---|---|\n| **要件定義** | 業務ヒアリング・アーキテクチャ設計 | 2.0 | 100,000 | 200,000 |\n| **環境構築** | Docker環境整備・${repo.name}バイナリ最適化 | 2.0 | 100,000 | 200,000 |\n| **連携実装** | MCPサーバー設定・社内データ連携 | 3.5 | 100,000 | 350,000 |\n| **検証テスト** | 結合テスト・セキュリティ検査 | 1.5 | 100,000 | 150,000 |\n| **運用移行** | 管理マニュアル作成・操作講習 | 1.0 | 100,000 | 100,000 |\n| **合計（税別）** | **本番稼働パッケージ一式** | **10.0 人日** | - | **¥1,000,000** |\n\n### 🛠️ 【即時本番起動】Docker Compose & 本番設定キット\n\`\`\`yaml\nservices:\n  ${repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}:\n    image: ghcr.io/${repo.full_name.toLowerCase()}:latest\n    container_name: ${repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}\n    restart: always\n    environment:\n      - NODE_ENV=production\n      - PORT=8080\n    ports:\n      - "8080:8080"\n\`\`\`\n\n### ⚡ 1-Click MCP (Model Context Protocol) 設定\n\`\`\`json\n{\n  "mcpServers": {\n    "${repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}": {\n      "command": "docker",\n      "args": ["run", "-i", "--rm", "ghcr.io/${repo.full_name.toLowerCase()}:latest", "mcp"]\n    }\n  }\n}\n\`\`\`\n\n### 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答\n> **CTO・役員の懸念**: 「OSSの自社運用はセキュリティや障害対応のリスクがあるのでは？」\n> **キラー回答**: 「${repo.name}はコンテナ隔離環境かつ社内閉域ネットワークで動作するため、外部クラウドへの機密データ漏洩リスクは原理的にゼロです。また、Docker Composeによる完全コード化により、障害発生時も数秒で同一状態に自動復旧可能です。」\n`;
-  }
-
-  return enriched;
-}
-
 // Zennトピック規格（半角英数字・ハイフン・アンダースコアのみ）サニタイザー
 function sanitizeZennTopic(topic) {
   if (!topic) return "tech";
@@ -472,7 +435,11 @@ ${webContent}`;
   // サニタイズ＆品質不変条件ガード
   webContent = sanitizeMarkdownContent(webContent);
   webContent = fixMermaidInContent(webContent);
-  webContent = ensureProKitCompliance(webContent, repo);
+  webContent = stripProSection(webContent);
+  if (!webContent.includes("```mermaid")) {
+    // 汎用の架空構成図で埋めず、この生成結果は採用しない
+    throw new Error("Web記事にMermaid構成図が含まれていません");
+  }
 
   noteContent = sanitizeMarkdownContent(noteContent);
 
@@ -668,7 +635,7 @@ ${teaserBody}
 
 ## 🔒 【続き】ビジネス・マネタイズ実践・本番Docker・社内DX提案書
 これ以降の：
-- 💡 **業界特化SaaS化・社内DX受託（80万〜250万円）の具体的マネタイズ実践シナリオ**
+- 💡 **業界特化SaaS化・社内DX受託の具体的マネタイズ実践シナリオ**
 - 📋 **そのままクライアントや社内稟議に出せる「社内DX・AI導入提案書」Markdown完全版**
 - 💰 **クライアント提示用「詳細工数・人日・単価見積シミュレーション内訳表」**
 - 🛠️ **コピペで即時起動する本番環境Docker Compose ＆ .env 実稼働設定**
