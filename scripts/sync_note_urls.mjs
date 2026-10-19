@@ -28,11 +28,11 @@ export function matchNotesToSlugs(notes, drafts) {
   const out = {};
   for (const d of drafts) {
     const t = normalizeTitle(d.title);
+    const p = normalizeTitle(projectNameOf(d.title));
     let hit = notes.filter((n) => normalizeTitle(n.name) === t);
-    if (hit.length !== 1) {
-      const p = normalizeTitle(projectNameOf(d.title));
-      hit = p.length >= 3 ? notes.filter((n) => normalizeTitle(n.name).includes(p)) : [];
-    }
+    // 次にプロジェクト名の完全一致（「laya」と「laya-mlx」を取り違えない）、最後に部分一致
+    if (hit.length !== 1 && p.length >= 3) hit = notes.filter((n) => normalizeTitle(projectNameOf(n.name)) === p);
+    if (hit.length !== 1 && p.length >= 3) hit = notes.filter((n) => normalizeTitle(n.name).includes(p));
     if (hit.length === 1) out[d.slug] = { url: hit[0].noteUrl, price: hit[0].price ?? null, title: hit[0].name };
   }
   return out;
@@ -86,6 +86,9 @@ async function main() {
   const merged = { ...prev, ...mapped };
   fs.writeFileSync(OUT_FILE, JSON.stringify(Object.fromEntries(Object.entries(merged).sort()), null, 2) + '\n', 'utf8');
   console.log(`✓ note の記事 ${notes.length} 本中 ${Object.keys(mapped).length} 本を原稿と対応づけました（対応表 ${Object.keys(merged).length} 本）`);
+  // 対応づけられなかったもの（公開情報のタイトルのみ）を記録し、取り違えや未対応を確認できるようにする
+  const linked = new Set(Object.values(mapped).map((v) => v.url));
+  for (const n of notes.filter((n) => !linked.has(n.noteUrl))) console.log(`  - 未対応の note: ${n.name}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

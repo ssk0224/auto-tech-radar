@@ -21,7 +21,7 @@ test("note の記事と原稿の対応: タイトル一致を優先し、曖昧�
   ];
   const m = matchNotesToSlugs(notes, drafts);
   assert.equal(m.zcode.url, "https://note.com/x/n/n1");
-  assert.equal(m.laya, undefined, "Laya と Laya-MLX の両方に一致するので推測でリンクしない");
+  assert.equal(m.laya, undefined, "タイトルにもプロジェクト名にも一意に一致しないので推測でリンクしない");
   assert.equal(m.magpie.url, "https://note.com/x/n/n4");
   assert.equal(m.magpie.price, 500);
   assert.equal(m.missing, undefined);
@@ -48,4 +48,17 @@ test("暗号化済みの原稿にはすべて内容一覧があり、有料本�
 test("note の購入リンクは note.com の記事 URL だけ", () => {
   const urls = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
   for (const [slug, v] of Object.entries(urls)) assert.match(v.url, /^https:\/\/note\.com\/[\w-]+\/n\/\w+$/, slug);
+});
+
+test("プロジェクト名が完全一致する記事を、名前を含むだけの記事より優先する", () => {
+  const notes = [
+    { name: "# 【受託80万〜250万】海外急上昇OSS「laya」商用化マニュアル", noteUrl: "https://note.com/x/n/a", price: 980 },
+    { name: "# 【受託80万〜250万】海外急上昇OSS「laya-mlx」商用化マニュアル", noteUrl: "https://note.com/x/n/b", price: 980 },
+  ];
+  const m = matchNotesToSlugs(notes, [
+    { slug: "laya", title: "海外急上昇OSS「laya」商用化マニュアル｜社内DX提案書" },
+    { slug: "laya-mlx", title: "海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書" },
+  ]);
+  assert.equal(m.laya.url, "https://note.com/x/n/a");
+  assert.equal(m["laya-mlx"].url, "https://note.com/x/n/b");
 });
