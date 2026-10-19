@@ -94,6 +94,23 @@ articles.forEach(file => {
     console.error(`  ❌ [CORRUPTED WHITESPACE] ${file}: 異常な長大空白が検出されました`);
     errorCount++;
   }
+
+  // F. 不完全なコードブロック（奇数個のバッククォート）チェック
+  const backticks = content.match(/```/g) || [];
+  if (backticks.length % 2 !== 0) {
+    console.error(`  ❌ [UNCLOSED CODE BLOCK] ${file}: 奇数個のバッククォート（${backticks.length}個）が検出されました`);
+    errorCount++;
+  }
+
+  // G. 異常な長大行（Geminiテーブル暴走による数万〜数十万文字の区切り線）チェック
+  const lines = content.split(/\r?\n/);
+  for (let li = 0; li < lines.length; li++) {
+    if (lines[li].length > 1000) {
+      console.error(`  ❌ [CORRUPTED LONG LINE] ${file} Line ${li + 1}: 異常な長大行（${lines[li].length}文字）が検出されました`);
+      errorCount++;
+      break;
+    }
+  }
 });
 
 if (errorCount === 0 && warningCount === 0) {
@@ -168,6 +185,43 @@ if (!fs.existsSync(zennDir)) {
     const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8');
     if (zContent.includes('Auto Tech Radar 公式レポート')) {
       funnelCount++;
+    }
+
+    // Topics 規格チェック（1〜5個、半角英数字ハイフンアンダースコアのみ）
+    const topicsMatch = zContent.match(/^topics:\s*(\[.*?\])/m);
+    if (!topicsMatch) {
+      console.error(`  ❌ [ZENN MISSING TOPICS] ${f}: topics 配列が見つかりません`);
+      zennErrors++;
+      errorCount++;
+    } else {
+      try {
+        const parsed = JSON.parse(topicsMatch[1]);
+        if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 5) {
+          console.error(`  ❌ [ZENN INVALID TOPICS COUNT] ${f}: topics は 1〜5 個である必要があります`);
+          zennErrors++;
+          errorCount++;
+        } else {
+          for (const t of parsed) {
+            if (typeof t !== 'string' || !/^[a-z0-9_-]+$/.test(t)) {
+              console.error(`  ❌ [ZENN INVALID TOPIC] ${f}: "${t}" は英小文字・数字・ハイフン・アンダースコアのみ使用可能です`);
+              zennErrors++;
+              errorCount++;
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`  ❌ [ZENN JSON PARSE ERROR] ${f}: topics のJSONパースに失敗しました`);
+        zennErrors++;
+        errorCount++;
+      }
+    }
+
+    // コードブロック整合性チェック
+    const zBackticks = zContent.match(/```/g) || [];
+    if (zBackticks.length % 2 !== 0) {
+      console.error(`  ❌ [ZENN UNCLOSED CODE BLOCK] ${f}: 奇数個のバッククォートが検出されました`);
+      zennErrors++;
+      errorCount++;
     }
   });
   if (zennErrors === 0 && funnelCount === zennArticles.length) {

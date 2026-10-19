@@ -49,7 +49,7 @@ function fixMermaidInContent(content) {
       return l;
     });
 
-    return ````mermaid${fixedLines.join('\n')}````;
+    return '```mermaid' + fixedLines.join('\n') + '```';
   });
 }
 

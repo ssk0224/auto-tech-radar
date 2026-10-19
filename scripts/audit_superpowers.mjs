@@ -4,7 +4,7 @@ import path from 'path';
 function auditDirectory(dirName) {
   const dir = path.resolve(dirName);
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
-  console.log(`=== Checking directory: ${dirName} (${files.length} files) ===`);
+  console.log(`=== Auditing directory: ${dirName} (${files.length} files) ===`);
   
   let issueCount = 0;
 
@@ -19,14 +19,24 @@ function auditDirectory(dirName) {
       issueCount++;
     }
 
-    // 2. Abnormal whitespace: 50+ consecutive spaces
-    const excessiveSpace = content.match(/ {50,}/g);
+    // 2. Abnormal whitespace: 50+ consecutive spaces outside fenced code blocks
+    const contentOutsideCode = content.replace(/```[\s\S]*?```/g, '');
+    const excessiveSpace = contentOutsideCode.match(/ {50,}/g);
     if (excessiveSpace) {
-      console.error(`  ❌ [EXCESSIVE SPACE] ${f}: Found ${excessiveSpace.length} instances of 50+ spaces`);
+      console.error(`  ❌ [EXCESSIVE SPACE] ${f}: Found ${excessiveSpace.length} instances of 50+ spaces outside code blocks`);
       issueCount++;
     }
 
-    // 3. Check for HTML unclosed tags
+    // 3. Corrupted long lines (> 1000 characters)
+    const lines = content.split(/\r?\n/);
+    lines.forEach((l, idx) => {
+      if (l.length > 1000) {
+        console.error(`  ❌ [CORRUPTED LONG LINE] ${f} Line ${idx + 1}: length ${l.length}`);
+        issueCount++;
+      }
+    });
+
+    // 4. Check for HTML unclosed tags
     const tagsToCheck = ['div', 'span', 'p', 'b', 'strong', 'em', 'i', 'a', 'table', 'tbody', 'thead', 'tr', 'td', 'th', 'details', 'summary'];
     for (const tag of tagsToCheck) {
       const openRegex = new RegExp(`<${tag}(\\s+[^>]*)?>`, 'gi');
@@ -46,11 +56,18 @@ function auditDirectory(dirName) {
   }
 
   if (issueCount === 0) {
-    console.log(`  ✓ All files in ${dirName} passed basic code block, whitespace, and tag checks.\n`);
+    console.log(`  ✓ All files in ${dirName} passed code block, whitespace, long line, and tag checks.\n`);
   } else {
-    console.log(`  Found ${issueCount} potential issues in ${dirName}.\n`);
+    console.log(`  Found ${issueCount} issues in ${dirName}.\n`);
   }
+  return issueCount;
 }
 
-auditDirectory('src/pages/radar');
-auditDirectory('articles');
+const rIssues = auditDirectory('src/pages/radar');
+const aIssues = auditDirectory('articles');
+
+if (rIssues === 0 && aIssues === 0) {
+  console.log('🎉 Superpowers content integrity audit: 100% PERFECT PASS!');
+} else {
+  process.exit(1);
+}
