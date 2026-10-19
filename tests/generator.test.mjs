@@ -5,6 +5,7 @@ import { spawnSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { pathToFileURL } from "url";
 
 const root = path.resolve(import.meta.dirname, "..");
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro"]);
@@ -40,14 +41,14 @@ hello
 function run(mockOut) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gen-"));
   fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
-  fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"));
+  fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"), "junction"); // Windows ではディレクトリの symlink に権限が要るため junction を使う
   // 「本日分は生成済み」で即終了しないよう、複製側の記事の公開日を過去にずらす
   const radar = path.join(dir, "src/pages/radar");
   for (const f of fs.readdirSync(radar)) {
     const p = path.join(radar, f);
     fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/^pubDate:.*$/m, 'pubDate: "2000-01-01"'));
   }
-  const r = spawnSync(process.execPath, ["--import", path.join(root, "tests/fixtures/mock_setup.mjs"), "scripts/crawl_and_generate.mjs"], {
+  const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], {
     cwd: dir, encoding: "utf8", env: { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut },
   });
   return { dir, log: r.stdout + r.stderr, status: r.status };
