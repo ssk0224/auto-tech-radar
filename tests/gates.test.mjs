@@ -21,31 +21,35 @@ test("現在のリポジトリは監査に合格する", () => {
   assert.equal(r.status, 0, r.stdout.split("\n").filter((l) => l.includes("❌")).join("\n"));
 });
 
+// [名前, 不具合を入れる処理, 監査が出すべき ❌ メッセージの一部]。終了コードだけだと監査自体のクラッシュでも通ってしまうため、出力も確かめる
 const mutations = [
-  ["note 原稿の有料部分が平文になる", (d) => {
+  ["note 原稿の有料部分が平文になる", "PAID CONTENT IN PLAINTEXT", (d) => {
     const f = path.join(d, "note_drafts", fs.readdirSync(path.join(d, "note_drafts")).find((x) => x.endsWith("_note.md") && !x.startsWith("LEAD")));
     fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/^<!-- PAID_SEALED: .*-->$/m, "## 有料の本文\n" + "秘密 ".repeat(200)));
   }],
-  ["Web 記事に PRO 見出しが混入する", (d) => {
+  ["Web 記事に PRO 見出しが混入する", "PRO CONTENT ON WEB", (d) => {
     const f = path.join(d, "src/pages/radar", fs.readdirSync(path.join(d, "src/pages/radar"))[0]);
     fs.appendFileSync(f, "\n## 🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル\n秘密\n");
   }],
-  ["クライアント側の解除コードが戻る", (d) => {
+  ["クライアント側の解除コードが戻る", "有料解除処理が残っています", (d) => {
     const f = path.join(d, "src/layouts/Layout.astro");
     fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace("</script>", "localStorage.setItem('atr_pro_unlocked','true');</script>"));
   }],
-  ["暗号化ファイルが別記事のものにすり替わる", (d) => {
+  ["暗号化ファイルが別記事のものにすり替わる", "SEALED PAID PART INVALID", (d) => {
     const nd = path.join(d, "note_drafts");
     const enc = fs.readdirSync(nd).filter((x) => x.endsWith(".paid.enc"));
     fs.copyFileSync(path.join(nd, enc[0]), path.join(nd, enc[1]));
   }],
 ];
-for (const [name, mutate] of mutations) {
+for (const [name, expected, mutate] of mutations) {
   test(`監査が止める: ${name}`, () => {
     const dir = cloneRepo();
     try {
       mutate(dir);
-      assert.notEqual(audit(dir, "audit_quality.mjs").status, 0);
+      const r = audit(dir, "audit_quality.mjs");
+      assert.notEqual(r.status, 0);
+      const out = r.stdout + r.stderr;
+      assert.ok(out.split("\n").some((l) => l.includes("❌") && l.includes(expected)), `期待する ❌ が出ていない: ${expected}\n${out}`);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
@@ -62,7 +66,9 @@ test("配信物の監査が有料本文の混入を止める", () => {
     fs.writeFileSync(path.join(dir, "dist/radar/a/index.html"), page("無料の解説"));
     assert.equal(audit(dir, "audit_dist.mjs").status, 0);
     fs.writeFileSync(path.join(dir, "dist/radar/a/index.html"), page("【Auto Tech Radar PRO限定】秘密"));
-    assert.notEqual(audit(dir, "audit_dist.mjs").status, 0);
+    const r = audit(dir, "audit_dist.mjs");
+    assert.notEqual(r.status, 0);
+    assert.ok((r.stdout + r.stderr).includes("PRO CONTENT IN DIST"), r.stdout + r.stderr);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -70,12 +76,15 @@ test("配信物の監査が有料本文の混入を止める", () => {
 
 test("出品履歴のマージは両側の投稿済みフラグを残す", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-merge-"));
-  const [o, a, b] = ["o", "a", "b"].map((n) => path.join(dir, n));
-  fs.writeFileSync(o, "{}");
-  fs.writeFileSync(a, JSON.stringify({ x: { note: true }, y: { x: false } }));
-  fs.writeFileSync(b, JSON.stringify({ y: { x: true, xAt: "2026-10-19" }, z: { note: true } }));
-  const r = spawnSync(process.execPath, [path.join(root, "scripts/merge_publish_history.mjs"), o, a, b]);
-  assert.equal(r.status, 0);
-  assert.deepEqual(JSON.parse(fs.readFileSync(a, "utf8")), { x: { note: true }, y: { x: true, xAt: "2026-10-19" }, z: { note: true } });
-  fs.rmSync(dir, { recursive: true, force: true });
+  try {
+    const [o, a, b] = ["o", "a", "b"].map((n) => path.join(dir, n));
+    fs.writeFileSync(o, "{}");
+    fs.writeFileSync(a, JSON.stringify({ x: { note: true }, y: { x: false } }));
+    fs.writeFileSync(b, JSON.stringify({ y: { x: true, xAt: "2026-10-19" }, z: { note: true } }));
+    const r = spawnSync(process.execPath, [path.join(root, "scripts/merge_publish_history.mjs"), o, a, b]);
+    assert.equal(r.status, 0);
+    assert.deepEqual(JSON.parse(fs.readFileSync(a, "utf8")), { x: { note: true }, y: { x: true, xAt: "2026-10-19" }, z: { note: true } });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
