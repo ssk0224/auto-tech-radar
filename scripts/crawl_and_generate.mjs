@@ -326,11 +326,12 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
         });
 
         const text = response.text || "";
-        if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===")) {
+        if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===") && text.includes("=== X THREAD ===")) {
           return parseGeneratedOutput(text, repo, today);
         } else {
-          console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers.`);
+          console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB, NOTE, and X THREAD).`);
         }
+
       } catch (err) {
         lastError = err;
         const isTransient = /503|429|500|resource_exhausted|unavailable|overloaded|timeout|fetch failed|econnreset|etimedout/i.test(err.message);
