@@ -47,7 +47,8 @@ export function matchNotesToSlugs(notes, drafts) {
     // タイトルを付け替えた記事は、別名（タイトルに必ず含まれる語）で探す
     if (hit.length !== 1 && d.alias) hit = notes.filter((n) => normalizeTitle(n.name).includes(normalizeTitle(d.alias)));
     if (hit.length === 1) {
-      out[d.slug] = { url: hit[0].noteUrl, price: hit[0].price ?? null, title: hit[0].name };
+      const cleanTitle = (hit[0].name || '').replace(/^#+\s*/, '').trim();
+      out[d.slug] = { url: hit[0].noteUrl, price: hit[0].price ?? null, title: cleanTitle };
       if (hit[0].all.length > 1) out[d.slug].duplicates = hit[0].all.slice(1);
     }
   }
