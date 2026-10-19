@@ -40,4 +40,25 @@
    - 計測が無い（cookie を使わない解析＋ UTM）。導入時はプライバシーポリシーに外部送信規律の記載を追加。
    - メールでの読者リスト（週次まとめ）。特定電子メール法に沿って同意と配信停止を用意。
    - robots.txt で AI クローラーを拒否している点を、方針として決める。
-5. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。法務確認を推奨。
+5. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。法務確認を推奨。Google Fonts（fonts.googleapis.com / gstatic）への送信が記載漏れ。
+6. **独立レビューの未修正バグ（2026-10-19、20件、重い順）**
+   1. `scripts/auto_tweet_x.mjs`: X が 4xx を返した記事を履歴に記録しないため、同じ記事を毎回再試行し、キューが永久に止まる。ツイート後に push が失敗しても同様（重複で 4xx）。→ 4xx（429以外）は `x:"failed"` を記録して次へ。
+   2. `src/pages/sponsor.astro:35-93`: 読者属性 78%/42%/100%・「月間2枠限定」・dofollow・全ページヘッダー/RSS の掲載を約束しているが根拠も実装も無い。→ 削除か「目標値」と明記。
+   3. `scripts/utils/twitter_formatter.mjs:70-72`: 1〜2行の長文を削らない（weight 327/434 で isSafe:false のまま投稿）。→ weight で削る、`!isSafe` は投稿しない。
+   4. `src/pages/radar-map.astro:125,259,316`: ring 3（HOLD）の色・ラベルが未定義で ADOPT/TRIAL と誤表示。
+   5. `Layout.astro:118-135` FAQ 構造化データが全 OSS に「商用活用可能」と回答。→ ライセンスから生成するか削除。
+   6. `Layout.astro:929` 以降: `document.querySelector('article')` が記事ページに存在せず、目次・読了時間・要約・共有バーが一度も表示されていない。`innerHTML` に見出し文字列を入れており、直すなら textContent で組む（XSS）。
+   7. ノイズ記事が index/weekly/cheatsheet/radar-map/estimate/rss/api と週次スレッドに出ている。→ すべての `import.meta.glob` 利用箇所で `isNoise` を除外。
+   8. `scripts/ping_search_engines.mjs`: 先頭100件（アルファベット順）だけ送信・noindex も送信・結果を見ずに ✓・Bing ping は廃止済み。→ 今回の新規記事だけ送信。
+   9. `tests/generator.test.mjs:43,50`: Windows で `symlinkSync` が EPERM、`--import` にドライブ文字パス。→ `"junction"` と `pathToFileURL`。
+   10. `src/pages/index.astro:91,170`: 「RANK #1-3」がファイル名順の先頭3件、速報が日付順でない。
+   11. `src/pages/estimate.astro`: 月次保守のチェックが計算に入らない、年間削減額が全 OSS で 360 万円固定、「100%遮断」「ほぼゼロ」。
+   12. `src/pages/weekly.astro`: 「週間」が全期間の上位7件、stars 欠落を ★1,000 と表示、単価 80万〜250万固定。
+   13. `scripts/utils/reference_check.mjs:64`: `FROM deps AS builder` 等の段階名を Docker Hub のイメージとして照会し、正しい記事を不採用にする。→ `AS <名前>` を先に集めて除外。
+   14. `src/pages/privacy.astro`: Google Fonts の記載漏れ（上記5）。
+   15. アクセシビリティ: contact のラベルと入力が結び付いていない、検索欄に名前が無い、radar の canvas に代替テキスト無し、h1 が2つ。
+   16. `src/pages/expense.astro:7`: meta description が「100%経費精算可能」。
+   17. `tests/gates.test.mjs`: 改変テストが終了コードしか見ていない（監査のクラッシュでも合格）→ 想定の ❌ メッセージを確認。merge テストに try/finally。
+   18. `scripts/generate_og_cards.mjs`: タグ・頭文字の XML エスケープ漏れ、Chrome 実行にタイムアウト無し。
+   19. `src/pages/contact.astro:198`: `plan.startsWith('sponsor')` で slug が sponsor で始まる記事がスポンサー扱い。
+   20. rss の pubDate 欠落時に毎回新着扱い・偽の enclosure 長、index の onclick のエスケープ不足、cheatsheet のはてブ URL。
