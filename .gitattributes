@@ -1,1 +1,2 @@
 scripts/publish_history.json merge=publish-history
+scripts/note_urls.json merge=note-urls

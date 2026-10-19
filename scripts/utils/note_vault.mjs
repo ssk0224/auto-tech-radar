@@ -51,7 +51,18 @@ export function splitPaid(content) {
   const lines = content.split("\n");
   const m = lines.findIndex((l) => PAYWALL_MARKERS.some((mk) => l.includes(mk)));
   if (m === -1) return null;
-  let t = lines.findIndex((l, i) => i > m && TAIL_RE.test(l));
+  // フッターは原稿の末尾（通常は最後の30行以内）に配置されるため末尾優先で探索
+  let t = -1;
+  const searchStart = Math.max(m + 1, lines.length - 30);
+  for (let i = searchStart; i < lines.length; i++) {
+    if (TAIL_RE.test(lines[i])) {
+      t = i;
+      break;
+    }
+  }
+  if (t === -1) {
+    t = lines.findIndex((l, i) => i > m && TAIL_RE.test(l));
+  }
   const hasTail = t !== -1;
   if (!hasTail) t = lines.length;
   else if (t - 1 > m && lines[t - 1].trim() === "---") t -= 1;
@@ -69,6 +80,8 @@ export function noteDraftProblems(fullContent) {
   if (!/#AI|#OSS/.test(publicText)) problems.push("推奨ハッシュタグが公開側にありません");
   if (!/経費|領収書/.test(publicText)) problems.push("経費精算の案内が公開側にありません");
   if (/mcpServers|docker-compose|■ 案件名:/.test(head)) problems.push("有料ラインより前に有料キットが含まれています");
+  const tail = parts.tail.join("\n");
+  if (/mcpServers|docker-compose|■ 案件名:|【SaaS構成手順|自社SaaS構築手順/.test(tail)) problems.push("末尾フッターに有料本文が混入しています");
   if (parts.paid.join("\n").trim().length < MIN_PAID_CHARS) problems.push(`有料部分が短すぎます（${MIN_PAID_CHARS}文字未満）`);
   return problems;
 }

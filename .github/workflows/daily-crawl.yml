@@ -65,16 +65,6 @@ jobs:
       - name: Build Astro SSG
         run: npm run build
 
-      - name: Auto Tweet to X
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        continue-on-error: true
-        env:
-          X_API_KEY: ${{ secrets.X_API_KEY }}
-          X_API_SECRET: ${{ secrets.X_API_SECRET }}
-          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-        run: node scripts/auto_tweet_x.mjs
-
       - name: Commit and push changes
         run: |
           git config --global user.name "ssk0224"
@@ -88,8 +78,9 @@ jobs:
             # 認証は actions/checkout が token（GH_PAT または GITHUB_TOKEN）で設定済み。
             # 別途 extraheader を足すと認証ヘッダーが二重になり push が拒否されるため設定しない
 
-            # publish_history.json は投稿済みフラグの和集合でマージする（.gitattributes 参照）
+            # publish_history.json および note_urls.json は和集合でマージする（.gitattributes 参照）
             git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"
+            git config merge.note-urls.driver "node scripts/merge_note_urls.mjs %O %A %B"
 
             # 最新の main に載せ直して push（最大3回）。衝突は自動で握りつぶさず失敗として扱う
             PUSH_SUCCESS=false
@@ -128,8 +119,28 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
+      # デプロイ成功後のみ X へ投稿（未デプロイ記事の404リンク投稿を根本遮断）
+      - name: Auto Tweet to X
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
+        continue-on-error: true
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: |
+          node scripts/auto_tweet_x.mjs
+          if git diff --quiet scripts/publish_history.json; then
+            echo "No publish history update."
+          else
+            git add scripts/publish_history.json
+            git commit -m "chore: record published tweet history [skip ci]" || true
+            git pull --rebase origin main || true
+            git push origin main || true
+          fi
+
       # 新しい記事が出るのは定期実行だけ。コード修正の push ごとに同じ URL を再送しない
       - name: Notify Search Engines (IndexNow)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
         continue-on-error: true
         run: node scripts/ping_search_engines.mjs

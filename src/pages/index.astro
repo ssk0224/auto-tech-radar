@@ -289,12 +289,16 @@ const posts = getArticles() as any[];
   <script is:inline>
     // Slack共有ボタン（タイトル・URLは data 属性から読むため、文字列組み立てによるエスケープ不備が起きない）
     document.querySelectorAll(".slack-share-btn").forEach((btn) => {
+      const orig = btn.innerText;
+      let timer = null;
       btn.addEventListener("click", () => {
         const text = "【注目OSS】" + (btn.getAttribute("data-title") || "") + " \nhttps://ssk0224.github.io" + (btn.getAttribute("data-url") || "");
         navigator.clipboard.writeText(text).then(() => {
-          const orig = btn.innerText;
+          if (timer) clearTimeout(timer);
           btn.innerText = "✓ コピー完了！";
-          setTimeout(() => { btn.innerText = orig; }, 2000);
+          timer = setTimeout(() => { btn.innerText = orig; }, 2000);
+        }).catch(() => {
+          prompt('以下のテキストをコピーしてください:', text);
         });
       });
     });

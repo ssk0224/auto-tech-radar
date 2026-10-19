@@ -15,7 +15,7 @@ published: false
 ## 解決する主要な課題とアーキテクチャ
 ```mermaid
 flowchart LR
-    CLI["brew install <formula>"] --> Formula["Formula Ruby定義"]
+    CLI["brew install formula_name"] --> Formula["Formula Ruby定義"]
     Formula --> Bottle["ビルド済みバイナリ (Bottles)"]
     Bottle --> Target["/opt/homebrew または /usr/local 配置"]
 ```

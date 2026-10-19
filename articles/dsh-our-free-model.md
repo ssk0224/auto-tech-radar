@@ -72,7 +72,7 @@ graph TD
     F --> P[DeepSeek V4.1 Flash]
     G --> Q[Kimi K3]
     H --> R[EACモデル]
-    I --> S[NVIDIA NIM, OpenRouter, Groq, Gemini, etc.]
+    I --> S["NVIDIA NIM, OpenRouter, Groq, Gemini, etc."]
 
     P --> U[AIモデルプロバイダー]
     Q --> U

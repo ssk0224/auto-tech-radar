@@ -199,8 +199,9 @@ const ossList = posts.map(p => {
 
     function calculateEstimate() {
       const ossSelect = document.getElementById('oss-select');
-      const selectedOss = ossSelect.options[ossSelect.selectedIndex].text.split(' (')[0];
-      const infra = document.querySelector('input[name="infra"]:checked').value;
+      const selectedOption = ossSelect && ossSelect.selectedIndex >= 0 ? ossSelect.options[ossSelect.selectedIndex] : null;
+      const selectedOss = selectedOption ? selectedOption.text.split(' (')[0] : 'OSS';
+      const infra = document.querySelector('input[name="infra"]:checked')?.value || 'docker';
 
       let basePrice = 600000;
       let weeks = 3;
@@ -213,38 +214,44 @@ const ossList = posts.map(p => {
         weeks += 3;
       }
 
-      if (document.getElementById('req-auth').checked) { basePrice += 200000; weeks += 1; }
-      if (document.getElementById('req-rag').checked) { basePrice += 350000; weeks += 2; }
-      if (document.getElementById('req-ui').checked) { basePrice += 250000; weeks += 1.5; }
-      if (document.getElementById('req-sec').checked) { basePrice += 300000; weeks += 1.5; }
-      if (document.getElementById('req-api').checked) { basePrice += 200000; weeks += 1; }
+      if (document.getElementById('req-auth')?.checked) { basePrice += 200000; weeks += 1; }
+      if (document.getElementById('req-rag')?.checked) { basePrice += 350000; weeks += 2; }
+      if (document.getElementById('req-ui')?.checked) { basePrice += 250000; weeks += 1.5; }
+      if (document.getElementById('req-sec')?.checked) { basePrice += 300000; weeks += 1.5; }
+      if (document.getElementById('req-api')?.checked) { basePrice += 200000; weeks += 1; }
 
       // 月次保守は一括費用ではなく月額のランニング費用として別計上する（削減額から差し引く）
-      const maintMonthly = document.getElementById('req-maint').checked ? MAINT_MONTHLY : 0;
+      const maintMonthly = document.getElementById('req-maint')?.checked ? MAINT_MONTHLY : 0;
 
       const months = (weeks / 4).toFixed(1);
       // 削減額は利用者が入力した月額SaaS費用だけから算出する（固定値は使わない）
-      const saasMonthly = Math.max(0, Number(document.getElementById('current-saas-cost').value) || 0);
+      const saasCostEl = document.getElementById('current-saas-cost');
+      const saasMonthly = Math.max(0, Number(saasCostEl ? saasCostEl.value : 0) || 0);
       const monthlySaving = saasMonthly - maintMonthly;
       const annualSaving = monthlySaving * 12;
 
-      document.getElementById('result-price').textContent = '¥' + basePrice.toLocaleString();
-      document.getElementById('result-maint').textContent = maintMonthly > 0 ? '＋ 月次保守 ¥' + maintMonthly.toLocaleString() + ' /月' : '';
-      document.getElementById('result-timeline').textContent = '約 ' + months + ' ヶ月';
+      const resultPriceEl = document.getElementById('result-price');
+      if (resultPriceEl) resultPriceEl.textContent = '¥' + basePrice.toLocaleString();
+      const resultMaintEl = document.getElementById('result-maint');
+      if (resultMaintEl) resultMaintEl.textContent = maintMonthly > 0 ? '＋ 月次保守 ¥' + maintMonthly.toLocaleString() + ' /月' : '';
+      const resultTimelineEl = document.getElementById('result-timeline');
+      if (resultTimelineEl) resultTimelineEl.textContent = '約 ' + months + ' ヶ月';
       const roiEl = document.getElementById('result-roi');
       const paybackEl = document.getElementById('result-payback');
-      if (saasMonthly <= 0) {
-        roiEl.textContent = '月額費用を入力してください';
-        paybackEl.textContent = '—';
-      } else {
-        roiEl.textContent = (annualSaving >= 0 ? '約 ¥' : '約 -¥') + Math.abs(annualSaving).toLocaleString() + ' /年（試算）';
-        paybackEl.textContent = monthlySaving > 0 ? '約 ' + (basePrice / monthlySaving).toFixed(1) + ' ヶ月（試算）' : '回収できない見込み';
+      if (roiEl && paybackEl) {
+        if (saasMonthly <= 0) {
+          roiEl.textContent = '月額費用を入力してください';
+          paybackEl.textContent = '—';
+        } else {
+          roiEl.textContent = (annualSaving >= 0 ? '約 ¥' : '約 -¥') + Math.abs(annualSaving).toLocaleString() + ' /年（試算）';
+          paybackEl.textContent = monthlySaving > 0 ? '約 ' + (basePrice / monthlySaving).toFixed(1) + ' ヶ月（試算）' : '回収できない見込み';
+        }
       }
 
       // 相談リンク更新（環境依存ゼロの相対パス解決）
       const consultLink = document.getElementById('consult-link');
       if (consultLink) {
-        const rootPath = window.location.pathname.replace(/\/estimate\/?$/, '');
+        const rootPath = window.location.pathname.replace(/\/estimate(\/index\.html)?\/?$/, '');
         consultLink.href = `${rootPath}/contact/?source=estimate&plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
       }
     }
@@ -252,18 +259,21 @@ const ossList = posts.map(p => {
     document.querySelectorAll('#oss-select, input[type="radio"], input[type="checkbox"]').forEach(el => {
       el.addEventListener('change', calculateEstimate);
     });
-    document.getElementById('current-saas-cost').addEventListener('input', calculateEstimate);
+    const saasCostInput = document.getElementById('current-saas-cost');
+    if (saasCostInput) saasCostInput.addEventListener('input', calculateEstimate);
 
     const copyBtn = document.getElementById('copy-proposal-btn');
     if (copyBtn) {
+      let copyTimer = null;
       copyBtn.addEventListener('click', () => {
         const ossSelect = document.getElementById('oss-select');
-        const selectedOss = ossSelect.options[ossSelect.selectedIndex].text.split(' (')[0];
-        const price = document.getElementById('result-price').textContent;
-        const timeline = document.getElementById('result-timeline').textContent;
-        const payback = document.getElementById('result-payback').textContent;
-        const saving = document.getElementById('result-roi').textContent;
-        const maint = document.getElementById('result-maint').textContent;
+        const selectedOption = ossSelect && ossSelect.selectedIndex >= 0 ? ossSelect.options[ossSelect.selectedIndex] : null;
+        const selectedOss = selectedOption ? selectedOption.text.split(' (')[0] : 'OSS';
+        const price = document.getElementById('result-price')?.textContent || '—';
+        const timeline = document.getElementById('result-timeline')?.textContent || '—';
+        const payback = document.getElementById('result-payback')?.textContent || '—';
+        const saving = document.getElementById('result-roi')?.textContent || '—';
+        const maint = document.getElementById('result-maint')?.textContent || '';
 
         const md = `# 【社内稟議・概算見積書】${selectedOss} 活用・受託開発提案書\n\n` +
           `■ 案件名: ${selectedOss} を活用した社内専用AI・DX基盤構築プロジェクト\n` +
@@ -279,14 +289,18 @@ const ossList = posts.map(p => {
           `■ 試算元: Auto Tech Radar Intelligence (https://ssk0224.github.io/auto-tech-radar/estimate/)\n`;
 
         navigator.clipboard.writeText(md).then(() => {
+          if (copyTimer) clearTimeout(copyTimer);
           copyBtn.textContent = '✓ 提案書Markdownコピー完了！';
           copyBtn.style.background = '#065f46';
           copyBtn.style.color = '#34d399';
-          setTimeout(() => {
+          copyTimer = setTimeout(() => {
             copyBtn.textContent = '📋 稟議用・見積書Markdownをコピー';
             copyBtn.style.background = '#10b981';
             copyBtn.style.color = '#042f2e';
           }, 2500);
+        }).catch((err) => {
+          console.warn('Clipboard write failed:', err);
+          prompt('以下のテキストをコピーしてください:', md);
         });
       });
     }

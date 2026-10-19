@@ -85,7 +85,9 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
           const errBody = await res.text().catch(() => "");
           console.warn(`[GitHub API Rate Limit] Status ${res.status} (remaining: ${remaining}, retry-after: ${retryAfter}): ${errBody.slice(0, 120)}`);
 
-          const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : 5;
+          const resetTime = parseInt(res.headers.get("x-ratelimit-reset") || "0", 10);
+          const diff = resetTime ? Math.max(1, resetTime - Math.floor(Date.now() / 1000)) : 5;
+          const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : diff;
           if (attempts < maxAttempts && waitSeconds <= 10) {
             console.log(`Waiting ${waitSeconds}s for GitHub rate limit reset...`);
             await sleep(waitSeconds * 1000);
@@ -362,14 +364,26 @@ function sanitizeMarkdownContent(raw) {
   }).join('\n');
 }
 
-// Mermaidダイアグラム構文の完全自動補正（括弧・コロンの引用符付与）
+// Mermaidダイアグラム構文の完全自動補正（括弧・コロンの引用符付与、HTML実体参照解除、タグサニタイズ）
 function fixMermaidInContent(content) {
   return content.replace(/```mermaid([\s\S]*?)```/g, (match, code) => {
+    // 1. HTML実体参照のエスケープ解除
+    code = code.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+    // 2. <formula> などのHTMLタグ風プレースホルダーを formula_name 等に置換（<br>や<br/>は保持）
+    code = code.replace(/<(?!\/?br\s*\/?)([a-zA-Z0-9_-]+)>/g, '$1_name');
     const lines = code.split('\n');
     const fixedLines = lines.map(line => {
       let l = line;
+      // subgraph id [label] または subgraph "label"
       l = l.replace(/^(\s*subgraph\s+)([a-zA-Z0-9_\-]+)\s*\[([^"\]]+)\]/g, (m, prefix, id, label) => {
         return `${prefix}${id} ["${label.trim()}"]`;
+      });
+      // subgraph Label with spaces (IDなし) -> subgraph ID ["Label with spaces"]
+      l = l.replace(/^(\s*subgraph\s+)([^"\[\n\r]+)$/g, (m, prefix, label) => {
+        const trimmed = label.trim();
+        if (!trimmed || trimmed.startsWith('"')) return m;
+        const safeId = trimmed.replace(/[^a-zA-Z0-9_-]/g, '_');
+        return `${prefix}${safeId} ["${trimmed}"]`;
       });
       l = l.replace(/([a-zA-Z0-9_]+)\[\(([^"\)\n]+)\)\]/g, (m, id, label) => {
         if (!label.startsWith('"')) return `${id}[("${label.trim()}")]`;
@@ -379,11 +393,11 @@ function fixMermaidInContent(content) {
         if (!label.startsWith('"')) return `${id}(["${label.trim()}"])`;
         return m;
       });
-      l = l.replace(/([a-zA-Z0-9_\-]+)\[([^"\]\n]*[\(\)\:\/][^"\]\n]*)\]/g, (m, id, label) => {
+      l = l.replace(/([a-zA-Z0-9_\-]+)\[([^"\]\n]*[\(\)\:\/\<\>][^"\]\n]*)\]/g, (m, id, label) => {
         if (label.startsWith('(') && label.endsWith(')')) return m;
         return `${id}["${label.trim()}"]`;
       });
-      l = l.replace(/([a-zA-Z0-9_\-]+)\(([^"\)\n]*[\(\)\:\/][^"\)\n]*)\)/g, (m, id, label) => {
+      l = l.replace(/([a-zA-Z0-9_\-]+)\(([^"\)\n]*[\(\)\:\/\<\>][^"\)\n]*)\)/g, (m, id, label) => {
         return `${id}("${label.trim()}")`;
       });
       return l;
@@ -436,7 +450,7 @@ stars: ${repo.stargazers_count}
 
 ${webContent}`;
   } else if (!webContent.includes("layout:")) {
-    webContent = webContent.replace(/^---\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
+    webContent = webContent.replace(/^---\r?\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
   }
 
   // サニタイズ＆品質不変条件ガード
@@ -448,14 +462,27 @@ ${webContent}`;
     throw new Error("Web記事にMermaid構成図が含まれていません");
   }
 
+  // バッククォートの不整合があれば補正
+  const backtickCount = (webContent.match(/```/g) || []).length;
+  if (backtickCount % 2 !== 0) {
+    webContent += "\n```\n";
+  }
+
   noteContent = sanitizeMarkdownContent(noteContent);
 
-  const slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+  let slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-").replace(/^-+|-+$/g, "");
+  if (!slug || slug.length === 0) {
+    slug = `repo-${repo.id || Math.floor(Math.random() * 100000)}`;
+  }
   xContent = xContent.replace(/REPO_SLUG/g, slug);
 
   // X投稿文にワンクリック投稿リンクを付加（厳密な140文字制限・リンク保証）
   let enhancedXContent = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
   const tweets = xContent.split(/\[TWEET \d+\]/gi).map((t) => t.trim()).filter(Boolean);
+
+  if (tweets.length === 0) {
+    throw new Error("X投稿スレッドが正しく生成されていません（ツイート数不足）");
+  }
 
   tweets.forEach((rawTweet, idx) => {
     let tweet = rawTweet.replace(/REPO_SLUG/g, slug);
@@ -586,6 +613,11 @@ async function run() {
     attempts++;
     console.log(`\n[${generatedCount + 1}/${TARGET_NEW_COUNT}] Processing: ${repo.full_name}`);
     const readme = await getReadme(repo.owner.login, repo.name);
+    if (!readme || readme.length < 50) {
+      console.log(`Skip (no readme or too short): ${repo.full_name}`);
+      rejections.push(`${repo.full_name}: READMEが不十分`);
+      continue;
+    }
 
     try {
       const result = await generateAllContent(repo, readme);
@@ -731,6 +763,15 @@ ${zennCta(slug)}
     } catch (err) {
       console.error(`Failed to process ${repo.full_name}: ${err.message}`);
       rejections.push(`${repo.full_name}: ${err.message}`);
+      // ロールバック: 途中で失敗した場合は不完全なファイルを削除して安全な状態を維持
+      const cleanupTargets = [
+        webFile, noteFile, `${noteFile}.paid.enc`, `${noteFile}.paid.json`,
+        xFile, zennFile, path.join(articlesDir, `${slug}.md`), path.join(articlesDir, `${slug}-tech-radar.md`),
+        path.join(path.resolve("public/ogp"), `${slug}.png`)
+      ];
+      for (const f of cleanupTargets) {
+        try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
+      }
     }
   }
 

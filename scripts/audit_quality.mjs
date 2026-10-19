@@ -5,6 +5,8 @@ import { execSync } from 'child_process';
 import { findProLeaks } from './utils/pro_boundary.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { splitPaid, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
+import { isNoise } from './utils/noise_filter.mjs';
+import { findForbiddenClaims } from './utils/claims_check.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -61,6 +63,41 @@ console.log(`  全 ${articles.length} 本の技術レポートを精密検査中
 articles.forEach(file => {
   const slug = file.replace('.md', '');
   const content = fs.readFileSync(path.join(radarDir, file), 'utf8');
+
+  // A0. YAML Frontmatter 厳格構造監査
+  const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fmMatch) {
+    console.error(`  ❌ [MISSING FRONTMATTER] ${file}: YAML frontmatter (---) が存在しません`);
+    errorCount++;
+  } else {
+    const fmLines = fmMatch[1].split(/\r?\n/);
+    const fm = {};
+    for (const l of fmLines) {
+      const kv = l.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/);
+      if (kv) {
+        let v = kv[2].trim();
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+        fm[kv[1]] = v;
+      }
+    }
+
+    if (fm.stars === undefined || fm.stars === '' || isNaN(Number(fm.stars)) || Number(fm.stars) < 0) {
+      console.error(`  ❌ [INVALID/MISSING STARS] ${file}: stars フィールドが欠落しているか無効な数値です (stars: ${fm.stars})`);
+      errorCount++;
+    }
+    if (!fm.description || fm.description.trim().length === 0) {
+      console.error(`  ❌ [MISSING DESCRIPTION] ${file}: description フィールドが空または未定義です`);
+      errorCount++;
+    }
+    if (!fm.title || fm.title.trim().length === 0) {
+      console.error(`  ❌ [MISSING TITLE] ${file}: title フィールドが空または未定義です`);
+      errorCount++;
+    }
+    if (!fm.pubDate || !/^\d{4}-\d{2}-\d{2}$/.test(fm.pubDate)) {
+      console.error(`  ❌ [INVALID PUBDATE] ${file}: pubDate が YYYY-MM-DD 形式ではありません (${fm.pubDate})`);
+      errorCount++;
+    }
+  }
 
   // A. PNG サムネイル存在チェック (1200x630)
   const pngPath = path.join(ogpDir, `${slug}.png`);
@@ -399,6 +436,15 @@ if (fs.existsSync(noteDraftsDir)) {
       noteErrors++;
       errorCount++;
     }
+    const placeholderIdx = content.indexOf('## 🔒 ここから先は有料エリアです');
+    if (placeholderIdx !== -1) {
+      const tailText = content.substring(placeholderIdx);
+      if (tailText.includes('mcpServers') || tailText.includes('docker-compose') || tailText.includes('■ 案件名:') || tailText.includes('【SaaS構成手順') || tailText.includes('自社SaaS構築手順')) {
+        console.error(`  ❌ [PRO LEAK IN NOTE TAIL PART] ${file}: 有料プレースホルダーより後の末尾フッターに有料本文が漏洩しています！`);
+        noteErrors++;
+        errorCount++;
+      }
+    }
     if (!content.includes('経費') && !content.includes('領収書')) {
       console.error(`  ❌ [MISSING ROI/EXPENSE HOOK] ${file}: 経費精算/ROIフックが抜けています！`);
       noteErrors++;
@@ -456,7 +502,8 @@ if (fs.existsSync(xPostsDir)) {
 console.log('▶ [10/11] Mermaid ダイアグラム構文完全性 ＆ レンダリング保証監査...');
 const checkMermaidFiles = [
   ...fs.readdirSync(radarDir).filter(f => f.endsWith('.md')).map(f => path.join(radarDir, f)),
-  ...(fs.existsSync(zennDir) ? fs.readdirSync(zennDir).filter(f => f.endsWith('.md')).map(f => path.join(zennDir, f)) : [])
+  ...(fs.existsSync(zennDir) ? fs.readdirSync(zennDir).filter(f => f.endsWith('.md')).map(f => path.join(zennDir, f)) : []),
+  ...(fs.existsSync(path.join(rootDir, 'articles')) ? fs.readdirSync(path.join(rootDir, 'articles')).filter(f => f.endsWith('.md')).map(f => path.join(rootDir, 'articles', f)) : [])
 ];
 let mermaidErrors = 0;
 checkMermaidFiles.forEach(fp => {
@@ -464,15 +511,24 @@ checkMermaidFiles.forEach(fp => {
   const content = fs.readFileSync(fp, 'utf8');
   const mermaidBlocks = content.match(/```mermaid[\s\S]*?```/g) || [];
   for (const block of mermaidBlocks) {
-    // 1. HTMLエスケープ漏れ (--&gt;) チェック
-    if (block.includes('&gt;') || block.includes('&lt;')) {
-      console.error(`  ❌ [MERMAID HTML ENTITY] ${fileRel}: HTML実体参照 (&gt;/&lt;) が含まれています`);
+    // 1. HTMLエスケープ漏れ (&gt;, &lt;, &amp;, &quot;) チェック
+    const entityMatch = block.match(/&(?:gt|lt|amp|quot|#\d+|#x[0-9a-fA-F]+);/g);
+    if (entityMatch) {
+      console.error(`  ❌ [MERMAID HTML ENTITY] ${fileRel}: HTML実体参照 (${[...new Set(entityMatch)].join(', ')}) が含まれています`);
       mermaidErrors++;
       errorCount++;
     }
-    // 2. subgraph の構文チェック（括弧やスラッシュ、スペースがクォートなしで使われていないか）
+    // 2. 未エスケープの HTML タグ (<br>, <br/> 以外) チェック
+    const badTags = block.match(/<(?!\/?br\s*\/?)(?!b>)(?!i>)(?!--)[a-zA-Z0-9_-]+[^>]*>/g);
+    if (badTags) {
+      console.error(`  ❌ [MERMAID UNESCAPED TAG] ${fileRel}: 不正なHTMLタグ (${[...new Set(badTags)].join(', ')}) が検出されました`);
+      mermaidErrors++;
+      errorCount++;
+    }
+    // 3. subgraph の構文チェック（括弧やスラッシュ、スペースがクォートなしで使われていないか）
     const lines = block.split('\n');
-    for (const line of lines) {
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li];
       const subMatch = line.match(/^\s*subgraph\s+([^\[\n]+)$/);
       if (subMatch) {
         const rawLabel = subMatch[1].trim();
@@ -483,6 +539,19 @@ checkMermaidFiles.forEach(fp => {
             mermaidErrors++;
             errorCount++;
           }
+        }
+      }
+      // 4. 特殊文字を含む未クォートノードラベルの検出
+      // ※ [("...")] (シリンダー) や (["..."]) (スタジアム) や [["..."]] は正常な Mermaid 記法
+      // 未クォートノード: ID[label] where label does not start with " and does not start with ( or [
+      const unquotedNodeMatch = line.match(/\b([A-Za-z0-9_-]+)\s*\[([^"\[\(\]\n\r][^\]\n\r]*)\]/);
+      if (unquotedNodeMatch) {
+        const [, id, rawInner] = unquotedNodeMatch;
+        // 未クォートで <br> や 括弧、コロン、セミコロン、アンパサンド、カンマを含む場合はエラー
+        if (rawInner.includes('<br>') || /[\(\)\:\;\&\,]/.test(rawInner)) {
+          console.error(`  ❌ [MERMAID UNQUOTED NODE] ${fileRel} Line ${li + 1}: ${id}[${rawInner}] は特殊記号を含むため ${id}["${rawInner}"] にしてください`);
+          mermaidErrors++;
+          errorCount++;
         }
       }
     }
@@ -586,6 +655,69 @@ if (desktopDir) {
   }
 } else {
   console.log(`  ℹ デスクトップ起動導線監査: 非Windows/CI環境のためスキップ。\n`);
+}
+
+// 14. 【非ノイズ記事 note_urls ＆ note_drafts 網羅性 ＆ データ完全性 監査】
+console.log('▶ [14/14] 非ノイズ記事 note_urls ＆ note_drafts 網羅性・データ完全性監査...');
+const noteUrlsFile = path.join(rootDir, 'scripts', 'note_urls.json');
+let noteUrlsErrors = 0;
+if (fs.existsSync(noteUrlsFile)) {
+  const rawNoteUrls = fs.readFileSync(noteUrlsFile, 'utf8');
+
+  // 重複キーの検査
+  const seenKeys = new Set();
+  for (const line of rawNoteUrls.split(/\r?\n/)) {
+    const km = line.match(/^  "([^"]+)"\s*:\s*\{/);
+    if (km) {
+      if (seenKeys.has(km[1])) {
+        console.error(`  ❌ [DUPLICATE KEY IN NOTE URLS] note_urls.json に重複キーが存在します: "${km[1]}"`);
+        noteUrlsErrors++;
+        errorCount++;
+      }
+      seenKeys.add(km[1]);
+    }
+  }
+
+  const noteUrlsData = JSON.parse(rawNoteUrls);
+
+  // A. 全非ノイズ記事が note_urls.json および note_drafts に100%存在することを保証
+  const nonNoiseArticles = articles.map(f => f.replace('.md', '')).filter(s => !isNoise(s));
+  nonNoiseArticles.forEach(slug => {
+    if (!noteUrlsData[slug]) {
+      console.error(`  ❌ [MISSING NOTE URL] 非ノイズ記事 "${slug}" が scripts/note_urls.json に登録されていません`);
+      noteUrlsErrors++;
+      errorCount++;
+    }
+    const draftPath = path.join(rootDir, 'note_drafts', `${slug}_note.md`);
+    if (!fs.existsSync(draftPath)) {
+      console.error(`  ❌ [MISSING NOTE DRAFT] 非ノイズ記事 "${slug}" の原稿 note_drafts/${slug}_note.md が存在しません`);
+      noteUrlsErrors++;
+      errorCount++;
+    }
+  });
+
+  // B. note_urls.json のタイトル・URL・禁止表現検査
+  for (const [slug, item] of Object.entries(noteUrlsData)) {
+    if (item.title && item.title.startsWith('#')) {
+      console.error(`  ❌ [MALFORMED TITLE] note_urls.json [${slug}]: タイトルに "# " プレフィックスが含まれています: "${item.title}"`);
+      noteUrlsErrors++;
+      errorCount++;
+    }
+    const claims = findForbiddenClaims(item.title);
+    if (claims.length) {
+      console.error(`  ❌ [FORBIDDEN CLAIM IN NOTE URLS] note_urls.json [${slug}]: 禁止表現が検出されました (${claims.join(', ')})`);
+      noteUrlsErrors++;
+      errorCount++;
+    }
+    if (!/^https:\/\/note\.com\/[\w-]+\/n\/[a-zA-Z0-9]+$/.test(item.url)) {
+      console.error(`  ❌ [INVALID NOTE URL] note_urls.json [${slug}]: URL形式が不正です: "${item.url}"`);
+      noteUrlsErrors++;
+      errorCount++;
+    }
+  }
+}
+if (noteUrlsErrors === 0) {
+  console.log(`  ✓ note_urls ＆ 原稿網羅性監査合格: 全非ノイズ記事がnote_urls・note_draftsと100%連動、タイトル・URL規格準拠。\n`);
 }
 
 console.log('===============================================================================');

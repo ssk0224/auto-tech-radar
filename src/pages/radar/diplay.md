@@ -40,7 +40,7 @@ graph TD
         subgraph DiPlayEngine ["DiPlay Internal Stack"]
             Auth[Local MFi Auth Emulator]
             StreamReceiver["H.264/AAC Video & Audio Pipe"]
-            AudioBuffer[Jitter Buffer & Opus Encoder]
+            AudioBuffer["Jitter Buffer & Opus Encoder"]
             InputHandler["Touch / Steering / HID Bridge"]
         end
         MediaCodec["Android MediaCodec / SurfaceView"]

@@ -94,7 +94,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           <label for="form-company" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
             貴社名・組織名 <span style="color: #ef4444;">*</span>
           </label>
-          <input type="text" id="form-company" required placeholder="例: 株式会社〇〇" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
+          <input type="text" id="form-company" name="company" required placeholder="例: 株式会社〇〇" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
@@ -102,13 +102,13 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             <label for="form-name" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               ご担当者様お名前 <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="form-name" required placeholder="例: 山田 太郎" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
+            <input type="text" id="form-name" name="name" required placeholder="例: 山田 太郎" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
           </div>
           <div>
             <label for="form-email" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               メールアドレス <span style="color: #ef4444;">*</span>
             </label>
-            <input type="email" id="form-email" required placeholder="name@company.com" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
+            <input type="email" id="form-email" name="email" required placeholder="name@company.com" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
           </div>
         </div>
 
@@ -117,7 +117,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             <label for="form-type" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               ご相談種別
             </label>
-            <select id="form-type" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
+            <select id="form-type" name="type" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
               <option value="受託開発・自社専用AI構築">🤖 受託開発・自社専用AIエージェント構築</option>
               <option value="SaaS代替・オンプレミス導入">🚀 商用SaaS代替・脱課金セルフホスト導入</option>
               <option value="ローカル推論基盤・インフラ構築">⚡ ローカル推論基盤・GPUインフラ構築</option>
@@ -129,7 +129,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             <label for="form-budget" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               想定予算規模
             </label>
-            <select id="form-budget" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
+            <select id="form-budget" name="budget" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
               <option value="80万〜150万円">80万円 〜 150万円</option>
               <option value="150万〜250万円">150万円 〜 250万円</option>
               <option value="250万円以上">250万円以上</option>
@@ -143,7 +143,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           <label for="form-message" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
             ご相談内容・対象リポジトリ詳細 <span style="color: #ef4444;">*</span>
           </label>
-          <textarea id="form-message" rows="5" required placeholder="検討されているリポジトリ名（例: pinvou-agent）、解決したい業務課題、現在の開発環境などをご記入ください。" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.8rem 1rem; color: #fff; font-size: 0.92rem; outline: none; line-height: 1.6;"></textarea>
+          <textarea id="form-message" name="message" rows="5" required placeholder="検討されているリポジトリ名（例: pinvou-agent）、解決したい業務課題、現在の開発環境などをご記入ください。" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.8rem 1rem; color: #fff; font-size: 0.92rem; outline: none; line-height: 1.6;"></textarea>
         </div>
 
         <p style="margin: 0; font-size: 0.8rem; color: #94a3b8;">送信内容の取り扱いは<a href={`${baseUrl}/privacy/`} style="color: #60a5fa; text-decoration: underline;">プライバシーポリシー</a>をご確認ください。送信により同意いただいたものとします。</p>
@@ -208,6 +208,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       } else if (plan === 'corporate-license') {
         // 法人経費・チームライセンス経由
         if (typeEl) typeEl.value = 'その他';
+        if (budgetEl) budgetEl.value = '要相談・見積もり希望';
         if (msgEl) {
           msgEl.value = `【法人一括ライセンス・チーム導入のご相談】\n検討プラン: 複数名での利用\n\nチーム利用人数、社内稟議手続き、法人契約の手続きについてご案内をお願いいたします。`;
         }
@@ -284,18 +285,20 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           console.warn('FormSubmit AJAX notice:', err);
         }
 
-        form.style.display = 'none';
+        const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
         if (successMsg) {
           successMsg.style.display = 'block';
           if (isSuccess) {
+            form.style.display = 'none';
             successMsg.innerHTML = `
               <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #34d399;">✓ お問い合わせを直接送信完了しました！</div>
               <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
-                ご入力いただいた内容が担当者窓口へ直接送信されました。1営業日以内に <strong>${email}</strong> 宛にご返信・日程調整のご案内をお送りいたします。<br/>
+                ご入力いただいた内容が担当者窓口へ直接送信されました。1営業日以内に <strong>${esc(email)}</strong> 宛にご返信・日程調整のご案内をお送りいたします。<br/>
                 <span style="font-size: 0.8rem; color: #94a3b8;">※バックアップとして、以下のボタンからGmailや手動送信も可能です。</span>
               </p>
               <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" rel="noopener noreferrer" style="background: #ea4335; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
                   📮 Gmailで確認・再送
                 </a>
                 <button type="button" id="copy-consult-btn" style="background: #374151; color: #fff; border: 1px solid #4b5563; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
@@ -304,16 +307,20 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
               </div>
             `;
           } else {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = '📨 送信を再試行する';
+            }
             successMsg.style.borderColor = '#fbbf24';
             successMsg.style.background = 'rgba(245, 158, 11, 0.15)';
             successMsg.innerHTML = `
               <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #fbbf24;">⚡ ワンクリックでメール送信を完了してください</div>
               <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
                 ブラウザ環境（アドブロッカー等）によりフォームAPI送信が保留された可能性があります。<br/>
-                ご入力内容は保持されていますので、以下の<strong>「Gmailで送信」</strong>または<strong>「メーラーで送信」</strong>を1クリックするだけで送信完了します。
+                ご入力内容はフォームに保持されています。下の<strong>「送信を再試行する」</strong>を押すか、以下の<strong>「Gmailで送信」</strong>または<strong>「メーラーで送信」</strong>を1クリックするだけで送信完了します。
               </p>
               <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" style="background: #ea4335; color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; text-decoration: none;">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${targetEmail}&su=${subject}&body=${body}" target="_blank" rel="noopener noreferrer" style="background: #ea4335; color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; text-decoration: none;">
                   📮 Gmailで送信する →
                 </a>
                 <a href="mailto:${targetEmail}?subject=${subject}&body=${body}" style="background: #2563eb; color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; text-decoration: none;">
@@ -328,10 +335,15 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
           const copyConsultBtn = document.getElementById('copy-consult-btn');
           if (copyConsultBtn) {
+            let copyTimer = null;
             copyConsultBtn.addEventListener('click', () => {
-              navigator.clipboard.writeText(`宛先: ${targetEmail}\n件名: 【受託開発・導入相談】${company}様\n\n${rawBody}`).then(() => {
+              const clipText = `宛先: ${targetEmail}\n件名: 【受託開発・導入相談】${company}様\n\n${rawBody}`;
+              navigator.clipboard.writeText(clipText).then(() => {
+                if (copyTimer) clearTimeout(copyTimer);
                 copyConsultBtn.textContent = '✓ コピー完了！';
-                setTimeout(() => { copyConsultBtn.textContent = '📋 相談内容をコピー'; }, 2000);
+                copyTimer = setTimeout(() => { copyConsultBtn.textContent = '📋 相談内容をコピー'; }, 2000);
+              }).catch(() => {
+                prompt('以下の内容をコピーしてください:', clipText);
               });
             });
           }

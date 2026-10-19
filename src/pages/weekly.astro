@@ -114,19 +114,28 @@ const topPosts = (getArticles() as any[])
   <script is:inline>
     const copyBtn = document.getElementById('copy-summary-btn');
     if (copyBtn) {
+      let copyTimer = null;
       copyBtn.addEventListener('click', () => {
         let text = `【今週取り上げたOSS（週間ダイジェスト）】\n\n`;
-        document.querySelectorAll('h3 a').forEach((a, idx) => {
-          text += `${idx + 1}. ${a.textContent.trim()} - ${a.href}\n`;
-        });
+        const items = document.querySelectorAll('h3 a');
+        if (items.length === 0) {
+          text += `直近7日間に公開された新着OSS記事はありません。\n`;
+        } else {
+          items.forEach((a, idx) => {
+            text += `${idx + 1}. ${a.textContent.trim()} - ${a.href}\n`;
+          });
+        }
         text += `\n▼ 詳細レポート・商用化チートシート\nhttps://ssk0224.github.io/auto-tech-radar/weekly/\n`;
         navigator.clipboard.writeText(text).then(() => {
+          if (copyTimer) clearTimeout(copyTimer);
           copyBtn.textContent = '✓ 週報テキストをコピー完了！';
           copyBtn.style.color = '#10b981';
-          setTimeout(() => {
+          copyTimer = setTimeout(() => {
             copyBtn.textContent = '📋 社内チャット・週報用にコピー';
             copyBtn.style.color = '#93c5fd';
           }, 2500);
+        }).catch(() => {
+          prompt('以下の週報テキストをコピーしてください:', text);
         });
       });
     }

@@ -44,18 +44,18 @@ graph TD
     end
 
     subgraph CoreEngine ["Core Engine & Logic"]
-        B --> C[Project & Property Tree]
-        B --> D[Keyframe & Animation Engine]
+        B --> C["Project & Property Tree"]
+        B --> D["Keyframe & Animation Engine"]
         B --> E[Effect Processing Engine]
         B --> F[3D Engine]
-        B --> G[Render Queue & Export Module]
+        B --> G["Render Queue & Export Module"]
     end
 
     subgraph DataMediaHandling ["Data & Media Handling"]
         C --> H["File I/O (.ecproj JSON)"]
         D --> I[Time Model]
         E --> J[306 Effects Library]
-        F --> K[Camera & Light Management]
+        F --> K["Camera & Light Management"]
         G --> L["Pure Rust Codecs (H.264, ProRes, AV1, Lottie)"]
     end
 

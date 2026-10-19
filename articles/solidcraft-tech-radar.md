@@ -44,7 +44,7 @@ graph TD
     subgraph Core_Engine ["SolidCraft Engine: L4 / L5"]
         MCPServer["MCP Server stdio / TCP"]
         CommandRegistry["Command Registry: Everything is a Command"]
-        SessionMgr[Document & Session Manager]
+        SessionMgr["Document & Session Manager"]
     end
 
     subgraph CAD_Kernel ["Parametric Kernel: L0 - L3"]

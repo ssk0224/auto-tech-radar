@@ -44,7 +44,7 @@ graph TD
     B -- "Typed Question (Choice, Score, Noul)" --> C[Hugging Face Rust Tokenizer]
     C -- "Tokenized Input" --> D[MLX Bidirectional Encoder]
     D -- "Encoded Representation" --> E[MLX Decision Heads]
-    E -- "Probabilities" --> F[Calibration & Result Formatting]
+    E -- "Probabilities" --> F["Calibration & Result Formatting"]
     F -- "Structured Decision (JSON)" --> G[アプリケーション]
 
     subgraph AppleSilicon ["Apple Silicon Device (M1/M2/M3)"]

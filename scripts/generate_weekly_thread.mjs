@@ -60,14 +60,14 @@ if (topPosts.length === 0) {
   process.exit(1);
 }
 
-const now = new Date();
-const today = now.toISOString().split('T')[0];
-const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+const today = jstNow.toISOString().split('T')[0];
+const timeStr = `${String(jstNow.getUTCHours()).padStart(2, '0')}:${String(jstNow.getUTCMinutes()).padStart(2, '0')}`;
 const outputFile = path.join(xDir, `weekly_summary_${today}.txt`);
 
 // X重複検知を100%回避する動的フィーチャー（上位2つの具体的なOSS名を埋め込み）
 const featuredNames = topPosts.slice(0, 2).map(p => p.title.split(' - ')[0].split(':')[0].trim()).join(' / ');
-const dateLabel = `${now.getMonth() + 1}月${now.getDate()}日`;
+const dateLabel = `${jstNow.getUTCMonth() + 1}月${jstNow.getUTCDate()}日`;
 
 let threadText = `今週取り上げた GitHub 急上昇OSS ${topPosts.length}選（${dateLabel}）\n\n`;
 threadText += `注目: ${featuredNames} など。README をもとに技術構成と使いどころを日本語で解説しています。\n`;

@@ -512,6 +512,7 @@ if (starsCount >= 15000) {
       @media (max-width: 640px) {
         #sticky-bar {
           padding: 0.6rem 0.8rem !important;
+          padding-bottom: max(0.8rem, env(safe-area-inset-bottom)) !important;
           gap: 0.5rem !important;
         }
         .sticky-text {
@@ -825,7 +826,7 @@ if (starsCount >= 15000) {
     <script is:inline>
       // Runtime URL & Path Helpers (Zero ReferenceError guarantee)
       const baseUrl = window.location.pathname.startsWith('/auto-tech-radar') ? '/auto-tech-radar' : '';
-      const currentSlug = window.location.pathname.split('/').filter(Boolean).pop() || '';
+      const currentSlug = window.location.pathname.replace(/\/index\.html$/, '').split('/').filter(Boolean).pop() || '';
 
       // innerHTML のテンプレートに入れる文字列は必ずエスケープする
       const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -834,7 +835,7 @@ if (starsCount >= 15000) {
       window.addEventListener('scroll', () => {
         const winScroll = document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
+        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
         const bar = document.getElementById('reading-progress');
         if (bar) bar.style.width = scrolled + '%';
 
@@ -1068,8 +1069,9 @@ if (starsCount >= 15000) {
 
           const copyCursorBtn = summaryBox.querySelector('#copy-cursor-btn');
           if (copyCursorBtn) {
+            let copyCursorTimer = null;
             copyCursorBtn.addEventListener('click', () => {
-              const slug = window.location.pathname.split('/').filter(Boolean).pop() || 'oss';
+              const slug = window.location.pathname.replace(/\/index\.html$/, '').split('/').filter(Boolean).pop() || 'oss';
               const cursorRules = `# Cursor Rules & AI Agent System Prompt: ${articleTitle}\n\n` +
                 `## Role & Objective\n` +
                 `You are a Senior Solutions Architect specialized in production integration of ${slug}.\n\n` +
@@ -1079,21 +1081,24 @@ if (starsCount >= 15000) {
                 `- Avoid hardcoded credentials; enforce environment variables (.env.example).\n` +
                 `- Optimize for low-latency, deterministic execution, and enterprise security compliance.\n`;
               navigator.clipboard.writeText(cursorRules).then(() => {
+                if (copyCursorTimer) clearTimeout(copyCursorTimer);
                 copyCursorBtn.textContent = '✓ Rulesコピー完了！';
                 copyCursorBtn.style.color = '#38bdf8';
                 copyCursorBtn.style.borderColor = '#38bdf8';
-                setTimeout(() => {
+                copyCursorTimer = setTimeout(() => {
                   copyCursorBtn.textContent = '🤖 .cursorrules コピー';
                   copyCursorBtn.style.color = '#bae6fd';
                   copyCursorBtn.style.borderColor = '#38bdf8';
                 }, 2500);
+              }).catch(() => {
+                prompt('以下のテキストをコピーしてください:', cursorRules);
               });
             });
           }
 
           if (firstH1) {
             // 動的インフォグラフィック・アイキャッチカード（ByteByteGoスタイル）
-            const slug = window.location.pathname.split('/').filter(Boolean).pop();
+            const slug = window.location.pathname.replace(/\/index\.html$/, '').split('/').filter(Boolean).pop();
             if (slug && slug !== 'auto-tech-radar' && !slug.includes('.')) {
               const infographDiv = document.createElement('div');
               infographDiv.style.cssText = 'margin: 1.5rem 0 2rem; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #030712; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7); text-align: center;';
@@ -1147,16 +1152,20 @@ if (starsCount >= 15000) {
         const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid, pre.mermaid, pre[data-language="mermaid"]');
         if (mermaidBlocks.length > 0) {
           for (let i = 0; i < mermaidBlocks.length; i++) {
-            const block = mermaidBlocks[i];
-            const pre = block.tagName === 'PRE' ? block : block.closest('pre');
-            const code = block.textContent;
-            const container = document.createElement('div');
-            container.className = 'mermaid-container';
-            container.style.cssText = 'background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 1.5rem; margin: 1.8rem 0; overflow-x: auto; text-align: center;';
-            const { svg } = await mermaid.render('mermaid-svg-' + i, code);
-            container.innerHTML = svg;
-            if (pre && pre.parentNode) {
-              pre.parentNode.replaceChild(container, pre);
+            try {
+              const block = mermaidBlocks[i];
+              const pre = block.tagName === 'PRE' ? block : block.closest('pre');
+              const code = block.textContent;
+              const container = document.createElement('div');
+              container.className = 'mermaid-container';
+              container.style.cssText = 'background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 1.5rem; margin: 1.8rem 0; overflow-x: auto; text-align: center;';
+              const { svg } = await mermaid.render('mermaid-svg-' + i, code);
+              container.innerHTML = svg;
+              if (pre && pre.parentNode) {
+                pre.parentNode.replaceChild(container, pre);
+              }
+            } catch (blockErr) {
+              console.warn(`Mermaid rendering notice for block ${i}:`, blockErr);
             }
           }
         }

@@ -187,15 +187,19 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     // URLコピーボタン
     const copyBtn = document.getElementById('copy-cheatsheet-url');
     if (copyBtn) {
+      const origText = copyBtn.innerHTML;
+      let timer = null;
       copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(window.location.href).then(() => {
-          const originalText = copyBtn.innerHTML;
+          if (timer) clearTimeout(timer);
           copyBtn.innerHTML = '✓ コピー完了！';
           copyBtn.style.background = '#065f46';
-          setTimeout(() => {
-            copyBtn.innerHTML = originalText;
+          timer = setTimeout(() => {
+            copyBtn.innerHTML = origText;
             copyBtn.style.background = '#1f2937';
           }, 2000);
+        }).catch(() => {
+          prompt('以下のURLをコピーしてください:', window.location.href);
         });
       });
     }
@@ -203,6 +207,8 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     // Markdown表コピーボタン
     const copyMdBtn = document.getElementById('copy-cheatsheet-md');
     if (copyMdBtn) {
+      const origMdText = copyMdBtn.innerHTML;
+      let mdTimer = null;
       copyMdBtn.addEventListener('click', () => {
         let md = '| OSS | 成熟度 (ThoughtWorks) | 技術領域 | Stars | 商用ポテンシャル | 記事URL |\n';
         md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
@@ -221,13 +227,15 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
           }
         });
         navigator.clipboard.writeText(md).then(() => {
-          const orig = copyMdBtn.innerHTML;
+          if (mdTimer) clearTimeout(mdTimer);
           copyMdBtn.innerHTML = '✓ Markdown表コピー完了！';
           copyMdBtn.style.background = '#1e3a8a';
-          setTimeout(() => {
-            copyMdBtn.innerHTML = orig;
+          mdTimer = setTimeout(() => {
+            copyMdBtn.innerHTML = origMdText;
             copyMdBtn.style.background = 'rgba(59, 130, 246, 0.2)';
           }, 2000);
+        }).catch(() => {
+          prompt('以下のMarkdownをコピーしてください:', md);
         });
       });
     }

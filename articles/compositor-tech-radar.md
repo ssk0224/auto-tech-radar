@@ -40,7 +40,7 @@ graph TD
 
     subgraph CompositorEngine ["Compositor Core Engine (Swift / Metal)"]
         FSWatcher[FSEvents ファイル監視モジュール]
-        Parser[JSON & Image Decoder]
+        Parser["JSON & Image Decoder"]
         RenderPipeline[Metal GPU レンダリングパイプライン]
         Viewport["Native macOS Viewport (MetalView)"]
         

@@ -6,7 +6,9 @@ import path from "path";
 import { stripProSection, findProLeaks } from "../scripts/utils/pro_boundary.mjs";
 import { extractReferences } from "../scripts/utils/reference_check.mjs";
 import { zennCta } from "../scripts/utils/funnel_copy.mjs";
-import { splitPaid, isSealed } from "../scripts/utils/note_vault.mjs";
+import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/utils/note_vault.mjs";
+import { isNoise } from "../scripts/utils/noise_filter.mjs";
+import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
 
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 const list = (dir, re) => fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(dir, f));
@@ -144,9 +146,84 @@ test("復号可能な環境では有料本文に禁止表現・根拠なき固�
     }
     const hasPrice = /80万|250万|150万|300万/.test(paidText);
     if (hasPrice) {
-      const hasBasis = /\|\s*工程.*\|\s*作業内容.*\|\s*工数.*\|\s*単価.*\|\s*小計/s.test(paidText);
+      const lines = paidText.split(/\r?\n/);
+      const hasBasis = lines.some(l => 
+        l.includes("|") && 
+        (l.includes("工程") || l.includes("項目") || l.includes("業務")) && 
+        (l.includes("工数") || l.includes("人日")) && 
+        l.includes("単価") && 
+        l.includes("小計") && 
+        (l.includes("作業") || l.includes("詳細") || l.includes("内訳") || l.includes("成果物"))
+      );
       assert.ok(hasBasis, `${f}: 有料部内の価格表記には積算根拠表（工程・工数・単価・小計）が必須`);
     }
   }
   assert.deepEqual(hits, []);
+});
+
+test("全Web記事のFrontmatter完全性 (stars, title, description, pubDate)", () => {
+  const radarDir = path.resolve("src/pages/radar");
+  const files = fs.readdirSync(radarDir).filter(f => f.endsWith(".md"));
+  for (const f of files) {
+    const content = fs.readFileSync(path.join(radarDir, f), "utf8");
+    const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    assert.ok(m, `${f}: Frontmatterが存在しません`);
+    const fm = Object.fromEntries(
+      m[1].split(/\r?\n/)
+        .map(l => l.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/))
+        .filter(Boolean)
+        .map(([, k, v]) => [k, v.trim().replace(/^["']|["']$/g, "")])
+    );
+    assert.ok(fm.title && fm.title.length > 0, `${f}: titleが空`);
+    assert.ok(fm.description && fm.description.length > 0, `${f}: descriptionが空`);
+    assert.ok(fm.stars !== undefined && !isNaN(Number(fm.stars)) && Number(fm.stars) >= 0, `${f}: starsが不正 (${fm.stars})`);
+    assert.match(fm.pubDate, /^\d{4}-\d{2}-\d{2}$/, `${f}: pubDateがYYYY-MM-DD形式ではない`);
+  }
+});
+
+test("scripts/note_urls.json は全非ノイズ記事を含み、タイトルに # や禁止表現を含まない", () => {
+  const radarFiles = fs.readdirSync("src/pages/radar").filter(f => f.endsWith(".md"));
+  const nonNoise = radarFiles.map(f => f.replace(".md", "")).filter(s => !isNoise(s));
+  const raw = fs.readFileSync("scripts/note_urls.json", "utf8");
+
+  // 重複キー検査
+  const seen = new Set();
+  for (const line of raw.split(/\r?\n/)) {
+    const km = line.match(/^  "([^"]+)"\s*:\s*\{/);
+    if (km) {
+      assert.ok(!seen.has(km[1]), `note_urls.json に重複キーがあります: ${km[1]}`);
+      seen.add(km[1]);
+    }
+  }
+
+  const data = JSON.parse(raw);
+  for (const slug of nonNoise) {
+    assert.ok(data[slug], `非ノイズ記事 ${slug} が note_urls.json にありません`);
+    assert.ok(!data[slug].title.startsWith("#"), `${slug}: タイトルに # プレフィックスがあります`);
+    assert.deepEqual(findForbiddenClaims(data[slug].title), [], `${slug}: 禁止表現が含まれています`);
+    assert.match(data[slug].url, /^https:\/\/note\.com\/[\w-]+\/n\/[a-zA-Z0-9]+$/, `${slug}: URLが不正`);
+  }
+});
+
+test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォート特殊文字ラベルを含まない", () => {
+  const dirs = ["src/pages/radar", "articles"];
+  for (const dir of dirs) {
+    for (const f of fs.readdirSync(dir).filter(x => x.endsWith(".md"))) {
+      const content = fs.readFileSync(path.join(dir, f), "utf8");
+      const blocks = content.match(/```mermaid[\s\S]*?```/g) || [];
+      for (const block of blocks) {
+        assert.doesNotMatch(block, /&(?:gt|lt|amp|quot);/, `${dir}/${f}: Mermaid内にHTML実体参照があります`);
+        assert.doesNotMatch(block, /<(?!\/?br\s*\/?)(?!b>)(?!i>)(?!--)[a-zA-Z0-9_-]+[^>]*>/, `${dir}/${f}: Mermaid内に未エスケープタグがあります`);
+        for (const line of block.split("\n")) {
+          const unquotedNodeMatch = line.match(/\b([A-Za-z0-9_-]+)\s*\[([^"\[\(\]\n\r][^\]\n\r]*)\]/);
+          if (unquotedNodeMatch) {
+            const [, id, rawInner] = unquotedNodeMatch;
+            if (rawInner.includes('<br>') || /[\(\)\:\;\&\,]/.test(rawInner)) {
+              assert.fail(`${dir}/${f}: 特殊文字を含む未クォートノードラベル ${id}[${rawInner}]`);
+            }
+          }
+        }
+      }
+    }
+  }
 });
