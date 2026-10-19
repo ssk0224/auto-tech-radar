@@ -10,11 +10,11 @@ const posts = Object.values(postModules) as any[];
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.8rem; letter-spacing: 0.05em;">
       🔥 毎朝6:00 JST 自動更新・世界最先端オープンソースインテリジェンス
     </div>
-    <h2 style="font-size: 2.3rem; font-weight: 900; margin: 0 0 0.8rem; line-height: 1.3; color: #fff;">
+    <h1 style="font-size: 2.3rem; font-weight: 900; margin: 0 0 0.8rem; line-height: 1.3; color: #fff;">
       世界の急上昇OSSを<br/><span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">毎朝最速で日本語解剖 ＆ 収益化指南</span>
-    </h2>
+    </h1>
     <p style="font-size: 1.05rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.8rem; line-height: 1.75;">
-      GitHub Trendingの一次情報をGemini 3.8が毎朝自動クロール。技術仕様の徹底分析から、受託開発（単価80万〜250万円）への提案法、自社SaaS構築のマネタイズ実践法までお届けします。
+      GitHub Trendingの一次情報をGemini 3.8が毎朝自動クロール。技術仕様の徹底分析から、受託開発への提案の考え方、自社SaaS構築のマネタイズ実践法までお届けします。
     </p>
 
     <!-- Key Metrics Grid -->
@@ -76,16 +76,15 @@ const posts = Object.values(postModules) as any[];
     </div>
   </section>
 
-  <!-- 🏆 今週の急上昇OSS 殿堂入りピックアップ (Top 3 Spotlight) -->
+  <!-- 🏆 新着ピックアップ (Top 3 Spotlight) -->
   {posts.length >= 3 && (
     <section style="margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%); border: 1px solid #4338ca; border-radius: 14px; padding: 1.5rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <span style="font-size: 1.3rem;">🏆</span>
           <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #e0e7ff;">今週の急上昇OSS 殿堂入りピックアップ</h3>
-          <span style="font-size: 0.72rem; background: #4338ca; color: #c7d2fe; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 700;">PRO推奨</span>
-        </div>
-        <span style="font-size: 0.82rem; color: #a5b4fc;">※ 週間スター急増 ＆ 商用価値最高ランク</span>
+                  </div>
+        <span style="font-size: 0.82rem; color: #a5b4fc;">※ 公開日の新しい順に3件を表示</span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
         {posts.slice(0, 3).map((featPost, idx) => {
@@ -93,7 +92,7 @@ const posts = Object.values(postModules) as any[];
           return (
             <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid #312e81; border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
               <div style="position: absolute; top: 10px; right: 12px; font-size: 0.75rem; font-weight: 800; color: #f59e0b; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(245, 158, 11, 0.4); padding: 0.15rem 0.5rem; border-radius: 6px; z-index: 2;">
-                RANK #{idx + 1}
+                新着 #{idx + 1}
               </div>
               <div>
                 <a href={featPost.url} style="text-decoration: none; display: block; margin-bottom: 0.8rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); background: #0b0f19;">
@@ -135,6 +134,7 @@ const posts = Object.values(postModules) as any[];
         <input 
           type="text" 
           id="search-input" 
+          aria-label="記事をキーワードで検索" 
           placeholder="リポジトリ名やキーワードで瞬時に検索... (例: AI, agent, Python, CLI)" 
           style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.92rem; outline: none;"
         />
@@ -143,7 +143,7 @@ const posts = Object.values(postModules) as any[];
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
         <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">ドル箱ジャンル絞込:</span>
         <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">全ジャンル</button>
-        <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent（単価150万〜）</button>
+        <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent</button>
         <button class="cat-pill" data-cat="saas" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🚀 SaaS代替・脱課金</button>
         <button class="cat-pill" data-cat="llm" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">⚡ ローカル推論・LLM</button>
         <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発者ツール・自動化</button>
@@ -167,16 +167,10 @@ const posts = Object.values(postModules) as any[];
           <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる完全無人自動運用中</p>
         </div>
       ) : (
-        posts.reverse().map((post) => {
+        posts.map((post) => {
           const slug = post.url.replace(/\/$/, '').split('/').pop();
           const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
           const title = post.frontmatter?.title || post.file;
-          let priceEst = "¥80万 〜 ¥200万";
-          if (tags.some((t: string) => /agent|ai|llm/i.test(t)) || /agent|model/i.test(title)) {
-            priceEst = "¥150万 〜 ¥350万";
-          } else if (tags.some((t: string) => /rust|perf/i.test(t))) {
-            priceEst = "¥120万 〜 ¥280万";
-          }
           return (
             <article class="post-card" data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
               <div class="post-card-inner">
@@ -192,13 +186,12 @@ const posts = Object.values(postModules) as any[];
                       onerror="this.style.display='none'"
                     />
                   </a>
-                  <span class="post-thumb-price">{priceEst}</span>
                 </div>
                 <div class="post-card-content">
                   <div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
                       <h3 style="margin: 0;"><a href={post.url}>{title}</a></h3>
-                      <span class="meta-tag">{post.frontmatter?.pubDate || "本日公開"}</span>
+                      {post.frontmatter?.pubDate && <span class="meta-tag">{post.frontmatter.pubDate}</span>}
                     </div>
                     <p style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{post.frontmatter?.description}</p>
                     
@@ -217,7 +210,9 @@ const posts = Object.values(postModules) as any[];
                     </a>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                       <button 
-                        onclick={`navigator.clipboard.writeText('【注目OSS】' + '${title.replace(/'/g, "\\'")}' + ' \\nhttps://ssk0224.github.io' + '${post.url}'); alert('社内Slack/Discord用テキストをコピーしました！');`}
+                        class="slack-share-btn"
+                        data-title={title}
+                        data-url={post.url}
                         style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;"
                         onmouseover="this.style.background='#374151'"
                         onmouseout="this.style.background='#1f2937'"
@@ -250,10 +245,10 @@ const posts = Object.values(postModules) as any[];
         🏢 法人・開発責任者・新規事業担当者様へ
       </div>
       <h3 style="margin: 0 0 0.5rem; font-size: 1.35rem; font-weight: 800; color: #fff;">
-        海外最先端OSSを活用した自社専用AI受託開発（単価80万〜250万円）
+        海外最先端OSSを活用した自社専用AIの導入支援
       </h3>
       <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.6;">
-        「紹介されたAIエージェントを自社クラウドに構築したい」「商用SaaSをセルフホスト化して月額コストを削減したい」等、環境構築からAPI連携、NDA締結まで専任チームが最短2週間で納品いたします。
+        「紹介されたAIエージェントを自社クラウドに構築したい」「商用SaaSをセルフホスト化して月額コストを削減したい」等、環境構築やAPI連携、NDA締結についても、導入支援のご相談を受け付けています。
       </p>
     </div>
     <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
@@ -269,7 +264,7 @@ const posts = Object.values(postModules) as any[];
       <div>
         <h4 style="margin: 0 0 0.3rem; color: #93c5fd; font-size: 1rem;">Q. 一般のテックニュースやまとめ記事と何が違うのですか？</h4>
         <p style="margin: 0; color: #9ca3af; font-size: 0.92rem; line-height: 1.7;">
-          単なる機能紹介にとどまらず、「受託開発でクライアントにどう提案するか（単価80万〜250万円）」や「自社SaaSとしてどう収益化するか」という実用的なビジネス・マネタイズ設計まで深掘りしている点です。一次情報の英語コードをAIが直接解析して解説します。
+          単なる機能紹介にとどまらず、「受託開発でクライアントにどう提案するか」や「自社SaaSとしてどう収益化するか」という実用的なビジネス・マネタイズ設計まで深掘りしている点です。一次情報の英語コードをAIが直接解析して解説します。
         </p>
       </div>
 
@@ -283,7 +278,7 @@ const posts = Object.values(postModules) as any[];
       <div>
         <h4 style="margin: 0 0 0.3rem; color: #93c5fd; font-size: 1rem;">Q. 企業向けのスポンサーや受託開発相談は受け付けていますか？</h4>
         <p style="margin: 0; color: #9ca3af; font-size: 0.92rem; line-height: 1.7;">
-          はい。レポート対象OSSを活用した自社プロダクトの公式スポンサー掲載（¥100,000〜）や、社内DXシステム・自社専用AIエージェント受託開発（単価80万〜250万円）も承っております。<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="color: #60a5fa; font-weight: 700; text-decoration: underline;">お問い合わせ窓口</a>よりお気軽にご相談ください。
+          はい。レポート対象OSSを活用した自社プロダクトの公式スポンサー掲載（¥100,000〜）や、社内DXシステム・自社専用AIエージェントの導入支援も承っております。<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="color: #60a5fa; font-weight: 700; text-decoration: underline;">お問い合わせ窓口</a>よりお気軽にご相談ください。
         </p>
       </div>
     </div>
@@ -291,6 +286,16 @@ const posts = Object.values(postModules) as any[];
 
   <!-- Client-side Search & Category Filter Script -->
   <script is:inline>
+    // Slack共有ボタン（タイトル・URLは data 属性から読むため、文字列組み立てによるエスケープ不備が起きない）
+    document.querySelectorAll(".slack-share-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const text = "【注目OSS】" + (btn.getAttribute("data-title") || "") + " \nhttps://ssk0224.github.io" + (btn.getAttribute("data-url") || "");
+        navigator.clipboard.writeText(text).then(() => {
+          alert("社内Slack/Discord用テキストをコピーしました！");
+        });
+      });
+    });
+
     const searchInput = document.getElementById("search-input");
     const cards = document.querySelectorAll(".post-card");
     const countEl = document.getElementById("post-count");

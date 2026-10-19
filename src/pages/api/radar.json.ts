@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
+import { getArticles, slugOf } from '../../utils/articles.js';
 
 export const GET: APIRoute = async () => {
-  const postModules = import.meta.glob('../radar/*.md', { eager: true });
-  const items = Object.values(postModules).map((post: any) => {
-    const slug = post.url?.replace(/\/$/, '').split('/').pop() || '';
+  // ノイズ記事は getArticles 側で除外済み
+  const items = getArticles().map((post: any) => {
+    const slug = slugOf(post);
     const fm = post.frontmatter || {};
     const stars = Number(fm.stars) || 0;
     let ring = "TRIAL";
@@ -19,7 +20,7 @@ export const GET: APIRoute = async () => {
       stars,
       ring,
       tags: fm.tags || [],
-      pubDate: fm.pubDate || "2026-10-09",
+      pubDate: fm.pubDate || null, // 欠落時に仮の日付を入れない
       url: `https://ssk0224.github.io/auto-tech-radar/radar/${slug}/`
     };
   }).sort((a, b) => b.stars - a.stars);

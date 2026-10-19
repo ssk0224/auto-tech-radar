@@ -1,14 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-const postModules = import.meta.glob("./radar/*.md", { eager: true });
-const posts = Object.values(postModules) as any[];
+import { getArticles, slugOf } from "../utils/articles.js";
+const posts = getArticles() as any[];
 
+// スター数が frontmatter に無い記事は 0 のまま扱い、表示しない（1000 などの仮値を入れない）
 const ossList = posts.map(p => {
-  const slug = p.url.replace(/\/$/, '').split('/').pop();
+  const slug = slugOf(p);
   const title = (p.frontmatter?.title || slug).split(' - ')[0].trim();
   const lang = (p.frontmatter?.tags && p.frontmatter.tags[0]) || 'AI';
-  const stars = p.frontmatter?.stars || 1000;
+  const stars = Number(p.frontmatter?.stars) || 0;
   return { slug, title, lang, stars };
 }).sort((a, b) => b.stars - a.stars);
 ---
@@ -39,7 +40,7 @@ const ossList = posts.map(p => {
         <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">即時見積もり ＆ ROIシミュレーター</span>
       </h1>
       <p style="font-size: 1rem; color: #94a3b8; max-width: 640px; margin: 0 auto; line-height: 1.7;">
-        世界最先端の急上昇OSSを活用した「社内専用AIエージェント構築」や「商用SaaS脱課金リプレイス」の想定受託単価、開発工数、年間コスト削減額を瞬時に自動算出します。
+        世界最先端の急上昇OSSを活用した「社内専用AIエージェント構築」や「商用SaaS脱課金リプレイス」の開発費用・工数の目安と、入力いただいた月額費用に基づく削減額を試算します（実際の見積もりではなく、あくまで概算です）。
       </p>
     </div>
 
@@ -54,10 +55,10 @@ const ossList = posts.map(p => {
         <label style="display: block; font-weight: 700; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.5rem;">
           ① 活用・導入したいOSS基盤
         </label>
-        <select id="oss-select" style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.95rem; outline: none;">
+        <select id="oss-select" aria-label="活用・導入したいOSS基盤" style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.95rem; outline: none;">
           {ossList.map(oss => (
-            <option value={oss.slug} data-stars={oss.stars}>
-              {oss.title} (★{oss.stars.toLocaleString()} / {oss.lang})
+            <option value={oss.slug}>
+              {oss.title} ({oss.stars > 0 ? `★${oss.stars.toLocaleString()} / ` : ''}{oss.lang})
             </option>
           ))}
         </select>
@@ -82,6 +83,15 @@ const ossList = posts.map(p => {
             <span style="font-size: 0.9rem; color: #f3f4f6;">社内オンプレミスGPU<br/><small style="color: #64748b;">(機密保護・完全隔離)</small></span>
           </label>
         </div>
+      </div>
+
+      <!-- 現在のSaaS月額費用（削減額の試算に使う。未入力なら削減額は算出しない） -->
+      <div style="margin-bottom: 1.4rem;">
+        <label for="current-saas-cost" style="display: block; font-weight: 700; font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.5rem;">
+          ②' 現在お支払い中の対象SaaS月額費用（円・任意）
+        </label>
+        <input type="number" id="current-saas-cost" min="0" step="1000" inputmode="numeric" placeholder="例: 300000" style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.95rem; outline: none; box-sizing: border-box;" />
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.3rem;">未入力の場合、削減額と投資回収期間は算出しません。</div>
       </div>
 
       <!-- 3. 追加カスタム要件 -->
@@ -126,10 +136,11 @@ const ossList = posts.map(p => {
           <h2 style="margin: 0.2rem 0 0; font-size: 1.5rem; color: #fff;">📊 試算結果サマリー</h2>
         </div>
         <div style="text-align: right;">
-          <div style="font-size: 0.8rem; color: #94a3b8;">想定受託・開発費用（一括）</div>
+          <div style="font-size: 0.8rem; color: #94a3b8;">概算開発費用（一括・試算）</div>
           <div id="result-price" style="font-size: 2.2rem; font-weight: 900; color: #6ee7b7; font-family: 'JetBrains Mono', monospace;">
             ¥1,400,000
           </div>
+          <div id="result-maint" style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem;"></div>
         </div>
       </div>
 
@@ -143,18 +154,18 @@ const ossList = posts.map(p => {
           <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">要件定義〜本番配備・引継ぎ</div>
         </div>
         <div style="background: #0b0f19; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px;">
-          <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">💰 年間想定SaaS削減額 (ROI)</div>
+          <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">💰 年間削減額（入力値からの試算）</div>
           <div id="result-roi" style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; margin-top: 0.2rem;">
-            約 ¥3,600,000 /年
+            月額費用を入力してください
           </div>
-          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">商用課金ライセンス解約効果</div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">入力した月額費用×12 − 保守費用（選択時）</div>
         </div>
         <div style="background: #0b0f19; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px;">
           <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">📈 投資回収期間</div>
           <div id="result-payback" style="font-size: 1.4rem; font-weight: 800; color: #a78bfa; margin-top: 0.2rem;">
-            約 4.7 ヶ月
+            —
           </div>
-          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">初期費用回収後の純粋黒字化</div>
+          <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">開発費用 ÷ 月あたり削減額（試算）</div>
         </div>
       </div>
 
@@ -176,14 +187,16 @@ const ossList = posts.map(p => {
     <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem;">
       <h3 style="margin-top: 0; font-size: 1.1rem; color: #f3f4f6;">💡 なぜ、商用SaaSではなく「急上昇OSS」の受託開発・セルフホストが最強なのか？</h3>
       <ul style="margin: 0; padding-left: 1.3rem; color: #94a3b8; font-size: 0.9rem; line-height: 1.75;">
-        <li><strong>月額課金の完全撤廃:</strong> アカウント単位で毎月数十万〜数百万円請求される商用AIサービスを、自社クラウドやローカルGPUでセルフホスト化しランニングコストを激減。</li>
-        <li><strong>完全なデータ主権・セキュリティ:</strong> 機密コードや顧客データを外部AIベンダーへ送信せず、社内閉域ネットワーク（オンプレミス）で安全運用。</li>
-        <li><strong>独自業務フローへの完全適応:</strong> オープンソースであるため、社内基幹システムや独自DBと自由にAPI接続・UIカスタマイズ可能。</li>
+        <li><strong>月額課金の見直し:</strong> 商用AIサービスの利用料を、自社クラウドやローカルGPUでのセルフホスト化によって抑えられる場合があります（運用・保守の費用は別途必要です）。</li>
+        <li><strong>データの取り扱いを自社で管理:</strong> 機密コードや顧客データを外部AIベンダーへ送信しない構成も選べます（セキュリティ対策は構成・運用次第です）。</li>
+        <li><strong>独自業務フローへの適応:</strong> オープンソースのため、社内システムとのAPI接続やUIのカスタマイズがしやすい場合があります（ライセンス条件は各OSSでご確認ください）。</li>
       </ul>
     </div>
   </div>
 
   <script is:inline>
+    const MAINT_MONTHLY = 150000; // 月次保守パッケージ（円/月）
+
     function calculateEstimate() {
       const ossSelect = document.getElementById('oss-select');
       const selectedOss = ossSelect.options[ossSelect.selectedIndex].text.split(' (')[0];
@@ -206,14 +219,27 @@ const ossList = posts.map(p => {
       if (document.getElementById('req-sec').checked) { basePrice += 300000; weeks += 1.5; }
       if (document.getElementById('req-api').checked) { basePrice += 200000; weeks += 1; }
 
+      // 月次保守は一括費用ではなく月額のランニング費用として別計上する（削減額から差し引く）
+      const maintMonthly = document.getElementById('req-maint').checked ? MAINT_MONTHLY : 0;
+
       const months = (weeks / 4).toFixed(1);
-      const annualSaving = 3600000;
-      const paybackMonths = ((basePrice / annualSaving) * 12).toFixed(1);
+      // 削減額は利用者が入力した月額SaaS費用だけから算出する（固定値は使わない）
+      const saasMonthly = Math.max(0, Number(document.getElementById('current-saas-cost').value) || 0);
+      const monthlySaving = saasMonthly - maintMonthly;
+      const annualSaving = monthlySaving * 12;
 
       document.getElementById('result-price').textContent = '¥' + basePrice.toLocaleString();
+      document.getElementById('result-maint').textContent = maintMonthly > 0 ? '＋ 月次保守 ¥' + maintMonthly.toLocaleString() + ' /月' : '';
       document.getElementById('result-timeline').textContent = '約 ' + months + ' ヶ月';
-      document.getElementById('result-roi').textContent = '約 ¥' + annualSaving.toLocaleString() + ' /年';
-      document.getElementById('result-payback').textContent = '約 ' + paybackMonths + ' ヶ月';
+      const roiEl = document.getElementById('result-roi');
+      const paybackEl = document.getElementById('result-payback');
+      if (saasMonthly <= 0) {
+        roiEl.textContent = '月額費用を入力してください';
+        paybackEl.textContent = '—';
+      } else {
+        roiEl.textContent = (annualSaving >= 0 ? '約 ¥' : '約 -¥') + Math.abs(annualSaving).toLocaleString() + ' /年（試算）';
+        paybackEl.textContent = monthlySaving > 0 ? '約 ' + (basePrice / monthlySaving).toFixed(1) + ' ヶ月（試算）' : '回収できない見込み';
+      }
 
       // 相談リンク更新（環境依存ゼロの相対パス解決）
       const consultLink = document.getElementById('consult-link');
@@ -226,6 +252,7 @@ const ossList = posts.map(p => {
     document.querySelectorAll('#oss-select, input[type="radio"], input[type="checkbox"]').forEach(el => {
       el.addEventListener('change', calculateEstimate);
     });
+    document.getElementById('current-saas-cost').addEventListener('input', calculateEstimate);
 
     const copyBtn = document.getElementById('copy-proposal-btn');
     if (copyBtn) {
@@ -235,17 +262,20 @@ const ossList = posts.map(p => {
         const price = document.getElementById('result-price').textContent;
         const timeline = document.getElementById('result-timeline').textContent;
         const payback = document.getElementById('result-payback').textContent;
+        const saving = document.getElementById('result-roi').textContent;
+        const maint = document.getElementById('result-maint').textContent;
 
         const md = `# 【社内稟議・概算見積書】${selectedOss} 活用・受託開発提案書\n\n` +
           `■ 案件名: ${selectedOss} を活用した社内専用AI・DX基盤構築プロジェクト\n` +
-          `■ 概算開発・導入費用: ${price}（税別・一括納品）\n` +
+          `■ 概算開発・導入費用: ${price}${maint ? ' ' + maint : ''}（税別・試算値）\n` +
           `■ 想定開発期間: ${timeline}（要件定義〜検証配備）\n` +
-          `■ 年間コスト削減効果: 約 ¥3,600,000 /年（既存SaaS解約代替）\n` +
-          `■ 投資回収期間: ${payback}（以降はランニングコストほぼゼロ）\n\n` +
-          `■ 導入メリット:\n` +
-          `  1. 商用AIベンダーへの継続課金を撤廃し、大幅な利益率改善を実現\n` +
-          `  2. 自社専有環境での安全稼働により機密データ漏洩リスクを100%遮断\n` +
+          `■ 年間コスト削減額: ${saving}（入力した月額費用に基づく試算）\n` +
+          `■ 投資回収期間: ${payback}\n\n` +
+          `■ 導入で期待される点（効果は構成・運用により異なります）:\n` +
+          `  1. 商用サービスへの継続課金の見直し\n` +
+          `  2. 自社環境での運用によるデータの取り扱いの自社管理\n` +
           `  3. 業務特化型エージェントの自社資産化\n\n` +
+          `※ 本試算は概算であり、正式な見積もりではありません。\n` +
           `■ 試算元: Auto Tech Radar Intelligence (https://ssk0224.github.io/auto-tech-radar/estimate/)\n`;
 
         navigator.clipboard.writeText(md).then(() => {
