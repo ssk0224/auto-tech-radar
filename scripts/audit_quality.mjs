@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import { findProLeaks } from './utils/pro_boundary.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -78,15 +79,11 @@ articles.forEach(file => {
     warningCount++;
   }
 
-  // D. PRO実務キット完全具備チェック（提案書、工数見積、Docker、MCP）
-  const hasPro = content.includes('【Auto Tech Radar PRO限定】');
-  const hasProposal = content.includes('社内DX・AI導入提案書') || content.includes('導入提案書 Markdown完全版');
-  const hasEstimate = content.includes('詳細工数・見積') || content.includes('見積シミュレーション表') || content.includes('提案見積金額');
-  const hasDocker = content.includes('docker-compose') || content.includes('Docker Compose');
-  const hasMcp = content.includes('mcpServers');
-
-  if (!hasPro || !hasProposal || !hasEstimate || !hasDocker || !hasMcp) {
-    console.error(`  ❌ [INCOMPLETE PRO KIT] ${file}: PRO実務キットの重要要素が不足しています`);
+  // D. PRO限定エリア（有料本文）の Web 掲載禁止チェック
+  // 静的配信のHTMLに含めた有料本文は誰でも読めるため、有料本文は note でのみ提供する
+  const proLeaks = findProLeaks(content);
+  if (proLeaks.length) {
+    console.error(`  ❌ [PRO CONTENT ON WEB] ${file}: Web記事に有料本文が含まれています（${proLeaks.join(', ')}）。node scripts/strip_pro_from_web.mjs で除去してください`);
     errorCount++;
   }
 
@@ -113,17 +110,10 @@ articles.forEach(file => {
     }
   }
 
-  // H. PRO実務キットの漏洩防止（mcpServers は必ず PRO 見出しの後に存在すること）
-  const mcpPos = content.indexOf('mcpServers');
-  const proPos = content.indexOf('【Auto Tech Radar PRO限定】');
-  if (mcpPos !== -1 && proPos !== -1 && mcpPos < proPos) {
-    console.error(`  ❌ [PRO LEAK IN FREE AREA] ${file}: mcpServers が PRO 見出しの手前に漏洩しています！`);
-    errorCount++;
-  }
 });
 
 if (errorCount === 0 && warningCount === 0) {
-  console.log(`  ✓ SUPERPOWERS品質監査合格: 全 ${articles.length} 本のレポートが最高基準（PNGサムネ・Mermaid図解・提案書・工数見積・Docker・MCP）を100%完全充足。\n`);
+  console.log(`  ✓ SUPERPOWERS品質監査合格: 全 ${articles.length} 本のレポートが基準（PNGサムネ・Mermaid図解・有料本文の非掲載）を充足。\n`);
 } else if (errorCount === 0) {
   console.log(`  ℹ️ SUPERPOWERS監査完了: エラー 0 件、警告 ${warningCount} 件（運用上の許容範囲）。\n`);
 }
@@ -294,7 +284,7 @@ if (fs.existsSync(workflowFile) && fs.readFileSync(workflowFile, 'utf8').include
 }
 
 if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAccessibleForFree') && layoutContent.includes('copy-article-url-btn')) {
-  console.log('  ✓ Google公式仕様 Paywall構造化データ ＆ フリーミアムゲート ＆ ソーシャルシェア: 正常実装\n');
+  console.log('  ✓ 構造化データ ＆ note購入導線 ＆ ソーシャルシェア: 正常実装\n');
 } else {
   console.error('  ❌ Layout.astro に Paywall 構造化データ、施錠ゲート、またはシェアバーが不足しています');
   errorCount++;
@@ -328,7 +318,7 @@ if (brokenLinkCount === 0) {
 }
 
 // 7. 【Paywall DOM ＆ クライアントスクリプト完全性 監査】
-console.log('▶ [7/7] Paywall DOM 施錠シミュレーション ＆ クライアントスクリプト完全性監査...');
+console.log('▶ [7/7] クライアントスクリプト完全性 ＆ 有料解除処理の非存在監査...');
 const clientScriptMatch = layoutContent.match(/<script(?:\s+is:inline)?>([\s\S]*?)<\/script>/);
 if (!clientScriptMatch) {
   console.error('  ❌ Layout.astro にクライアント側 <script> が存在しません！');
@@ -343,103 +333,14 @@ if (!clientScriptMatch) {
     errorCount++;
   }
 
-  // 施錠DOMシミュレーション
-  class MockElement {
-    constructor(tagName, textContent = '') {
-      this.tagName = tagName.toUpperCase();
-      this.textContent = textContent;
-      this.children = [];
-      this.parentNode = null;
-      this.className = '';
-    }
-    removeChild(child) {
-      const idx = this.children.indexOf(child);
-      if (idx !== -1) {
-        this.children.splice(idx, 1);
-        child.parentNode = null;
-      }
-    }
-    appendChild(child) {
-      if (child.parentNode) child.parentNode.removeChild(child);
-      child.parentNode = this;
-      this.children.push(child);
-      return child;
-    }
-    insertBefore(newChild, refChild) {
-      const idx = this.children.indexOf(refChild);
-      if (idx !== -1) {
-        newChild.parentNode = this;
-        this.children.splice(idx, 0, newChild);
-      } else {
-        this.appendChild(newChild);
-      }
-      return newChild;
-    }
-    get nextSibling() {
-      if (!this.parentNode) return null;
-      const idx = this.parentNode.children.indexOf(this);
-      return (idx !== -1 && idx < this.parentNode.children.length - 1) ? this.parentNode.children[idx + 1] : null;
-    }
-    querySelectorAll(selector) {
-      const results = [];
-      const check = (node) => {
-        for (const c of node.children) {
-          if (selector.includes(c.tagName.toLowerCase())) results.push(c);
-          check(c);
-        }
-      };
-      check(this);
-      return results;
-    }
-  }
-
-  const mockArticle = new MockElement('article');
-  mockArticle.appendChild(new MockElement('h2', '解決する主要な課題とアーキテクチャ'));
-  const mockProH2 = new MockElement('h2', '🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル ＆ 実務キット');
-  mockArticle.appendChild(mockProH2);
-  mockArticle.appendChild(new MockElement('h3', '⚡ 1-Click MCP (Model Context Protocol) ＆ Cursor Rules 設定キット'));
-  mockArticle.appendChild(new MockElement('p', 'mcpServers 設定JSONとcursorrules...'));
-
-  const headings = Array.from(mockArticle.querySelectorAll('h2, h3'));
-  const lockTarget = headings.find(h => /PRO限定|商用化マニュアル|実務キット/i.test(h.textContent));
-  if (!lockTarget) {
-    console.error('  ❌ 施錠対象見出し lockTargetH2 を特定できませんでした！');
+  // 有料本文はWebに置かないため、クライアント側の解除処理（URL・固定キー・localStorage）が残っていないことを確認
+  const bypassPatterns = ['atr_pro_unlocked', "get('unlock')", 'vip-unlock-trigger', 'ATRPRO', 'RADAR2026'];
+  const bypassFound = bypassPatterns.filter(p => layoutContent.includes(p));
+  if (bypassFound.length) {
+    console.error(`  ❌ Layout.astro にクライアント側の有料解除処理が残っています: ${bypassFound.join(', ')}`);
     errorCount++;
   } else {
-    const parent = lockTarget.parentNode;
-    const wrapper = new MockElement('div');
-    wrapper.className = 'atr-locked-preview';
-    const gateCard = new MockElement('div');
-    gateCard.className = 'atr-paywall-gate';
-
-    parent.insertBefore(wrapper, lockTarget);
-    let current = lockTarget;
-    const nodesToWrap = [];
-    while (current) {
-      const next = current.nextSibling;
-      nodesToWrap.push(current);
-      current = next;
-    }
-    nodesToWrap.forEach(n => wrapper.appendChild(n));
-    if (wrapper.nextSibling) {
-      parent.insertBefore(gateCard, wrapper.nextSibling);
-    } else {
-      parent.appendChild(gateCard);
-    }
-
-    const hasLockedPreview = mockArticle.children.some(c => c.className === 'atr-locked-preview');
-    const hasPaywallGate = mockArticle.children.some(c => c.className === 'atr-paywall-gate');
-    const freeText = mockArticle.children
-      .filter(c => c.className !== 'atr-locked-preview' && c.className !== 'atr-paywall-gate')
-      .map(c => c.textContent)
-      .join(' ');
-
-    if (hasLockedPreview && hasPaywallGate && !freeText.includes('mcpServers')) {
-      console.log('  ✓ Paywall DOM 施錠シミュレーション監査合格: PRO実務キットの完全隔離と施錠ゲート配置を100%保証。\n');
-    } else {
-      console.error('  ❌ Paywall DOM 施錠シミュレーション監査失敗！');
-      errorCount++;
-    }
+    console.log('  ✓ クライアント側の有料解除処理なし（有料本文は note でのみ提供）\n');
   }
 }
 

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { findProLeaks } from './utils/pro_boundary.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '..', 'dist');
@@ -59,6 +60,13 @@ for (const filePath of htmlFiles) {
       console.error(`  ❌ [CORRUPTED URL] ${relPath}: 不正なリンク・リソースが検出されました: ${match[0]}`);
       errorCount++;
     }
+  }
+
+  // 2.5 有料本文（PRO限定エリア）の配信物混入チェック
+  const proLeaks = findProLeaks(html);
+  if (proLeaks.length) {
+    console.error(`  ❌ [PRO CONTENT IN DIST] ${relPath}: 有料本文が配信HTMLに含まれています（${proLeaks.join(', ')}）`);
+    errorCount++;
   }
 
   // 3. og:url の存在チェック
