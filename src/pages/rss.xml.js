@@ -7,7 +7,7 @@ export async function GET(context) {
   return rss({
     title: 'Auto Tech Radar | 海外急上昇OSS日本語インデックス',
     description: '世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。',
-    site: context.site || 'https://ssk0224.github.io/auto-tech-radar/',
+    site: 'https://ssk0224.github.io/auto-tech-radar/',
     items: posts.map((post) => {
       const slug = post.url.replace(/\/$/, '').split('/').pop();
       const imageUrl = `https://ssk0224.github.io/auto-tech-radar/ogp/${slug}.png`;

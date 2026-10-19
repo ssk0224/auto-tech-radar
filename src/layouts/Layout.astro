@@ -534,6 +534,38 @@ if (starsCount >= 15000) {
       #toc-box a { color: #93c5fd; text-decoration: none; }
       #toc-box a:hover { text-decoration: underline; color: #60a5fa; }
 
+      /* Mobile Responsive Optimization for Conversion Elements */
+      @media (max-width: 640px) {
+        #sticky-bar {
+          padding: 0.6rem 0.8rem !important;
+          gap: 0.5rem !important;
+        }
+        .sticky-text {
+          display: none !important;
+        }
+        #sticky-bar > div:last-child {
+          width: 100% !important;
+          display: flex !important;
+          gap: 0.5rem !important;
+        }
+        #sticky-bar a {
+          flex: 1 !important;
+          text-align: center !important;
+          padding: 0.65rem 0.4rem !important;
+          font-size: 0.82rem !important;
+          min-height: 44px;
+          display: inline-flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        #social-proof-toast {
+          bottom: 72px !important;
+          left: 10px !important;
+          right: 10px !important;
+          max-width: calc(100vw - 20px) !important;
+        }
+      }
+
       /* A4資料・PDF保存用の完全印刷スタイル（ByteByteGoホワイトペーパースタイル） */
       @media print {
         body { background: #fff !important; color: #000 !important; font-size: 11pt; }
@@ -597,16 +629,16 @@ if (starsCount >= 15000) {
 
       <!-- ビジュアル・ペイウォール境界線（記事詳細のみ表示） -->
       {isArticle && (
-        <div class="paywall-divider">
+        <div class="paywall-divider atr-paywall-gate">
           <span class="paywall-badge">🔒 ここから先は Auto Tech Radar PRO 会員限定エリア</span>
         </div>
       )}
 
       <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え：記事詳細のみ表示） -->
       {isArticle && (
-      <section class="monetization-box">
-        <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
-        <p>最先端OSSのアーキテクチャ詳細解説、受託開発（単価50〜100万円）への提案法、SaaS化マネタイズ実践ガイドの完全版を即時アンロック。</p>
+        <section class="monetization-box">
+          <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
+          <p>最先端OSSのアーキテクチャ詳細解説、受託開発（単価80万〜250万円）への提案法、SaaS化マネタイズ実践ガイドの完全版を即時アンロック。</p>
         
         <div class="pricing-grid">
           <div class="price-card">

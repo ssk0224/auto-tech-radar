@@ -18,19 +18,44 @@ async function postLatestTweet() {
   const xDir = path.resolve('x_posts');
   if (!fs.existsSync(xDir)) return;
 
+  // 履歴ファイル（重複投稿の完全抑止用）の読み込み
+  const historyFile = path.resolve('scripts/publish_history.json');
+  let history = {};
+  if (fs.existsSync(historyFile)) {
+    try {
+      history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+    } catch (e) {
+      console.warn('⚠️ publish_history.json のパースに失敗しました:', e.message);
+    }
+  }
+
   const files = fs.readdirSync(xDir)
     .filter(f => f.endsWith('_x.txt'))
     .map(f => ({ name: f, mtime: fs.statSync(path.join(xDir, f)).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime);
 
   if (files.length === 0) return;
-  const latestFile = path.join(xDir, files[0].name);
+
+  // まだXに投稿されていない最新原稿を抽出
+  const unpostedFiles = files.filter(f => {
+    const slug = f.name.replace(/_x\.txt$/, '');
+    return !history[slug]?.x;
+  });
+
+  if (unpostedFiles.length === 0) {
+    console.log('✓ 最新の全記事はすでにX投稿済みです。重複投稿を安全にスキップしました。');
+    return;
+  }
+
+  const targetFileObj = unpostedFiles[0];
+  const slug = targetFileObj.name.replace(/_x\.txt$/, '');
+  const latestFile = path.join(xDir, targetFileObj.name);
   const text = fs.readFileSync(latestFile, 'utf8');
 
   const t1Match = text.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
   const tweetText = t1Match ? t1Match[1].trim() : text.slice(0, 130);
 
-  console.log(`🚀 Xへ自動投稿を試行中: ${files[0].name}...`);
+  console.log(`🚀 Xへ自動投稿を試行中: ${targetFileObj.name} (slug: ${slug})...`);
 
   // OAuth 1.0a 署名生成
   const method = 'POST';
@@ -66,10 +91,25 @@ async function postLatestTweet() {
         'Authorization': authHeader,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ text: tweetText })
+      body: JSON.stringify({ text: tweetText }),
+      signal: AbortSignal.timeout(15000),
     });
     if (res.ok) {
-      console.log('✓ X (Twitter) への最新レポート自動投稿に成功しました！');
+      console.log(`✓ X (Twitter) への最新レポート自動投稿に成功しました: ${slug}`);
+
+      // 履歴ファイルに投稿済みフラグを安全に記録
+      const today = new Date().toISOString().split('T')[0];
+      history[slug] = {
+        ...(history[slug] || {}),
+        x: true,
+        xAt: today,
+      };
+      try {
+        fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
+        console.log(`✓ publish_history.json を更新しました: ${slug} (x: true)`);
+      } catch (saveErr) {
+        console.warn('⚠️ publish_history.json の保存に失敗しました:', saveErr.message);
+      }
     } else {
       const err = await res.text();
       console.warn(`- X投稿スキップ (${res.status}): ${err}`);

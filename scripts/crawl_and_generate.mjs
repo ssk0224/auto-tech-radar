@@ -7,8 +7,8 @@ import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
-  console.error("Error: GEMINI_API_KEY is not set.");
-  process.exit(1);
+  console.warn("⚠️ Warning: GEMINI_API_KEY is not set. Skipping crawl and generation gracefully.");
+  process.exit(0);
 }
 
 const ai = new GoogleGenAI({ apiKey });
@@ -16,14 +16,15 @@ const ai = new GoogleGenAI({ apiKey });
 // 1回の実行で生成する新規記事数（API制限を完全に回避する安全設計）
 const TARGET_NEW_COUNT = 2;
 
-// GitHub API リクエスト用ヘッダー（Actions環境のトークンでレート制限を回避）
+// GitHub API リクエスト用ヘッダー（GH_PAT または GITHUB_TOKEN でレート制限を回避）
 function getGithubHeaders() {
   const headers = {
     "User-Agent": "Auto-Tech-Radar/2.0",
     "Accept": "application/vnd.github.v3+json",
   };
-  if (process.env.GITHUB_TOKEN) {
-    headers["Authorization"] = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const token = process.env.GITHUB_TOKEN || process.env.GH_PAT;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
   return headers;
 }
@@ -32,7 +33,7 @@ function getGithubHeaders() {
 const NOISE_FILTER_REGEX = /(index$|core$|cask$|nixpkgs|mediawiki|awesome|interview|curriculum|roadmap|internship|cheatsheet|cheat-sheet|leetcode|tutorial|translation|locale|dotfiles|fonts|sample|dataset|collection)/i;
 
 // 急上昇・高収益OSS（AIエージェント、SaaS代替、ローカル推論基盤、マイクロSaaS）の精密取得
-async function fetchTrendingRepos() {
+async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new Set()) {
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -47,33 +48,76 @@ async function fetchTrendingRepos() {
   const candidateMap = new Map();
 
   for (const q of queries) {
-    try {
-      const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30`;
-      const res = await fetch(url, { headers: getGithubHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        for (const item of (data.items || [])) {
-          if (!candidateMap.has(item.full_name)) {
-            candidateMap.set(item.full_name, item);
+    const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30`;
+    let attempts = 0;
+    const maxAttempts = 2;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await fetch(url, {
+          headers: getGithubHeaders(),
+          signal: AbortSignal.timeout(15000),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          for (const item of (data.items || [])) {
+            if (!candidateMap.has(item.full_name)) {
+              candidateMap.set(item.full_name, item);
+            }
           }
+          break; // 成功
         }
+
+        // 403 / 429 GitHub API レート制限の精密ハンドリング
+        if (res.status === 403 || res.status === 429) {
+          const remaining = res.headers.get("x-ratelimit-remaining");
+          const retryAfter = res.headers.get("retry-after");
+          const errBody = await res.text().catch(() => "");
+          console.warn(`[GitHub API Rate Limit] Status ${res.status} (remaining: ${remaining}, retry-after: ${retryAfter}): ${errBody.slice(0, 120)}`);
+
+          const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : 5;
+          if (attempts < maxAttempts && waitSeconds <= 10) {
+            console.log(`Waiting ${waitSeconds}s for GitHub rate limit reset...`);
+            await sleep(waitSeconds * 1000);
+            continue;
+          }
+          break; // リトライ不可時は次のクエリへ
+        }
+
+        const errText = await res.text().catch(() => "");
+        console.warn(`GitHub Search API error (HTTP ${res.status}): ${errText.slice(0, 120)}`);
+        break;
+      } catch (e) {
+        console.warn(`Query search warning for "${q}" (attempt ${attempts}): ${e.message}`);
+        if (attempts < maxAttempts) await sleep(2000);
       }
-    } catch (e) {
-      console.warn(`Query search warning for "${q}": ${e.message}`);
     }
   }
 
-  // 厳格なフィルタリング：商用化・受託提案・SaaS化が成立する真のプロダクトのみを抽出
+  // 厳格なフィルタリング ＆ 既存記事重複の事前排除
   return Array.from(candidateMap.values()).filter((r) => {
     if (!r.name || !r.description || r.fork) return false;
     if (!r.language) return false; // 言語不明・単なるマークダウン集は除外
     if (r.description.length < 20) return false; // 説明が短すぎるものは除外
     if (NOISE_FILTER_REGEX.test(r.name) || NOISE_FILTER_REGEX.test(r.full_name)) return false; // パッケージ辞書・求人リスト・チートシート集を完全排除
+
+    // 重複チェック: リポジトリURL または スラグが既に存在する場合は除外
+    const normUrl = (r.html_url || "").toLowerCase().replace(/\/$/, "");
+    if (existingUrls.has(normUrl)) {
+      return false;
+    }
+    const slug = r.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+    if (existingSlugs.has(slug)) {
+      return false;
+    }
+
     return true;
   });
 }
 
-// README の取得（最大30,000文字まで広域取得）
+// README の取得（最大30,000文字まで広域取得、タイムアウト ＆ レートリミット保護付き）
 async function getReadme(owner, repo) {
   const url = `https://api.github.com/repos/${owner}/${repo}/readme`;
   try {
@@ -82,7 +126,12 @@ async function getReadme(owner, repo) {
         ...getGithubHeaders(),
         "Accept": "application/vnd.github.raw",
       },
+      signal: AbortSignal.timeout(15000),
     });
+    if (res.status === 403 || res.status === 429) {
+      console.warn(`[GitHub Rate Limit] Failed to fetch README for ${owner}/${repo} (HTTP ${res.status})`);
+      return "";
+    }
     if (!res.ok) return "";
     const text = await res.text();
     return text.slice(0, 30000);
@@ -263,24 +312,38 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
   let lastError = null;
 
   for (const model of models) {
-    try {
-      console.log(`Generating with model: ${model}`);
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          systemInstruction,
-          temperature: 0.2,
-        },
-      });
+    const maxRetriesPerModel = 2;
+    for (let attempt = 1; attempt <= maxRetriesPerModel; attempt++) {
+      try {
+        console.log(`Generating with model: ${model} (attempt ${attempt}/${maxRetriesPerModel})`);
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction,
+            temperature: 0.2,
+          },
+        });
 
-      const text = response.text || "";
-      if (text.includes("=== WEB ARTICLE ===")) {
-        return parseGeneratedOutput(text, repo, today);
+        const text = response.text || "";
+        if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===")) {
+          return parseGeneratedOutput(text, repo, today);
+        } else {
+          console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers.`);
+        }
+      } catch (err) {
+        lastError = err;
+        const isTransient = /503|429|500|resource_exhausted|unavailable|overloaded|timeout|fetch failed|econnreset|etimedout/i.test(err.message);
+        console.warn(`Model ${model} attempt ${attempt} failed: ${err.message}`);
+
+        if (attempt < maxRetriesPerModel && isTransient) {
+          const waitTime = attempt * 3000;
+          console.log(`Waiting ${waitTime}ms before retrying ${model}...`);
+          await sleep(waitTime);
+          continue;
+        }
+        break; // 非リトライ可能エラー、または最大試行回数到達時は次のモデルへフォールバック
       }
-    } catch (err) {
-      console.warn(`Model ${model} failed: ${err.message}`);
-      lastError = err;
     }
   }
 
@@ -367,9 +430,31 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// 既存記事のURLおよびスラグ一覧を取得（完全な重複生成防止）
+function getExistingIndexedData(webDir) {
+  const existingUrls = new Set();
+  const existingSlugs = new Set();
+
+  if (!fs.existsSync(webDir)) return { existingUrls, existingSlugs };
+
+  const files = fs.readdirSync(webDir).filter((f) => f.endsWith(".md"));
+  for (const f of files) {
+    const slug = f.replace(/\.md$/, "").toLowerCase();
+    existingSlugs.add(slug);
+
+    try {
+      const content = fs.readFileSync(path.join(webDir, f), "utf8");
+      const m = content.match(/repoUrl:\s*["']([^"']+)["']/i);
+      if (m && m[1]) {
+        existingUrls.add(m[1].trim().toLowerCase().replace(/\/$/, ""));
+      }
+    } catch (e) {}
+  }
+  return { existingUrls, existingSlugs };
+}
+
 async function run() {
   console.log("=== Auto Tech Radar Pipeline 4.0 (Web + note有料 + X + Zenn一括生成) ===");
-  const repos = await fetchTrendingRepos();
 
   const webDir = path.resolve("src/pages/radar");
   const noteDir = path.resolve("note_drafts");
@@ -381,14 +466,18 @@ async function run() {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
 
+  // 既存のインデックス済みデータ（URL & スラグ）を事前ロードして完全重複排除
+  const { existingUrls, existingSlugs } = getExistingIndexedData(webDir);
+  console.log(`インデックス済み既存記事: ${existingSlugs.size} 件 (重複防止テーブルを有効化)`);
+
   // 多重スケジュール（遅延救済バックアップ便）実行時の安全ガード：本日分が既に生成済みならスキップ
   const jstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
   let todayCount = 0;
   if (fs.existsSync(webDir)) {
-    const existing = fs.readdirSync(webDir).filter(f => f.endsWith('.md'));
+    const existing = fs.readdirSync(webDir).filter((f) => f.endsWith(".md"));
     for (const f of existing) {
       try {
-        const c = fs.readFileSync(path.join(webDir, f), 'utf8');
+        const c = fs.readFileSync(path.join(webDir, f), "utf8");
         if (c.includes(`pubDate: "${jstToday}"`)) {
           todayCount++;
         }
@@ -398,6 +487,13 @@ async function run() {
 
   if (todayCount >= TARGET_NEW_COUNT) {
     console.log(`✓ 本日（${jstToday} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);
+    return;
+  }
+
+  // 急上昇OSSの探索（既存記事のURL/スラグは除外済み）
+  const repos = await fetchTrendingRepos(existingUrls, existingSlugs);
+  if (repos.length === 0) {
+    console.log("ℹ️ 新規候補リポジトリが見つかりませんでした（全件インデックス済み、または一時的なGitHub検索制限）。安全に終了します。");
     return;
   }
 
@@ -415,8 +511,11 @@ async function run() {
     const xFile = path.join(xDir, `${slug}_x.txt`);
     const zennFile = path.join(zennDir, `${slug}_zenn.md`);
 
-    if (fs.existsSync(webFile)) {
-      continue; // 既に生成済みの場合はスキップ
+    // 二重チェック
+    const normUrl = (repo.html_url || "").toLowerCase().replace(/\/$/, "");
+    if (fs.existsSync(webFile) || existingSlugs.has(slug) || existingUrls.has(normUrl)) {
+      console.log(`Skip duplicate: ${repo.full_name} (${slug})`);
+      continue;
     }
 
     console.log(`\n[${generatedCount + 1}/${TARGET_NEW_COUNT}] Processing: ${repo.full_name}`);
@@ -435,13 +534,13 @@ async function run() {
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
 
       // Zenn / Qiita 送客用ドラフト自動生成（アーキテクチャまででカットし、自社サイトへ完全送客）
-      const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, '').trim();
+      const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, "").trim();
       let teaserBody = cleanBody;
       const cutMarkers = [
-        '## 💡 ビジネス・マネタイズ活用アイデア',
-        '## 💡 このOSSを活用した具体的なマネタイズ戦略',
-        '## インストール & クイックスタート手順',
-        '## 🛠️ 【Auto Tech Radar PRO限定】'
+        "## 💡 ビジネス・マネタイズ活用アイデア",
+        "## 💡 このOSSを活用した具体的なマネタイズ戦略",
+        "## インストール & クイックスタート手順",
+        "## 🛠️ 【Auto Tech Radar PRO限定】",
       ];
       for (const m of cutMarkers) {
         const idx = teaserBody.indexOf(m);
@@ -455,7 +554,7 @@ async function run() {
 title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["${(repo.language || 'ai').toLowerCase()}", "oss", "github", "architecture", "プログラミング"]
+topics: ["${(repo.language || "ai").toLowerCase()}", "oss", "github", "architecture", "プログラミング"]
 published: true
 ---
 
@@ -486,11 +585,17 @@ ${teaserBody}
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
 
-      // 📘 Zenn公式GitHub連携用 (articles/*.md) 完全自動デプロイ対応
+      // 📘 Zenn公式GitHub連携用 (articles/*.md) 完全自動デプロイ対応（ファイル名衝突回避付き）
       let zennSlug = slug;
       if (zennSlug.length < 12) zennSlug = `${zennSlug}-tech-radar`;
       if (zennSlug.length > 50) zennSlug = zennSlug.slice(0, 50).replace(/[-_]$/, "");
-      const zennArticleFile = path.join(articlesDir, `${zennSlug}.md`);
+      let finalZennSlug = zennSlug;
+      let collisionIdx = 1;
+      while (fs.existsSync(path.join(articlesDir, `${finalZennSlug}.md`))) {
+        finalZennSlug = `${zennSlug.slice(0, 45)}-${collisionIdx}`;
+        collisionIdx++;
+      }
+      const zennArticleFile = path.join(articlesDir, `${finalZennSlug}.md`);
       fs.writeFileSync(zennArticleFile, zennDraft, "utf8");
       console.log(`✓ Zenn公式GitHub自動連携保存 (articles/): ${zennArticleFile}`);
 
@@ -502,13 +607,16 @@ ${teaserBody}
           title: repo.name,
           stars: repo.stargazers_count,
           tags: combinedTags,
-          desc: repo.description
+          desc: repo.description,
         });
         console.log(`✓ 個別OGPカード（SVG ＆ PNG）自動生成完了: public/ogp/${slug}.png`);
       } catch (ogpErr) {
         console.warn(`OGP生成スキップ: ${ogpErr.message}`);
       }
 
+      // インデックス済みセットに追加
+      existingSlugs.add(slug);
+      existingUrls.add(normUrl);
       generatedCount++;
 
       if (generatedCount < TARGET_NEW_COUNT) {

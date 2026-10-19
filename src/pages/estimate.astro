@@ -17,6 +17,17 @@ const ossList = posts.map(p => {
   title="B2B受託開発・社内AI導入 即時見積もりシミュレーター | Auto Tech Radar"
   description="急上昇OSSを活用した社内DX・AIエージェント構築・SaaS脱課金リプレイスの概算開発費用、想定工数、削減コストROIを1秒で試算できるインタラクティブシミュレーター。"
 >
+  <style>
+    @media (max-width: 640px) {
+      #copy-proposal-btn, #print-estimate-btn, #consult-link {
+        width: 100% !important;
+        justify-content: center !important;
+        text-align: center !important;
+        min-height: 48px;
+        box-sizing: border-box;
+      }
+    }
+  </style>
   <div style="max-width: 840px; margin: 0 auto; padding-bottom: 3rem;">
     <!-- ヘッダー -->
     <div style="text-align: center; margin-bottom: 2.2rem; background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 70%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 2.2rem 1.5rem;">
@@ -208,7 +219,7 @@ const ossList = posts.map(p => {
       const consultLink = document.getElementById('consult-link');
       if (consultLink) {
         const rootPath = window.location.pathname.replace(/\/estimate\/?$/, '');
-        consultLink.href = `${rootPath}/contact/?plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
+        consultLink.href = `${rootPath}/contact/?source=estimate&plan=${encodeURIComponent(selectedOss)}&price=${basePrice}`;
       }
     }
 

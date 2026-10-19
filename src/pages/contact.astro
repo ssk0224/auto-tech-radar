@@ -5,6 +5,15 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <Layout title="受託開発・AI導入支援・スポンサーお問い合わせ | Auto Tech Radar" description="海外急上昇OSSを活用した自社AIエージェント構築、社内DXシステム受託開発（単価80万〜250万円）、メディア広告掲載のご相談窓口。">
+  <style>
+    @media (max-width: 640px) {
+      #form-submit-btn {
+        width: 100% !important;
+        padding: 0.95rem 1rem !important;
+        min-height: 48px;
+      }
+    }
+  </style>
   <div style="max-width: 800px; margin: 0 auto; padding: 1rem 0 3.5rem;">
     <!-- Breadcrumb -->
     <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">
@@ -124,6 +133,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
               <option value="80万〜150万円">80万円 〜 150万円</option>
               <option value="150万〜250万円">150万円 〜 250万円</option>
               <option value="250万円以上">250万円以上</option>
+              <option value="スポンサー協賛（10万〜30万円）">スポンサー協賛（10万円 〜 30万円）</option>
               <option value="要相談・見積もり希望">要相談・見積もり希望</option>
             </select>
           </div>
@@ -171,14 +181,54 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     const successMsg = document.getElementById('form-success-msg');
     const submitBtn = document.getElementById('form-submit-btn');
 
-    // 見積もりシミュレーターからのクエリパラメータ自動反映
+    // 導線別のクエリパラメータ自動反映（見積もりシミュレーター / スポンサー / 記事CTA / 法人ライセンス）
     const urlParams = new URLSearchParams(window.location.search);
     const plan = urlParams.get('plan');
     const price = urlParams.get('price');
+    const source = urlParams.get('source');
+
+    const msgEl = document.getElementById('form-message');
+    const typeEl = document.getElementById('form-type');
+    const budgetEl = document.getElementById('form-budget');
+
     if (plan) {
-      const msgEl = document.getElementById('form-message');
-      if (msgEl) {
-        msgEl.value = `【概算見積もりシミュレーター経由のご相談】\n検討中OSS基盤: ${plan}\n概算試算額: ¥${Number(price || 0).toLocaleString()}（税別）\n\n上記プランをベースに、要件定義・社内PoC構築の実現可能性および正式お見積もりをご相談したいです。`;
+      const numPrice = Number(price || 0);
+
+      if (plan.startsWith('sponsor')) {
+        // スポンサー・協賛経由
+        if (typeEl) typeEl.value = 'スポンサーシップ・広告掲載';
+        if (budgetEl) budgetEl.value = 'スポンサー協賛（10万〜30万円）';
+        if (msgEl) {
+          const sponsorPlanName = plan === 'sponsor-tieup' ? '① メイン・タイアップ協賛（¥300,000 / 1記事パッケージ）' :
+                                  plan === 'sponsor-monthly' ? '② 月間メディアスポンサー（¥100,000 / 月）' :
+                                  '公式メディアスポンサー掲載（¥100,000〜）';
+          msgEl.value = `【スポンサーシップ・広告掲載のご相談】\nご検討メニュー: ${sponsorPlanName}\n想定ご予算: ¥${(numPrice || 100000).toLocaleString()}\n\n掲載枠の空き状況、掲載スケジュール、メディアキット詳細についてご案内をお願いいたします。`;
+        }
+      } else if (plan === 'corporate-license') {
+        // 法人経費・チームライセンス経由
+        if (typeEl) typeEl.value = 'その他';
+        if (msgEl) {
+          msgEl.value = `【法人一括ライセンス・チーム導入のご相談】\n検討プラン: Auto Tech Radar PRO（適格請求書・銀行振込対応）\n\nチーム利用人数、社内稟議手続き、法人契約の手続きについてご案内をお願いいたします。`;
+        }
+      } else {
+        // OSS受託開発・自社AI導入経由
+        if (typeEl) typeEl.value = '受託開発・自社専用AI構築';
+        if (budgetEl && numPrice > 0) {
+          if (numPrice <= 1500000) {
+            budgetEl.value = '80万〜150万円';
+          } else if (numPrice <= 2500000) {
+            budgetEl.value = '150万〜250万円';
+          } else {
+            budgetEl.value = '250万円以上';
+          }
+        }
+        if (msgEl) {
+          if (source === 'estimate') {
+            msgEl.value = `【概算見積もりシミュレーター経由のご相談】\n検討中OSS基盤: ${plan}\n概算試算額: ¥${(numPrice || 0).toLocaleString()}（税別）\n\n上記構成をベースに、要件定義・社内PoC構築の実現可能性および正式お見積もりをご相談したいです。`;
+          } else {
+            msgEl.value = `【自社専用AI・社内DX導入のご相談】\n検討中OSS: ${plan}\n想定開発規模: ¥${(numPrice || 800000).toLocaleString()}〜（税別）\n\n上記OSSを活用した社内環境構築、PoC開発、商用導入の実現可能性についてご相談したいです。`;
+          }
+        }
       }
     }
 

@@ -38,11 +38,18 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk
 
       - name: Run Crawler & Gemini
+        id: crawler
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
         run: node scripts/crawl_and_generate.mjs
+
+      - name: Verify Crawler Outcome
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.crawler.outcome == 'failure'
+        run: |
+          echo "::warning title=Crawler Warning::Crawler encountered an issue (API rate limit or temporary upstream outage). Pipeline will proceed to build and deploy existing content safely."
 
       - name: Build Astro SSG
         run: npm run build
@@ -51,6 +58,8 @@ jobs:
         run: node scripts/ping_search_engines.mjs
 
       - name: Auto Tweet to X
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
@@ -64,16 +73,44 @@ jobs:
         run: |
           git config --global user.name "ssk0224"
           git config --global user.email "ssk0224@users.noreply.github.com"
-          git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/
+          git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/ scripts/publish_history.json
           if git diff --staged --quiet; then
-            echo "No new radar entries."
+            echo "No new radar entries to commit."
           else
             git commit -m "chore: auto-index new tech radar entry [skip ci]"
-            git pull --rebase origin main || true
+
+            # GH_PATが設定されている場合はURLに含めず、HTTPヘッダー経由で安全に認証設定（ログ漏洩防止）
             if [ -n "$GH_PAT" ]; then
-              git push "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git" main
-            else
-              git push origin main
+              git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf "x-access-token:%s" "$GH_PAT" | base64 -w 0)"
+            fi
+
+            # 安全なリトライ＆コンフリクト回避ループ（最大3回試行）
+            PUSH_SUCCESS=false
+            for i in 1 2 3; do
+              echo "Git pull/rebase and push attempt $i of 3..."
+              if git pull --rebase origin main; then
+                if git push origin main; then
+                  echo "Successfully pushed changes to main."
+                  PUSH_SUCCESS=true
+                  break
+                fi
+              else
+                echo "Rebase conflict detected. Aborting rebase to keep working copy clean."
+                git rebase --abort
+                # 新規生成ファイルを保護しながら最新を取り込んでマージ
+                git pull --no-rebase -s recursive -X ours origin main --no-edit || true
+                if git push origin main; then
+                  echo "Successfully resolved conflict and pushed changes to main."
+                  PUSH_SUCCESS=true
+                  break
+                fi
+              fi
+              sleep 3
+            done
+
+            if [ "$PUSH_SUCCESS" != "true" ]; then
+              echo "::error::Failed to push changes to main after 3 attempts."
+              exit 1
             fi
           fi
 

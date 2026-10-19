@@ -25,7 +25,8 @@ async function notifyIndexNow() {
       headers: {
         "Content-Type": "application/json; charset=utf-8"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000)
     });
     console.log(`✓ IndexNow API 送信完了: HTTP ${res.status} (${payload.urlList.length} 件のURLを通知)`);
   } catch (err) {

@@ -45,6 +45,12 @@ for (const f of files) {
       const parsedTopics = JSON.parse(topicsMatch[1]);
       if (!Array.isArray(parsedTopics) || parsedTopics.length === 0 || parsedTopics.length > 5) {
         errors.push(`${f}: Topics count (${Array.isArray(parsedTopics) ? parsedTopics.length : 0}) must be between 1 and 5.`);
+      } else {
+        parsedTopics.forEach(t => {
+          if (typeof t !== 'string' || !/^[a-z0-9_-]+$/.test(t)) {
+            errors.push(`${f}: Topic "${t}" is invalid. Must only contain lowercase alphanumeric, hyphen, or underscore ([a-z0-9_-]).`);
+          }
+        });
       }
     } catch (e) {
       errors.push(`${f}: Failed to parse topics JSON array.`);
