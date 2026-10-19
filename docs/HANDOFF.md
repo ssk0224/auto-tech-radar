@@ -30,25 +30,26 @@
   - **オーナー端末の古いクローンは使わず、取り直すこと**（`git clone https://github.com/ssk0224/auto-tech-radar`）。古いクローンから push すると平文の履歴が戻る。
   - GitHub は古いコミットを SHA 指定でしばらく表示できる。完全に消すには GitHub サポートに「Remove cached views」を依頼する（旧 main: `104d7ccf906fcbda30d8e55f6ab87d22515188fe`、旧ブランチ先頭: `d10815377edda16a0882d55cce32f5416939b960`）。
 - 乱数で作っていた閲覧者数（「現在 N 名が閲覧・研究中」）を削除、「全記事読み放題」系の表現を修正、sponsor の根拠のない読者層の主張を修正。テストに禁止表現として追加。
+- **オーナーPC（Windows）の同期・秘密鍵の確立・全38本の再封印**（2026-10-19 20:15 JST）:
+  - オーナー端末に残っていた履歴書き換え前のクローンを `C:\Users\free1\_quarantine_auto-tech-radar_prerewrite_20261019\old_history.bundle` に隔離退避し、作業ツリーを `origin/main` と完全一致化・旧オブジェクトを `git gc --prune=now` で物理パージ済み。
+  - オーナー端末（`%USERPROFILE%\.auto-tech-radar\note_vault_private.pem`）に新しい4096-bit RSA秘密鍵を生成し、隔離バンドルから復元した全38本の有料本文（`laya-mlx` / `jiuwenswarm` / `opendots` / 自作Docker 11本の誠実化パッチ適用済み）を新公開鍵（`kid: 77ba83a4762520e8`）で再暗号化・`npm run vault:open` での往復復号を検証済み。
+  - Windows環境（`core.autocrlf=true`）で公開鍵やZenn送客文がCRLFになることで `keyId()` や監査・テストが不一致になっていた問題を `scripts/utils/note_vault.mjs` / `scripts/audit_quality.mjs` / `tests/boundaries.test.mjs` で正規化修正済み。
+  - `README.md`・`src/pages/*.astro`・`scripts/crawl_and_generate.mjs`・`scripts/launcher.mjs` に残っていた旧表記（`gemini-3.8-flash`、固定単価表、`完全保存版`、`ドル箱`、生成プロンプト内の「全アーカイブが読み放題」）を除去し、`tests/claims.test.mjs` の検査対象に追加。
 
 ## 未完了（要対応）
-0. **【オーナー作業・最優先】note に公開済みの記事の差し替え**: 修正はリポジトリの原稿にだけ入っており、note.com 上の公開済み記事は古いまま（購入者が読む有料部分も含む）。
+0. **【オーナー作業・最優先】note に公開済みの記事の差し替え・重複整理・未出品記事の出品**:
+   - **秘密鍵のバックアップ**: `%USERPROFILE%\.auto-tech-radar\note_vault_private.pem` をパスワードマネージャーや外部メディアに必ず控えを取ること。
    - 有料部分の手順を「README 準拠／未検証」に直した記事で、**note に公開済みの 9 本**: `laya-mlx`（README に MCP/HTTP サーバーは無く macOS 専用なのに Docker 手順があった）、`jev-chat-jarvis`, `jev-ultrafast`, `lightcraft`, `pdfcraft`, `universal-modder`, `vectorcraft`, `wordcraft`, `zcode`（自作の Docker 構成）。
-   - 公開済み 32 本の無料部分には「即受注」「80万〜250万円」などの表現が残っている。
-   - **重複出品**（2026-10-19 に CI が検出）: `zcode`, `magpie`, `diplay`, `dsh-our-free-model`, `pdfcraft`, `lightcraft`, `answer-me-with-html` が各 2 本、無料チートシートが 5 本。原因はランチャー（[A] が note 公開済みでも新規投稿を開く、[M] が公開を記録しない）で、修正済み。[U] が残す 1 本と非公開にする URL を表示する。
-   - ノイズ記事 4 本（`crates-io-index`, `homebrew-core`, `internships-2027`, `mediawiki`）は解説対象外なのに ¥980 で公開されている → 非公開にする。
-   - 手順: ランチャーの **[U]**。1 本ずつ、復号した修正版の全文をクリップボードへコピーし、note の記事一覧と原稿を開く。note で差し替えて Enter を押すと `publish_history.json` の `noteUpdatedAt` に記録され、一覧から消える。対象は `scripts/note_updates.json`（テスト `tests/note_updates.test.mjs` が公開済み記事との食い違いを検出）。
-   - note.com には記事を編集する公開 API が無く、クラウド環境からはログインできないため、この作業だけは自動化できない。リードマグネット（`note_drafts/LEAD_MAGNET_CHEAT_SHEET.md`）は未投稿。
-1. **修正後の生成スクリプトの本番初回**: 次の定期実行（6:17 JST）。6:40 JST に確認を予約済み。
-2. ~~`public/og-card.png` の再生成~~（2026-10-19 済）。
-3. **単価表示**: スター数・カテゴリから機械的に決めた「想定受託単価」（OGP `scripts/generate_og_cards.mjs`、`src/pages/index.astro` / `cheatsheet.astro` / `weekly.astro`）は根拠が無いため削除する方針（未着手）。記事本文の「想定」見積もりは残す。
-4. **調査で見つかった不足**（優先順）:
-   - FAQ 構造化データ（Layout.astro 120-135 付近）が全 OSS に「商用利用可能」と答えている → 実際のライセンス（SPDX）から生成する。
-   - Layout の「専任エンジニアチームが最短2週間で構築」、contact の適格請求書の記載 → 事実確認できるまで断定しない表現に。
-   - AI 生成であることの表示、スポンサー枠の「PR/広告」表示（ステマ規制）。
-   - 計測が無い（cookie を使わない解析＋ UTM）。**オーナーのアカウント作成が必要**（例: GoatCounter 無料・cookie 不使用）。導入時は `privacy.astro` の外部送信一覧に追記する。
-   - メールでの読者リスト（週次まとめ）。**配信サービスのアカウントが必要**。特定電子メール法に沿って同意と配信停止を用意。
-   - robots.txt は**効いていない**: サイトは `ssk0224.github.io/auto-tech-radar/` 配下のため、クローラーが読むのはホスト直下の `/robots.txt`（RFC 9309 §2.3「top-level path」）。`public/robots.txt` の AI クローラー拒否もサイトマップ指定も無効。サイトマップは Google Search Console / Bing Webmaster Tools に手動で登録する（オーナー作業）。独自ドメインにすれば robots.txt が有効になる。
-5. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。法務確認を推奨。外部送信（GitHub Pages / Google Fonts / jsDelivr）は 2026-10-19 に記載済み。外部サービスを足したら必ずここに追記する。
-6. **独立レビューの指摘 20 件**: 2026-10-19 にすべて修正済み（テスト `tests/x_pipeline`, `claims`, `reference_check`, `radar_map`, `contact`, `boundaries` に再発防止の検査を追加）。主な内容: X 自動投稿の 4xx でキューが止まる不具合、ツイートの weight 超過、スポンサーページの根拠のない数値と被リンク販売、FAQ 構造化データ、記事ページの目次等が表示されない不具合（ブラウザで表示確認済み）、ノイズ記事の混入、IndexNow の送信範囲、Dockerfile ステージ名の誤照会、OGP 画像とリードマグネットの単価表示。
-7. **その他の対応済み（2026-10-19）**: 記事に AI 生成の表示、プライバシーポリシーに外部送信（GitHub Pages / Google Fonts / jsDelivr）、適格請求書・NDA の断定表現を削除、OGP 画像 42 枚と og-card.png を再生成。
+   - 公開済み 28 本の無料部分には「即受注」「80万〜250万円」などの表現が残っている。
+   - **重複出品**（2026-10-19 に CI が検出）: `zcode`, `magpie`, `diplay`, `dsh-our-free-model`, `pdfcraft`, `lightcraft`, `answer-me-with-html` が各 2 本、無料チートシート（`LEAD_MAGNET_CHEAT_SHEET`）が 5 本。[U] が残す 1 本と非公開にする URL を表示する。
+   - **ノイズ記事の非公開化**: `crates-io-index`, `homebrew-core`, `internships-2027` が note 上で ¥980 で公開中（`mediawiki` は note 上に存在せず）。ランチャー [U] で該当 URL が直接開くので非公開にする。
+   - **未出品の解説記事（6本）**: `cadcraft`, `gridcraft`, `opendots`, `solidcraft`, `effectcraft`, `jiuwenswarm` は原稿（`note_drafts/*_note.md`）があるが note 未出品。ランチャー [4] または [A] から出品可能。（※ `gptqmodel` と `opensandbox` は初期生成時の Web 記事のみで `note_drafts` 原稿は未作成）。
+   - 手順: デスクトップの `【収益化】AutoTechRadar.bat` からランチャーを起動し **[U]** を実行。1 本ずつ、復号した修正版の全文をクリップボードへコピーし、note の該当記事URLと原稿を開く。note で差し替えて Enter を押すと `publish_history.json` の `noteUpdatedAt` に記録され、一覧から消える。
+1. **修正後の生成スクリプトの本番初回**: 2026-10-19 の定時実行は、同日手動コミットされた 2 記事（`opendots`, `solidcraft`）が `pubDate: "2026-10-19"` だったため日次上限ガード（1日2本）により正常スキップ済み。次の定期実行は **2026-10-20 06:17 JST**。
+2. **X (Twitter) 自動投稿の有効化（オーナー作業・任意）**: GitHub リポジトリの Actions Secrets に `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` が未設定のため、現在 CI の自動ツイートはスキップされている（手動ランチャー [5] での投稿は可能）。自動化する場合は Secrets を登録する。
+3. **外部連携・ドメイン（オーナー作業・任意）**:
+   - 計測が無い（cookie を使わない解析＋ UTM）。導入時はアカウント作成のうえ `privacy.astro` の外部送信一覧に追記する。
+   - メールでの読者リスト（週次まとめ）。配信サービスのアカウントが必要。特定電子メール法に沿って同意と配信停止を用意。
+   - `robots.txt` は `ssk0224.github.io/auto-tech-radar/` 配下では効かない（RFC 9309 §2.3）。サイトマップ（`https://ssk0224.github.io/auto-tech-radar/sitemap-index.xml`）は Google Search Console / Bing Webmaster Tools に手動登録する。
+4. プライバシーポリシー（`src/pages/privacy.astro`）は事実に基づく最小限の内容。外部サービスを足したら必ずここに追記する。
+

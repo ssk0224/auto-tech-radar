@@ -273,7 +273,7 @@ stars: ${repo.stargazers_count}
 
 ---
 ### 🎁 【メンバーシップのご案内】
-Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いただくと、本日公開のこの記事を含む全アーカイブが読み放題になります。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
@@ -304,7 +304,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 `;
 
-  const models = ["gemini-3.8-flash", "gemini-2.5-flash"];
+  const models = ["gemini-2.5-flash"];
   let lastError = null;
 
   for (const model of models) {
@@ -564,7 +564,7 @@ async function run() {
       console.log(`試行上限（${MAX_ATTEMPTS_PER_RUN}件）に達したため終了します。`);
       break;
     }
-    if (generatedCount >= TARGET_NEW_COUNT) {
+    if (todayCount + generatedCount >= TARGET_NEW_COUNT) {
       console.log(`Reached target count (${TARGET_NEW_COUNT}). Pipeline completed.`);
       break;
     }

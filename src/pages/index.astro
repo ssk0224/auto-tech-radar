@@ -142,7 +142,7 @@ const posts = getArticles() as any[];
       </div>
       <!-- One-click Category Quick Filters -->
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">ドル箱ジャンル絞込:</span>
+        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">技術領域絞込:</span>
         <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">全ジャンル</button>
         <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent</button>
         <button class="cat-pill" data-cat="saas" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🚀 SaaS代替・脱課金</button>
@@ -164,8 +164,8 @@ const posts = getArticles() as any[];
     <div id="posts-container">
       {posts.length === 0 ? (
         <div style="text-align: center; padding: 3rem 1rem; background: #111827; border-radius: 12px; border: 1px solid #1f2937;">
-          <p style="color: #94a3b8; margin-bottom: 0.5rem;">毎朝6時の定時クロールで自動インデックスされます。</p>
-          <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる完全無人自動運用中</p>
+          <p style="color: #94a3b8; margin-bottom: 0.5rem;">毎朝の定時クロールで自動インデックスされます。</p>
+          <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる定時自動更新</p>
         </div>
       ) : (
         posts.map((post) => {

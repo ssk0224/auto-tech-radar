@@ -12,13 +12,15 @@ const FORBIDDEN = [
   [/累計[\d,]+\+? ?Stars/, "集計していないスター数の合計"],
 ];
 
-test("OGP 画像・リードマグネットとその生成スクリプトに禁止表現が無い", () => {
+test("OGP 画像・リードマグネット・README・サイトページとその生成スクリプトに禁止表現が無い", () => {
   const files = [
+    "README.md",
     "public/og-card.svg",
     "scripts/generate_og_cards.mjs",
     "scripts/generate_lead_magnet_note.mjs",
     "scripts/generate_weekly_thread.mjs",
     "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md",
+    ...fs.readdirSync("src/pages").filter((f) => f.endsWith(".astro")).map((f) => path.join("src/pages", f)),
     ...fs.readdirSync("public/ogp").filter((f) => f.endsWith(".svg")).map((f) => path.join("public/ogp", f)),
   ];
   for (const f of files) {

@@ -8,7 +8,7 @@ import { extractReferences } from "../scripts/utils/reference_check.mjs";
 import { zennCta } from "../scripts/utils/funnel_copy.mjs";
 import { splitPaid, isSealed } from "../scripts/utils/note_vault.mjs";
 
-const read = (p) => fs.readFileSync(p, "utf8");
+const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 const list = (dir, re) => fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(dir, f));
 
 test("PRO 見出し以降を Web 記事から除去する／README の MCP 設定の引用は有料扱いしない", () => {

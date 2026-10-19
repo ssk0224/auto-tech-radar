@@ -7,7 +7,7 @@ import os from "os";
 import path from "path";
 import {
   splitPaid, writeSealedNote, assembleNote, noteDraftProblems, withStandardFooter, isSealed,
-  sealedFileFor, decryptText, encryptText,
+  sealedFileFor, decryptText, encryptText, keyId,
 } from "../scripts/utils/note_vault.mjs";
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
@@ -56,3 +56,11 @@ test("生成物の末尾が崩れていたら検出し、標準の末尾で補�
   assert.ok(noteDraftProblems(draft().replace(PAID, "短い")).some((p) => /短すぎ/.test(p)));
   assert.equal(splitPaid("有料ラインの無い原稿"), null);
 });
+
+test("公開鍵が CRLF 改行（Windows git checkout）でも同じ keyId になり復号できる", () => {
+  const crlfPub = publicKey.replace(/\r?\n/g, "\r\n");
+  assert.equal(keyId(crlfPub), keyId(publicKey));
+  const sealed = encryptText("secret", crlfPub, "a_note.md");
+  assert.equal(decryptText(sealed, [privateKey], "a_note.md"), "secret");
+});
+

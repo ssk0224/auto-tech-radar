@@ -81,7 +81,7 @@ export function withStandardFooter(fullContent) {
 }
 
 export function keyId(publicKeyPem) {
-  return crypto.createHash("sha256").update(publicKeyPem.trim()).digest("hex").slice(0, 16);
+  return crypto.createHash("sha256").update(publicKeyPem.replace(/\r\n/g, "\n").trim()).digest("hex").slice(0, 16);
 }
 
 function keyIdOfPrivate(privateKeyPem) {

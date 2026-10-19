@@ -16,9 +16,9 @@ export function normalizeTitle(s) {
   return (s || '').normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
 }
 
-// 原稿タイトルからプロジェクト名を取り出す（「ZCode」・【…】ZCodeとは？ の形式）
+// 原稿タイトルからプロジェクト名を取り出す（「ZCode」・【…】ZCodeとは？・ZCode: 概要と革新性 の形式）
 export function projectNameOf(title) {
-  const m = title.match(/「([^」]{3,})」/) || title.match(/】\s*(.{3,}?)とは/);
+  const m = title.match(/「([^」]{3,})」/) || title.match(/】\s*(.{3,}?)とは/) || title.match(/^#?\s*([a-z0-9_.-]{3,}):\s*概要/i);
   return m ? m[1].trim() : '';
 }
 

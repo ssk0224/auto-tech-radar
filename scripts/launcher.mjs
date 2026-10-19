@@ -117,7 +117,7 @@ function recordPublish(slug, type) {
 
   // バックグラウンドで即座にクラウド同期（ユーザーの追加操作不要・完全自動）
   try {
-    exec('git add scripts/publish_history.json && git commit -m "chore(history): record published articles" && git push origin main', { cwd: rootDir });
+    exec('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B" && git add scripts/publish_history.json && git commit -m "chore(history): record published articles" && git pull --rebase origin main && git push origin main', { cwd: rootDir });
   } catch (e) {}
 }
 
@@ -197,10 +197,15 @@ function getPendingNoteUpdates() {
 }
 
 function loadNoteUrls() {
+  const knownNoiseUrls = {
+    'crates-io-index': { url: 'https://note.com/vast_ixora7005/n/na4995221c9ec', price: 980 },
+    'homebrew-core': { url: 'https://note.com/vast_ixora7005/n/n78b928e2598d', price: 980 },
+    'internships-2027': { url: 'https://note.com/vast_ixora7005/n/n8b1178d06273', price: 980 },
+  };
   try {
-    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'));
+    return { ...knownNoiseUrls, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8')) };
   } catch (e) {
-    return {};
+    return knownNoiseUrls;
   }
 }
 
@@ -210,7 +215,7 @@ function recordNoteUpdated(slug, deduped) {
   history[slug] = { ...(history[slug] || {}), noteUpdatedAt: today, ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   try {
-    exec('git add scripts/publish_history.json && git commit -m "chore(history): record note updates" && git push origin main', { cwd: rootDir });
+    exec('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B" && git add scripts/publish_history.json && git commit -m "chore(history): record note updates" && git pull --rebase origin main && git push origin main', { cwd: rootDir });
   } catch (e) {}
 }
 
@@ -323,7 +328,6 @@ function handleChoice(choice) {
       runCloudSync();
       break;
     case 'z':
-    case '9':
       runZennConsole();
       break;
     case '4':
@@ -666,7 +670,7 @@ function runPublishHelper(mode) {
 title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["ai", "oss", "github", "architecture", "プログラミング"]
+topics: ["ai", "oss", "github", "architecture", "programming"]
 published: true
 ---
 
@@ -925,7 +929,7 @@ function runCloudSync() {
 function runCrawlerManual() {
   console.clear();
   console.log(`${c.yellow}${c.bold}=== 最新OSS手動クロール ＆ 記事自動生成パイプライン ===${c.reset}\n`);
-  console.log(`GitHub Trending API直結 ＆ Gemini 3.8 Flashによる日本語解剖を即時実行します...\n`);
+  console.log(`GitHub Search API ＆ Gemini 2.5 Flashによる日本語解剖を即時実行します...\n`);
   try {
     execSync('node scripts/crawl_and_generate.mjs', { stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ クロールと記事生成が正常に完了しました！${c.reset}\n`);
