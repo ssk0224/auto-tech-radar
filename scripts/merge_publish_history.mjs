@@ -19,8 +19,10 @@ for (const slug of new Set([...Object.keys(ours), ...Object.keys(theirs)])) {
   const b = theirs[slug] || {};
   const m = { ...b, ...a };
   for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
-    // 投稿済みフラグはどちらかが true なら true、日時は遅い方を残す
-    if (typeof a[k] === "boolean" || typeof b[k] === "boolean") m[k] = !!(a[k] || b[k]);
+    // 投稿済みフラグはどちらかが true なら true、次に "failed"（自動投稿の失敗記録）を残す。日時は遅い方を残す
+    if (a[k] === true || b[k] === true) m[k] = true;
+    else if (a[k] === "failed" || b[k] === "failed") m[k] = "failed";
+    else if (typeof a[k] === "boolean" || typeof b[k] === "boolean") m[k] = false;
     else if (typeof a[k] === "string" && typeof b[k] === "string" && /At$/.test(k)) m[k] = a[k] > b[k] ? a[k] : b[k];
   }
   merged[slug] = m;

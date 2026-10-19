@@ -65,30 +65,27 @@ export function sanitizeAndAttachUrlToTweet(rawTweet, slug, customUrl = null) {
     };
   }
 
-  // Smart trimming: preserve header (hook & stars) and footer (CTA & pointer)
+  // 先頭（フック）を残し、本文の末尾から weight で削る。行数に関係なく必ず 245 以内に収める。
+  // 末尾行が短い 👇 付きの誘導文ならそれを残し、長い行（本文に 👇 が混ざっているだけ）は本文として扱う
   const lines = text.split('\n').filter(l => l.trim() !== '');
-  const footerLine = lines[lines.length - 1]; // contains 👇
-  const headerLines = lines.slice(0, Math.min(2, lines.length - 1));
-  let middleLines = lines.slice(headerLines.length, lines.length - 1);
-  let middleText = middleLines.join(' ');
+  const last = lines[lines.length - 1] || '';
+  const keepFooter = lines.length > 1 && last.includes('👇') && calcTwitterWeight(last) <= 60;
+  const footerLine = keepFooter ? last : '👇';
+  const body = (keepFooter ? lines.slice(0, -1) : lines).join('\n').replace(/\s*👇\s*$/, '');
+  const maxBodyWeight = 245 - calcTwitterWeight('\n' + footerLine + '\n' + targetUrl);
 
-  const headerWeight = calcTwitterWeight(headerLines.join('\n') + '\n');
-  const footerWeight = calcTwitterWeight('\n' + footerLine + '\n' + targetUrl);
-  const maxMiddleWeight = 245 - (headerWeight + footerWeight);
-
-  let trimmedMiddle = '';
-  for (const ch of middleText) {
-    const nextMiddle = trimmedMiddle + ch;
-    if (calcTwitterWeight(nextMiddle + '...') > maxMiddleWeight) {
-      trimmedMiddle += '...';
-      break;
+  let trimmedBody = body;
+  if (calcTwitterWeight(body) > maxBodyWeight) {
+    trimmedBody = '';
+    for (const ch of body) {
+      if (calcTwitterWeight(trimmedBody + ch + '…') > maxBodyWeight) break;
+      trimmedBody += ch;
     }
-    trimmedMiddle = nextMiddle;
+    trimmedBody = trimmedBody.trimEnd() + '…';
   }
 
   const parts = [];
-  if (headerLines.length > 0) parts.push(headerLines.join('\n'));
-  if (trimmedMiddle) parts.push(trimmedMiddle);
+  if (trimmedBody) parts.push(trimmedBody);
   parts.push(footerLine);
   parts.push(targetUrl);
 

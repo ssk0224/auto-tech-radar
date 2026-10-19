@@ -150,7 +150,7 @@ function getDrafts() {
         size: stat.size,
         isNotePosted: !!h.note,
         notePostedAt: h.noteAt || null,
-        isXPosted: !!h.x,
+        isXPosted: h.x === true,
         xPostedAt: h.xAt || null,
         isZennPosted: !!h.zenn,
         zennPostedAt: h.zennAt || null,

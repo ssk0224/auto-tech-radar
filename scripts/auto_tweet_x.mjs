@@ -1,8 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { pathToFileURL } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
+
+// X API の応答をどう扱うか。429（レート制限）と 5xx は次回に再試行する。
+// それ以外の 4xx（重複投稿・文字数超過・権限など）は再試行しても通らないため、失敗として記録して次の記事へ進む
+export function classifyXResponse(status) {
+  if (status >= 200 && status < 300) return 'posted';
+  if (status === 429 || status >= 500) return 'retry';
+  return 'failed';
+}
 
 // X (Twitter) API v2 自動投稿エンジン (OAuth 1.0a HMAC-SHA1)
 // シークレット未設定時は安全にスキップし、パイプラインを絶対に落とさない設計
@@ -70,6 +79,23 @@ async function postLatestTweet() {
   const safeData = sanitizeAndAttachUrlToTweet(rawTweet, slug);
   const tweetText = safeData.tweet;
 
+  const recordHistory = (entry, label) => {
+    history[slug] = { ...(history[slug] || {}), ...entry };
+    try {
+      fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
+      console.log(`✓ publish_history.json を更新しました: ${slug} (${label})`);
+    } catch (saveErr) {
+      console.warn('⚠️ publish_history.json の保存に失敗しました:', saveErr.message);
+    }
+  };
+  const today = new Date().toISOString().split('T')[0];
+
+  if (!safeData.isSafe) {
+    console.warn(`- X投稿スキップ: 文字数の上限を超えています (weight ${safeData.weight}/280): ${slug}`);
+    recordHistory({ x: 'failed', xAt: today, xError: `weight ${safeData.weight}` }, 'x: failed');
+    return;
+  }
+
   console.log(`🚀 Xへ自動投稿を試行中: ${targetFileObj.name} (slug: ${slug})...`);
 
   // OAuth 1.0a 署名生成
@@ -109,29 +135,22 @@ async function postLatestTweet() {
       body: JSON.stringify({ text: tweetText }),
       signal: AbortSignal.timeout(15000),
     });
-    if (res.ok) {
+    const outcome = classifyXResponse(res.status);
+    if (outcome === 'posted') {
       console.log(`✓ X (Twitter) への最新レポート自動投稿に成功しました: ${slug}`);
-
-      // 履歴ファイルに投稿済みフラグを安全に記録
-      const today = new Date().toISOString().split('T')[0];
-      history[slug] = {
-        ...(history[slug] || {}),
-        x: true,
-        xAt: today,
-      };
-      try {
-        fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
-        console.log(`✓ publish_history.json を更新しました: ${slug} (x: true)`);
-      } catch (saveErr) {
-        console.warn('⚠️ publish_history.json の保存に失敗しました:', saveErr.message);
-      }
+      recordHistory({ x: true, xAt: today }, 'x: true');
     } else {
       const err = await res.text();
       console.warn(`- X投稿スキップ (${res.status}): ${err}`);
+      if (outcome === 'failed') {
+        recordHistory({ x: 'failed', xAt: today, xError: `HTTP ${res.status}` }, 'x: failed');
+      }
     }
   } catch (err) {
     console.warn(`- X投稿例外スキップ: ${err.message}`);
   }
 }
 
-postLatestTweet();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  postLatestTweet();
+}
