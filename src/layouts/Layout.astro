@@ -1,17 +1,18 @@
 ---
 import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
+import { getArticles } from "../utils/articles.js";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // 関連記事（Read Next）の推薦ロジック
+// 質問応答の構造化データは出さない: 全OSSに同じ回答（商用利用可否・成熟度）を返す形では根拠データが無いため
 const isArticle = !!frontmatter;
 let relatedPosts: any[] = [];
 if (isArticle) {
-  const allModules = import.meta.glob("../pages/radar/*.md", { eager: true });
-  const allPosts = Object.values(allModules) as any[];
+  const allPosts = getArticles() as any[];
   const currentTags = Array.isArray(frontmatter.tags) ? frontmatter.tags.map((t: string) => t.toLowerCase()) : [];
   const currentTitle = (frontmatter.title || "").toLowerCase();
 
@@ -113,28 +114,6 @@ if (starsCount >= 15000) {
         },
         "keywords": (frontmatter?.tags || ["OSS", "Tech"]).join(", ")
       })} />
-      <script type="application/ld+json" set:html={JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": `${frontmatter?.title?.split(' - ')[0] || '本OSS'}の商用利用や受託開発への活用は可能ですか？`,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": `はい。本OSSはオープンソースとして公開されており、受託開発（単価80万〜250万円規模）の基盤や自社SaaS構築に商用活用可能です。ライセンス考察および導入提案書テンプレートを本記事で公開しています。`
-            }
-          },
-          {
-            "@type": "Question",
-            "name": `${frontmatter?.title?.split(' - ')[0] || '本OSS'}のThoughtWorks技術成熟度判定は？`,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": `コミュニティ活発度・スター数・本番稼働実績から総合判定した成熟度リングは「${ringLabel}」です。PoC開発や社内DXでの即座の検証・導入が推奨されます。`
-            }
-          }
-        ]
-      })} />
     ) : (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
@@ -199,7 +178,7 @@ if (starsCount >= 15000) {
         border: 1px solid rgba(59, 130, 246, 0.3);
         margin-bottom: 0.4rem;
       }
-      header h1 {
+      header .site-title {
         margin: 0;
         font-size: 1.85rem;
         font-weight: 900;
@@ -610,7 +589,7 @@ if (starsCount >= 15000) {
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
           <div class="brand-badge">⚡ Global OSS Intelligence</div>
-          <h1><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></h1>
+          <div class="site-title"><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></div>
           <p>世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説 ＆ マネタイズ分析</p>
         </div>
         <div class="nav-links">
@@ -642,7 +621,7 @@ if (starsCount >= 15000) {
           />
         </div>
       )}
-      <slot />
+      {isArticle ? <article id="article-body"><slot /></article> : <slot />}
 
       <!-- ビジュアル・ペイウォール境界線（記事詳細のみ表示） -->
       {isArticle && (
@@ -723,10 +702,10 @@ if (starsCount >= 15000) {
               🏢 企業・開発責任者様向け
             </div>
             <h3 style="margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 800; color: #fff;">
-              本OSSを活用した社内DX・AIエージェント受託開発（単価80万〜250万円）
+              本OSSを活用した社内DX・AIエージェント導入のご相談
             </h3>
             <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">
-              商用環境構築、社内データ連携、オンプレミス運用、NDA締結対応。専任エンジニアチームが最短2週間で構築します。
+              商用環境構築、社内データ連携、オンプレミス運用、NDA締結対応などについて、導入支援のご相談を受け付けています。
             </p>
           </div>
           <a href={`${baseUrl}/contact/?plan=${currentSlug}&price=800000`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
@@ -864,6 +843,9 @@ if (starsCount >= 15000) {
       const baseUrl = window.location.pathname.startsWith('/auto-tech-radar') ? '/auto-tech-radar' : '';
       const currentSlug = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
+      // innerHTML のテンプレートに入れる文字列は必ずエスケープする
+      const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
       // Reading progress bar & Sticky action bar trigger
       window.addEventListener('scroll', () => {
         const winScroll = document.documentElement.scrollTop;
@@ -926,21 +908,28 @@ if (starsCount >= 15000) {
       });
 
       // Automatic Table of Contents (目次) & Reading Time calculation
-      const article = document.querySelector('article');
+      // 記事本文のコンテナ（Layout が isArticle のときだけ #article-body を出力する）
+      const article = document.getElementById('article-body');
       if (article) {
         const headings = article.querySelectorAll('h2, h3');
         if (headings.length >= 2) {
           const tocBox = document.createElement('div');
           tocBox.id = 'toc-box';
-          tocBox.innerHTML = '<h4>📑 目次 (クイックナビゲーション)</h4><ul></ul>';
-          const list = tocBox.querySelector('ul');
+          const tocTitle = document.createElement('h4');
+          tocTitle.textContent = '📑 目次 (クイックナビゲーション)';
+          const list = document.createElement('ul');
+          tocBox.appendChild(tocTitle);
+          tocBox.appendChild(list);
 
           headings.forEach((h, idx) => {
             const id = h.id || ('heading-' + idx);
             h.id = id;
             const li = document.createElement('li');
             li.style.marginLeft = h.tagName === 'H3' ? '1rem' : '0';
-            li.innerHTML = `<a href="#${id}">${h.textContent}</a>`;
+            const link = document.createElement('a');
+            link.setAttribute('href', '#' + id);
+            link.textContent = h.textContent;
+            li.appendChild(link);
             list.appendChild(li);
           });
 
@@ -950,16 +939,19 @@ if (starsCount >= 15000) {
           const articleTitle = document.title.split('|')[0].trim();
           const pageUrl = window.location.href;
           const mainEl = document.querySelector('main');
-          const ringLabel = mainEl ? (mainEl.getAttribute('data-ring') || 'TRIAL') : 'TRIAL';
-          const ringColor = mainEl ? (mainEl.getAttribute('data-ring-color') || '#60a5fa') : '#60a5fa';
-          const ringBg = mainEl ? (mainEl.getAttribute('data-ring-bg') || 'rgba(59, 130, 246, 0.18)') : 'rgba(59, 130, 246, 0.18)';
-          const ringBorder = mainEl ? (mainEl.getAttribute('data-ring-border') || 'rgba(59, 130, 246, 0.4)') : 'rgba(59, 130, 246, 0.4)';
+          const ringLabel = esc(mainEl ? (mainEl.getAttribute('data-ring') || 'TRIAL') : 'TRIAL');
+          const ringColor = esc(mainEl ? (mainEl.getAttribute('data-ring-color') || '#60a5fa') : '#60a5fa');
+          const ringBg = esc(mainEl ? (mainEl.getAttribute('data-ring-bg') || 'rgba(59, 130, 246, 0.18)') : 'rgba(59, 130, 246, 0.18)');
+          const ringBorder = esc(mainEl ? (mainEl.getAttribute('data-ring-border') || 'rgba(59, 130, 246, 0.4)') : 'rgba(59, 130, 246, 0.4)');
+
+          // はてなブックマークの https ページ用 URL 形式: /entry/s/<host+path>
+          const hatenaUrl = 'https://b.hatena.ne.jp/entry/' + (window.location.protocol === 'https:' ? 's/' : '') + window.location.host + window.location.pathname;
 
           const metaBar = document.createElement('div');
           metaBar.className = 'reading-meta-bar';
           metaBar.innerHTML = `
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-              <a href="${baseUrl}/radar-map/" title="ThoughtWorksモデル技術成熟度判定" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
+              <a href="${esc(baseUrl)}/radar-map/" title="ThoughtWorksモデル技術成熟度判定" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
                 <span>●</span>
                 <span>ThoughtWorks: ${ringLabel}</span>
               </a>
@@ -977,10 +969,10 @@ if (starsCount >= 15000) {
               <button id="copy-url-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer;">
                 🔗 URLコピー
               </button>
-              <a href="https://b.hatena.ne.jp/entry/${encodeURIComponent(pageUrl)}" target="_blank" style="background: rgba(0, 164, 222, 0.15); border: 1px solid rgba(0, 164, 222, 0.4); color: #38bdf8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center; font-weight: 700;">
+              <a href="${esc(hatenaUrl)}" target="_blank" rel="noopener" style="background: rgba(0, 164, 222, 0.15); border: 1px solid rgba(0, 164, 222, 0.4); color: #38bdf8; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center; font-weight: 700;">
                 🅱️ はてブ
               </a>
-              <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle + '\n' + pageUrl + '\n#OSS #AutoTechRadar')}" target="_blank" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center;">
+              <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(articleTitle + '\n' + pageUrl + '\n#OSS #AutoTechRadar')}" target="_blank" rel="noopener" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; text-decoration: none; display: inline-flex; align-items: center;">
                 𝕏 ポスト
               </a>
             </div>
@@ -1029,9 +1021,10 @@ if (starsCount >= 15000) {
           
           // ⚡ 30秒エグゼクティブ・サマリー（Executive Summary Box）
           const firstP = article.querySelector('p');
-          const summaryText = firstP ? firstP.textContent.slice(0, 240) + '...' : '';
+          const summaryText = esc(firstP ? firstP.textContent.slice(0, 240) + '...' : '');
           // 記事のリポジトリURL（frontmatter の repoUrl）。タイトルからは所有者名が分からないため使わない
-          const cloneUrl = document.querySelector('main')?.dataset.repoUrl || '';
+          const cloneUrlRaw = document.querySelector('main')?.dataset.repoUrl || '';
+          const cloneUrl = esc(cloneUrlRaw);
           const summaryBox = document.createElement('div');
           summaryBox.style.cssText = 'background: rgba(30, 41, 59, 0.7); border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 1.1rem 1.3rem; margin: 1.5rem 0;';
           summaryBox.innerHTML = `
@@ -1054,7 +1047,7 @@ if (starsCount >= 15000) {
                   <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
                     コピー
                   </button>
-                  <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ解説👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                  <a rel="noopener" href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ解説👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
                     🐦 𝕏 でシェア
                   </a>
                 </div>
@@ -1077,7 +1070,7 @@ if (starsCount >= 15000) {
           const quickRunBtn = summaryBox.querySelector('#quick-run-copy-btn');
           if (quickRunBtn) {
             quickRunBtn.addEventListener('click', () => {
-              const cmd = `git clone ${cloneUrl}`;
+              const cmd = `git clone ${cloneUrlRaw}`;
               navigator.clipboard.writeText(cmd).then(() => {
                 quickRunBtn.textContent = '完了！';
                 quickRunBtn.style.color = '#10b981';
@@ -1121,8 +1114,8 @@ if (starsCount >= 15000) {
               const infographDiv = document.createElement('div');
               infographDiv.style.cssText = 'margin: 1.5rem 0 2rem; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; background: #030712; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7); text-align: center;';
               infographDiv.innerHTML = `
-                <img src="${baseUrl}/ogp/${slug}.svg" 
-                     alt="${articleTitle} アーキテクチャ・商用分析インフォグラフィック" 
+                <img src="${esc(baseUrl)}/ogp/${esc(slug)}.svg" 
+                     alt="${esc(articleTitle)} アーキテクチャ・商用分析インフォグラフィック" 
                      style="width: 100%; max-height: 420px; object-fit: cover; display: block;" 
                      onerror="this.parentElement.style.display='none';" />
                 <div style="padding: 0.5rem 1rem; background: rgba(15, 23, 42, 0.95); font-size: 0.76rem; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b;">
