@@ -205,13 +205,15 @@ function renderBackgroundPattern(patternType, accentColor, seed) {
 
 export function generateOgCardForPost(postData) {
   const { slug, title, stars, tags, desc } = postData;
-  const shortTitle = escapeXml(title.split(' - ')[0].split(':')[0].trim());
+  const rawShortTitle = title.split(' - ')[0].split(':')[0].trim();
+  const shortTitle = escapeXml(rawShortTitle);
   const starCount = stars ? `★ ${stars.toLocaleString()}` : '急上昇';
   const tagList = Array.isArray(tags) ? tags.slice(0, 3) : ['OSS', 'Tech'];
   const safeDesc = escapeXml((desc || '').slice(0, 72) + '...');
 
   const archetype = getVisualArchetype(tags, title, desc, slug);
-  const monogram = shortTitle.slice(0, 2).toUpperCase();
+  // エスケープ前の文字から切り出す（&amp; などの実体参照を途中で切ると SVG が壊れる）
+  const monogram = escapeXml(rawShortTitle.slice(0, 2).toUpperCase());
 
   // タイトル文字数に応じた動的フォントサイズ調整
   let titleFontSize = 64;
@@ -326,7 +328,7 @@ export function generateOgCardForPost(postData) {
 
     <!-- バッジ 3: 技術タグ -->
     <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.3" />
-    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">${tagList.join(' ｜ ')}</text>
+    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">${tagList.map(escapeXml).join(' ｜ ')}</text>
 
     <!-- バッジ 4: PRO限定 -->
     <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.3" />
@@ -348,7 +350,7 @@ export function generateOgCardForPost(postData) {
       'chromium-browser'
     ];
     const chromeBin = chromeCandidates.find(c => fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore' });
+    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
   } catch (e) {
     // Chromeが使えない環境でもエラーで中断しないフェイルセーフ設計
   }

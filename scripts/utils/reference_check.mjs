@@ -61,8 +61,13 @@ export function extractReferences(text) {
   const npm = new Set();
   const pypi = new Set();
   for (const m of text.matchAll(/^\s*image:\s*(["']?[A-Za-z0-9][\w.\/:@-]*["']?)\s*$/gm)) images.add(m[1].replace(/["']/g, ""));
-  for (const m of text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?([A-Za-z0-9][\w.\/:@-]*)/gm)) if (!/^(scratch|builder|base)$/i.test(m[1])) images.add(m[1]);
-  for (const m of text.matchAll(/--from=([A-Za-z0-9][\w.\/:@-]*\/[\w.\/:@-]+)/g)) images.add(m[1]);
+  // マルチステージの `FROM x AS name` で付けた名前は、後続の `FROM name` や `--from=name` にも現れるので除外する
+  const stages = new Set([...text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?\S+\s+AS\s+([\w.-]+)/gim)].map((m) => m[1].toLowerCase()));
+  // イメージ名として完全に妥当なものだけ採る（`${VAR}` 入りの ARG イメージ・scratch・ステージ名は対象外）
+  for (const m of text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)/gim)) {
+    if (/^[A-Za-z0-9][\w.\/:@-]*$/.test(m[1]) && m[1].toLowerCase() !== "scratch" && !stages.has(m[1].toLowerCase())) images.add(m[1]);
+  }
+  for (const m of text.matchAll(/--from=([A-Za-z0-9][\w.\/:@-]*\/[\w.\/:@-]+)/g)) if (!stages.has(m[1].toLowerCase())) images.add(m[1]);
   // パッケージ名の後ろの @version は文字クラスに含めないので自然に落ちる
   for (const m of text.matchAll(/\bnpx\s+(?:-y\s+|--yes\s+)?(@?[a-z0-9][\w.\-]*(?:\/[\w.\-]+)?)/g)) npm.add(m[1]);
   for (const m of text.matchAll(/"args"\s*:\s*\[\s*"(?:-y|--yes)"\s*,\s*"(@?[a-z0-9][\w.\-]*(?:\/[\w.\-]+)?)/g)) npm.add(m[1]);

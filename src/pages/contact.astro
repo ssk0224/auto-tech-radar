@@ -91,7 +91,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
       <form id="contact-form" style="display: flex; flex-direction: column; gap: 1.2rem;">
         <div>
-          <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+          <label for="form-company" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
             貴社名・組織名 <span style="color: #ef4444;">*</span>
           </label>
           <input type="text" id="form-company" required placeholder="例: 株式会社〇〇" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
@@ -99,13 +99,13 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
           <div>
-            <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <label for="form-name" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               ご担当者様お名前 <span style="color: #ef4444;">*</span>
             </label>
             <input type="text" id="form-name" required placeholder="例: 山田 太郎" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <label for="form-email" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               メールアドレス <span style="color: #ef4444;">*</span>
             </label>
             <input type="email" id="form-email" required placeholder="name@company.com" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;" />
@@ -114,7 +114,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
           <div>
-            <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <label for="form-type" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               ご相談種別
             </label>
             <select id="form-type" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
@@ -126,7 +126,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <label for="form-budget" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
               想定予算規模
             </label>
             <select id="form-budget" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.7rem 1rem; color: #fff; font-size: 0.92rem; outline: none;">
@@ -140,7 +140,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         </div>
 
         <div>
-          <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+          <label for="form-message" style="display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
             ご相談内容・対象リポジトリ詳細 <span style="color: #ef4444;">*</span>
           </label>
           <textarea id="form-message" rows="5" required placeholder="検討されているリポジトリ名（例: pinvou-agent）、解決したい業務課題、現在の開発環境などをご記入ください。" style="width: 100%; background: #030712; border: 1px solid #374151; border-radius: 8px; padding: 0.8rem 1rem; color: #fff; font-size: 0.92rem; outline: none; line-height: 1.6;"></textarea>
@@ -195,7 +195,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
     if (plan) {
       const numPrice = Number(price || 0);
 
-      if (plan.startsWith('sponsor')) {
+      if (['sponsor', 'sponsor-tieup', 'sponsor-monthly'].includes(plan)) { // 記事スラッグ等が "sponsor" で始まっても誤判定しないよう完全一致で見る
         // スポンサー・協賛経由
         if (typeEl) typeEl.value = 'スポンサーシップ・広告掲載';
         if (budgetEl) budgetEl.value = 'スポンサー協賛（10万〜30万円）';
