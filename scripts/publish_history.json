@@ -27,7 +27,9 @@
   "tokenspeed": {
     "note": true,
     "noteAt": "2026-10-09",
-    "noteUpdatedAt": "2026-10-19"
+    "noteUpdatedAt": "2026-10-19",
+    "x": true,
+    "xAt": "2026-10-19"
   },
   "internships-2027": {
     "note": true,
