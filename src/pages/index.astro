@@ -1,8 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-const postModules = import.meta.glob("./radar/*.md", { eager: true });
-const posts = Object.values(postModules) as any[];
+import { getArticles } from "../utils/articles.js";
+// ノイズ除外・pubDate 降順は getArticles 側で済んでいる
+const posts = getArticles() as any[];
 ---
 <Layout title="Auto Tech Radar | 海外急上昇OSS徹底解剖メディア">
   <!-- Hero Section -->
