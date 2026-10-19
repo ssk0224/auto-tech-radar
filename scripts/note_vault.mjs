@@ -12,7 +12,7 @@ import fs from "fs";
 import path from "path";
 import {
   noteDir, publicKeyFile, privateKeyFile, openedDir,
-  isSealed, splitPaid, writeSealedNote, assembleNote, openNoteForPublishing,
+  isSealed, splitPaid, writeSealedNote, assembleNote, openNoteForPublishing, paidContentSummary, summaryFileFor,
   loadPublicKey, loadPrivateKeys, keyId, sealedFileFor, sealedInfo,
 } from "./utils/note_vault.mjs";
 
@@ -70,6 +70,20 @@ function reseal(pub = loadPublicKey()) {
   console.log(`✓ 暗号化し直し: ${n} 本`);
 }
 
+// 有料版の内容一覧（*_note.paid.json）を作り直す。暗号化ファイルは変更しない（秘密鍵が必要）
+function summarize() {
+  const keys = loadPrivateKeys();
+  let n = 0;
+  for (const f of noteFiles()) {
+    const text = fs.readFileSync(f, "utf8");
+    if (!isSealed(text)) continue;
+    const paid = splitPaid(assembleNote(f, keys)).paid.join("\n");
+    fs.writeFileSync(summaryFileFor(f), JSON.stringify(paidContentSummary(paid), null, 2) + "\n", "utf8");
+    n++;
+  }
+  console.log(`✓ 有料版の内容一覧: ${n} 本`);
+}
+
 // 途中で失敗しても、どの段階でも手元の鍵（現在 / .new / .old-*）で復号できる順序で進める
 function rotate() {
   const keys = loadPrivateKeys();
@@ -88,13 +102,14 @@ function rotate() {
 
 try {
   if (cmd === "seal-all") sealAll();
+  else if (cmd === "summarize") summarize();
   else if (cmd === "open" && arg) console.log(`✓ ${openNoteForPublishing(path.join(noteDir, `${arg}_note.md`))}`);
   else if (cmd === "open-all") { noteFiles().forEach((f) => openNoteForPublishing(f)); console.log(`✓ 復号先: ${openedDir}`); }
   else if (cmd === "reseal") reseal();
   else if (cmd === "keygen") keygen();
   else if (cmd === "rotate") rotate();
   else {
-    console.log("usage: node scripts/note_vault.mjs seal-all | open <slug> | open-all | reseal | keygen | rotate");
+    console.log("usage: node scripts/note_vault.mjs seal-all | open <slug> | open-all | reseal | summarize | keygen | rotate");
     process.exit(1);
   }
 } catch (e) {

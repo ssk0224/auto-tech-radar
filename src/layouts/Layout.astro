@@ -2,6 +2,7 @@
 import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
 import { getArticles } from "../utils/articles.js";
+import noteUrls from "../../scripts/note_urls.json";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
@@ -40,6 +41,12 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
 
 // 🎯 ThoughtWorks 成熟度リング自動判定 (ADOPT / TRIAL / ASSESS / HOLD)
 const starsCount = Number(frontmatter?.stars) || 0;
+// この記事の有料版（note）。note に公開済みで対応が取れた記事だけ単発購入を案内する（scripts/sync_note_urls.mjs）
+const noteItem = isArticle ? (noteUrls as Record<string, { url: string; price: number | null }>)[currentSlug] : undefined;
+const notePriceLabel = noteItem?.price ? `¥${noteItem.price.toLocaleString()}` : "";
+// 有料版に実際に含まれる項目（暗号化時に有料部分の見出しから作る。本文は含まない）
+const paidSummaries = import.meta.glob("../../note_drafts/*_note.paid.json", { eager: true, import: "default" }) as Record<string, { chars: number; features: string[] }>;
+const paidSummary = paidSummaries[`../../note_drafts/${currentSlug}_note.paid.json`];
 let ringLabel = "TRIAL";
 let ringBadgeColor = "#60a5fa";
 let ringBadgeBg = "rgba(59, 130, 246, 0.18)";
@@ -641,25 +648,28 @@ if (starsCount >= 15000) {
       {isArticle && (
         <section class="monetization-box">
           <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
-          <p>導入提案書テンプレート、工数見積表、MCP設定などの実務キットは note の有料記事・メンバーシップで公開しています。</p>
+          <p>導入提案書テンプレート・工数見積表・導入手順などの実務向けの内容は、note の有料記事・メンバーシップで提供しています（含まれる内容は記事ごとに異なります）。</p>
         
         <div class="pricing-grid">
+          {noteItem && (
           <div class="price-card">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                <h4 style="margin: 0;">単発レポート</h4>
+                <h4 style="margin: 0;">この記事の有料版（note）</h4>
               </div>
-              <div class="price-val">¥980 <span>/ 買い切り</span></div>
-              <ul class="feature-list">
-                <li>✓ 本記事のアーキテクチャ完全解説</li>
-                <li>✓ 商用利用・ライセンスリスク評価</li>
-                <li>✓ 受託・自社開発マネタイズ手順書</li>
-              </ul>
+              {notePriceLabel && <div class="price-val">{notePriceLabel} <span>/ 買い切り</span></div>}
+              {paidSummary && (
+                <ul class="feature-list">
+                  {paidSummary.features.map((f) => <li>✓ {f}</li>)}
+                  <li>✓ 有料部分 約{(Math.round(paidSummary.chars / 100) * 100).toLocaleString()}字</li>
+                </ul>
+              )}
             </div>
-            <a href={siteConfig.noteProfileUrl} target="_blank" class="cta-btn cta-primary" id="note-buy-btn">
-              💳 noteで単発レポートを購入（¥980）
+            <a href={noteItem.url} target="_blank" rel="noopener" class="cta-btn cta-primary" id="note-buy-btn">
+              💳 noteでこの記事の有料版を見る{notePriceLabel ? `（${notePriceLabel}）` : ""}
             </a>
           </div>
+          )}
 
           <div class="price-card featured">
             <span class="badge-rec">おすすめ</span>
@@ -695,7 +705,7 @@ if (starsCount >= 15000) {
         <div style="margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid #312e81; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #94a3b8;">
           <div style="display: flex; align-items: center; gap: 0.4rem;">
             <span style="color: #f59e0b;">💼</span>
-            <span><a href={`${baseUrl}/expense/`} style="color: #fbbf24; text-decoration: underline; font-weight: 700;">会社の研修費で経費精算可能（申請書テンプレはこちら →）</a></span>
+            <span><a href={`${baseUrl}/expense/`} style="color: #fbbf24; text-decoration: underline; font-weight: 700;">研修費として経費申請する場合の申請書テンプレート（精算可否は所属先の規定によります）→</a></span>
           </div>
         </div>
       </section>

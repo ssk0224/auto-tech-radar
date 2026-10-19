@@ -154,6 +154,27 @@ export function loadPrivateKeys() {
 }
 
 // 有料原稿テキストを公開用 .md と暗号化 .paid.enc に分けて書き出す。平文の有料部分はディスクに書かない。
+// 有料部分の見出し（##）から「有料版に何が入っているか」を判定する。本文は含めない。
+// Web 記事の購入案内に、その記事の有料版に実際にある項目だけを表示するために使う
+const PAID_FEATURES = [
+  [/提案書/, "導入提案書テンプレート（Markdown）"],
+  [/見積/, "工数・見積表"],
+  [/Docker|導入手順|インストール|セットアップ|起動/, "導入手順"],
+  [/マネタイズ|活用/, "活用・収益化の考え方"],
+  [/想定問答|Q&A/, "導入時の想定問答"],
+];
+export function paidContentSummary(paidText) {
+  const h2 = paidText.split(/\r?\n/).filter((l) => /^## /.test(l));
+  const features = [];
+  for (const [re, label] of PAID_FEATURES) {
+    const hit = h2.filter((l) => re.test(l));
+    if (hit.length === 0) continue;
+    features.push(label === "導入手順" && hit.some((l) => /未検証|公式未提供/.test(l)) ? "導入手順（公式未提供・動作未検証の例を含む）" : label);
+  }
+  return { chars: [...paidText.replace(/\s/g, "")].length, features };
+}
+export const summaryFileFor = (noteFile) => noteFile.replace(/\.md$/, ".paid.json");
+
 export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublicKey()) {
   const parts = splitPaid(fullContent);
   if (!parts) {
@@ -164,6 +185,7 @@ export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublic
   const publicText = [...parts.head, placeholderFor(noteFile), ...parts.tail].join("\n");
   const aad = path.basename(noteFile);
   fs.writeFileSync(sealedFileFor(noteFile), encryptText(parts.paid.join("\n"), publicKeyPem, aad), "utf8");
+  fs.writeFileSync(summaryFileFor(noteFile), JSON.stringify(paidContentSummary(parts.paid.join("\n")), null, 2) + "\n", "utf8");
   fs.writeFileSync(noteFile, publicText, "utf8");
   return { sealed: true };
 }

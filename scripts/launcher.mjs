@@ -435,7 +435,13 @@ function runNoteUpdates() {
     console.log(`  2. 本文をすべて選択して削除し、${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
     console.log(`  3. 「有料エリア」の手前に有料ラインを入れ直し、価格・メンバーシップ設定を確認して更新`);
   }
-  openUrl('https://note.com/notes');
+  // CI が取得した記事 URL（scripts/note_urls.json）があればその記事を直接開く。無ければ記事一覧
+  let noteUrl = null;
+  try {
+    noteUrl = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'))[item.slug]?.url || null;
+  } catch (e) {}
+  openUrl(noteUrl || 'https://note.com/notes');
+  if (noteUrl) console.log(`  ${c.cyan}🔗 この記事の note ページを開きました（右上のメニューから編集できます）${c.reset}`);
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   rl.question(`\n${c.yellow}${c.bold}note で反映したら Enter（後回し: s / メニューに戻る: 0） > ${c.reset}`, (ans) => {
