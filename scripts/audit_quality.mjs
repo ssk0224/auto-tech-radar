@@ -612,8 +612,14 @@ if (scriptErrors === 0) {
 
 // 13. 【デスクトップ起動導線 ＆ ショートカット完全性 監査】
 console.log('▶ [13/13] デスクトップ起動導線 ＆ ショートカット整合性 監査...');
-const desktopDir = 'C:\\Users\\free1\\OneDrive\\Desktop\\SSK OS 9.bat関連';
-if (fs.existsSync(desktopDir)) {
+const userProfile = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\free1';
+const candidateDesktopDirs = [
+  path.join(userProfile, 'OneDrive', 'Desktop', 'SSK OS 9.bat関連'),
+  path.join(userProfile, 'Desktop', 'SSK OS 9.bat関連'),
+  'C:\\Users\\free1\\OneDrive\\Desktop\\SSK OS 9.bat関連'
+];
+const desktopDir = candidateDesktopDirs.find(d => fs.existsSync(d));
+if (desktopDir) {
   const batPath = path.join(desktopDir, '【収益化】AutoTechRadar.bat');
   const lnkPath = path.join(desktopDir, '【収益化】AutoTechRadar.lnk');
   let desktopErrors = 0;
