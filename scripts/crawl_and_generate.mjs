@@ -5,6 +5,7 @@ import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 import { stripProSection } from "./utils/pro_boundary.mjs";
+import { splitPaid, writeSealedNote } from "./utils/note_vault.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -576,11 +577,15 @@ async function run() {
     try {
       const result = await generateAllContent(repo, readme);
 
+      // 有料部分は公開リポジトリに平文で置かない。有料ラインが無い原稿は有料部分を切り分けられないので採用しない
+      if (!splitPaid(result.note)) {
+        throw new Error("note原稿に有料ラインがありません（有料部分を暗号化できないため不採用）");
+      }
+      writeSealedNote(noteFile, result.note);
+      console.log(`✓ note有料記事ドラフト保存（有料部分は暗号化）: ${noteFile}`);
+
       fs.writeFileSync(webFile, result.web, "utf8");
       console.log(`✓ Web記事保存: ${webFile}`);
-
-      fs.writeFileSync(noteFile, result.note, "utf8");
-      console.log(`✓ note有料記事ドラフト保存: ${noteFile}`);
 
       fs.writeFileSync(xFile, result.x, "utf8");
       console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);

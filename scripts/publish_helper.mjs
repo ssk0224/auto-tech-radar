@@ -4,6 +4,7 @@ import readline from 'readline';
 import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
+import { openNoteForPublishing } from './utils/note_vault.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -119,8 +120,15 @@ rl.question('番号を入力して Enter > ', (answer) => {
   if (mode === 'note') {
     // 1. note新規投稿画面を開く
     openUrl("https://note.com/notes/new");
-    // 2. 原稿ファイルをメモ帳等の既定エディタで直接開く
-    openFile(selected.noteFile);
+    // 2. 原稿ファイル（有料部分を復号した出品用の完全版）を既定エディタで直接開く
+    let noteOpenPath;
+    try {
+      noteOpenPath = openNoteForPublishing(selected.noteFile);
+    } catch (e) {
+      console.error(`❌ ${e.message}`);
+      process.exit(1);
+    }
+    openFile(noteOpenPath);
 
     // 3. 記事専用のサムネイルPNGがあればエクスプローラーでハイライト表示
     const thumbPng = path.join(rootDir, 'public', 'ogp', `${selected.slug}.png`);

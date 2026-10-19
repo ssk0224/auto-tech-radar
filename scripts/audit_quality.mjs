@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import crypto from 'crypto';
 import { findProLeaks } from './utils/pro_boundary.mjs';
+import { splitPaid, isWellFormedSealed, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -347,6 +349,8 @@ if (!clientScriptMatch) {
 // 8. 【note_drafts 原稿完全性 ＆ 有料ライン漏洩 ＆ CVRフック 監査】
 console.log('▶ [8/13] note_drafts 原稿完全性 ＆ 有料ライン漏洩 ＆ CVRフック監査...');
 const noteDraftsDir = path.join(rootDir, 'note_drafts');
+const vaultPub = fs.existsSync(vaultPublicKeyFile) ? fs.readFileSync(vaultPublicKeyFile, 'utf8').trim() : '';
+const vaultKid = crypto.createHash('sha256').update(vaultPub).digest('hex').slice(0, 16);
 if (fs.existsSync(noteDraftsDir)) {
   const noteFiles = fs.readdirSync(noteDraftsDir).filter(f => f.endsWith('.md'));
   let noteErrors = 0;
@@ -362,6 +366,23 @@ if (fs.existsSync(noteDraftsDir)) {
     const hasPaywall = content.includes('【有料ライン') || content.includes('有料会員限定') || content.includes('ここから先は有料');
     if (!hasPaywall) {
       console.error(`  ❌ [MISSING PAYWALL] ${file}: 有料境界マーカーがありません！`);
+      noteErrors++;
+      errorCount++;
+      return;
+    }
+    // 有料部分は公開リポジトリに平文で置かず、公開鍵で暗号化した .paid.enc にのみ保存する
+    const sealedPath = path.join(noteDraftsDir, file.replace(/\.md$/, '.paid.enc'));
+    const paidPart = splitPaid(content);
+    const onlyPlaceholder = paidPart && paidPart.paid.length === 1 && SEALED_PLACEHOLDER_RE.test(paidPart.paid[0]);
+    if (!onlyPlaceholder) {
+      console.error(`  ❌ [PAID CONTENT IN PLAINTEXT] ${file}: 有料ライン以降が暗号化されていません。node scripts/note_vault.mjs seal-all を実行してください`);
+      noteErrors++;
+      errorCount++;
+      return;
+    }
+    const sealedJson = fs.existsSync(sealedPath) ? fs.readFileSync(sealedPath, 'utf8') : '';
+    if (!isWellFormedSealed(sealedJson) || JSON.parse(sealedJson).kid !== vaultKid) {
+      console.error(`  ❌ [SEALED PAID PART INVALID] ${file}: 暗号化された有料部分が無いか、現在の公開鍵と一致しません`);
       noteErrors++;
       errorCount++;
       return;
@@ -389,7 +410,7 @@ if (fs.existsSync(noteDraftsDir)) {
     }
   });
   if (noteErrors === 0) {
-    console.log(`  ✓ note_drafts 監査合格: 全 ${noteFiles.length} 本のnote原稿で有料ライン設置・PRO漏洩ゼロ・CVRフック配備完了。\n`);
+    console.log(`  ✓ note_drafts 監査合格: 全 ${noteFiles.length} 本のnote原稿で有料ライン設置・有料部分の暗号化・PRO漏洩ゼロ・CVRフック配備完了。\n`);
   }
 }
 

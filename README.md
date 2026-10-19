@@ -71,6 +71,15 @@ flowchart TD
 
 ---
 
+## 🔐 有料コンテンツの保護
+有料記事は note の有料エリア（購入者のみ閲覧可能）でのみ提供します。
+- Webサイト（GitHub Pages）には無料部分だけを掲載します。有料本文が配信物に混入するとビルドが失敗します。
+- `note_drafts/` には無料部分と有料ラインだけを平文で置き、有料部分は公開鍵 `keys/note_vault_public.pem` で暗号化した `*_note.paid.enc` として保存します（RSA-OAEP-256 + AES-256-GCM）。CI は公開鍵だけで暗号化するため、秘密情報は不要です。
+- 復号用の秘密鍵はオーナー端末の `%USERPROFILE%\.auto-tech-radar\note_vault_private.pem` にだけ置きます（リポジトリに入れない・必ずバックアップ）。ランチャーの note 出品操作は自動で復号し、完全版を `%USERPROFILE%\.auto-tech-radar\note_full\` に書き出して開きます。
+- `npm run vault:open`（全件復号） / `npm run vault:seal`（平文の有料部分を暗号化） / `npm run vault:rotate`（鍵の作り直し）
+
+---
+
 ## 🛡️ ECC × SUPERPOWERS × SUBAGENT 品質保証体制
 本プロジェクトは、3重のエージェント統制プロトコルにより運用されています：
 1. **ECC (Enterprise & Confidentiality Guard)**: プライベートリポジトリや機密情報の完全隔離・外部漏洩ゼロトレランス。

@@ -5,6 +5,7 @@ import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
+import { openNoteForPublishing } from './utils/note_vault.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -421,12 +422,24 @@ function runPublishHelper(mode) {
       return;
     }
 
+    // 有料部分を復号した出品用の完全版（リポジトリ外に保存）を用意。鍵が無ければ記録せずに戻る
+    let noteOpenPath = null;
+    if (mode === 'note') {
+      try {
+        noteOpenPath = openNoteForPublishing(selected.noteFile);
+      } catch (e) {
+        console.log(`\n${c.red}❌ ${e.message}${c.reset}`);
+        waitBack();
+        return;
+      }
+    }
+
     // 投稿履歴を即時記録
     recordPublish(selected.slug, mode);
 
     if (mode === 'note') {
       openUrl("https://note.com/notes/new");
-      openFile(selected.noteFile);
+      openFile(noteOpenPath);
 
       // 記事専用のサムネイルPNG（OGPカード）
       const thumbPng = path.join(rootDir, 'public', 'ogp', `${selected.slug}.png`);
@@ -657,10 +670,18 @@ function runAllInOnePublish() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   rl.question(`${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`, (ans) => {
     rl.close();
+    let noteOpenPath = null;
     if (ans.trim().toLowerCase() !== 's') {
+      try {
+        noteOpenPath = openNoteForPublishing(target.noteFile);
+      } catch (e) {
+        console.log(`  ${c.red}❌ ${e.message}${c.reset}`);
+      }
+    }
+    if (noteOpenPath) {
       recordPublish(target.slug, 'note');
       openUrl("https://note.com/notes/new");
-      openFile(target.noteFile);
+      openFile(noteOpenPath);
       const thumbPng = path.join(rootDir, 'public', 'ogp', `${target.slug}.png`);
       if (fs.existsSync(thumbPng)) {
         openFile(thumbPng);
