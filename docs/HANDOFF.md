@@ -13,6 +13,8 @@
 | Web 記事 | `【Auto Tech Radar PRO限定】` 見出し以降を除去 | `scripts/utils/pro_boundary.mjs` |
 | note 原稿 | 有料部分を公開鍵で暗号化（`*_note.paid.enc`、RSA-OAEP-256 + AES-256-GCM、ファイル名を AAD に結合） | `scripts/utils/note_vault.mjs`, `scripts/note_vault.mjs`, `keys/note_vault_public.pem` |
 | 復号 | オーナー端末の `~/.auto-tech-radar/note_vault_private.pem` のみ。ランチャーの note 出品時に自動復号（`~/.auto-tech-radar/note_full/`、24時間で自動削除） | `scripts/launcher.mjs`, `scripts/publish_helper.mjs` |
+| 購入リンク | CI（ビルド前）が note の公開 API から記事一覧を取得し、原稿とタイトルで対応づけて `scripts/note_urls.json` に保存。Web 記事の単発購入カードはその記事の note へ直接リンクし、未販売の記事では表示しない。曖昧な対応はリンクしない | `scripts/sync_note_urls.mjs`, `src/layouts/Layout.astro` |
+| 有料版の内容表示 | 暗号化時に有料部分の `##` 見出しから「含まれる項目」と字数を `*_note.paid.json` に保存（本文は含めない）。購入カードに記事ごとの実際の内容を表示 | `scripts/utils/note_vault.mjs`（`paidContentSummary`）, `node scripts/note_vault.mjs summarize` |
 | 送客文 | Zenn/Qiita/X の文面は 1 か所から生成 | `scripts/utils/funnel_copy.mjs` |
 | 生成時の検査 | 有料ライン・末尾・ハッシュタグ・有料部分の長さ、Docker イメージ/npm/PyPI の実在確認（レジストリ照会）、README に MCP 記載が無い MCP 設定の拒否、試行上限 6 件、0 件時に Actions 警告 | `scripts/crawl_and_generate.mjs`, `scripts/utils/reference_check.mjs` |
 | ノイズ判定 | 生成・X 投稿・noindex・サイトマップで同じ基準 | `scripts/utils/noise_filter.mjs` |
