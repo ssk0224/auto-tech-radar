@@ -119,5 +119,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
+      # 新しい記事が出るのは定期実行だけ。コード修正の push ごとに同じ URL を再送しない
       - name: Notify Search Engines (IndexNow)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
         run: node scripts/ping_search_engines.mjs
