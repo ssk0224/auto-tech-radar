@@ -20,8 +20,7 @@ export const GET: APIRoute = async () => {
       ring,
       tags: fm.tags || [],
       pubDate: fm.pubDate || "2026-10-09",
-      url: `https://ssk0224.github.io/auto-tech-radar/radar/${slug}/`,
-      mcp_command: `npx -y @modelcontextprotocol/server-fetch https://ssk0224.github.io/auto-tech-radar/radar/${slug}/`
+      url: `https://ssk0224.github.io/auto-tech-radar/radar/${slug}/`
     };
   }).sort((a, b) => b.stars - a.stars);
 

@@ -16,10 +16,23 @@ export const ownerDir = path.join(os.homedir(), ".auto-tech-radar");
 export const privateKeyFile = process.env.NOTE_VAULT_PRIVATE_KEY_FILE || path.join(ownerDir, "note_vault_private.pem");
 export const openedDir = path.join(ownerDir, "note_full");
 
+const ALG = "RSA-OAEP-256+A256GCM";
 const PAYWALL_MARKERS = ["【有料ライン", "有料会員限定", "ここから先は有料"];
 // 有料ライン以降でも、出品時に必要な案内・ハッシュタグは有料コンテンツではないので公開側に残す
 const TAIL_RE = /^(### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*)/;
-export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->$/m;
+export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->\r?$/m;
+export const MIN_PAID_CHARS = 1500;
+const OPENED_TTL_MS = 24 * 60 * 60 * 1000;
+
+// 生成物の末尾が崩れていた場合に補う標準の末尾（有料コンテンツではない）
+export const STANDARD_FOOTER = `
+---
+### 🎁 【メンバーシップのご案内】
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+
+---
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#AI #OSS #エンジニア #プログラミング #副業 #受託開発 #スタートアップ #最新技術 #GitHub`;
 
 export function sealedFileFor(noteFile) {
   return noteFile.replace(/\.md$/, ".paid.enc");
@@ -39,25 +52,55 @@ export function splitPaid(content) {
   const m = lines.findIndex((l) => PAYWALL_MARKERS.some((mk) => l.includes(mk)));
   if (m === -1) return null;
   let t = lines.findIndex((l, i) => i > m && TAIL_RE.test(l));
-  if (t === -1) t = lines.length;
+  const hasTail = t !== -1;
+  if (!hasTail) t = lines.length;
   else if (t - 1 > m && lines[t - 1].trim() === "---") t -= 1;
-  return { head: lines.slice(0, m + 1), paid: lines.slice(m + 1, t), tail: lines.slice(t) };
+  return { head: lines.slice(0, m + 1), paid: lines.slice(m + 1, t), tail: lines.slice(t), hasTail };
 }
 
-function keyId(publicKeyPem) {
+// 公開側（無料部分 + 末尾）が出品・監査の要件を満たすか。満たさない理由の配列を返す
+export function noteDraftProblems(fullContent) {
+  const parts = splitPaid(fullContent);
+  if (!parts) return ["有料ラインがありません"];
+  const problems = [];
+  const head = parts.head.join("\n");
+  const publicText = [...parts.head, ...parts.tail].join("\n");
+  if (!parts.hasTail) problems.push("末尾の案内・ハッシュタグがありません");
+  if (!/#AI|#OSS/.test(publicText)) problems.push("推奨ハッシュタグが公開側にありません");
+  if (!/経費|領収書/.test(publicText)) problems.push("経費精算の案内が公開側にありません");
+  if (/mcpServers|docker-compose|■ 案件名:/.test(head)) problems.push("有料ラインより前に有料キットが含まれています");
+  if (parts.paid.join("\n").trim().length < MIN_PAID_CHARS) problems.push(`有料部分が短すぎます（${MIN_PAID_CHARS}文字未満）`);
+  return problems;
+}
+
+// 末尾が崩れている生成物に標準の末尾を補う
+export function withStandardFooter(fullContent) {
+  const parts = splitPaid(fullContent);
+  if (!parts || parts.hasTail) return fullContent;
+  return fullContent.trimEnd() + "\n" + STANDARD_FOOTER + "\n";
+}
+
+export function keyId(publicKeyPem) {
   return crypto.createHash("sha256").update(publicKeyPem.trim()).digest("hex").slice(0, 16);
 }
 
-export function encryptText(plaintext, publicKeyPem) {
+function keyIdOfPrivate(privateKeyPem) {
+  return keyId(crypto.createPublicKey(privateKeyPem).export({ type: "spki", format: "pem" }));
+}
+
+// aad: 暗号文を原稿ファイル名に結び付け、別記事の .paid.enc とのすり替えを検出する
+export function encryptText(plaintext, publicKeyPem, aad) {
   const dataKey = crypto.randomBytes(32);
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", dataKey, iv);
+  cipher.setAAD(Buffer.from(aad, "utf8"));
   const ct = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const ek = crypto.publicEncrypt({ key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha256" }, dataKey);
   return JSON.stringify({
-    v: 1,
-    alg: "RSA-OAEP-256+A256GCM",
+    v: 2,
+    alg: ALG,
     kid: keyId(publicKeyPem),
+    aad,
     ek: ek.toString("base64"),
     iv: iv.toString("base64"),
     tag: cipher.getAuthTag().toString("base64"),
@@ -65,22 +108,28 @@ export function encryptText(plaintext, publicKeyPem) {
   }, null, 2) + "\n";
 }
 
-export function decryptText(sealedJson, privateKeyPem) {
+export function decryptText(sealedJson, privateKeyPems, expectedAad) {
   const s = JSON.parse(sealedJson);
-  if (s.v !== 1 || s.alg !== "RSA-OAEP-256+A256GCM") throw new Error(`未対応の暗号化形式です: ${s.alg}`);
-  const dataKey = crypto.privateDecrypt({ key: privateKeyPem, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha256" }, Buffer.from(s.ek, "base64"));
+  if (![1, 2].includes(s.v) || s.alg !== ALG) throw new Error(`未対応の暗号化形式です: ${s.alg}`);
+  if (s.v === 2 && s.aad !== expectedAad) throw new Error(`暗号化ファイルの対象が一致しません（${s.aad} ≠ ${expectedAad}）`);
+  const keys = Array.isArray(privateKeyPems) ? privateKeyPems : [privateKeyPems];
+  const key = keys.find((k) => keyIdOfPrivate(k) === s.kid);
+  if (!key) throw new Error(`この暗号化ファイル（鍵ID ${s.kid}）を復号できる秘密鍵がありません。鍵を作り直した場合は古い秘密鍵を ${ownerDir} に残してください。`);
+  const dataKey = crypto.privateDecrypt({ key, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha256" }, Buffer.from(s.ek, "base64"));
   const decipher = crypto.createDecipheriv("aes-256-gcm", dataKey, Buffer.from(s.iv, "base64"));
+  if (s.v === 2) decipher.setAAD(Buffer.from(s.aad, "utf8"));
   decipher.setAuthTag(Buffer.from(s.tag, "base64"));
   return Buffer.concat([decipher.update(Buffer.from(s.ct, "base64")), decipher.final()]).toString("utf8");
 }
 
 // 暗号化ファイルとして形式が正しいか（復号はしない）
-export function isWellFormedSealed(sealedJson) {
+export function sealedInfo(sealedJson) {
   try {
     const s = JSON.parse(sealedJson);
-    return s.v === 1 && s.alg === "RSA-OAEP-256+A256GCM" && ["kid", "ek", "iv", "tag", "ct"].every((k) => typeof s[k] === "string" && s[k].length > 0);
+    const ok = [1, 2].includes(s.v) && s.alg === ALG && ["kid", "ek", "iv", "tag", "ct"].every((k) => typeof s[k] === "string" && s[k].length > 0);
+    return ok ? s : null;
   } catch (e) {
-    return false;
+    return null;
   }
 }
 
@@ -89,11 +138,19 @@ export function loadPublicKey() {
   return fs.readFileSync(publicKeyFile, "utf8");
 }
 
-export function loadPrivateKey() {
-  if (!fs.existsSync(privateKeyFile)) {
+// 現在の秘密鍵に加え、作り直し前後の鍵（.old-* / .new）も復号候補にする
+export function loadPrivateKeys() {
+  const dir = path.dirname(privateKeyFile);
+  const base = path.basename(privateKeyFile);
+  const files = [privateKeyFile];
+  if (fs.existsSync(dir)) {
+    fs.readdirSync(dir).filter((f) => f.startsWith(`${base}.old-`) || f === `${base}.new`).forEach((f) => files.push(path.join(dir, f)));
+  }
+  const keys = files.filter((f) => fs.existsSync(f)).map((f) => fs.readFileSync(f, "utf8"));
+  if (keys.length === 0) {
     throw new Error(`有料原稿の復号鍵が見つかりません: ${privateKeyFile}\n  オーナー端末にのみ置く秘密鍵です（リポジトリには入れないでください）。`);
   }
-  return fs.readFileSync(privateKeyFile, "utf8");
+  return keys;
 }
 
 // 有料原稿テキストを公開用 .md と暗号化 .paid.enc に分けて書き出す。平文の有料部分はディスクに書かない。
@@ -105,24 +162,33 @@ export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublic
     return { sealed: false };
   }
   const publicText = [...parts.head, placeholderFor(noteFile), ...parts.tail].join("\n");
-  fs.writeFileSync(sealedFileFor(noteFile), encryptText(parts.paid.join("\n"), publicKeyPem), "utf8");
+  const aad = path.basename(noteFile);
+  fs.writeFileSync(sealedFileFor(noteFile), encryptText(parts.paid.join("\n"), publicKeyPem, aad), "utf8");
   fs.writeFileSync(noteFile, publicText, "utf8");
   return { sealed: true };
 }
 
 // 公開用 .md と .paid.enc から出品用の完全な原稿を組み立てる
-export function assembleNote(noteFile, privateKeyPem = loadPrivateKey()) {
+export function assembleNote(noteFile, privateKeyPems = loadPrivateKeys()) {
   const publicText = fs.readFileSync(noteFile, "utf8");
   if (!isSealed(publicText)) return publicText;
-  const paid = decryptText(fs.readFileSync(sealedFileFor(noteFile), "utf8"), privateKeyPem);
+  const paid = decryptText(fs.readFileSync(sealedFileFor(noteFile), "utf8"), privateKeyPems, path.basename(noteFile));
   return publicText.split("\n").map((l) => (SEALED_PLACEHOLDER_RE.test(l) ? paid : l)).join("\n");
 }
 
-// 出品用の完全版をリポジトリ外 (~/.auto-tech-radar/note_full/) に書き出し、そのパスを返す
+// 出品用の完全版をリポジトリ外 (~/.auto-tech-radar/note_full/) に書き出し、そのパスを返す。
+// 平文を端末に残し続けないよう、24時間より古い完全版はここで削除する。
 export function openNoteForPublishing(noteFile) {
   const publicText = fs.readFileSync(noteFile, "utf8");
   if (!isSealed(publicText)) return noteFile;
   fs.mkdirSync(openedDir, { recursive: true });
+  const now = Date.now();
+  for (const f of fs.readdirSync(openedDir)) {
+    const p = path.join(openedDir, f);
+    try {
+      if (now - fs.statSync(p).mtimeMs > OPENED_TTL_MS) fs.unlinkSync(p);
+    } catch (e) {}
+  }
   const out = path.join(openedDir, path.basename(noteFile));
   fs.writeFileSync(out, assembleNote(noteFile), "utf8");
   return out;

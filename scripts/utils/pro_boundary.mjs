@@ -6,12 +6,11 @@ export const PRO_MARKER = "【Auto Tech Radar PRO限定】";
 
 const PRO_HEADING_RE = /^#{2,3} [^\n]*【Auto Tech Radar PRO限定】[^\n]*$/m;
 
-// Web 記事・配信HTMLに残ってはいけない PRO 専用要素
-// （無料部の Docker Compose 手順や、共通レイアウトの提案書テンプレートのコピー機能は対象外）
+// Web 記事・配信HTMLに残ってはいけない PRO 専用要素（有料キットの見出し）
+// mcpServers や docker-compose は対象外: 無料記事が OSS の README の MCP 設定・導入手順を引用するのは正当なため
 export const PRO_ONLY_SIGNATURES = [
   PRO_MARKER,
-  "mcpServers",
-  "社内DX・AI導入提案書",
+  "社内DX・AI導入提案書 Markdown完全版",
   "見積シミュレーション表",
 ];
 

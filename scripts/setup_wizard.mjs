@@ -40,40 +40,6 @@ function printHeader() {
 }
 
 // -------------------------------------------------------------
-// ステップ1: Stripe 開設ナビ
-// -------------------------------------------------------------
-async function guideStripe() {
-  clearScreen();
-  printHeader();
-  console.log(`${C.bold}${C.green}▶ [ステップ 1/3] Stripe（自社サイト直接決済・最速入金）の設定と支払いリンク発行${C.reset}`);
-  console.log(`${C.dim}─────────────────────────────────────────────────────────────────────────────${C.dim}${C.reset}`);
-  console.log(`Stripe は、世界標準のクレジットカード決済システムです。`);
-  console.log(`自社サイト上で読者が記事を購入した際、${C.bold}${C.yellow}noteの手数料を取られずに直接あなたの銀行口座へ入金${C.reset}されます。\n`);
-
-  console.log(`${C.bold}【🎉 ビジネスプロフィール作成完了後の最終手順（3分で開通）】${C.reset}`);
-  console.log(`  ① Stripeダッシュボード（https://dashboard.stripe.com/）にアクセスします。`);
-  console.log(`  ② 左メニューの「支払い」→ ${C.cyan}「支払いリンク (Payment Links)」${C.reset} を開きます。`);
-  console.log(`  ③ 右上の ${C.bold}「＋ 新規」${C.reset} をクリックします。`);
-  console.log(`  ④ 商品設定:`);
-  console.log(`     - 商品名: ${C.yellow}Auto Tech Radar PRO${C.reset}`);
-  console.log(`     - 金額: ${C.yellow}980 円${C.reset}（1回限り）`);
-  console.log(`  ⑤ 「支払い後（確認ページ）」の設定:`);
-  console.log(`     - 「お客様を自分のウェブサイトにリダイレクト」を選択`);
-  console.log(`     - URL: ${C.cyan}https://ssk0224.github.io/auto-tech-radar/success/${C.reset}`);
-  console.log(`  ⑥ 右上の「リンクを作成」を押し、発行されたURL（https://buy.stripe.com/...）をコピー！`);
-  console.log(`  ⑦ ランチャーの ${C.bold}${C.green}メニュー[8]${C.reset} に貼り付ければ、自社サイトが全世界LIVE課金モードに突入します！\n`);
-
-  const answer = await prompt(`${C.bold}${C.yellow}👉 ブラウザで Stripe ダッシュボードを開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
-  if (answer.toLowerCase() !== "n") {
-    openBrowser("https://dashboard.stripe.com/");
-    console.log(`\n${C.green}✓ ブラウザで Stripe ダッシュボードを開きました。${C.reset}`);
-  }
-
-  console.log(`\n登録作業が終わったら、Enterキーを押してメニューに戻ってください。`);
-  await prompt(`[Enter を押して戻る]`);
-}
-
-// -------------------------------------------------------------
 // ステップ2: note 開設ナビ
 // -------------------------------------------------------------
 async function guideNote() {
@@ -181,7 +147,6 @@ async function mainMenu() {
     clearScreen();
     printHeader();
     console.log(`  ${C.bold}【収益受取口のセットアップ（初回のみ・Gmailで1クリック）】${C.reset}`);
-    console.log(`    ${C.cyan}1${C.reset}. ${C.bold}Stripe 開設ナビ${C.reset}  (自社サイト直接決済・手数料最安・最短振込)`);
     console.log(`    ${C.cyan}2${C.reset}. ${C.bold}note 開設ナビ${C.reset}    (有料記事販売・即金化)`);
     console.log(`    ${C.cyan}3${C.reset}. ${C.bold}X (Twitter) 開設ナビ${C.reset} (拡散・集客用アカウント)`);
     console.log("");
@@ -195,8 +160,7 @@ async function mainMenu() {
 
     const choice = await prompt(`${C.bold}${C.yellow}番号を選んで Enter を押してください (0-6): ${C.reset}`);
 
-    if (choice === "1") await guideStripe();
-    else if (choice === "2") await guideNote();
+    if (choice === "2") await guideNote();
     else if (choice === "3") await guideX();
     else if (choice === "4") await guidePublishNote();
     else if (choice === "5") await guideTweet();

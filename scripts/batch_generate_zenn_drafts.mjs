@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { zennCta } from './utils/funnel_copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -45,11 +46,7 @@ ${cleanBody}
 
 ---
 
-## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
-本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
-
-👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
-`;
+${zennCta(slug)}`;
 
   fs.writeFileSync(zennFile, zennDraft, 'utf8');
   createdCount++;

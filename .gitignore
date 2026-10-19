@@ -9,3 +9,9 @@ yarn-debug.log*
 yarn-error.log*
 .claude/
 CLAUDE.md
+
+# 有料原稿の復号鍵・復号済みの原稿は絶対にコミットしない（公開鍵 keys/note_vault_public.pem のみ例外）
+*.pem
+!keys/note_vault_public.pem
+note_full/
+*.paid.md

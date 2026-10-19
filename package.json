@@ -9,7 +9,9 @@
     "audit": "node scripts/audit_quality.mjs && node scripts/audit_dist.mjs",
     "vault:open": "node scripts/note_vault.mjs open-all",
     "vault:seal": "node scripts/note_vault.mjs seal-all",
-    "vault:rotate": "node scripts/note_vault.mjs rotate"
+    "vault:rotate": "node scripts/note_vault.mjs rotate",
+    "vault:reseal": "node scripts/note_vault.mjs reseal",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

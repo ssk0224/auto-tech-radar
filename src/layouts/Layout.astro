@@ -1,5 +1,6 @@
 ---
 import { siteConfig } from "../config/site.js";
+import { isNoise } from "../../scripts/utils/noise_filter.mjs";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
@@ -87,6 +88,7 @@ if (starsCount >= 15000) {
     <link rel="alternate" type="application/rss+xml" title="Auto Tech Radar RSS Feed" href="https://ssk0224.github.io/auto-tech-radar/rss.xml" />
     <link rel="manifest" href={`${baseUrl}/manifest.json`} />
     <meta name="theme-color" content="#030712" />
+    {isArticle && isNoise(currentSlug) && <meta name="robots" content="noindex" />}
     {isArticle ? (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
@@ -628,7 +630,7 @@ if (starsCount >= 15000) {
       </div>
     </header>
 
-    <main data-stars={starsCount} data-ring={ringLabel} data-ring-color={ringBadgeColor} data-ring-bg={ringBadgeBg} data-ring-border={ringBadgeBorder}>
+    <main data-repo-url={frontmatter?.repoUrl || ""} data-stars={starsCount} data-ring={ringLabel} data-ring-color={ringBadgeColor} data-ring-bg={ringBadgeBg} data-ring-border={ringBadgeBorder}>
       {isArticle && (
         <div class="article-hero-banner" style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6); background: #0b0f19;">
           <img 
@@ -668,8 +670,8 @@ if (starsCount >= 15000) {
                 <li>✓ 受託・自社開発マネタイズ手順書</li>
               </ul>
             </div>
-            <a href={siteConfig.activeSinglePaymentUrl} target="_blank" class="cta-btn cta-primary" id="stripe-buy-btn">
-              {siteConfig.isStripeLive ? "💳 Stripeで単発購入（¥980）" : "💳 noteで単発レポートを購入（¥980）"}
+            <a href={siteConfig.noteProfileUrl} target="_blank" class="cta-btn cta-primary" id="note-buy-btn">
+              💳 noteで単発レポートを購入（¥980）
             </a>
           </div>
 
@@ -679,8 +681,8 @@ if (starsCount >= 15000) {
               <h4>note メンバーシップ（定期購読）</h4>
               <div class="price-val">¥1,980 <span>/ 月額（解約自由）</span></div>
               <ul class="feature-list">
-                <li>✓ 毎朝配信される全有料記事が即日読み放題</li>
-                <li>✓ 過去アーカイブ全技術レポート（40本以上）完全閲覧</li>
+                <li>✓ メンバーシップ特典に追加された有料記事を閲覧可能</li>
+                <li>✓ 特典の対象記事は note のメンバーシップページで確認できます</li>
                 <li>✓ noteアプリで通勤・スキマ時間に通知読込</li>
               </ul>
             </div>
@@ -705,12 +707,6 @@ if (starsCount >= 15000) {
         </div>
 
         <div style="margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid #312e81; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #94a3b8;">
-          {siteConfig.isStripeLive && (
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <span style="color: #10b981;">🛡️</span>
-              <span><strong>Stripe公式暗号化決済</strong>（カード情報は安全に保護）</span>
-            </div>
-          )}
           <div style="display: flex; align-items: center; gap: 0.4rem;">
             <span style="color: #f59e0b;">💼</span>
             <span><a href={`${baseUrl}/expense/`} style="color: #fbbf24; text-decoration: underline; font-weight: 700;">会社の研修費で経費精算可能（申請書テンプレはこちら →）</a></span>
@@ -843,8 +839,8 @@ if (starsCount >= 15000) {
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-        <a href={siteConfig.activeSinglePaymentUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
-          {siteConfig.isStripeLive ? "Stripe単発(¥980)" : "単発購入(¥980)"}
+        <a href={siteConfig.noteProfileUrl} target="_blank" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
+          単発購入(¥980)
         </a>
       </div>
     </div>
@@ -854,6 +850,7 @@ if (starsCount >= 15000) {
         <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
         <a href={`${baseUrl}/api/radar.json`} target="_blank" style="margin: 0 0.6rem; color: #c084fc; font-weight: 700;">🤖 AI Agent API (JSON)</a> |
         <a href={`${baseUrl}/sponsor/`} style="margin: 0 0.6rem;">📢 広告・協賛</a> |
+        <a href={`${baseUrl}/privacy/`} style="margin: 0 0.6rem;">プライバシーポリシー</a> |
         <a href={siteConfig.xAccountUrl} target="_blank" style="margin: 0 0.6rem;">公式 𝕏 ({siteConfig.xHandle})</a> |
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="margin: 0 0.6rem;">公式 note</a> |
         <a href={siteConfig.githubUrl} target="_blank" style="margin: 0 0.6rem;">GitHub リポジトリ</a>
@@ -1037,6 +1034,8 @@ if (starsCount >= 15000) {
           // ⚡ 30秒エグゼクティブ・サマリー（Executive Summary Box）
           const firstP = article.querySelector('p');
           const summaryText = firstP ? firstP.textContent.slice(0, 240) + '...' : '';
+          // 記事のリポジトリURL（frontmatter の repoUrl）。タイトルからは所有者名が分からないため使わない
+          const cloneUrl = document.querySelector('main')?.dataset.repoUrl || '';
           const summaryBox = document.createElement('div');
           summaryBox.style.cssText = 'background: rgba(30, 41, 59, 0.7); border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 1.1rem 1.3rem; margin: 1.5rem 0;';
           summaryBox.innerHTML = `
@@ -1048,18 +1047,18 @@ if (starsCount >= 15000) {
             </p>
             <div style="display: flex; gap: 1rem; margin-top: 0.8rem; font-size: 0.8rem; color: #94a3b8; flex-wrap: wrap;">
               <span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>
-              <span>💡 商用リスク: PRO分析セクション参照</span>
+              <span>💡 ライセンス: 本文の「商用利用可否 & ライセンス考察」参照</span>
             </div>
             <div style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;">
               <div style="padding: 0.55rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; flex-wrap: wrap;">
                 <div style="color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                  <span style="color: #10b981; font-weight: 700;">⚡ 3秒検証:</span> <span style="color: #93c5fd;">git clone https://github.com/${(document.title.split(' - ')[0] || '').trim()}</span>
+                  <span style="color: #10b981; font-weight: 700;">⚡ 3秒検証:</span> <span style="color: #93c5fd;">git clone ${cloneUrl}</span>
                 </div>
                 <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                   <button id="quick-run-copy-btn" style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; white-space: nowrap; font-size: 0.74rem;">
                     コピー
                   </button>
-                  <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ＆商用化レポート。\n80万〜250万受託開発の提案書付き👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                  <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent('【海外急上昇OSS解体新書】' + (document.title.split(' - ')[0] || '').trim() + ' のアーキテクチャ解説👇\n')}&url=${encodeURIComponent(window.location.href)}&via=AutoTechRadar" target="_blank" style="background: #000; border: 1px solid #38bdf8; color: #38bdf8; padding: 0.2rem 0.6rem; border-radius: 4px; text-decoration: none; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
                     🐦 𝕏 でシェア
                   </a>
                 </div>
@@ -1082,8 +1081,7 @@ if (starsCount >= 15000) {
           const quickRunBtn = summaryBox.querySelector('#quick-run-copy-btn');
           if (quickRunBtn) {
             quickRunBtn.addEventListener('click', () => {
-              const repoName = (document.title.split(' - ')[0] || '').trim();
-              const cmd = `git clone https://github.com/${repoName}`;
+              const cmd = `git clone ${cloneUrl}`;
               navigator.clipboard.writeText(cmd).then(() => {
                 quickRunBtn.textContent = '完了！';
                 quickRunBtn.style.color = '#10b981';
@@ -1155,7 +1153,7 @@ if (starsCount >= 15000) {
 
     <!-- ByteByteGoモデル: Mermaid.js 動的アーキテクチャ図解レンダラー -->
     <script type="module" is:inline>
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.esm.min.mjs';
       try {
         mermaid.initialize({
           startOnLoad: false,

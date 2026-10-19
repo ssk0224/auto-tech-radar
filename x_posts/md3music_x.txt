@@ -12,7 +12,7 @@ Flutter/Rust製、酷狗API音楽プレイヤー。
 https://ssk0224.github.io/auto-tech-radar/radar/md3music/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=OSS%E3%80%8Cmd3Music%E3%80%8D%E3%81%8C%E8%A9%B1%E9%A1%8C%EF%BC%81%0D%0AFlutter%2FRust%E8%A3%BD%E3%80%81%E9%85%B7%E7%8B%97API%E9%9F%B3%E6%A5%BD%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%80%82%0D%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%3A%20858%0D%0A%23Dart%20%23Flutter%20%23Rust%20%23OSS%0D%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%20%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fmd3music%2F
+https://twitter.com/intent/tweet?text=OSS%E3%80%8Cmd3Music%E3%80%8D%E3%81%8C%E8%A9%B1%E9%A1%8C%EF%BC%81%0AFlutter%2FRust%E8%A3%BD%E3%80%81%E9%85%B7%E7%8B%97API%E9%9F%B3%E6%A5%BD%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%80%82%0A%E2%AD%90%20%E3%82%B9%E3%82%BF%E3%83%BC%3A%20858%0A%23Dart%20%23Flutter%20%23Rust%20%23OSS%0A%E2%96%BC%20%E8%A9%B3%E7%B4%B0%E3%81%AF%E3%83%84%E3%83%AA%E3%83%BC%E3%81%B8%E2%86%93%20%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fmd3music%2F
 --------------------------------------------------
 
 --------------------------------------------------

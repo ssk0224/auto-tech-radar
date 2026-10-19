@@ -5,7 +5,10 @@ import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 import { stripProSection } from "./utils/pro_boundary.mjs";
-import { splitPaid, writeSealedNote } from "./utils/note_vault.mjs";
+import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems } from "./utils/note_vault.mjs";
+import { findMissingReferences } from "./utils/reference_check.mjs";
+import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
+import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -17,6 +20,8 @@ const ai = new GoogleGenAI({ apiKey });
 
 // 1回の実行で生成する新規記事数（API制限を完全に回避する安全設計）
 const TARGET_NEW_COUNT = 2;
+// 不採用が続いた場合に Gemini 呼び出しが際限なく増えないよう、1回の実行で試す候補数の上限
+const MAX_ATTEMPTS_PER_RUN = 6;
 
 // GitHub API リクエスト用ヘッダー（GH_PAT または GITHUB_TOKEN でレート制限を回避）
 function getGithubHeaders() {
@@ -31,8 +36,6 @@ function getGithubHeaders() {
   return headers;
 }
 
-// 厳格なノイズ・非プロダクト系リポジトリの排除ブラックリスト
-const NOISE_FILTER_REGEX = /(index$|core$|cask$|nixpkgs|mediawiki|awesome|interview|curriculum|roadmap|internship|cheatsheet|cheat-sheet|leetcode|tutorial|translation|locale|dotfiles|fonts|sample|dataset|collection)/i;
 
 // 急上昇・高収益OSS（AIエージェント、SaaS代替、ローカル推論基盤、マイクロSaaS）の精密取得
 async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new Set()) {
@@ -164,6 +167,8 @@ async function generateAllContent(repo, readme) {
 - READMEに公式Dockerイメージの記載がない場合は、架空のイメージ名を書かず「公式イメージは案内されていない」と明記し、READMEのインストール手順を示すこと。
 - READMEにMCPサーバーとしての起動方法の記載がない場合は、mcpServers の設定例を作らず「公式のMCPサーバー手段は案内されていない」と明記すること。
 - 金額・削減率・ROI・性能値は、見積表の工数×単価など計算の前提を示せるものだけを書くこと。前提が示せない数値は書かないこと。
+- Docker / docker-compose の構成は、READMEの動作要件（対応OS・GPU・デスクトップアプリか等）と矛盾しない場合だけ書くこと。READMEにDockerの記載がない場合は「公式未提供・自作のコンテナ化例（動作未検証）」と明記すること。macOS専用・Apple Silicon専用などコンテナで動かせないものはDocker構成を書かず、READMEの導入手順を示すこと。
+- 導入実績・連携実績・顧客数・受賞歴など、READMEで確認できない実績は書かないこと。
 `;
 
   const prompt = `
@@ -226,8 +231,8 @@ stars: ${repo.stargazers_count}
 ### 🔒 有料エリアで完全公開する実践ナレッジ
 - そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
 - クライアント提示用「詳細工数・見積シミュレーション表」
-- コピペで本番一発起動できる「Docker Compose & .env 設定キット」
-- 発注即決を勝ち取る「キラー営業トーク ＆ 想定問答集」
+- 公式READMEに基づく「導入手順（Docker Compose は対応している場合のみ）」
+- 導入検討で出る懸念への「想定問答集」
 
 > 💡 **【投資対効果（ROI）と会社経費精算について】**
 > 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
@@ -254,7 +259,7 @@ stars: ${repo.stargazers_count}
 ## 💰 【クライアント提示用】詳細工数・見積シミュレーション表
 ※要件定義、環境構築、カスタマイズ実装、テスト、運用引き継ぎの各人日・単価・小計・合計を明記した具体的な見積テーブルを出力してください。
 
-## 🛠️ 【即時本番起動】Docker Compose & 本番設定キット
+## 🛠️ 本番導入手順（公式README準拠）
 ※READMEに記載された公式の導入手順（公式Dockerイメージ／docker-compose がREADMEにある場合はそれ）に基づく \`\`\`docker-compose.yml\`\`\` と \`\`\`.env.example\`\`\` を出力してください。READMEに公式イメージの記載がない場合は、架空のイメージ名を作らず、その旨を明記したうえでREADMEのインストール手順（ソースからのビルド等）を示してください。
 
 ## ⚡ 【2026年最新規格】Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 完全定義
@@ -276,15 +281,15 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）にご加入いた�
 
 === X THREAD ===
 ※重要規則：
-1. TWEET 1には必ず末尾に「▼ 深層レポート＆受託骨子はこちら👇\nhttps://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/」を配置すること。全体の文字数は全角110文字以内厳守（X文字数140文字制限対策）。
+1. TWEET 1には必ず末尾に「${X_LINK_LABEL}\nhttps://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/」を配置すること。全体の文字数は全角110文字以内厳守（X文字数140文字制限対策）。
 2. TWEET 2はURLなし。全角100文字以内厳守。
 3. TWEET 3は補足まとめ。全角100文字以内厳守。
 
 [TWEET 1]
-【受託提案の骨子付き】
+【海外OSS解説】
 GitHubで★${repo.stargazers_count}の「${repo.name}」が凄い。
 ${repo.description.slice(0, 45)}...
-▼ 深層レポート＆受託骨子はこちら👇
+${X_LINK_LABEL}
 https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 [TWEET 2]
@@ -292,9 +297,9 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 （革新的な点・高速化やコスト削減を全角80文字以内で端的に要約。URLなし）
 
 [TWEET 3]
-【💡 商用化マニュアル ＆ 提案書完全版】
-受託提案書スライド構成・見積内訳・即起動Dockerキット付きの深層レポートを公開中。
-▼ 詳細レポートはこちら
+【💡 実務キットは note で】
+導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順は note の有料記事で公開中。
+${X_LINK_LABEL}
 https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 `;
@@ -551,8 +556,14 @@ async function run() {
   }
 
   let generatedCount = 0;
+  let attempts = 0;
+  const rejections = [];
 
   for (const repo of repos) {
+    if (attempts >= MAX_ATTEMPTS_PER_RUN) {
+      console.log(`試行上限（${MAX_ATTEMPTS_PER_RUN}件）に達したため終了します。`);
+      break;
+    }
     if (generatedCount >= TARGET_NEW_COUNT) {
       console.log(`Reached target count (${TARGET_NEW_COUNT}). Pipeline completed.`);
       break;
@@ -571,6 +582,7 @@ async function run() {
       continue;
     }
 
+    attempts++;
     console.log(`\n[${generatedCount + 1}/${TARGET_NEW_COUNT}] Processing: ${repo.full_name}`);
     const readme = await getReadme(repo.owner.login, repo.name);
 
@@ -581,7 +593,20 @@ async function run() {
       if (!splitPaid(result.note)) {
         throw new Error("note原稿に有料ラインがありません（有料部分を暗号化できないため不採用）");
       }
-      writeSealedNote(noteFile, result.note);
+      const noteText = withStandardFooter(result.note);
+      const problems = noteDraftProblems(noteText);
+      if (problems.length) {
+        throw new Error(`note原稿が要件を満たしません（${problems.join(" / ")}）`);
+      }
+      // 実在しないイメージ・パッケージを購入者に渡さない
+      const missing = await findMissingReferences(`${noteText}\n${result.web}`);
+      if (missing.length) {
+        throw new Error(`実在を確認できない参照があります（${missing.join(", ")}）`);
+      }
+      if (/"mcpServers"/.test(noteText) && !/mcp/i.test(readme)) {
+        throw new Error("READMEにMCPの記載が無いのにMCP設定が含まれています");
+      }
+      writeSealedNote(noteFile, noteText);
       console.log(`✓ note有料記事ドラフト保存（有料部分は暗号化）: ${noteFile}`);
 
       fs.writeFileSync(webFile, result.web, "utf8");
@@ -638,18 +663,7 @@ ${teaserBody}
 
 ---
 
-## 🔒 【続き】ビジネス・マネタイズ実践・本番Docker・社内DX提案書
-これ以降の：
-- 💡 **業界特化SaaS化・社内DX受託の具体的マネタイズ実践シナリオ**
-- 📋 **そのままクライアントや社内稟議に出せる「社内DX・AI導入提案書」Markdown完全版**
-- 💰 **クライアント提示用「詳細工数・人日・単価見積シミュレーション内訳表」**
-- 🛠️ **コピペで即時起動する本番環境Docker Compose ＆ .env 実稼働設定**
-- 🤖 **Cursor / Claude DesktopですぐにAIツール化できる「1-Click MCPサーバー設定」**
-- ⚖️ **商用利用リスク・ライセンス完全評価**
-
-は、専門メディア「Auto Tech Radar」にて完全公開されています。
-
-👉 **[【続きを読む】Auto Tech Radar 公式レポートで今すぐアンロックする（一部PRO限定） →](https://ssk0224.github.io/auto-tech-radar/radar/${slug}/)**
+${zennCta(slug)}
 
 ---
 
@@ -712,10 +726,15 @@ ${teaserBody}
       }
     } catch (err) {
       console.error(`Failed to process ${repo.full_name}: ${err.message}`);
+      rejections.push(`${repo.full_name}: ${err.message}`);
     }
   }
 
   console.log(`\nPipeline finished. Total new packages created: ${generatedCount}`);
+  if (generatedCount === 0 && attempts > 0) {
+    // GitHub Actions の実行結果に警告として表示する（無言で記事ゼロの日を作らない）
+    console.log(`::warning title=No new article::候補 ${attempts} 件をすべて不採用にしました: ${rejections.join(" | ").slice(0, 900)}`);
+  }
 }
 
 run().catch((err) => {

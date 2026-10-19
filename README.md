@@ -7,7 +7,7 @@
 [![X Official](https://img.shields.io/badge/𝕏-@AutoTechRadar-black?style=for-the-badge)](https://x.com/AutoTechRadar)
 [![RSS 2.0 Feed](https://img.shields.io/badge/RSS-Feed-orange?style=for-the-badge)](https://ssk0224.github.io/auto-tech-radar/rss.xml)
 
-> **Auto Tech Radar** は、世界中の GitHub Trending からスター急上昇中のオープンソース（OSS）を毎朝 6:00 (JST) に完全無人で自動検出。Google最先端AI（Gemini 3.8 / 2.5 Flash）が**「日本語アーキテクチャ深層解剖」**および**「受託開発（単価80万〜250万円）・自社SaaS構築のマネタイズ実践法」**を自動生成・全世界配信する自律型テックインテリジェンスメディアです。
+> **Auto Tech Radar** は、世界中の GitHub Trending からスター急上昇中のオープンソース（OSS）を毎朝 6:17 (JST)（8:43・12:17 に予備実行）に自動検出。Google最先端AI（Gemini 3.8 / 2.5 Flash）が**「日本語アーキテクチャ深層解剖」**および**「受託開発（単価80万〜250万円）・自社SaaS構築のマネタイズ実践法」**を自動生成・全世界配信する自律型テックインテリジェンスメディアです。
 
 ---
 
@@ -17,7 +17,7 @@
 - 📩 **法人・企業向け受託開発 ＆ AI導入相談窓口**: https://ssk0224.github.io/auto-tech-radar/contact/
 - 📗 **note 公式メンバーシップ（全レポート読み放題）**: https://note.com/vast_ixora7005
 - 💼 **企業研修・スキルアップ経費精算ガイド（稟議テンプレ付）**: https://ssk0224.github.io/auto-tech-radar/expense/
-- 💳 **単発レポート即時購入（¥980）**: [note公式 / Stripe決済ゲートウェイ](https://note.com/vast_ixora7005)
+- 💳 **単発レポート（¥980）**: [note公式](https://note.com/vast_ixora7005)（有料記事の販売は note のみ）
 - 𝕏 **公式速報アカウント**: [@AutoTechRadar](https://x.com/AutoTechRadar)
 
 ---
@@ -40,9 +40,9 @@
 
 ```mermaid
 flowchart TD
-    Cron["⏰ GitHub Actions (毎朝 6:00 JST 完全自動巡回)"]
+    Cron["⏰ GitHub Actions (毎朝 6:17 JST ＋予備実行2回)"]
     API["🐙 GitHub Search API (過去30日の★急増新星 ＆ 4大ドル箱ジャンル)"]
-    Noise["🛡️ 厳格ノイズフィルター (辞書・求人・まとめ集を100%遮断)"]
+    Noise["🛡️ ノイズフィルター (辞書・求人・まとめ集を除外)"]
     AI["🧠 Google Gemini 3.8 Flash (深層解剖・Mermaid図解・高CVR原稿)"]
     OGP["🎨 6大ダイナミックテーマカラー PNG サムネイル生成 (1200x630)"]
     Build["⚡ Astro 7 SSG Engine (高速ビルド ＆ A4白書PDF印刷最適化)"]
@@ -56,7 +56,6 @@ flowchart TD
     subgraph Channels["🚀 2系統・多層収益化パイプライン"]
         subgraph Retail["📱 個人向け日銭・ストック収益"]
             Note["📗 note 有料記事 (980円) / メンバーシップ (月額1,980円)"]
-            Stripe["💳 Stripe 直接決済 (PRO買い切り)"]
             X["📱 𝕏 ワンクリック拡散スレッド (キラーフック構文)"]
         end
         subgraph Enterprise["🏢 法人向け一撃高額キャッシュ"]

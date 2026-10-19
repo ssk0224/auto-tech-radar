@@ -46,7 +46,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「photocraft」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/photocraft/)**
+👉 **[「photocraft」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/photocraft/)**
 
 ----
 
@@ -59,7 +59,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「laya」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/laya/)**
+👉 **[「laya」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/laya/)**
 
 ----
 
@@ -72,7 +72,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「jev-ultrafast」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/)**
+👉 **[「jev-ultrafast」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/)**
 
 ----
 
@@ -85,7 +85,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「Strata」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/strata/)**
+👉 **[「Strata」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/strata/)**
 
 ----
 
@@ -98,7 +98,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「OpenSandbox」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/opensandbox/)**
+👉 **[「OpenSandbox」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/opensandbox/)**
 
 ----
 
@@ -111,7 +111,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「Compositor」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/compositor/)**
+👉 **[「Compositor」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/compositor/)**
 
 ----
 
@@ -124,7 +124,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「dsh-our-free-model」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/dsh-our-free-model/)**
+👉 **[「dsh-our-free-model」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/dsh-our-free-model/)**
 
 ----
 
@@ -137,7 +137,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「magpie」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/magpie/)**
+👉 **[「magpie」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/magpie/)**
 
 ----
 
@@ -150,7 +150,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「pdfcraft」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/pdfcraft/)**
+👉 **[「pdfcraft」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/pdfcraft/)**
 
 ----
 
@@ -163,7 +163,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「wordcraft」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/wordcraft/)**
+👉 **[「wordcraft」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/wordcraft/)**
 
 ----
 
@@ -176,7 +176,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「how-to-live-better」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/how-to-live-better/)**
+👉 **[「how-to-live-better」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/how-to-live-better/)**
 
 ----
 
@@ -189,7 +189,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「DiPlay」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/diplay/)**
+👉 **[「DiPlay」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/diplay/)**
 
 ----
 
@@ -202,7 +202,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「lightcraft」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/lightcraft/)**
+👉 **[「lightcraft」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/lightcraft/)**
 
 ----
 
@@ -215,7 +215,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「filmcraft」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/filmcraft/)**
+👉 **[「filmcraft」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/filmcraft/)**
 
 ----
 
@@ -228,7 +228,7 @@
   - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託
   - 自社マイクロSaaSへの機能組み込み・バックエンド活用
 
-👉 **[「anatomy」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/anatomy/)**
+👉 **[「anatomy」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/anatomy/)**
 
 ----
 
@@ -248,11 +248,11 @@ Auto Tech Radar では、上記OSSを活用した以下のソリューション�
 ## 🎁 【note公式メンバーシップのご案内】
 
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、
-各OSSの **「コピペで出せる社内DX提案書Markdown」「詳細工数・見積算出シミュレーション表」「本番即起動Docker Composeキット」「CTO説得想定問答」** を含む全有料レポート（総額20,000円以上）がすべて初月即時読み放題となります。
+メンバーシップ特典に追加された有料記事（導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順など）を読むことができます。
 
 「最短で受託案件を獲得したい」「自社のAI内製化を最速で成功させたい」エンジニアや経営者の方は、ぜひご参加ください！
 
-👉 **[note公式メンバーシップに参加する（初月読み放題）](https://note.com/vast_ixora7005)**
+👉 **[note公式メンバーシップを見る](https://note.com/vast_ixora7005)**
 
 --- 
 **【推奨ハッシュタグ】**

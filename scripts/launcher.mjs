@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { openNoteForPublishing } from './utils/note_vault.mjs';
+import { zennCta } from './utils/funnel_copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -177,11 +178,9 @@ function renderHeader() {
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.yellow}⚡ Auto Tech Radar${c.reset}  ${c.white}${c.bold}|  海外急上昇OSS 徹底解剖 ＆ 【月収100万円】収益化コンソール${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-  const isStripeLive = siteConfig.stripePaymentUrl && !siteConfig.stripePaymentUrl.includes('00000');
-  const stripeStatus = isStripeLive ? `${c.green}● Stripe本番直結${c.reset}` : `${c.green}● note公式決済へ全自動直結中 (即時収益化OK)${c.reset}`;
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
   console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
-  console.log(`  ${c.dim}HP決済ゲートウェイ:${c.reset} ${stripeStatus}  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
+  console.log(`  ${c.dim}販売:${c.reset} note（有料記事・メンバーシップ）  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
   console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
 
   const unpostedDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
@@ -216,10 +215,9 @@ function promptMenu() {
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
-  console.log(`   ${c.white}[1] Stripe 売上管理ダッシュボードを開く ${c.dim}(入金確認)${c.reset}`);
+  console.log(`   ${c.white}[1] note を開いて売上を確認する ${c.dim}(入金確認)${c.reset}`);
   console.log(`   ${c.white}[2] note メンバーシップ管理画面を開く ${c.dim}(月額1,980円の会員管理)${c.reset}`);
   console.log(`   ${c.white}[3] 今すぐ手動で最新OSSをクロール＆記事生成する ${c.dim}(緊急・テスト実行)${c.reset}`);
-  console.log(`   ${c.dim}[8] Stripe 支払いリンクURLを登録・即時反映する (任意オプション: Stripe直接決済を使う場合のみ)${c.reset}`);
 
   console.log(`\n  ${c.dim}[0] 終了${c.reset}`);
   console.log(`${c.cyan}================================================================================${c.reset}`);
@@ -272,8 +270,8 @@ function handleChoice(choice) {
       runPublishHelper('zenn');
       break;
     case '1':
-      console.log(`\n${c.cyan}Stripe ダッシュボードを開きます...${c.reset}`);
-      openUrl("https://dashboard.stripe.com/");
+      console.log(`\n${c.cyan}note を開きます（右上メニューの「売上管理」から入金を確認できます）...${c.reset}`);
+      openUrl("https://note.com/");
       waitBack();
       break;
     case '2':
@@ -283,9 +281,6 @@ function handleChoice(choice) {
       break;
     case '3':
       runCrawlerManual();
-      break;
-    case '8':
-      updateStripeLink();
       break;
     case '0':
       console.log(`\n${c.green}終了しました。${c.reset}\n`);
@@ -491,7 +486,10 @@ function runPublishHelper(mode) {
           articleContent = fs.readFileSync(radarMd, 'utf8');
           articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
         } else {
-          articleContent = fs.readFileSync(selected.noteFile, 'utf8');
+          // note 原稿は有料部分が暗号化済みのため Zenn には流用しない
+          console.log(`\n${c.red}❌ Web記事（src/pages/radar/${selected.slug}.md）が無いため Zenn 原稿を作れません。${c.reset}`);
+          waitBack();
+          return;
         }
         const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
         const zennDraft = `---
@@ -506,11 +504,7 @@ ${articleContent}
 
 ---
 
-## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
-本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
-
-👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/)**
-`;
+${zennCta(selected.slug)}`;
         fs.writeFileSync(zennFile, zennDraft, 'utf8');
       }
 
@@ -541,14 +535,14 @@ ${articleContent}
         articleContent = fs.readFileSync(radarMd, 'utf8');
         articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
       } else {
-        articleContent = fs.readFileSync(selected.noteFile, 'utf8');
+        // note 原稿は有料部分が暗号化済みのため Qiita には流用しない
+        console.log(`\n${c.red}❌ Web記事（src/pages/radar/${selected.slug}.md）が無いため Qiita 原稿を作れません。${c.reset}`);
+        waitBack();
+        return;
       }
       const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
       const qiitaText = `# 【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開\n\n` +
-        articleContent + '\n\n---\n\n' +
-        `## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて\n` +
-        `本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や自社SaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。\n\n` +
-        `👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/)**\n`;
+        articleContent + '\n\n---\n\n' + zennCta(selected.slug);
 
       copyTextToClipboard(qiitaText);
       openUrl("https://qiita.com/drafts/new");
@@ -740,7 +734,11 @@ function runCloudSync() {
     } catch (e) {
       console.log('コミット対象の新規変更はありませんでした。');
     }
-    console.log('\n4. リモートへプッシュ中 (git push)...');
+    console.log('\n4. 最新のクラウド側の変更を取り込み中 (git pull --rebase)...');
+    // 出品履歴は CI 側と自分の記録の和集合でマージする（.gitattributes 参照）
+    execSync('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"', { cwd: rootDir, stdio: 'inherit' });
+    execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'inherit' });
+    console.log('\n5. リモートへプッシュ中 (git push)...');
     execSync('git push origin main', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ クラウド同期（GitHub Pages自動デプロイ開始）が完了しました！${c.reset}\n`);
   } catch (err) {
@@ -775,59 +773,6 @@ function runWeeklyThread() {
   waitBack();
 }
 
-function updateStripeLink() {
-  console.clear();
-  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-  console.log(`   ${c.green}${c.bold}💳 【Stripe 支払いリンク（Payment Link）登録 ＆ 全世界LIVE即時反映】${c.reset}`);
-  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
-
-  console.log(`Stripeダッシュボードで作成した980円の「支払いリンク（Payment Link）」URLを登録します。`);
-  console.log(`登録すると、自社HPの全購入ボタンが更新され、GitHub Pagesへ全自動反映されます。\n`);
-  console.log(`例: https://buy.stripe.com/live_... または https://buy.stripe.com/...\n`);
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  rl.question(`${c.cyan}${c.bold}Stripe支払いリンクURLを貼り付けてください (空欄でキャンセル) > ${c.reset}`, (inputUrl) => {
-    rl.close();
-    const url = inputUrl.trim();
-    if (!url) {
-      console.log(`\n${c.dim}キャンセルしました。${c.reset}`);
-      waitBack();
-      return;
-    }
-
-    if (!url.startsWith('https://buy.stripe.com/')) {
-      console.log(`\n${c.red}⚠️ URLが不正です。「https://buy.stripe.com/」で始まるリンクを指定してください。${c.reset}\n`);
-      waitBack();
-      return;
-    }
-
-    try {
-      const configPath = path.join(rootDir, 'src', 'config', 'site.js');
-      let content = fs.readFileSync(configPath, 'utf8');
-      content = content.replace(/stripePaymentUrl:\s*"[^"]*"/, `stripePaymentUrl: "${url}"`);
-      fs.writeFileSync(configPath, content, 'utf8');
-      console.log(`\n${c.green}✓ src/config/site.js を更新しました！${c.reset}`);
-
-      console.log(`\n${c.yellow}サイトのビルド＆クラウド同期（GitHub Push）を開始します...${c.reset}`);
-      execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
-      execSync('git add src/config/site.js dist', { cwd: rootDir, stdio: 'inherit' });
-      execSync('git commit -m "feat(stripe): activate live payment link"', { cwd: rootDir, stdio: 'inherit' });
-      execSync('git push', { cwd: rootDir, stdio: 'inherit' });
-
-      console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
-      console.log(`   ${c.green}${c.bold}🎉 祝！Stripe本番決済リンクの全世界LIVE反映が完了しました！${c.reset}`);
-      console.log(`   ${c.cyan}サイト訪問者が決済すると、直接あなたの銀行口座へ即時着金します！${c.reset}`);
-      console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
-    } catch (err) {
-      console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
-    }
-    waitBack();
-  });
-}
 
 // 起動
 promptMenu();

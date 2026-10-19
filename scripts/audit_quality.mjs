@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import crypto from 'crypto';
 import { findProLeaks } from './utils/pro_boundary.mjs';
-import { splitPaid, isWellFormedSealed, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
+import { zennCta } from './utils/funnel_copy.mjs';
+import { splitPaid, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -184,7 +184,8 @@ if (!fs.existsSync(zennDir)) {
       errorCount++;
     }
     const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8');
-    if (zContent.includes('Auto Tech Radar 公式レポート')) {
+    const zSlug = (zContent.match(/auto-tech-radar\/radar\/([a-z0-9_-]+)\//) || [])[1];
+    if (zSlug && zContent.includes(zennCta(zSlug))) {
       funnelCount++;
     }
 
@@ -225,15 +226,15 @@ if (!fs.existsSync(zennDir)) {
       errorCount++;
     }
 
-    // PRO限定実務キット（mcpServers, docker-compose, 提案書本文）の無料漏洩チェック
-    if (zContent.includes('mcpServers') || zContent.includes('docker-compose') || zContent.includes('■ 案件名:')) {
+    // 有料キット（見出し・提案書本文）の無料漏洩チェック。README 由来の MCP 設定や docker-compose 手順の引用は対象外
+    if (findProLeaks(zContent).length || zContent.includes('■ 案件名:')) {
       console.error(`  ❌ [PRO LEAK IN ZENN] ${f}: 無料Zenn記事にPRO実務キットが漏洩しています！`);
       zennErrors++;
       errorCount++;
     }
   });
   if (zennErrors === 0 && funnelCount === zennArticles.length) {
-    console.log(`  ✓ Zennデプロイ規格＆送客ファネル監査合格: 全 ${zennArticles.length} 本がZenn公式規格に適合し、自社サイト送客バナーを100%配備中。\n`);
+    console.log(`  ✓ Zennデプロイ規格＆送客ファネル監査合格: 全 ${zennArticles.length} 本がZenn公式規格に適合し、共通の送客文（無料解説はサイト・実務キットは note）を配置済み。\n`);
   } else if (funnelCount < zennArticles.length) {
     console.error(`  ❌ Zenn記事の送客バナーが不足しています (${funnelCount}/${zennArticles.length})`);
     errorCount++;
@@ -350,7 +351,7 @@ if (!clientScriptMatch) {
 console.log('▶ [8/13] note_drafts 原稿完全性 ＆ 有料ライン漏洩 ＆ CVRフック監査...');
 const noteDraftsDir = path.join(rootDir, 'note_drafts');
 const vaultPub = fs.existsSync(vaultPublicKeyFile) ? fs.readFileSync(vaultPublicKeyFile, 'utf8').trim() : '';
-const vaultKid = crypto.createHash('sha256').update(vaultPub).digest('hex').slice(0, 16);
+const vaultKid = keyId(vaultPub);
 if (fs.existsSync(noteDraftsDir)) {
   const noteFiles = fs.readdirSync(noteDraftsDir).filter(f => f.endsWith('.md'));
   let noteErrors = 0;
@@ -380,9 +381,9 @@ if (fs.existsSync(noteDraftsDir)) {
       errorCount++;
       return;
     }
-    const sealedJson = fs.existsSync(sealedPath) ? fs.readFileSync(sealedPath, 'utf8') : '';
-    if (!isWellFormedSealed(sealedJson) || JSON.parse(sealedJson).kid !== vaultKid) {
-      console.error(`  ❌ [SEALED PAID PART INVALID] ${file}: 暗号化された有料部分が無いか、現在の公開鍵と一致しません`);
+    const sealed = sealedInfo(fs.existsSync(sealedPath) ? fs.readFileSync(sealedPath, 'utf8') : '');
+    if (!sealed || sealed.v !== 2 || sealed.aad !== file || sealed.kid !== vaultKid) {
+      console.error(`  ❌ [SEALED PAID PART INVALID] ${file}: 暗号化された有料部分が無い・形式が古い・対象が違う・現在の公開鍵と一致しない のいずれかです。オーナー端末で npm run vault:reseal を実行してください`);
       noteErrors++;
       errorCount++;
       return;

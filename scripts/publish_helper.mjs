@@ -5,6 +5,7 @@ import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { openNoteForPublishing } from './utils/note_vault.mjs';
+import { zennCta } from './utils/funnel_copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -163,7 +164,9 @@ rl.question('番号を入力して Enter > ', (answer) => {
       articleContent = fs.readFileSync(radarMd, 'utf8');
       articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
     } else {
-      articleContent = fs.readFileSync(selected.noteFile, 'utf8');
+      // note 原稿は有料部分が暗号化済みのため Zenn には流用しない
+      console.error(`❌ Web記事（src/pages/radar/${selected.slug}.md）が無いため Zenn 原稿を作れません。`);
+      process.exit(1);
     }
 
     const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
@@ -179,11 +182,7 @@ ${articleContent}
 
 ---
 
-## 💡 商用化アーキテクチャ ＆ 受託開発提案テンプレートについて
-本OSSを活用した**受託開発（単価80万〜250万円）の提案書テンプレート**や、自社マイクロSaaS構築仕様書、コピペで使える本番環境構築手順の完全版は、開発者向け専門メディア「Auto Tech Radar」にて全編公開されています。
-
-👉 **[Auto Tech Radar で完全版レポートを読む（即時アンロック対応）](https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/)**
-`;
+${zennCta(selected.slug)}`;
 
     const zennDir = path.join(rootDir, 'zenn_drafts');
     if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });

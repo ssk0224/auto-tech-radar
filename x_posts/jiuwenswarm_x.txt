@@ -3,10 +3,10 @@
 ==================================================
 
 [TWEET 1]
-【案件単価80万〜250万のAIスウォーム基盤】
-世界で★5,900急増中の「jiuwenswarm」がヤバい。
+【海外OSS解説: AIスウォーム基盤】
+GitHubで★5,900の「jiuwenswarm」がヤバい。
 タスクを渡すだけでリーダーAIが専門エージェントチームを自動編成＆自己進化。社内閉域で安全に自律稼働。
-▼ 深層レポート＆受託骨子はこちら👇
+▼ 無料の解説はこちら👇
 https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
 
 [TWEET 2]
@@ -16,7 +16,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
 ・外部クラウド依存ゼロでエンタープライズDX提案に即決採用
 
 [TWEET 3]
-【💡 商用化マニュアル ＆ 提案書完全版】
-クライアント提示用見積シミュレーション・社内DX提案書Markdown・即起動Dockerキットの完全版を公開中。
+【💡 実務キットは note で】
+導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順は note の有料記事で公開中。
 ▼ 詳細レポートはこちら
 https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/

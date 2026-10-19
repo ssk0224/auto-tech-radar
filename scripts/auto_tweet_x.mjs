@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { isNoise } from './utils/noise_filter.mjs';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 
 // X (Twitter) API v2 自動投稿エンジン (OAuth 1.0a HMAC-SHA1)
@@ -30,10 +31,22 @@ async function postLatestTweet() {
     }
   }
 
+  // 新しい記事から投稿する。CI ではチェックアウト時に全ファイルの mtime が揃うため、記事の pubDate で並べる
+  const radarDir = path.resolve('src/pages/radar');
+  const pubDateOf = (slug) => {
+    try {
+      const m = fs.readFileSync(path.join(radarDir, `${slug}.md`), 'utf8').match(/^pubDate:\s*"?([0-9-]+)"?/m);
+      return m ? m[1] : '';
+    } catch (e) {
+      return '';
+    }
+  };
   const files = fs.readdirSync(xDir)
     .filter(f => f.endsWith('_x.txt'))
-    .map(f => ({ name: f, mtime: fs.statSync(path.join(xDir, f)).mtimeMs }))
-    .sort((a, b) => b.mtime - a.mtime);
+    .map(f => ({ name: f, slug: f.replace(/_x\.txt$/, '') }))
+    .filter(f => !isNoise(f.slug) && fs.existsSync(path.join(radarDir, `${f.slug}.md`)))
+    .map(f => ({ ...f, pubDate: pubDateOf(f.slug) }))
+    .sort((a, b) => b.pubDate.localeCompare(a.pubDate) || a.slug.localeCompare(b.slug));
 
   if (files.length === 0) return;
 

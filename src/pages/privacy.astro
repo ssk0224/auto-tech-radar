@@ -1,0 +1,32 @@
+---
+import Layout from "../layouts/Layout.astro";
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Layout title="プライバシーポリシー | Auto Tech Radar" description="Auto Tech Radar における個人情報の取り扱いについて">
+  <div style="max-width: 760px; margin: 2rem auto; line-height: 1.8; color: #cbd5e1;">
+    <h1 style="color: #fff;">プライバシーポリシー</h1>
+    <p>Auto Tech Radar（以下「当サイト」）は、お問い合わせ等でお預かりする個人情報を以下のとおり取り扱います。</p>
+
+    <h2 style="color: #fff;">1. 取得する情報</h2>
+    <p><a href={`${baseUrl}/contact/`}>お問い合わせフォーム</a>から、貴社名、ご担当者様名、メールアドレス、ご相談種別、想定ご予算、ご相談内容を取得します。</p>
+
+    <h2 style="color: #fff;">2. 利用目的</h2>
+    <p>お問い合わせへの回答、ご相談内容に関するご連絡・ご提案のためにのみ利用します。</p>
+
+    <h2 style="color: #fff;">3. 外部サービスの利用（外国にある第三者への提供）</h2>
+    <p>フォームの送信内容は、メール転送サービス FormSubmit（formsubmit.co、日本国外で運営）を経由して当サイト運営者のメールアドレスへ送られます。フォームを送信された時点で、この取り扱いに同意いただいたものとします。各サービスにおける取り扱いは、各社のプライバシーポリシーをご確認ください。</p>
+    <p>当サイトは GitHub Pages で配信しており、配信にあたり GitHub がアクセスログ（IPアドレス等）を取得します。また、図表の表示に jsDelivr（CDN）を利用しています。当サイトはアクセス解析ツールを使用していません。</p>
+
+    <h2 style="color: #fff;">4. 第三者提供</h2>
+    <p>法令に基づく場合を除き、ご本人の同意なく第三者に提供しません。</p>
+
+    <h2 style="color: #fff;">5. 開示・訂正・削除のご請求</h2>
+    <p>ご自身の情報の開示・訂正・利用停止・削除をご希望の場合は、<a href={`${baseUrl}/contact/`}>お問い合わせフォーム</a>よりご連絡ください。</p>
+
+    <h2 style="color: #fff;">6. 有料コンテンツの購入</h2>
+    <p>有料記事の購入・決済は note（note株式会社）で行われ、当サイトは決済情報を取得しません。</p>
+
+    <p style="margin-top: 2rem; color: #94a3b8;">制定日: 2026年10月19日</p>
+  </div>
+</Layout>

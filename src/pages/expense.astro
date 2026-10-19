@@ -21,7 +21,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Auto Tech Radar PRO を経費精算する方法</span>
       </h1>
       <p style="font-size: 0.98rem; color: #cbd5e1; margin: 0 auto; max-width: 620px; line-height: 1.7;">
-        Pragmatic Engineer等の海外トップメディアでは有料購読者の<strong>65%以上が企業の研修費・自己啓発予算</strong>を利用しています。本メディアも適格領収書・インボイスに完全対応しています。
+        技術情報の購読費は、会社の研修費・自己啓発制度の対象になることがあります。対象になるかは所属先の規程をご確認ください。購入・領収書の発行は note で行われます。
       </p>
     </div>
 
@@ -40,13 +40,13 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem;">
           <div style="font-weight: 800; color: #10b981; font-size: 1.05rem; margin-bottom: 0.4rem;">STEP 2: 法人カードまたは個人立替で購入</div>
           <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.65;">
-            法人クレジットカードまたは個人カードで決済します（Stripe単発980円、またはnoteメンバーシップ月額1,980円）。
+            法人クレジットカードまたは個人カードで、note の有料記事（単発980円）またはメンバーシップ（月額1,980円）を購入します。
           </p>
         </div>
         <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem;">
           <div style="font-weight: 800; color: #f59e0b; font-size: 1.05rem; margin-bottom: 0.4rem;">STEP 3: 領収書を精算システムに添付して完了</div>
           <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.65;">
-            決済直後にメール送付されるStripe公式領収書（またはnoteの購入履歴・領収書画面）を経費精算ソフト（マネーフォワード、楽楽精算、Concur等）に添付してください。
+            note の購入履歴から発行できる領収書を経費精算ソフト（マネーフォワード、楽楽精算、Concur等）に添付してください。領収書の発行方法・記載内容は note のヘルプをご確認ください。
           </p>
         </div>
       </div>
@@ -98,13 +98,13 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         <div style="background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.4rem; color: #e0e7ff; font-size: 1rem;">Q. 領収書の宛名は会社名に変更できますか？</h4>
           <p style="margin: 0; font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">
-            はい、Stripeの決済画面（または決済完了メールの領収書表示画面）にて、任意の法人名・部署名をご入力いただくことで会社宛名の領収書PDFが即時ダウンロード可能です。
+            領収書は note が発行します。宛名の指定可否や発行手順は note のヘルプ（領収書の発行）をご確認ください。
           </p>
         </div>
         <div style="background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.4rem; color: #e0e7ff; font-size: 1rem;">Q. チーム・複数名での法人一括導入は可能ですか？</h4>
           <p style="margin: 0; font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">
-            はい、エンジニアチーム向けの一括ライセンス（適格請求書・銀行振込払い対応）もご用意しております。<a href={`${baseUrl}/contact/?plan=corporate-license`} style="color: #60a5fa; font-weight: 700; text-decoration: underline;">法人専用お問い合わせフォーム</a> または公式𝕏のDMよりお気軽にご相談ください。
+            複数名でのご利用は、<a href={`${baseUrl}/contact/?plan=corporate-license`} style="color: #60a5fa; font-weight: 700; text-decoration: underline;">法人専用お問い合わせフォーム</a> または公式𝕏のDMよりお気軽にご相談ください。
           </p>
         </div>
       </div>
@@ -112,12 +112,12 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
     <!-- CTA Box -->
     <div style="text-align: center; background: #1e1b4b; border: 1px solid #4338ca; border-radius: 12px; padding: 2rem; margin-top: 2rem;">
-      <h3 style="margin: 0 0 0.6rem; color: #fff; font-size: 1.3rem;">今すぐ会社経費で技術レポートをアンロックする</h3>
-      <p style="margin: 0 0 1.2rem; color: #a5b4fc; font-size: 0.92rem;">世界の急上昇OSSの商用手順書・アーキテクチャ解説が全編読み放題になります。</p>
+      <h3 style="margin: 0 0 0.6rem; color: #fff; font-size: 1.3rem;">note で技術レポートを購入する</h3>
+      <p style="margin: 0 0 1.2rem; color: #a5b4fc; font-size: 0.92rem;">導入提案書テンプレート・工数見積表・導入手順などの実務キットは note の有料記事で提供しています。</p>
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
         <a href={siteConfig.noteMembershipUrl} target="_blank" style="background: #2cb696; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">📗 noteメンバーシップで購読 (¥1,980/月)</a>
-        <a href={siteConfig.activeSinglePaymentUrl} target="_blank" style="background: #635bff; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">
-          {siteConfig.isStripeLive ? "💳 Stripeで単発購入 (¥980)" : "💳 単発レポート即時購入 (¥980 / note決済)"}
+        <a href={siteConfig.noteProfileUrl} target="_blank" style="background: #635bff; color: #fff; font-weight: 700; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none;">
+          💳 note で単発レポートを購入 (¥980)
         </a>
       </div>
     </div>

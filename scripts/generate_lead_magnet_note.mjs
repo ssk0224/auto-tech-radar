@@ -100,7 +100,7 @@ export function generateLeadMagnetNote() {
     md += `  - 既存の高額課金SaaSからのリプレイスによる月額ランニングコスト削減\n`;
     md += `  - クライアント企業専用のセキュアなオンプレミス/プライベートクラウド構築受託\n`;
     md += `  - 自社マイクロSaaSへの機能組み込み・バックエンド活用\n\n`;
-    md += `👉 **[「${r.title}」の深層アーキテクチャ解剖 ＆ 受託提案書・Dockerキット付き完全版はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/)**\n\n`;
+    md += `👉 **[「${r.title}」のアーキテクチャ解説（無料）はこちら →](https://ssk0224.github.io/auto-tech-radar/radar/${r.slug}/)**\n\n`;
     md += `----\n\n`;
   });
 
@@ -115,9 +115,9 @@ export function generateLeadMagnetNote() {
   md += `--- \n\n`;
   md += `## 🎁 【note公式メンバーシップのご案内】\n\n`;
   md += `Auto Tech Radar noteメンバーシップ（月額1,980円）では、\n`;
-  md += `各OSSの **「コピペで出せる社内DX提案書Markdown」「詳細工数・見積算出シミュレーション表」「本番即起動Docker Composeキット」「CTO説得想定問答」** を含む全有料レポート（総額20,000円以上）がすべて初月即時読み放題となります。\n\n`;
+  md += `メンバーシップ特典に追加された有料記事（導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順など）を読むことができます。\n\n`;
   md += `「最短で受託案件を獲得したい」「自社のAI内製化を最速で成功させたい」エンジニアや経営者の方は、ぜひご参加ください！\n\n`;
-  md += `👉 **[note公式メンバーシップに参加する（初月読み放題）](https://note.com/vast_ixora7005)**\n\n`;
+  md += `👉 **[note公式メンバーシップを見る](https://note.com/vast_ixora7005)**\n\n`;
 
   md += `--- \n`;
   md += `**【推奨ハッシュタグ】**\n`;

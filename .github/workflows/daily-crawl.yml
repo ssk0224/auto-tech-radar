@@ -23,15 +23,17 @@ jobs:
   run-radar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: "npm"
 
       - run: npm ci
+      # 品質ゲートが不具合を本当に止めるかの検証を含むテスト（失敗したら生成・公開しない）
+      - run: npm test
       - name: Install Japanese CJK fonts
         run: |
           sudo apt-get update
@@ -65,8 +67,6 @@ jobs:
         run: node scripts/auto_tweet_x.mjs
 
       - name: Commit and push changes
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "ssk0224"
           git config --global user.email "ssk0224@users.noreply.github.com"
@@ -76,33 +76,29 @@ jobs:
           else
             git commit -m "chore: auto-index new tech radar entry [skip ci]"
 
-            # GH_PATが設定されている場合はURLに含めず、HTTPヘッダー経由で安全に認証設定（ログ漏洩防止）
-            if [ -n "$GH_PAT" ]; then
-              git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf "x-access-token:%s" "$GH_PAT" | base64 -w 0)"
-            fi
+            # 認証は actions/checkout が token（GH_PAT または GITHUB_TOKEN）で設定済み。
+            # 別途 extraheader を足すと認証ヘッダーが二重になり push が拒否されるため設定しない
 
-            # 安全なリトライ＆コンフリクト回避ループ（最大3回試行）
+            # publish_history.json は投稿済みフラグの和集合でマージする（.gitattributes 参照）
+            git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"
+
+            # 最新の main に載せ直して push（最大3回）。衝突は自動で握りつぶさず失敗として扱う
             PUSH_SUCCESS=false
             for i in 1 2 3; do
               echo "Git pull/rebase and push attempt $i of 3..."
               if git pull --rebase origin main; then
+                # 取り込んだ変更と合わせても品質ゲート（有料部分の暗号化・鍵の一致など）を満たすか確認
+                node scripts/audit_quality.mjs
                 if git push origin main; then
                   echo "Successfully pushed changes to main."
                   PUSH_SUCCESS=true
                   break
                 fi
               else
-                echo "Rebase conflict detected. Aborting rebase to keep working copy clean."
-                git rebase --abort
-                # 新規生成ファイルを保護しながら最新を取り込んでマージ
-                git pull --no-rebase -s recursive -X ours origin main --no-edit || true
-                if git push origin main; then
-                  echo "Successfully resolved conflict and pushed changes to main."
-                  PUSH_SUCCESS=true
-                  break
-                fi
+                echo "::warning::Rebase failed (conflict or network). Aborting and retrying."
+                git rebase --abort || true
               fi
-              sleep 3
+              sleep 5
             done
 
             if [ "$PUSH_SUCCESS" != "true" ]; then
@@ -112,16 +108,16 @@ jobs:
           fi
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: "./dist"
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Notify Search Engines (IndexNow)
         run: node scripts/ping_search_engines.mjs
