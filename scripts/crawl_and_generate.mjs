@@ -193,17 +193,17 @@ stars: ${repo.stargazers_count}
 ## 解決する主要な課題とアーキテクチャ
 ※必須：このセクション内に、コンポーネント構成やデータフローを示すMermaidダイアグラム（\`\`\`mermaid ... \`\`\` / graph TD 等）を必ず1つ以上含めて視覚的に図解してください。
 
-## ⚡ 1-Click MCP (Model Context Protocol) ＆ Cursor Rules 設定キット
-※必須：Claude DesktopやCursor、Antigravityで本OSSを即座にAIツールとして連携するための完全なJSON設定（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング開発用の \`\`\`.cursorrules\`\`\` 設定スニペットを提示してください。
-
 ## 競合ツール/商用SaaSとの徹底比較
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-## インストール & クイックスタート手順
 ## 商用利用可否 & ライセンス考察
 
 ---
 
 ## 🛠️ 【Auto Tech Radar PRO限定】商用化マニュアル ＆ 実務キット
+### ⚡ 1-Click MCP (Model Context Protocol) ＆ Cursor Rules 設定キット
+※必須：Claude DesktopやCursor、Antigravityで本OSSを即座にAIツールとして連携するための完全なJSON設定（\`\`\`json { "mcpServers": ... } \`\`\`）および、AIコーディング開発用の \`\`\`.cursorrules\`\`\` 設定スニペットを提示してください。
+
+### 💡 ビジネス・マネタイズ活用アイデア（受託提案・自社SaaS構築シナリオ）
+
 ### 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版
 ※重要：案件名、導入目的、システム全体構成、投資対効果ROI（既存SaaSとの価格差比較・年間削減額）、4〜8週間導入スケジュールを含む、クライアントへそのまま出せる完全なMarkdownを出力してください。
 
@@ -621,16 +621,17 @@ async function run() {
       // Zenn / Qiita 送客用ドラフト自動生成（アーキテクチャまでで確実にカットし、自社サイトへ完全送客）
       const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, "").trim();
       let teaserBody = cleanBody;
-      const cutRegex = /##\s*(?:[💡🛠️📋💰⚡]\s*)?(?:ビジネス|マネタイズ|収益化|【Auto Tech Radar PRO限定】|商用化マニュアル|インストール|クイックスタート|社内DX|詳細工数|即時本番)/i;
+      const cutRegex = /##\s*(?:[💡🛠️📋💰⚡]\s*)?(?:【Auto Tech Radar PRO限定】|商用化マニュアル|1-Click MCP|MCP|ビジネス|マネタイズ|収益化|インストール|クイックスタート|社内DX|詳細工数|即時本番)/i;
       const cutMatch = teaserBody.match(cutRegex);
       if (cutMatch && cutMatch.index > 200) {
         teaserBody = teaserBody.substring(0, cutMatch.index).trim();
       } else {
         const cutMarkers = [
+          "## 🛠️ 【Auto Tech Radar PRO限定】",
+          "## ⚡ 1-Click MCP",
           "## 💡 ビジネス・マネタイズ活用アイデア",
           "## 💡 このOSSを活用した具体的なマネタイズ戦略",
           "## インストール & クイックスタート手順",
-          "## 🛠️ 【Auto Tech Radar PRO限定】",
         ];
         for (const m of cutMarkers) {
           const idx = teaserBody.indexOf(m);
