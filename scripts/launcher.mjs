@@ -7,6 +7,7 @@ import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { openNoteForPublishing } from './utils/note_vault.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
+import { isNoise } from './utils/noise_filter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -126,6 +127,8 @@ function getDrafts() {
   const history = loadHistory();
   return fs.readdirSync(noteDir)
     .filter(f => f.endsWith('_note.md'))
+    // 解説対象外のリポジトリ（ノイズ）は出品・拡散の候補に出さない
+    .filter(f => !isNoise(f.replace('_note.md', '')))
     .map(f => {
       const fullPath = path.join(noteDir, f);
       const stat = fs.statSync(fullPath);
