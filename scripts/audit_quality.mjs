@@ -443,8 +443,8 @@ if (!clientScriptMatch) {
   }
 }
 
-// 8. 【note_drafts 原稿完全性 ＆ 有料ライン漏洩 監査】
-console.log('▶ [8/9] note_drafts 原稿完全性 ＆ 有料ライン漏洩監査...');
+// 8. 【note_drafts 原稿完全性 ＆ 有料ライン漏洩 ＆ CVRフック 監査】
+console.log('▶ [8/13] note_drafts 原稿完全性 ＆ 有料ライン漏洩 ＆ CVRフック監査...');
 const noteDraftsDir = path.join(rootDir, 'note_drafts');
 if (fs.existsSync(noteDraftsDir)) {
   const noteFiles = fs.readdirSync(noteDraftsDir).filter(f => f.endsWith('.md'));
@@ -452,8 +452,8 @@ if (fs.existsSync(noteDraftsDir)) {
   noteFiles.forEach(file => {
     if (file.includes('LEAD_MAGNET') || file.includes('cheat_sheet')) return;
     const content = fs.readFileSync(path.join(noteDraftsDir, file), 'utf8');
-    if (content.length === 0) {
-      console.error(`  ❌ [EMPTY NOTE DRAFT] ${file}: 0バイトの空ファイルです！`);
+    if (content.length < 500) {
+      console.error(`  ❌ [EMPTY/CORRUPTED NOTE DRAFT] ${file}: コンテンツサイズが不足しています（${content.length} bytes）！`);
       noteErrors++;
       errorCount++;
       return;
@@ -476,22 +476,33 @@ if (fs.existsSync(noteDraftsDir)) {
       noteErrors++;
       errorCount++;
     }
+    if (!content.includes('経費') && !content.includes('領収書')) {
+      console.error(`  ❌ [MISSING ROI/EXPENSE HOOK] ${file}: 経費精算/ROIフックが抜けています！`);
+      noteErrors++;
+      errorCount++;
+    }
+    if (!content.includes('#AI') && !content.includes('#OSS')) {
+      console.error(`  ❌ [MISSING HASHTAGS] ${file}: 推奨ハッシュタグが抜けています！`);
+      noteErrors++;
+      errorCount++;
+    }
   });
   if (noteErrors === 0) {
-    console.log(`  ✓ note_drafts 監査合格: 全 ${noteFiles.length} 本のnote原稿で有料ライン設置・PRO漏洩ゼロ。\n`);
+    console.log(`  ✓ note_drafts 監査合格: 全 ${noteFiles.length} 本のnote原稿で有料ライン設置・PRO漏洩ゼロ・CVRフック配備完了。\n`);
   }
 }
 
 // 9. 【x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性 監査】
-console.log('▶ [9/11] x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性監査...');
+console.log('▶ [9/13] x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性監査...');
 const xPostsDir = path.join(rootDir, 'x_posts');
 if (fs.existsSync(xPostsDir)) {
   const xFiles = fs.readdirSync(xPostsDir).filter(f => f.endsWith('.txt'));
   let xErrors = 0;
   xFiles.forEach(file => {
     const content = fs.readFileSync(path.join(xPostsDir, file), 'utf8');
-    if (content.length === 0) {
-      console.error(`  ❌ [EMPTY X POST] ${file}: 0バイトの空ファイルです！`);
+    const cleanBody = content.replace(/^[=\-\s\n📱]+.*?X \(Twitter\) 投稿用スレッド[=\-\s\n]+/m, '').trim();
+    if (content.length < 200 || cleanBody.length < 50) {
+      console.error(`  ❌ [EMPTY/CORRUPTED X POST] ${file}: 実質本文が不足しています（全体: ${content.length}B, 本文: ${cleanBody.length}文字）！`);
       xErrors++;
       errorCount++;
       return;
@@ -514,7 +525,7 @@ if (fs.existsSync(xPostsDir)) {
     }
   });
   if (xErrors === 0) {
-    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・URL実在性100%確認。\n`);
+    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・本文実在性100%確認。\n`);
   }
 }
 

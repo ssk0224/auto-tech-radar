@@ -3,7 +3,7 @@ import path from 'path';
 import readline from 'readline';
 import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { sanitizeAndAttachUrlToTweet } from './utils/twitter_formatter.mjs';
+import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -204,8 +204,7 @@ ${articleContent}
       let safeData = null;
       try {
         const xText = fs.readFileSync(selected.xFile, 'utf8');
-        const t1Match = xText.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
-        const rawTweet = t1Match ? t1Match[1].trim() : selected.title;
+        const rawTweet = extractTweet1(xText, selected.title);
         safeData = sanitizeAndAttachUrlToTweet(rawTweet, selected.slug);
       } catch (e) {
         safeData = sanitizeAndAttachUrlToTweet(selected.title, selected.slug);

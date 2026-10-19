@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 
 // X (Twitter) API v2 自動投稿エンジン (OAuth 1.0a HMAC-SHA1)
 // シークレット未設定時は安全にスキップし、パイプラインを絶対に落とさない設計
@@ -52,8 +53,9 @@ async function postLatestTweet() {
   const latestFile = path.join(xDir, targetFileObj.name);
   const text = fs.readFileSync(latestFile, 'utf8');
 
-  const t1Match = text.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
-  const tweetText = t1Match ? t1Match[1].trim() : text.slice(0, 130);
+  const rawTweet = extractTweet1(text, slug);
+  const safeData = sanitizeAndAttachUrlToTweet(rawTweet, slug);
+  const tweetText = safeData.tweet;
 
   console.log(`🚀 Xへ自動投稿を試行中: ${targetFileObj.name} (slug: ${slug})...`);
 

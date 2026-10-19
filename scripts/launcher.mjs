@@ -4,7 +4,7 @@ import readline from 'readline';
 import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
-import { sanitizeAndAttachUrlToTweet } from './utils/twitter_formatter.mjs';
+import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -128,7 +128,7 @@ function getDrafts() {
       const stat = fs.statSync(fullPath);
       const slug = f.replace('_note.md', '');
       const xFile = path.join(xDir, `${slug}_x.txt`);
-      const hasX = fs.existsSync(xFile) && fs.statSync(xFile).size > 100;
+      const hasX = fs.existsSync(xFile) && fs.statSync(xFile).size > 200;
       
       let title = slug;
       try {
@@ -557,8 +557,7 @@ ${articleContent}
         let safeData = null;
         try {
           const xText = fs.readFileSync(selected.xFile, 'utf8');
-          const t1Match = xText.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
-          const rawTweet = t1Match ? t1Match[1].trim() : selected.title;
+          const rawTweet = extractTweet1(xText, selected.title);
           safeData = sanitizeAndAttachUrlToTweet(rawTweet, selected.slug);
         } catch (e) {
           safeData = sanitizeAndAttachUrlToTweet(selected.title, selected.slug);
@@ -680,8 +679,7 @@ function runAllInOnePublish() {
         let safeData = null;
         try {
           const xText = fs.readFileSync(target.xFile, 'utf8');
-          const t1Match = xText.match(/【ツイート 1】\r?\n([\s\S]*?)(?=\r?\n\r?\n👉 ワンクリック|$)/);
-          const rawTweet = t1Match ? t1Match[1].trim() : target.title;
+          const rawTweet = extractTweet1(xText, target.title);
           safeData = sanitizeAndAttachUrlToTweet(rawTweet, target.slug);
         } catch (e) {
           safeData = sanitizeAndAttachUrlToTweet(target.title, target.slug);

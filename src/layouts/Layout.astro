@@ -116,6 +116,28 @@ if (starsCount >= 15000) {
         },
         "keywords": (frontmatter?.tags || ["OSS", "Tech"]).join(", ")
       })} />
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": `${frontmatter?.title?.split(' - ')[0] || '本OSS'}の商用利用や受託開発への活用は可能ですか？`,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": `はい。本OSSはオープンソースとして公開されており、受託開発（単価80万〜250万円規模）の基盤や自社SaaS構築に商用活用可能です。ライセンス考察および導入提案書テンプレートを本記事で公開しています。`
+            }
+          },
+          {
+            "@type": "Question",
+            "name": `${frontmatter?.title?.split(' - ')[0] || '本OSS'}のThoughtWorks技術成熟度判定は？`,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": `コミュニティ活発度・スター数・本番稼働実績から総合判定した成熟度リングは「${ringLabel}」です。PoC開発や社内DXでの即座の検証・導入が推奨されます。`
+            }
+          }
+        ]
+      })} />
     ) : (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",

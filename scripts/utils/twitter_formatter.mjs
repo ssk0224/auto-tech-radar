@@ -103,3 +103,29 @@ export function sanitizeAndAttachUrlToTweet(rawTweet, slug, customUrl = null) {
     isSafe: finalWeight <= 280
   };
 }
+
+/**
+ * Robust extractor for Tweet 1 from various formats ([TWEET 1], 【ツイート 1】, ## ツイート 1)
+ * @param {string} xText - Content of x_posts/*.txt
+ * @param {string} fallbackTitle - Fallback string if no section is found
+ * @returns {string} - Extracted Tweet 1 text
+ */
+export function extractTweet1(xText, fallbackTitle = '') {
+  if (!xText) return fallbackTitle;
+
+  // 1. Match standard Tweet 1 blocks
+  const match = xText.match(/(?:【ツイート\s*1】|\[TWEET\s*1\]|##\s*ツイート\s*1)\r?\n([\s\S]*?)(?=\r?\n\r?\n(?:【ツイート\s*2】|\[TWEET\s*2\]|##\s*ツイート\s*2|👉\s*ワンクリック|--------------------------------------------------|$))/i);
+  if (match && match[1].trim().length > 10) {
+    return match[1].trim();
+  }
+
+  // 2. Fallback: If no delimiter, but text exists without header separators
+  const clean = xText.replace(/^[=\-\s\n📱]+.*?X \(Twitter\) 投稿用スレッド[=\-\s\n]+/m, '').trim();
+  if (clean.length > 20) {
+    const firstSection = clean.split(/\n\s*\n/)[0];
+    return firstSection.trim();
+  }
+
+  return fallbackTitle;
+}
+

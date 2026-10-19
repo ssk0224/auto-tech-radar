@@ -2,3 +2,21 @@
 📱 effectcraft X (Twitter) 投稿用スレッド
 ==================================================
 
+[TWEET 1]
+【Adobe After EffectsをRustでゼロから再実装】
+世界で★7,100超えの怪物OSS「effectcraft」が凄すぎる。
+FFmpeg不要・純Rust製コーデック搭載で超高速レンダリング。MCP対応でAI自動動画生成パイプラインへ直結。
+▼ 深層レポート＆受託骨子はこちら👇
+https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/
+
+[TWEET 2]
+【従来の映像編集ツールとの圧倒的な違い】
+・Lottieネイティブ対応でWeb/アプリ即時書き出し
+・全操作がJSONコマンド連携可能で完全自動化
+・脱Adobe・自社クラウドレンダリングSaaS構築のベースに最適（受託単価120万〜250万）
+
+[TWEET 3]
+【💡 商用化マニュアル ＆ 提案書完全版】
+社内DX提案書テンプレート・見積シミュレーション・MCP/Cursor設定・Docker即起動キットを含む完全版を公開中。
+▼ 詳細レポートはこちら
+https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/
