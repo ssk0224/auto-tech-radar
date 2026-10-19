@@ -1,4 +1,15 @@
 {
+  "LEAD_MAGNET_CHEAT_SHEET": {
+    "url": "https://note.com/vast_ixora7005/n/na51f69c2da02",
+    "price": 0,
+    "title": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース15選」商用化チートシート（社内DX・受託開発・AI導入の決定版）",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/ne6b42476deb0",
+      "https://note.com/vast_ixora7005/n/n5cbca0816c9f",
+      "https://note.com/vast_ixora7005/n/nbd5acdd67ad2",
+      "https://note.com/vast_ixora7005/n/n36563fb12f3a"
+    ]
+  },
   "aihot": {
     "url": "https://note.com/vast_ixora7005/n/n002178c660d1",
     "price": 980,
@@ -9,15 +20,39 @@
     "price": 980,
     "title": "# 【受託80万〜250万】海外急上昇OSS「anatomy」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
+  "answer-me-with-html": {
+    "url": "https://note.com/vast_ixora7005/n/n0522512f3c91",
+    "price": 980,
+    "title": "【最新OSS解体新書】answer-me-with-htmlとは？機能解説とビジネス活用・マネタイズ実践法",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n324b24e9647b"
+    ]
+  },
   "compositor": {
     "url": "https://note.com/vast_ixora7005/n/n9a52ac0b064c",
     "price": 980,
     "title": "# 【受託80万〜250万】海外急上昇OSS「Compositor」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
+  "diplay": {
+    "url": "https://note.com/vast_ixora7005/n/n800ccf41df2c",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/nc80a17e7e091"
+    ]
+  },
   "droiddeck": {
     "url": "https://note.com/vast_ixora7005/n/n99531d7c3e10",
     "price": 980,
     "title": "# 【受託80万〜250万】海外急上昇OSS「DroidDeck」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
+  },
+  "dsh-our-free-model": {
+    "url": "https://note.com/vast_ixora7005/n/n56149aa685f1",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「dsh-our-free-model」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n2bb1b5cb2e4a"
+    ]
   },
   "dsh-tavern": {
     "url": "https://note.com/vast_ixora7005/n/n361864a9c821",
@@ -59,10 +94,34 @@
     "price": 980,
     "title": "# 【受託80万〜250万】海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
   },
+  "lightcraft": {
+    "url": "https://note.com/vast_ixora7005/n/na3686332b4d2",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「lightcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n826485d99e85"
+    ]
+  },
+  "magpie": {
+    "url": "https://note.com/vast_ixora7005/n/n2c0795fccbad",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「magpie」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n762c1a15d27f"
+    ]
+  },
   "md3music": {
     "url": "https://note.com/vast_ixora7005/n/nebd5728f26cb",
     "price": 980,
     "title": "# 【最新OSS解体新書】md3Musicとは？機能解説とビジネス活用・マネタイズ実践法"
+  },
+  "pdfcraft": {
+    "url": "https://note.com/vast_ixora7005/n/nb350209914ed",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「pdfcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n66fcb85aab67"
+    ]
   },
   "photocraft": {
     "url": "https://note.com/vast_ixora7005/n/n057b9bf820ec",
@@ -103,5 +162,13 @@
     "url": "https://note.com/vast_ixora7005/n/nd3ec1a2d67f1",
     "price": 980,
     "title": "# 【受託80万〜250万】海外急上昇OSS「wordcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き"
+  },
+  "zcode": {
+    "url": "https://note.com/vast_ixora7005/n/n164f3e96508d",
+    "price": 980,
+    "title": "# 【受託80万〜250万】海外急上昇OSS「ZCode」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+    "duplicates": [
+      "https://note.com/vast_ixora7005/n/n7bc5098a9b78"
+    ]
   }
 }
