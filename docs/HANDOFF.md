@@ -35,6 +35,7 @@
 0. **【オーナー作業・最優先】note に公開済みの記事の差し替え**: 修正はリポジトリの原稿にだけ入っており、note.com 上の公開済み記事は古いまま（購入者が読む有料部分も含む）。
    - 有料部分の手順を「README 準拠／未検証」に直した記事で、**note に公開済みの 9 本**: `laya-mlx`（README に MCP/HTTP サーバーは無く macOS 専用なのに Docker 手順があった）、`jev-chat-jarvis`, `jev-ultrafast`, `lightcraft`, `pdfcraft`, `universal-modder`, `vectorcraft`, `wordcraft`, `zcode`（自作の Docker 構成）。
    - 公開済み 32 本の無料部分には「即受注」「80万〜250万円」などの表現が残っている。
+   - **重複出品**（2026-10-19 に CI が検出）: `zcode`, `magpie`, `diplay`, `dsh-our-free-model`, `pdfcraft`, `lightcraft`, `answer-me-with-html` が各 2 本、無料チートシートが 5 本。原因はランチャー（[A] が note 公開済みでも新規投稿を開く、[M] が公開を記録しない）で、修正済み。[U] が残す 1 本と非公開にする URL を表示する。
    - ノイズ記事 4 本（`crates-io-index`, `homebrew-core`, `internships-2027`, `mediawiki`）は解説対象外なのに ¥980 で公開されている → 非公開にする。
    - 手順: ランチャーの **[U]**。1 本ずつ、復号した修正版の全文をクリップボードへコピーし、note の記事一覧と原稿を開く。note で差し替えて Enter を押すと `publish_history.json` の `noteUpdatedAt` に記録され、一覧から消える。対象は `scripts/note_updates.json`（テスト `tests/note_updates.test.mjs` が公開済み記事との食い違いを検出）。
    - note.com には記事を編集する公開 API が無く、クラウド環境からはログインできないため、この作業だけは自動化できない。リードマグネット（`note_drafts/LEAD_MAGNET_CHEAT_SHEET.md`）は未投稿。
