@@ -17,6 +17,7 @@ test("OGP 画像・リードマグネットとその生成スクリプトに禁�
     "public/og-card.svg",
     "scripts/generate_og_cards.mjs",
     "scripts/generate_lead_magnet_note.mjs",
+    "scripts/generate_weekly_thread.mjs",
     "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md",
     ...fs.readdirSync("public/ogp").filter((f) => f.endsWith(".svg")).map((f) => path.join("public/ogp", f)),
   ];
