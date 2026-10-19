@@ -16,3 +16,7 @@ test("scratch と ${VAR} 入りの ARG イメージは対象外", () => {
   const df = "ARG BASE=node\nFROM ${BASE}\nFROM node:${V}\nFROM $BASE\nFROM scratch\nFROM --platform=linux/amd64 alpine:3.20\n";
   assert.deepEqual(extractReferences(df).images, ["alpine:3.20"]);
 });
+
+test("Python の `from x import y` をイメージとして抽出しない", () => {
+  assert.deepEqual(extractReferences("```python\nfrom fastapi import FastAPI\nfrom os import path\n```\n").images, []);
+});

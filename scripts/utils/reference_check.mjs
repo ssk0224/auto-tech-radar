@@ -62,9 +62,9 @@ export function extractReferences(text) {
   const pypi = new Set();
   for (const m of text.matchAll(/^\s*image:\s*(["']?[A-Za-z0-9][\w.\/:@-]*["']?)\s*$/gm)) images.add(m[1].replace(/["']/g, ""));
   // マルチステージの `FROM x AS name` で付けた名前は、後続の `FROM name` や `--from=name` にも現れるので除外する
-  const stages = new Set([...text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?\S+\s+AS\s+([\w.-]+)/gim)].map((m) => m[1].toLowerCase()));
-  // イメージ名として完全に妥当なものだけ採る（`${VAR}` 入りの ARG イメージ・scratch・ステージ名は対象外）
-  for (const m of text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)/gim)) {
+  const stages = new Set([...text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?\S+\s+[Aa][Ss]\s+([\w.-]+)/gm)].map((m) => m[1].toLowerCase()));
+  // FROM は大文字のみ（小文字だと Python の `from x import y` を拾う）。イメージ名として完全に妥当なものだけ採る（`${VAR}` 入りの ARG イメージ・scratch・ステージ名は対象外）
+  for (const m of text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)/gm)) {
     if (/^[A-Za-z0-9][\w.\/:@-]*$/.test(m[1]) && m[1].toLowerCase() !== "scratch" && !stages.has(m[1].toLowerCase())) images.add(m[1]);
   }
   for (const m of text.matchAll(/--from=([A-Za-z0-9][\w.\/:@-]*\/[\w.\/:@-]+)/g)) if (!stages.has(m[1].toLowerCase())) images.add(m[1]);
