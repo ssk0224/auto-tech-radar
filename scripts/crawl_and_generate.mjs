@@ -335,6 +335,8 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
       } catch (err) {
         lastError = err;
+        // 日次の無料枠・課金枠を使い切った 429 は、待っても次の候補でも通らない。再試行せずに実行全体を止める
+        if (isQuotaExhausted(err)) throw err;
         const isTransient = /503|429|500|resource_exhausted|unavailable|overloaded|timeout|fetch failed|econnreset|etimedout/i.test(err.message);
         console.warn(`Model ${model} attempt ${attempt} failed: ${err.message}`);
 
@@ -350,6 +352,11 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
   }
 
   throw lastError || new Error("All Gemini models failed");
+}
+
+// Gemini の利用枠切れ（429 RESOURCE_EXHAUSTED / "exceeded your current quota"）。一時的な混雑（503）とは区別する
+function isQuotaExhausted(err) {
+  return /exceeded your current quota|quota exceeded|RESOURCE_EXHAUSTED/i.test(err?.message || '');
 }
 
 // マークダウン構文・テーブル・異常空白サニタイズ
@@ -756,6 +763,10 @@ ${zennCta(slug)}
       ];
       for (const f of cleanupTargets) {
         try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
+      }
+      if (isQuotaExhausted(err)) {
+        console.log(`::warning title=Gemini quota exhausted::Gemini API の利用枠を使い切ったため、残りの候補の生成を中止しました（枠が戻る次回の実行で再開します）。`);
+        break;
       }
 
     }

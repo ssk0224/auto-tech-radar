@@ -38,7 +38,7 @@ ${footer ? "---\n**【note出品時用 推奨ハッシュタグ】**\n#AI #OSS" 
 hello
 `;
 
-function run(mockOut) {
+function run(mockOut, extraEnv = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gen-"));
   fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
   fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"), "junction"); // Windows ではディレクトリの symlink に権限が要るため junction を使う
@@ -49,7 +49,7 @@ function run(mockOut) {
     fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/^pubDate:.*$/m, 'pubDate: "2000-01-01"'));
   }
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], {
-    cwd: dir, encoding: "utf8", env: { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut },
+    cwd: dir, encoding: "utf8", env: { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...extraEnv },
   });
   return { dir, log: r.stdout + r.stderr, status: r.status };
 }
@@ -96,3 +96,20 @@ for (const [name, opts, why] of [
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 }
+
+test("Gemini の利用枠切れ（429 quota）では再試行も次の候補も試さず、警告を出して止める", () => {
+  const calls = path.join(os.tmpdir(), `atr-calls-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  const { dir, log } = run(output(), {
+    MOCK_ERROR: '{"error":{"code":429,"message":"You exceeded your current quota, please check your plan and billing details.","status":"RESOURCE_EXHAUSTED"}}',
+    MOCK_CALLS: calls,
+  });
+  try {
+    assert.equal(fs.readFileSync(calls, "utf8").length, 1, log);
+    assert.match(log, /Gemini quota exhausted/);
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
+});
