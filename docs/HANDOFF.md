@@ -43,6 +43,8 @@
   - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
+- **X の自動投稿は一度も動いていない**（2026-10-20 確認）: GitHub Actions のシークレット `X_API_KEY` / `X_API_SECRET` / `X_ACCESS_TOKEN` / `X_ACCESS_TOKEN_SECRET` が未設定で、毎回「X APIキーが未設定のため…スキップ」になる。自動投稿するならリポジトリの Settings → Secrets and variables → Actions に登録する（X 開発者アカウントの API キーが必要）。
+- **Gemini の利用枠**: 2026-10-20 は 503（混雑）のあと 429「exceeded your current quota」で生成 0 本。1 日の上限に当たっていると見られる（同日に定期実行 1 回と手動実行 2 回）。枠切れの 429 では再試行・次候補を試さずに止めるよう修正済み。安定して毎日生成するなら Google AI Studio で課金を有効にする。
 1. **修正後の生成スクリプトの本番初回**: 2026-10-19 の定時実行は、同日手動コミットされた 2 記事（`opendots`, `solidcraft`）が `pubDate: "2026-10-19"` だったため日次上限ガード（1日2本）により正常スキップ済み。次の定期実行は **2026-10-20 06:17 JST**。
 2. **X (Twitter) 自動投稿の有効化（オーナー作業・任意）**: GitHub リポジトリの Actions Secrets に `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` が未設定のため、現在 CI の自動ツイートはスキップされている（手動ランチャー [5] での投稿は可能）。自動化する場合は Secrets を登録する。
 3. **外部連携・ドメイン（オーナー作業・任意）**:
