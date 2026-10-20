@@ -35,7 +35,8 @@ test("note 原稿は有料ライン以降がすべて暗号化されている", 
 test("Zenn 記事の送客文は共通の文面（funnel_copy）と一致する", () => {
   for (const f of [...list("articles", /\.md$/), ...list("zenn_drafts", /\.md$/)]) {
     const c = read(f);
-    const slug = path.basename(f).replace(/(-tech-radar)?\.md$/, "").replace(/_zenn\.md$/, "");
+    // zenn_drafts は <slug>_zenn.md、articles は <slug>.md または <slug>-tech-radar.md
+    const slug = path.basename(f).replace(/_zenn\.md$|-tech-radar\.md$|\.md$/, "");
     assert.ok(c.includes(zennCta(slug)), `${f}: 送客文が古い`);
   }
 });
@@ -45,7 +46,6 @@ const FORBIDDEN = [
   [/アンロック/, "サイトに有料本文は無いのに「アンロック」をうたっている"],
   [/即受注|受注に直結|に直結します/, "受注・成果を保証する表現"],
   [/(分前|時間前).{0,40}(アンロック|購読|購入|参加)しました|(アンロック|購読|購入|参加)しました.{0,40}(分前|時間前)/, "架空の購入通知"],
-  [/Stripe/, "Stripe では有料本文を届けられない"],
   [/Math\.random\(\)[^\n]{0,40}名/, "乱数で作った閲覧者数"],
   [/全編読み放題|全記事読み放題|全レポート読み放題/, "メンバーシップで全記事が読めるかのような表現（特典に追加した記事のみ）"],
   [/完全公開されています|全編公開されています/, "サイトで有料キットを公開しているかのような表現"],
@@ -99,6 +99,7 @@ function templateSources() {
   return out;
 }
 const TEMPLATE_FORBIDDEN = [
+  [/Stripe/, "サイト独自の決済（Stripe）では有料本文を届けられない（OSS の解説記事本文は対象外）"],
   [/商用活用可能/, "全OSSに同じ「商用活用可能」を返す FAQ（ライセンスの根拠データが無い）"],
   [/"FAQPage"/, "根拠データの無い FAQ 構造化データ"],
   [/100%\s*経費/, "「100%経費精算可能」という断定（経費可否は所属先の規定による）"],
@@ -181,9 +182,10 @@ test("全Web記事のFrontmatter完全性 (stars, title, description, pubDate)",
   }
 });
 
-test("scripts/note_urls.json は全非ノイズ記事を含み、タイトルに # や禁止表現を含まない", () => {
-  const radarFiles = fs.readdirSync("src/pages/radar").filter(f => f.endsWith(".md"));
-  const nonNoise = radarFiles.map(f => f.replace(".md", "")).filter(s => !isNoise(s));
+test("scripts/note_urls.json は note 公開済みの全非ノイズ記事を含み、タイトルに # や禁止表現を含まない", () => {
+  // 新しく生成した記事は、オーナーが note に出品するまで note_urls.json に載らない（定期実行のたびに落ちないよう、公開済みだけを見る）
+  const history = JSON.parse(fs.readFileSync("scripts/publish_history.json", "utf8"));
+  const nonNoise = Object.keys(history).filter((s) => history[s]?.note && !isNoise(s) && fs.existsSync(`note_drafts/${s}_note.md`));
   const raw = fs.readFileSync("scripts/note_urls.json", "utf8");
 
   // 重複キー検査
@@ -251,3 +253,15 @@ test("全Astroテンプレート内のtarget=_blankリンクには必ずrel=noop
   }
 });
 
+
+test("Zenn・X の記事リンクはすべて実在する Web 記事を指す", () => {
+  const broken = [];
+  for (const dir of ["zenn_drafts", "articles", "x_posts"]) {
+    for (const f of fs.readdirSync(dir)) {
+      for (const m of read(path.join(dir, f)).matchAll(/auto-tech-radar\/radar\/([a-z0-9_.-]+)\//g)) {
+        if (!fs.existsSync(`src/pages/radar/${m[1]}.md`)) broken.push(`${dir}/${f}: ${m[1]}`);
+      }
+    }
+  }
+  assert.deepEqual(broken, []);
+});

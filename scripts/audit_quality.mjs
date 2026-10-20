@@ -221,7 +221,7 @@ if (!fs.existsSync(zennDir)) {
       errorCount++;
     }
     const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8').replace(/\r\n/g, '\n');
-    const zSlug = path.basename(f).replace(/(-tech-radar)?\.md$/, "").replace(/_zenn\.md$/, "");
+    const zSlug = path.basename(f).replace(/_zenn\.md$|-tech-radar\.md$|\.md$/, "");
     if (zSlug && zContent.includes(zennCta(zSlug))) {
       funnelCount++;
     }
@@ -680,10 +680,15 @@ if (fs.existsSync(noteUrlsFile)) {
 
   const noteUrlsData = JSON.parse(rawNoteUrls);
 
-  // A. 全非ノイズ記事が note_urls.json および note_drafts に100%存在することを保証
+  // A. 全非ノイズ記事に note 原稿があり、note 公開済みの記事は note_urls.json に載っていることを保証
   const nonNoiseArticles = articles.map(f => f.replace('.md', '')).filter(s => !isNoise(s));
+  // 新しく生成した記事は note に出品されるまで URL が無い。URL を求めるのは note 公開済み（publish_history の note: true）の記事だけ
+  let publishHistory = {};
+  try {
+    publishHistory = JSON.parse(fs.readFileSync(path.join(rootDir, 'scripts', 'publish_history.json'), 'utf8'));
+  } catch (e) {}
   nonNoiseArticles.forEach(slug => {
-    if (!noteUrlsData[slug]) {
+    if (publishHistory[slug]?.note && !noteUrlsData[slug]) {
       console.error(`  ❌ [MISSING NOTE URL] 非ノイズ記事 "${slug}" が scripts/note_urls.json に登録されていません`);
       noteUrlsErrors++;
       errorCount++;
