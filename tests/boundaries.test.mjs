@@ -9,6 +9,7 @@ import { zennCta } from "../scripts/utils/funnel_copy.mjs";
 import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/utils/note_vault.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
 import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
+import { fixMermaidInContent, mermaidProblems } from "../scripts/utils/mermaid.mjs";
 
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 const list = (dir, re) => fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(dir, f));
@@ -208,26 +209,19 @@ test("scripts/note_urls.json は note 公開済みの全非ノイズ記事を含
 });
 
 test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォート特殊文字ラベルを含まない", () => {
-  const dirs = ["src/pages/radar", "articles"];
-  for (const dir of dirs) {
-    for (const f of fs.readdirSync(dir).filter(x => x.endsWith(".md"))) {
-      const content = fs.readFileSync(path.join(dir, f), "utf8");
-      const blocks = content.match(/```mermaid[\s\S]*?```/g) || [];
-      for (const block of blocks) {
-        assert.doesNotMatch(block, /&(?:gt|lt|amp|quot);/, `${dir}/${f}: Mermaid内にHTML実体参照があります`);
-        assert.doesNotMatch(block, /<(?!\/?br\s*\/?)(?!b>)(?!i>)(?!--)[a-zA-Z0-9_-]+[^>]*>/, `${dir}/${f}: Mermaid内に未エスケープタグがあります`);
-        for (const line of block.split("\n")) {
-          const unquotedNodeMatch = line.match(/\b([A-Za-z0-9_-]+)\s*\[([^"\[\(\]\n\r][^\]\n\r]*)\]/);
-          if (unquotedNodeMatch) {
-            const [, id, rawInner] = unquotedNodeMatch;
-            if (rawInner.includes('<br>') || /[\(\)\:\;\&\,]/.test(rawInner)) {
-              assert.fail(`${dir}/${f}: 特殊文字を含む未クォートノードラベル ${id}[${rawInner}]`);
-            }
-          }
-        }
-      }
+  const problems = [];
+  for (const dir of ["src/pages/radar", "articles"]) {
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".md"))) {
+      for (const p of mermaidProblems(read(path.join(dir, f)))) problems.push(`${dir}/${f}: ${p}`);
     }
   }
+  assert.deepEqual(problems, []);
+});
+
+test("Mermaid の補正は検査で見つかる問題をすべて直す（生成時に補正→検査で採用可否を決めるため）", () => {
+  const md = "```mermaid\ngraph TD\n  A[ユーザー] --> C[画像, テキスト, 音声]\n  C --> D[API: v1 (beta)]\n  D --> E[a & b]\n  subgraph Data Layer\n  F[x<br>y]\n  end\n```";
+  assert.ok(mermaidProblems(md).length > 0);
+  assert.deepEqual(mermaidProblems(fixMermaidInContent(md)), []);
 });
 
 test("全Astroテンプレート内のtarget=_blankリンクには必ずrel=noopener noreferrerが付与されている", () => {

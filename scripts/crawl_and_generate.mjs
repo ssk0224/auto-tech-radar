@@ -11,6 +11,7 @@ import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims } from "./utils/claims_check.mjs";
+import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -366,47 +367,6 @@ function sanitizeMarkdownContent(raw) {
   }).join('\n');
 }
 
-// Mermaidダイアグラム構文の完全自動補正（括弧・コロンの引用符付与、HTML実体参照解除、タグサニタイズ）
-function fixMermaidInContent(content) {
-  return content.replace(/```mermaid([\s\S]*?)```/g, (match, code) => {
-    // 1. HTML実体参照のエスケープ解除
-    code = code.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
-    // 2. <formula> などのHTMLタグ風プレースホルダーを formula_name 等に置換（<br>や<br/>は保持）
-    code = code.replace(/<(?!\/?br\s*\/?)([a-zA-Z0-9_-]+)>/g, '$1_name');
-    const lines = code.split('\n');
-    const fixedLines = lines.map(line => {
-      let l = line;
-      // subgraph id [label] または subgraph "label"
-      l = l.replace(/^(\s*subgraph\s+)([a-zA-Z0-9_\-]+)\s*\[([^"\]]+)\]/g, (m, prefix, id, label) => {
-        return `${prefix}${id} ["${label.trim()}"]`;
-      });
-      // subgraph Label with spaces (IDなし) -> subgraph ID ["Label with spaces"]
-      l = l.replace(/^(\s*subgraph\s+)([^"\[\n\r]+)$/g, (m, prefix, label) => {
-        const trimmed = label.trim();
-        if (!trimmed || trimmed.startsWith('"')) return m;
-        const safeId = trimmed.replace(/[^a-zA-Z0-9_-]/g, '_');
-        return `${prefix}${safeId} ["${trimmed}"]`;
-      });
-      l = l.replace(/([a-zA-Z0-9_]+)\[\(([^"\)\n]+)\)\]/g, (m, id, label) => {
-        if (!label.startsWith('"')) return `${id}[("${label.trim()}")]`;
-        return m;
-      });
-      l = l.replace(/([a-zA-Z0-9_]+)\(\[([^"\]\n]+)\]\)/g, (m, id, label) => {
-        if (!label.startsWith('"')) return `${id}(["${label.trim()}"])`;
-        return m;
-      });
-      l = l.replace(/([a-zA-Z0-9_\-]+)\[([^"\]\n]*[\(\)\:\/\<\>][^"\]\n]*)\]/g, (m, id, label) => {
-        if (label.startsWith('(') && label.endsWith(')')) return m;
-        return `${id}["${label.trim()}"]`;
-      });
-      l = l.replace(/([a-zA-Z0-9_\-]+)\(([^"\)\n]*[\(\)\:\/\<\>][^"\)\n]*)\)/g, (m, id, label) => {
-        return `${id}("${label.trim()}")`;
-      });
-      return l;
-    });
-    return '```mermaid' + fixedLines.join('\n') + '```';
-  });
-}
 
 // Zennトピック規格（半角英数字・ハイフン・アンダースコアのみ）サニタイザー
 function sanitizeZennTopic(topic) {
@@ -463,6 +423,9 @@ ${webContent}`;
     // 汎用の架空構成図で埋めず、この生成結果は採用しない
     throw new Error("Web記事にMermaid構成図が含まれていません");
   }
+  // 補正しても Mermaid の構文上の問題が残る生成結果は採用しない（テスト・監査と同じ検査）
+  const mermaidIssues = mermaidProblems(webContent);
+  if (mermaidIssues.length > 0) throw new Error(`Mermaid図に問題があります: ${mermaidIssues.join(" / ")}`);
 
   // バッククォートの不整合があれば補正
   const backtickCount = (webContent.match(/```/g) || []).length;

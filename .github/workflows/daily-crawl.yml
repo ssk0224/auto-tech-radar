@@ -59,8 +59,19 @@ jobs:
         run: node scripts/sync_note_urls.mjs
 
       # 新規生成物も含めた品質テスト（禁止表現・暗号化境界・送客リンク整合性）
+      # 不合格なら、この回に生成した記事だけを取り除いて既存の記事で公開を続ける（1本の不備でサイト更新・X 投稿まで止めない）。
+      # 取り除いた場合は最後の「Fail if generated content was rejected」でこの実行を失敗にして気づけるようにする
       - name: Post-Crawl Quality Test Gate
-        run: npm test
+        id: gate
+        run: |
+          if npm test; then
+            exit 0
+          fi
+          echo "::error title=Generated content rejected::生成した記事がテストに通らなかったため、この回の生成物を取り除いて既存の記事で公開します"
+          echo "rejected=true" >> "$GITHUB_OUTPUT"
+          git checkout -- src/pages/radar note_drafts x_posts zenn_drafts articles public scripts/publish_history.json
+          git clean -fdq -- src/pages/radar note_drafts x_posts zenn_drafts articles public
+          npm test
 
       - name: Build Astro SSG
         run: npm run build
@@ -149,3 +160,9 @@ jobs:
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
         continue-on-error: true
         run: node scripts/ping_search_engines.mjs
+
+      - name: Fail if generated content was rejected
+        if: steps.gate.outputs.rejected == 'true'
+        run: |
+          echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
+          exit 1

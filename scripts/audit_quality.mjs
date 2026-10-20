@@ -7,6 +7,7 @@ import { zennCta } from './utils/funnel_copy.mjs';
 import { splitPaid, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
+import { mermaidProblems } from './utils/mermaid.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -506,55 +507,13 @@ const checkMermaidFiles = [
   ...(fs.existsSync(path.join(rootDir, 'articles')) ? fs.readdirSync(path.join(rootDir, 'articles')).filter(f => f.endsWith('.md')).map(f => path.join(rootDir, 'articles', f)) : [])
 ];
 let mermaidErrors = 0;
+// 検査の定義は生成・テストと共通（scripts/utils/mermaid.mjs）
 checkMermaidFiles.forEach(fp => {
   const fileRel = path.relative(rootDir, fp);
-  const content = fs.readFileSync(fp, 'utf8');
-  const mermaidBlocks = content.match(/```mermaid[\s\S]*?```/g) || [];
-  for (const block of mermaidBlocks) {
-    // 1. HTMLエスケープ漏れ (&gt;, &lt;, &amp;, &quot;) チェック
-    const entityMatch = block.match(/&(?:gt|lt|amp|quot|#\d+|#x[0-9a-fA-F]+);/g);
-    if (entityMatch) {
-      console.error(`  ❌ [MERMAID HTML ENTITY] ${fileRel}: HTML実体参照 (${[...new Set(entityMatch)].join(', ')}) が含まれています`);
-      mermaidErrors++;
-      errorCount++;
-    }
-    // 2. 未エスケープの HTML タグ (<br>, <br/> 以外) チェック
-    const badTags = block.match(/<(?!\/?br\s*\/?)(?!b>)(?!i>)(?!--)[a-zA-Z0-9_-]+[^>]*>/g);
-    if (badTags) {
-      console.error(`  ❌ [MERMAID UNESCAPED TAG] ${fileRel}: 不正なHTMLタグ (${[...new Set(badTags)].join(', ')}) が検出されました`);
-      mermaidErrors++;
-      errorCount++;
-    }
-    // 3. subgraph の構文チェック（括弧やスラッシュ、スペースがクォートなしで使われていないか）
-    const lines = block.split('\n');
-    for (let li = 0; li < lines.length; li++) {
-      const line = lines[li];
-      const subMatch = line.match(/^\s*subgraph\s+([^\[\n]+)$/);
-      if (subMatch) {
-        const rawLabel = subMatch[1].trim();
-        // 引用符で囲まれていないのに空白や記号を含む場合は警告/エラー
-        if (!rawLabel.startsWith('"') && !rawLabel.endsWith('"')) {
-          if (/[\(\)\/\&\+\s]/.test(rawLabel)) {
-            console.error(`  ❌ [MERMAID UNQUOTED SUBGRAPH] ${fileRel}: "subgraph ${rawLabel}" に特殊文字またはスペースが含まれています。subgraph ID ["Label"] 形式にしてください`);
-            mermaidErrors++;
-            errorCount++;
-          }
-        }
-      }
-      // 4. 特殊文字を含む未クォートノードラベルの検出
-      // ※ [("...")] (シリンダー) や (["..."]) (スタジアム) や [["..."]] は正常な Mermaid 記法
-      // 未クォートノード: ID[label] where label does not start with " and does not start with ( or [
-      const unquotedNodeMatch = line.match(/\b([A-Za-z0-9_-]+)\s*\[([^"\[\(\]\n\r][^\]\n\r]*)\]/);
-      if (unquotedNodeMatch) {
-        const [, id, rawInner] = unquotedNodeMatch;
-        // 未クォートで <br> や 括弧、コロン、セミコロン、アンパサンド、カンマを含む場合はエラー
-        if (rawInner.includes('<br>') || /[\(\)\:\;\&\,]/.test(rawInner)) {
-          console.error(`  ❌ [MERMAID UNQUOTED NODE] ${fileRel} Line ${li + 1}: ${id}[${rawInner}] は特殊記号を含むため ${id}["${rawInner}"] にしてください`);
-          mermaidErrors++;
-          errorCount++;
-        }
-      }
-    }
+  for (const problem of mermaidProblems(fs.readFileSync(fp, 'utf8'))) {
+    console.error(`  ❌ [MERMAID] ${fileRel}: ${problem}`);
+    mermaidErrors++;
+    errorCount++;
   }
 });
 if (mermaidErrors === 0) {
