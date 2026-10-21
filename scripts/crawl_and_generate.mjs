@@ -12,6 +12,7 @@ import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims } from "./utils/claims_check.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
+import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -299,7 +300,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 [TWEET 2]
 【従来のツールとの違い】
-（革新的な点・高速化やコスト削減を全角80文字以内で端的に要約。URLなし）
+（革新的な点を全角80文字以内で端的に要約。URLなし。速度・コスト等の数値は README に書かれているものだけを使い、「1/10」「◯倍」など根拠のない比較は書かない）
 
 [TWEET 3]
 【💡 実務キットは note で】
@@ -328,7 +329,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
         const text = response.text || "";
         if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===") && text.includes("=== X THREAD ===")) {
-          return parseGeneratedOutput(text, repo, today);
+          return await parseGeneratedOutput(text, repo, today);
         } else {
           console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB, NOTE, and X THREAD).`);
         }
@@ -395,7 +396,7 @@ function sanitizeZennTopic(topic) {
 }
 
 // 出力テキストを各ファイル用にパース
-function parseGeneratedOutput(rawText, repo, today) {
+async function parseGeneratedOutput(rawText, repo, today) {
   let webContent = "";
   let noteContent = "";
   let xContent = "";
@@ -448,6 +449,9 @@ ${webContent}`;
   // 補正しても Mermaid の構文上の問題が残る生成結果は採用しない（テスト・監査と同じ検査）
   const mermaidIssues = mermaidProblems(webContent);
   if (mermaidIssues.length > 0) throw new Error(`Mermaid図に問題があります: ${mermaidIssues.join(" / ")}`);
+  // サイトと同じ版の Mermaid で実際に解析し、描画できない図を含む記事は採用しない
+  const parseErrors = await mermaidParseErrors(webContent);
+  if (parseErrors.length > 0) throw new Error(`Mermaid図を描画できません: ${parseErrors.join(" / ")}`);
 
   // バッククォートの不整合があれば補正
   const backtickCount = (webContent.match(/```/g) || []).length;

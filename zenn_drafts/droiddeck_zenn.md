@@ -26,19 +26,19 @@ DroidDeckのアーキテクチャは、Androidアプリケーション、Linux�
 
 ```mermaid
 graph TD
-    subgraph Android Device (Adreno 730+ / Android 9+)
-        A[DroidDeck Android App (Kotlin)] --> B(Linux Runtime - proot);
-        B --> C[Steam Client (Big Picture Mode)];
-        B --> D[Proton (ARM64)];
+    subgraph Android_Device__Adreno_730____Android_9__ ["Android Device (Adreno 730+ / Android 9+)"]
+        A["DroidDeck Android App (Kotlin)"] --> B(Linux Runtime - proot);
+        B --> C["Steam Client (Big Picture Mode)"];
+        B --> D["Proton (ARM64)"];
         D --> E[Windows Games];
-        B --> F[Desktop & Apps (Emulators, Browsers)];
-        B --> G[Stores Integration (Flathub, GOG, Epic, Amazon)];
+        B --> F["Desktop & Apps (Emulators, Browsers)"];
+        B --> G["Stores Integration (Flathub, GOG, Epic, Amazon)"];
         G --> H[Non-Steam Games Integration];
     end
 
     C -- User Interaction --> A;
     E -- Game Output --> A;
-    A -- GPU Acceleration --> I[Adreno GPU (730+)];
+    A -- GPU Acceleration --> I["Adreno GPU (730+)"];
     J[Android 14+ Developer Options] -- "Disable child process restrictions" --> A;
 
     style A fill:#f9f,stroke:#333,stroke-width:2px

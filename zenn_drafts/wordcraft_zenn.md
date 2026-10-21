@@ -27,20 +27,20 @@ WordCraftは、下図のように厳格なレイヤード・アーキテクチ�
 
 ```mermaid
 graph TD
-    subgraph UI_And_Agent_Layer [UI / Interface & AI Agents]
-        MCP[MCP Server / Agents]
+    subgraph UI_And_Agent_Layer ["UI / Interface & AI Agents"]
+        MCP["MCP Server / Agents"]
         CLI[wordcraft-cli]
-        EGUI[egui Desktop / WebAssembly]
+        EGUI["egui Desktop / WebAssembly"]
     end
 
-    subgraph Core_Engine [wordcraft-engine (L4)]
-        CMD[422 Commands / Session / Undo-Redo]
+    subgraph Core_Engine ["wordcraft-engine (L4)"]
+        CMD["422 Commands / Session / Undo-Redo"]
     end
 
-    subgraph Document_Pipeline [Pipeline (L1 - L3)]
-        DOC[Document Model & Fonts (L1)]
-        LAYOUT[Layout & OOXML Parser (L2)]
-        RENDER[Rasteriser & PDF Export (L3)]
+    subgraph Document_Pipeline ["Pipeline (L1 - L3)"]
+        DOC["Document Model & Fonts (L1)"]
+        LAYOUT["Layout & OOXML Parser (L2)"]
+        RENDER["Rasteriser & PDF Export (L3)"]
     end
 
     MCP -->|JSON Protocol| CMD

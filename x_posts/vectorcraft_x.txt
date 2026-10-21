@@ -4,15 +4,14 @@
 
 --------------------------------------------------
 【ツイート 1】
-【案件単価80万〜250万の秘密】
-世界で★8898急増中の「vectorcraft」が凄い。
+GitHub ★8898 の「vectorcraft」が凄い。
 純Rust製の超高速ベクターツール。
-高額SaaSを自社代替できる新星OSS。
-提案骨子と商用手順を完全解剖👇
+注目の新星OSS。
+仕組みを日本語で解説👇
 https://ssk0224.github.io/auto-tech-radar/radar/vectorcraft/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=%E3%80%90%E6%A1%88%E4%BB%B6%E5%8D%98%E4%BE%A180%E4%B8%87%E3%80%9C250%E4%B8%87%E3%81%AE%E7%A7%98%E5%AF%86%E3%80%91%0A%E4%B8%96%E7%95%8C%E3%81%A7%E2%98%858898%E6%80%A5%E5%A2%97%E4%B8%AD%E3%81%AE%E3%80%8Cvectorcraft%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0A%E7%B4%94Rust%E8%A3%BD%E3%81%AE%E8%B6%85%E9%AB%98%E9%80%9F%E3%83%99%E3%82%AF%E3%82%BF%E3%83%BC%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82%0A%E9%AB%98%E9%A1%8DSaaS%E3%82%92%E8%87%AA%E7%A4%BE%E4%BB%A3%E6%9B%BF%E3%81%A7%E3%81%8D%E3%82%8B%E6%96%B0%E6%98%9FOSS%E3%80%82%0A%E6%8F%90%E6%A1%88%E9%AA%A8%E5%AD%90%E3%81%A8%E5%95%86%E7%94%A8%E6%89%8B%E9%A0%86%E3%82%92%E5%AE%8C%E5%85%A8%E8%A7%A3%E5%89%96%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fvectorcraft%2F
+https://twitter.com/intent/tweet?text=GitHub%20%E2%98%858898%20%E3%81%AE%E3%80%8Cvectorcraft%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0A%E7%B4%94Rust%E8%A3%BD%E3%81%AE%E8%B6%85%E9%AB%98%E9%80%9F%E3%83%99%E3%82%AF%E3%82%BF%E3%83%BC%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82%0A%E6%B3%A8%E7%9B%AE%E3%81%AE%E6%96%B0%E6%98%9FOSS%E3%80%82%0A%E4%BB%95%E7%B5%84%E3%81%BF%E3%82%92%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%81%A7%E8%A7%A3%E8%AA%AC%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fvectorcraft%2F
 --------------------------------------------------
 
 --------------------------------------------------

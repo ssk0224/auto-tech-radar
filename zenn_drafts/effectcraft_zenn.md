@@ -36,28 +36,28 @@ EffectCraftは「Engine first」のアプローチを採用しており、厳格
 
 ```mermaid
 graph TD
-    subgraph User Interaction & Automation
-        A[User Interface (egui)] --> B[Command Registry]
-        M[Agent Control (MCP Server, CLI, Control Channel)] --> B
+    subgraph User_Interaction___Automation ["User Interaction & Automation"]
+        A["User Interface (egui)"] --> B[Command Registry]
+        M["Agent Control (MCP Server, CLI, Control Channel)"] --> B
     end
 
-    subgraph Core Engine & Logic
-        B --> C[Project & Property Tree]
-        B --> D[Keyframe & Animation Engine]
+    subgraph Core_Engine___Logic ["Core Engine & Logic"]
+        B --> C["Project & Property Tree"]
+        B --> D["Keyframe & Animation Engine"]
         B --> E[Effect Processing Engine]
         B --> F[3D Engine]
-        B --> G[Render Queue & Export Module]
+        B --> G["Render Queue & Export Module"]
     end
 
-    subgraph Data & Media Handling
-        C --> H[File I/O (.ecproj JSON)]
+    subgraph Data___Media_Handling ["Data & Media Handling"]
+        C --> H["File I/O (.ecproj JSON)"]
         D --> I[Time Model]
         E --> J[306 Effects Library]
-        F --> K[Camera & Light Management]
-        G --> L[Pure Rust Codecs (H.264, ProRes, AV1, Lottie)]
+        F --> K["Camera & Light Management"]
+        G --> L["Pure Rust Codecs (H.264, ProRes, AV1, Lottie)"]
     end
 
-    subgraph Foundational Aspects
+    subgraph Foundational_Aspects ["Foundational Aspects"]
         H --> N[Version Control Integration]
         I --> O[Frame-accurate Timing]
         J --> P[Layer Styles]

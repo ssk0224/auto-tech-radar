@@ -24,22 +24,22 @@ GitHubでスター数7,800を突破した**jev-chat-jarvis**（jev-chat）は、
 
 ```mermaid
 graph TD
-    subgraph ClientDevice [ユーザー端末 (Android / Desktop / iOS)]
-        ChatApp[対象チャットUI: WhatsApp / Slack / Feishu / LINE等]
-        Accessibility[アクセシビリティ / 画面OCR / キーボード]
+    subgraph ClientDevice ["ユーザー端末 (Android / Desktop / iOS)"]
+        ChatApp["対象チャットUI: WhatsApp / Slack / Feishu / LINE等"]
+        Accessibility["アクセシビリティ / 画面OCR / キーボード"]
         JevEngine[Jev判定・スコアリングエンジン]
         OverlayUI[オーバーレイ推薦UI]
     end
 
-    subgraph LLMProvider [LLM API / 自社プライベートモデル]
-        JudgeModel[判定モデル: 意図解析・リスク検知]
-        DraftModel[生成モデル: 複数トーン返信起草]
+    subgraph LLMProvider ["LLM API / 自社プライベートモデル"]
+        JudgeModel["判定モデル: 意図解析・リスク検知"]
+        DraftModel["生成モデル: 複数トーン返信起草"]
     end
 
     ChatApp -->|リアルタイム描画取得| Accessibility
     Accessibility -->|未返信メッセージ抽出| JevEngine
     JevEngine -->|1. 意図・リスク・コンテキスト送信| JudgeModel
-    JudgeModel -->|意図タグ & リスクスコア| JevEngine
+    JudgeModel -->|"意図タグ & リスクスコア"| JevEngine
     JevEngine -->|2. リスク回避プロンプト付与| DraftModel
     DraftModel -->|複数パターンの返信案| JevEngine
     JevEngine -->|整合性検証・ランキング| OverlayUI

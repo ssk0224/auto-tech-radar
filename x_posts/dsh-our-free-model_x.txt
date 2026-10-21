@@ -4,14 +4,13 @@
 
 --------------------------------------------------
 【ツイート 1】
-【案件単価80万〜250万の秘密】
-世界で★12121急増中の「dsh-our-free-model」が凄い。
+GitHub ★12121 の「dsh-our-free-model」が凄い。
 在 dsh 里装上这个插件即可，无需登录、注册或填 API Key，就能使用包括... 高額SaaSを自社代...
-提案骨子と商用手順を完全解剖👇（保存推奨 📌）
+仕組みを日本語で解説👇（保存推奨 📌）
 https://ssk0224.github.io/auto-tech-radar/radar/dsh-our-free-model/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=%E3%80%90%E6%A1%88%E4%BB%B6%E5%8D%98%E4%BE%A180%E4%B8%87%E3%80%9C250%E4%B8%87%E3%81%AE%E7%A7%98%E5%AF%86%E3%80%91%0D%0A%E4%B8%96%E7%95%8C%E3%81%A7%E2%98%8512121%E6%80%A5%E5%A2%97%E4%B8%AD%E3%81%AE%E3%80%8Cdsh-our-free-model%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0D%0A%E5%9C%A8%20dsh%20%E9%87%8C%E8%A3%85%E4%B8%8A%E8%BF%99%E4%B8%AA%E6%8F%92%E4%BB%B6%E5%8D%B3%E5%8F%AF%EF%BC%8C%E6%97%A0%E9%9C%80%E7%99%BB%E5%BD%95%E3%80%81%E6%B3%A8%E5%86%8C%E6%88%96%E5%A1%AB%20API%20Key%EF%BC%8C%E5%B0%B1%E8%83%BD%E4%BD%BF%E7%94%A8%E5%8C%85%E6%8B%AC...%0D%20%E9%AB%98%E9%A1%8DSaaS%E3%82%92%E8%87%AA%E7%A4%BE%E4%BB%A3...%0A%E6%8F%90%E6%A1%88%E9%AA%A8%E5%AD%90%E3%81%A8%E5%95%86%E7%94%A8%E6%89%8B%E9%A0%86%E3%82%92%E5%AE%8C%E5%85%A8%E8%A7%A3%E5%89%96%F0%9F%91%87%EF%BC%88%E4%BF%9D%E5%AD%98%E6%8E%A8%E5%A5%A8%20%F0%9F%93%8C%EF%BC%89%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fdsh-our-free-model%2F
+https://twitter.com/intent/tweet?text=GitHub%20%E2%98%8512121%20%E3%81%AE%E3%80%8Cdsh-our-free-model%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0A%E5%9C%A8%20dsh%20%E9%87%8C%E8%A3%85%E4%B8%8A%E8%BF%99%E4%B8%AA%E6%8F%92%E4%BB%B6%E5%8D%B3%E5%8F%AF%EF%BC%8C%E6%97%A0%E9%9C%80%E7%99%BB%E5%BD%95%E3%80%81%E6%B3%A8%E5%86%8C%E6%88%96%E5%A1%AB%20API%20Key%EF%BC%8C%E5%B0%B1%E8%83%BD%E4%BD%BF%E7%94%A8%E5%8C%85%E6%8B%AC...%0D%20%E9%AB%98%E9%A1%8DSaaS%E3%82%92%E8%87%AA%E7%A4%BE%E4%BB%A3...%0A%E4%BB%95%E7%B5%84%E3%81%BF%E3%82%92%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%81%A7%E8%A7%A3%E8%AA%AC%F0%9F%91%87%EF%BC%88%E4%BF%9D%E5%AD%98%E6%8E%A8%E5%A5%A8%20%F0%9F%93%8C%EF%BC%89%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fdsh-our-free-model%2F
 --------------------------------------------------
 
 --------------------------------------------------

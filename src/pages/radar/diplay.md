@@ -47,8 +47,8 @@ graph TD
         VehicleCAN["BYD DiLink CAN-Bus Bridge / HUD"]
     end
 
-    CP_Client <-->|1. Discovery & Pair (BT / Wi-Fi)| BT_WIFI
-    BT_WIFI <-->|2. High-speed Stream (Wi-Fi 5GHz / USB)| DiPlayApp
+    CP_Client <-->|"1. Discovery & Pair (BT / Wi-Fi)"| BT_WIFI
+    BT_WIFI <-->|"2. High-speed Stream (Wi-Fi 5GHz / USB)"| DiPlayApp
     DiPlayApp --> Auth
     DiPlayApp --> StreamReceiver
     StreamReceiver -->|Decoded Frame| MediaCodec

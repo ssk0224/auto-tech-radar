@@ -52,10 +52,10 @@ graph TD
 
     subgraph Engine["CADCore (Pure Rust)"]
         EngineCore["cadcraft_engine\n(セッション・スナップ・選択・Undo)"]
-        DocDB["cadcraft_doc\n("CoW Entity Store / cheap undo")"]
+        DocDB["cadcraft_doc\n('CoW Entity Store / cheap undo')"]
         Geom["cadcraft_geom\n(f64幾何計算・スプライン・交点・オフセット)"]
-        Render["cadcraft_render\n("CPU/GPU Display List・ハッチ・寸法")"]
-        IO["cadcraft_io\n("DXF R12-2018 / DWG / SVG / PNG / PDF")"]
+        Render["cadcraft_render\n('CPU/GPU Display List・ハッチ・寸法')"]
+        IO["cadcraft_io\n('DXF R12-2018 / DWG / SVG / PNG / PDF')"]
     end
 
     GUI --> CommandParser

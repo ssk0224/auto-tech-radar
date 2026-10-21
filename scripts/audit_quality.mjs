@@ -8,6 +8,7 @@ import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publ
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { mermaidProblems } from './utils/mermaid.mjs';
+import { mermaidParseErrors } from './utils/mermaid_parse.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -515,6 +516,14 @@ checkMermaidFiles.forEach(fp => {
     errorCount++;
   }
 });
+// サイトと同じ版の Mermaid で実際に解析する（正規表現の検査では描画失敗を見逃したため）
+for (const fp of [...checkMermaidFiles, ...(fs.existsSync(path.join(rootDir, 'zenn_drafts')) ? fs.readdirSync(path.join(rootDir, 'zenn_drafts')).filter(f => f.endsWith('.md')).map(f => path.join(rootDir, 'zenn_drafts', f)) : [])]) {
+  for (const e of await mermaidParseErrors(fs.readFileSync(fp, 'utf8'))) {
+    console.error(`  ❌ [MERMAID PARSE] ${path.relative(rootDir, fp)}: ${e}`);
+    mermaidErrors++;
+    errorCount++;
+  }
+}
 if (mermaidErrors === 0) {
   console.log(`  ✓ Mermaid 構文監査合格: 全 ${checkMermaidFiles.length} ファイルのダイアグラムが規格準拠。\n`);
 }

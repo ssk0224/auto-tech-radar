@@ -25,24 +25,24 @@ Compositorが解決する中核的な技術課題は以下の3点です：
 
 ```mermaid
 graph TD
-    subgraph Storage [プロジェクト実体: .comp ディレクトリ]
-        M[manifest.json: 階層構造/座標/ブレンドモード/エフェクト]
-        L1[layer_001.png: 背景ラスタデータ]
-        L2[layer_002.png: 被写体/テキストマスク]
+    subgraph Storage ["プロジェクト実体: .comp ディレクトリ"]
+        M["manifest.json: 階層構造/座標/ブレンドモード/エフェクト"]
+        L1["layer_001.png: 背景ラスタデータ"]
+        L2["layer_002.png: 被写体/テキストマスク"]
     end
 
-    subgraph ExternalAgents [外部スクリプト / AIエージェント]
-        Python[Python / Node.js 自動生成スクリプト]
-        LLM[ローカルLLM / Vision Agent]
-        Python -->|書き込み & 更新| Storage
+    subgraph ExternalAgents ["外部スクリプト / AIエージェント"]
+        Python["Python / Node.js 自動生成スクリプト"]
+        LLM["ローカルLLM / Vision Agent"]
+        Python -->|"書き込み & 更新"| Storage
         LLM -->|パラメータ調整| M
     end
 
-    subgraph CompositorEngine [Compositor Core Engine (Swift / Metal)]
+    subgraph CompositorEngine ["Compositor Core Engine (Swift / Metal)"]
         FSWatcher[FSEvents ファイル監視モジュール]
-        Parser[JSON & Image Decoder]
+        Parser["JSON & Image Decoder"]
         RenderPipeline[Metal GPU レンダリングパイプライン]
-        Viewport[Native macOS Viewport (MetalView)]
+        Viewport["Native macOS Viewport (MetalView)"]
         
         Storage -->|変更検知| FSWatcher
         FSWatcher --> Parser

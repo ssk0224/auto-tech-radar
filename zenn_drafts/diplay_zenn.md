@@ -28,25 +28,25 @@ DiPlayは、Kotlinおよび低レイヤーNativeコードを用いてAndroid端�
 
 ```mermaid
 graph TD
-    subgraph iPhone [iPhone Client (iOS)]
+    subgraph iPhone ["iPhone Client (iOS)"]
         CP_Client[Apple CarPlay Engine]
-        BT_WIFI[Bluetooth / Wi-Fi Direct / AP]
+        BT_WIFI["Bluetooth / Wi-Fi Direct / AP"]
     end
 
-    subgraph AndroidHU [BYD DiLink / Android Head Unit]
-        DiPlayApp[DiPlay Core Engine (APK)]
-        subgraph DiPlayEngine [DiPlay Internal Stack]
+    subgraph AndroidHU ["BYD DiLink / Android Head Unit"]
+        DiPlayApp["DiPlay Core Engine (APK)"]
+        subgraph DiPlayEngine ["DiPlay Internal Stack"]
             Auth[Local MFi Auth Emulator]
-            StreamReceiver[H.264/AAC Video & Audio Pipe]
-            AudioBuffer[Jitter Buffer & Opus Encoder]
-            InputHandler[Touch / Steering / HID Bridge]
+            StreamReceiver["H.264/AAC Video & Audio Pipe"]
+            AudioBuffer["Jitter Buffer & Opus Encoder"]
+            InputHandler["Touch / Steering / HID Bridge"]
         end
-        MediaCodec[Android MediaCodec / SurfaceView]
-        VehicleCAN[BYD DiLink CAN-Bus Bridge / HUD]
+        MediaCodec["Android MediaCodec / SurfaceView"]
+        VehicleCAN["BYD DiLink CAN-Bus Bridge / HUD"]
     end
 
-    CP_Client <-->|1. Discovery & Pair (BT / Wi-Fi)| BT_WIFI
-    BT_WIFI <-->|2. High-speed Stream (Wi-Fi 5GHz / USB)| DiPlayApp
+    CP_Client <-->|"1. Discovery & Pair (BT / Wi-Fi)"| BT_WIFI
+    BT_WIFI <-->|"2. High-speed Stream (Wi-Fi 5GHz / USB)"| DiPlayApp
     DiPlayApp --> Auth
     DiPlayApp --> StreamReceiver
     StreamReceiver -->|Decoded Frame| MediaCodec

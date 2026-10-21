@@ -38,24 +38,24 @@ published: true
 
 ```mermaid
 graph TD
-    A[ユーザー入力: テキスト/JSON/会話] --> B(Laya-MLX Agent)
+    A["ユーザー入力: テキスト/JSON/会話"] --> B(Laya-MLX Agent)
     B -- "Typed Question (Choice, Score, Noul)" --> C[Hugging Face Rust Tokenizer]
     C -- "Tokenized Input" --> D[MLX Bidirectional Encoder]
     D -- "Encoded Representation" --> E[MLX Decision Heads]
-    E -- "Probabilities" --> F[Calibration & Result Formatting]
+    E -- "Probabilities" --> F["Calibration & Result Formatting"]
     F -- "Structured Decision (JSON)" --> G[アプリケーション]
 
-    subgraph Apple Silicon Device (M1/M2/M3)
+    subgraph Apple_Silicon_Device__M1_M2_M3_ ["Apple Silicon Device (M1/M2/M3)"]
         direction LR
-        C --&gt; D
-        D --&gt; E
-        E --&gt; F
+        C --> D
+        D --> E
+        E --> F
     end
 
-    subgraph Laya-MLX Runtime
+    subgraph Laya-MLX_Runtime ["Laya-MLX Runtime"]
         direction LR
-        B --&gt; C
-        F --&gt; G
+        B --> C
+        F --> G
     end
 
     style A fill:#f9f,stroke:#333,stroke-width:2px

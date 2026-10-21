@@ -13,7 +13,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/effectcraft/
 【従来の映像編集ツールとの圧倒的な違い】
 ・Lottieネイティブ対応でWeb/アプリ即時書き出し
 ・全操作がJSONコマンド連携可能で完全自動化
-・脱Adobe・自社クラウドレンダリングSaaS構築のベースに最適（受託単価120万〜250万）
+・脱Adobe・自社クラウドレンダリングSaaS構築のベースに最適
 
 [TWEET 3]
 【💡 実務キットは note で】

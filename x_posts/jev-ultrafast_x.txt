@@ -7,11 +7,11 @@
 【海外OSS解説】
 GitHubで★22,480のWebエージェント「jev-ultrafast」が凄い。
 画面キャプチャを排除し驚異の7.1秒で自動操作完了。
-高額SaaS代替の商用手順を完全解剖👇
+仕組みを日本語で解説👇
 https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/
 
 👉 ワンクリックで投稿画面を開く:
-https://twitter.com/intent/tweet?text=%E3%80%90%E6%B5%B7%E5%A4%96OSS%E8%A7%A3%E8%AA%AC%E3%80%91%0AGitHub%E3%81%A7%E2%98%8522%2C480%E3%81%AEWeb%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88%E3%80%8Cjev-ultrafast%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0A%E7%94%BB%E9%9D%A2%E3%82%AD%E3%83%A3%E3%83%97%E3%83%81%E3%83%A3%E3%82%92%E6%8E%92%E9%99%A4%E3%81%97%E9%A9%9A%E7%95%B0%E3%81%AE7.1%E7%A7%92%E3%81%A7%E8%87%AA%E5%8B%95%E6%93%8D%E4%BD%9C%E5%AE%8C%E4%BA%86%E3%80%82%0A%E9%AB%98%E9%A1%8DSaaS%E4%BB%A3%E6%9B%BF%E3%81%AE%E5%95%86%E7%94%A8%E6%89%8B%E9%A0%86%E3%82%92%E5%AE%8C%E5%85%A8%E8%A7%A3%E5%89%96%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fjev-ultrafast%2F
+https://twitter.com/intent/tweet?text=%E3%80%90%E6%B5%B7%E5%A4%96OSS%E8%A7%A3%E8%AA%AC%E3%80%91%0AGitHub%E3%81%A7%E2%98%8522%2C480%E3%81%AEWeb%E3%82%A8%E3%83%BC%E3%82%B8%E3%82%A7%E3%83%B3%E3%83%88%E3%80%8Cjev-ultrafast%E3%80%8D%E3%81%8C%E5%87%84%E3%81%84%E3%80%82%0A%E7%94%BB%E9%9D%A2%E3%82%AD%E3%83%A3%E3%83%97%E3%83%81%E3%83%A3%E3%82%92%E6%8E%92%E9%99%A4%E3%81%97%E9%A9%9A%E7%95%B0%E3%81%AE7.1%E7%A7%92%E3%81%A7%E8%87%AA%E5%8B%95%E6%93%8D%E4%BD%9C%E5%AE%8C%E4%BA%86%E3%80%82%0A%E4%BB%95%E7%B5%84%E3%81%BF%E3%82%92%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%81%A7%E8%A7%A3%E8%AA%AC%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fjev-ultrafast%2F
 --------------------------------------------------
 
 --------------------------------------------------

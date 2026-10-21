@@ -43,36 +43,36 @@ published: true
 
 ```mermaid
 graph TD
-    A[ユーザー] --> B[DeepSeek Harness (dsh) UI/CLI]
+    A[ユーザー] --> B["DeepSeek Harness (dsh) UI/CLI"]
     B --> C[dsh-our-free-model プラグイン]
 
-    subgraph プラグイン内部アーキテクチャ
-        C -- リクエスト --> D[LlmAdapter (コア)]
+    subgraph ______________ ["プラグイン内部アーキテクチャ"]
+        C -- リクエスト --> D["LlmAdapter (コア)"]
         D -- モデル選択/ルーティング --> E{モデルチャネル選択}
-        E --> F[無料チャネル (OpenCode Zen Gateway)]
-        E --> G[Kiloチャネル (Kilo AI Public Gateway)]
-        E --> H[EACチャネル (DSHEAC AIO)]
-        E --> I[聚合渠道 (76プロバイダー統合)]
-        I -- APIキー管理/モデル検出 --> I1[ローカル設定ファイル (settings.json)]
-        E --> J[ルーティング (降級チェーン)]
+        E --> F["無料チャネル (OpenCode Zen Gateway)"]
+        E --> G["Kiloチャネル (Kilo AI Public Gateway)"]
+        E --> H["EACチャネル (DSHEAC AIO)"]
+        E --> I["聚合渠道 (76プロバイダー統合)"]
+        I -- APIキー管理/モデル検出 --> I1["ローカル設定ファイル (settings.json)"]
+        E --> J["ルーティング (降級チェーン)"]
         J -- フォールバック/ラウンドロビン --> E
 
         D -- トークン削減 --> K[Token Saver]
-        K --> K1[ツール出力圧縮 (RTK)]
+        K --> K1["ツール出力圧縮 (RTK)"]
         K --> K2[プロンプト軽量化]
         K --> K3[ローカル応答]
 
         C -- 外部ツール連携 --> L[ローカルゲートウェイ]
-        L -- OpenAI/Anthropic互換API --> T[外部ツール/アプリケーション]
+        L -- OpenAI/Anthropic互換API --> T["外部ツール/アプリケーション"]
 
-        C -- 監視/管理 --> M[用量看板 (データローカル保存)]
-        C -- 更新 --> N[アプリ内アップグレード/ホットリロード]
+        C -- 監視/管理 --> M["用量看板 (データローカル保存)"]
+        C -- 更新 --> N["アプリ内アップグレード/ホットリロード"]
     end
 
     F --> P[DeepSeek V4.1 Flash]
     G --> Q[Kimi K3]
     H --> R[EACモデル]
-    I --> S[NVIDIA NIM, OpenRouter, Groq, Gemini, etc.]
+    I --> S["NVIDIA NIM, OpenRouter, Groq, Gemini, etc."]
 
     P --> U[AIモデルプロバイダー]
     Q --> U

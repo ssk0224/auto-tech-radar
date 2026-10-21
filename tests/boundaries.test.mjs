@@ -218,6 +218,30 @@ test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォー
   assert.deepEqual(problems, []);
 });
 
+test("Web・Zenn の全 Mermaid 図が、サイトと同じ版の Mermaid で描画（構文解析）できる", async () => {
+  const { mermaidParseErrors } = await import("../scripts/utils/mermaid_parse.mjs");
+  const errors = [];
+  for (const dir of ["src/pages/radar", "articles", "zenn_drafts"]) {
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".md"))) {
+      for (const e of await mermaidParseErrors(read(path.join(dir, f)))) errors.push(`${dir}/${f}: ${e}`);
+    }
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("テストで使う Mermaid はサイトが読み込む版と同じ", () => {
+  const pkg = JSON.parse(read("package.json"));
+  const site = read("src/layouts/Layout.astro").match(/mermaid@([\d.]+)/)[1];
+  assert.equal(pkg.devDependencies.mermaid, site);
+});
+
+test("Mermaid の補正は、実際に描画できなかった図（入れ子の引用符・記号入りの辺ラベル・<--> 矢印）を描画できる形に直す", async () => {
+  const { mermaidParseErrors } = await import("../scripts/utils/mermaid_parse.mjs");
+  const md = "```mermaid\ngraph TD\n  DocDB[\"cadcraft_doc\\n(\"CoW Entity Store / cheap undo\")\"]\n  CP_Client <-->|1. Discovery & Pair (BT / Wi-Fi)| BT_WIFI\n  A[User Interface (egui)] --> B\n```";
+  assert.ok((await mermaidParseErrors(md)).length > 0);
+  assert.deepEqual(await mermaidParseErrors(fixMermaidInContent(md)), []);
+});
+
 test("Mermaid の補正は検査で見つかる問題をすべて直す（生成時に補正→検査で採用可否を決めるため）", () => {
   const md = "```mermaid\ngraph TD\n  A[ユーザー] --> C[画像, テキスト, 音声]\n  C --> D[API: v1 (beta)]\n  D --> E[a & b]\n  subgraph Data Layer\n  F[x<br>y]\n  end\n```";
   assert.ok(mermaidProblems(md).length > 0);
@@ -258,4 +282,14 @@ test("Zenn・X の記事リンクはすべて実在する Web 記事を指す", 
     }
   }
   assert.deepEqual(broken, []);
+});
+
+test("X 投稿文・note 無料部分に共通の禁止表現（claims_check）が無い", () => {
+  const hits = [];
+  const files = [...list("x_posts", /\.txt$/), ...list("note_drafts", /\.md$/)];
+  for (const f of files) {
+    const text = read(f).replace(/intent\/tweet\?text=([^\s&]+)/g, (m, q) => { try { return decodeURIComponent(q); } catch (e) { return m; } });
+    for (const h of findForbiddenClaims(text)) hits.push(`${f}: ${h}`);
+  }
+  assert.deepEqual(hits, []);
 });
