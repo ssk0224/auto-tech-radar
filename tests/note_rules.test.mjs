@@ -239,7 +239,8 @@ test("ランチャーで note の新規出品を記録する流れは、すべ�
     const name = f.match(/^function (\w+)/)[1];
     assert.ok(f.indexOf("noteListingRefused()") !== -1 && f.indexOf("noteListingRefused()") < f.indexOf("notes/new"), `${name}: 出品画面を開く前に上限を確かめる`);
   }
-  assert.match(src, /function noteListingRefused\(\) \{\n  const why = noteListingBlock\(loadHistory\(\)\);/);
+  // 出品履歴が壊れて読めないときは、本数が分からないので出品させない（空として数えると上限が効かない）
+  assert.match(src, /function noteListingRefused\(\) \{\n  const why = historyUnreadable\(\)\n    \? '[^']+'\n    : noteListingBlock\(loadHistory\(\)\);/);
   // [A] は note を飛ばしても X の手順を続ける
   assert.match(fns.find((f) => f.startsWith("function runAllInOnePublish")), /!target\.isNotePosted && !noteBlocked && ans/);
   assert.match(src, /recordPublish\(target\.slug, 'x'\)/);

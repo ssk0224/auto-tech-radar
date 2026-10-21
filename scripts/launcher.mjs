@@ -9,7 +9,9 @@ import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_form
 import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './utils/note_vault.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
-import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
+import { commitAndSync, pullLatest, repairWorkingTree } from './utils/git_sync.mjs';
+import { copyTextToClipboard, copyFileToClipboard } from './utils/clipboard.mjs';
+import { dependencyProblems } from './utils/deps.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
@@ -22,18 +24,26 @@ const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
 const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 
-// package.json の依存がすべて入っているかを確かめ、足りなければ npm ci で入れる（取り込み済みの更新で増えた依存を含む）
+// package.json の依存がすべて、package-lock.json と同じ版で入っているかを確かめ、違えば npm ci で入れ直す
+// （取り込んだ更新で増えた依存・版が上がった依存を含む。版を比べないと、メニュー実行前の取り込みで上がった版や、
+// 一度失敗した npm ci の分が、いつまでも古い版のまま動く）。失敗したら同じ起動の間は繰り返さない
+let dependencyInstallFailed = false;
 function ensureDependencies() {
+  if (dependencyInstallFailed) return;
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
-    const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
-    const missing = deps.filter((d) => !fs.existsSync(path.join(rootDir, 'node_modules', ...d.split('/'), 'package.json')));
-    if (missing.length === 0) return;
-    console.log(`📦 足りないパッケージを入れています (${missing.join(', ')})...`);
+    const problems = dependencyProblems(rootDir);
+    if (problems.length === 0) return;
+    console.log(`📦 パッケージを入れ直しています (${problems.join(', ')})...`);
     execSync('npm ci --no-audit --no-fund', { cwd: rootDir, stdio: 'inherit' });
   } catch (e) {
+    dependencyInstallFailed = true;
     console.log(`⚠ パッケージを入れられませんでした（npm ci を手動で実行してください）: ${e.message}`);
   }
+}
+
+// 取り込みのとき、手元の変更が GitHub の更新とぶつかって最新の版に戻したファイルを知らせる（変更そのものは git stash に残っている）
+function reportRestored(restored) {
+  if (restored?.length) console.log(`⚠ 手元で変更されていたファイルが GitHub の更新とぶつかったため、GitHub の版に戻しました: ${restored.join(', ')}（変更は git stash に保存されています）\n`);
 }
 
 // 起動時に最新の main（CI が生成した記事・修正されたスクリプト）を取り込む。
@@ -48,16 +58,11 @@ if (!process.env.ATR_LAUNCHER_UPDATED) {
     }
   };
   const before = head();
-  try {
-    configureMergeDrivers(rootDir);
-    execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
-    console.log('✓ 完了\n');
-  } catch (e) {
-    // 失敗の理由を隠さない（古いコードのまま動いていることに気づけるように）
-    const why = `${e.stderr || ''}${e.stdout || ''}`.toString().trim().split('\n').slice(-3).join(' / ') || e.message;
-    console.log(`\n⚠ 取り込めませんでした（古いままで起動します）: ${why}\n`);
-    try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
-  }
+  const pulled = pullLatest(rootDir, 'main', { timeout: 30000 });
+  if (pulled.ok) console.log('✓ 完了\n');
+  // 失敗の理由を隠さない（古いコードのまま動いていることに気づけるように）
+  else console.log(`\n⚠ 取り込めませんでした（古いままで起動します）: ${pulled.message.split('\n').slice(-3).join(' / ')}\n`);
+  reportRestored(pulled.restored);
   if (before && head() !== before) {
     // 依存パッケージが変わっていれば入れ直す（新しい機能が「パッケージが見つからない」で動かないのを防ぐ）
     try {
@@ -107,17 +112,7 @@ function openFile(filePath) {
   exec(`start "" "${filePath}"`);
 }
 
-// テキストをクリップボードにコピー
-function copyTextToClipboard(text) {
-  if (!text) return false;
-  try {
-    const escaped = text.replace(/'/g, "''");
-    execSync(`powershell -NoProfile -Command "Set-Clipboard -Value '${escaped}'"`, { stdio: 'ignore', timeout: 4000 });
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+// テキスト・ファイルのクリップボードへのコピーは utils/clipboard.mjs（本文をコマンドラインに入れない）
 
 // サムネイル画像をクリップボードに直接コピー（note画面でCtrl+V即貼り付け可能にする）
 function copyImageToClipboard(imagePath) {
@@ -142,10 +137,30 @@ function loadHistory() {
   }
 }
 
+// 履歴のファイルがあるのに読めない（壊れている）か。読めない履歴を空として扱うと、出品の上限が効かず、
+// 出品済みの記事も未出品に見え（重複出品）、上書きすると GitHub の履歴まで消える
+function historyUnreadable() {
+  if (!fs.existsSync(historyFile)) return false;
+  try {
+    const h = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+    return !h || typeof h !== 'object' || Array.isArray(h);
+  } catch (e) {
+    return true;
+  }
+}
+
 function saveHistory(history) {
+  if (historyUnreadable()) {
+    console.log(`\n${c.red}${c.bold}⚠ 出品履歴（scripts/publish_history.json）が壊れているため、記録を書き込みません。メニュー [S] で GitHub と同期し直してください。${c.reset}`);
+    return false;
+  }
   try {
     fs.writeFileSync(historyFile, JSON.stringify(history, null, 2), 'utf8');
-  } catch (e) {}
+    return true;
+  } catch (e) {
+    console.log(`\n${c.red}${c.bold}⚠ 出品履歴を保存できませんでした: ${e.message}${c.reset}`);
+    return false;
+  }
 }
 
 function recordPublish(slug, type) {
@@ -182,7 +197,9 @@ function syncHistory(message) {
 
 // note の新規出品の上限（1日1本・週3本）に達していれば、理由を表示して true を返す（出品画面を開かない）
 function noteListingRefused() {
-  const why = noteListingBlock(loadHistory());
+  const why = historyUnreadable()
+    ? '出品履歴（scripts/publish_history.json）が壊れていて、これまでの出品の本数を確かめられません。メニュー [S] で GitHub と同期し直してから出品してください。'
+    : noteListingBlock(loadHistory());
   if (!why) return false;
   console.log(`\n  ${c.yellow}${c.bold}⏸ いまは note に新しく出品できません。${c.reset}`);
   console.log(`  ${c.yellow}${why}${c.reset}`);
@@ -300,17 +317,6 @@ function recordNoteUpdated(slug, deduped) {
   history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString(), ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   syncHistory('chore(history): record note updates');
-}
-
-// 長い本文は PowerShell の引数に渡せない（コマンドライン長の上限）ため、ファイルから読み込んでコピーする
-function copyFileToClipboard(filePath) {
-  try {
-    const escaped = filePath.replace(/'/g, "''");
-    execSync(`powershell -NoProfile -Command "Get-Content -Raw -Encoding UTF8 -LiteralPath '${escaped}' | Set-Clipboard"`, { stdio: 'ignore', timeout: 8000 });
-    return true;
-  } catch (e) {
-    return false;
-  }
 }
 
 // 記事総数
@@ -545,11 +551,11 @@ function runLeadMagnetPublish() {
 
 // note 公開済み記事の差し替えアシスト。1本ずつ、復号した全文をクリップボードへコピーし、
 // note の記事一覧と原稿を開く。オーナーが note で差し替えて Enter を押したら反映済みとして記録する
-// [U] で後回し（s）にした見出し修正は、このランチャーを閉じるまで一覧の末尾に回す
-const skippedHeadings = new Set();
+// [U] で後回し（s）にした記事は、このランチャーを閉じるまで一覧の末尾に回す
+const skippedUpdates = new Set();
 
 function runNoteUpdates() {
-  const pending = getPendingNoteUpdates().sort((a, b) => skippedHeadings.has(a.slug) - skippedHeadings.has(b.slug));
+  const pending = getPendingNoteUpdates().sort((a, b) => skippedUpdates.has(a.slug) - skippedUpdates.has(b.slug));
   console.clear();
   console.log(`${c.red}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.red}${c.bold}🛠 note 公開済み記事の差し替え（残り ${pending.length} 本）${c.reset}`);
@@ -594,7 +600,7 @@ function runNoteUpdates() {
       const a = ans.trim().toLowerCase();
       if (a === '0') return promptMenu();
       if (a !== 's') recordNoteUpdated(item.slug, false);
-      else skippedHeadings.add(item.slug);
+      else skippedUpdates.add(item.slug);
       runNoteUpdates();
     });
     return;
@@ -634,11 +640,10 @@ function runNoteUpdates() {
     const a = ans.trim().toLowerCase();
     if (a === '0') return promptMenu();
     if (a === 's') {
-      // 後回しにした記事は今回のループでは末尾へ回す
-      const spec = JSON.parse(fs.readFileSync(noteUpdatesFile, 'utf8'));
-      const { [item.slug]: moved, ...rest } = spec.items;
-      spec.items = { ...rest, [item.slug]: moved };
-      fs.writeFileSync(noteUpdatesFile, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+      // 後回しにした記事は、このランチャーを閉じるまで一覧の末尾へ回す。
+      // note_updates.json には書かない（CI の検査結果・重複出品の記事はそこに無く後回しにできなかった。
+      // また GitHub で管理しているファイルを手元で書き換えると、次の取り込みで衝突する）
+      skippedUpdates.add(item.slug);
       return runNoteUpdates();
     }
     recordNoteUpdated(item.slug, item.duplicates.length > 0);
@@ -832,16 +837,25 @@ function runPublishHelper(mode) {
       const qiitaText = `# 【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開\n\n` +
         articleContent + '\n\n---\n\n' + zennCta(selected.slug);
 
-      copyTextToClipboard(qiitaText);
+      // コピーできなかったときは「コピーした」と言わない（貼り付けると、前にコピーした別の内容
+      // ── [U] でコピーした有料記事の全文のこともある ── を Qiita に公開してしまう）。原稿をファイルで開いて手でコピーしてもらう
+      const qiitaCopied = copyTextToClipboard(qiitaText);
+      let qiitaFile = null;
+      if (!qiitaCopied) {
+        qiitaFile = path.join(os.tmpdir(), `atr_qiita_${selected.slug}.md`);
+        fs.writeFileSync(qiitaFile, qiitaText, 'utf8');
+        openFile(qiitaFile);
+      }
       openUrl("https://qiita.com/drafts/new");
 
       console.log(`\n${c.green}${c.bold}================================================================================${c.reset}`);
       console.log(`  ${c.green}✓ Qiita新規投稿画面を開きました！${c.reset}`);
-      console.log(`  ${c.cyan}📋 【神機能】Qiita用送客記事（${selected.slug}）をクリップボードに自動コピーしました！${c.reset}`);
+      if (qiitaCopied) console.log(`  ${c.cyan}📋 【神機能】Qiita用送客記事（${selected.slug}）をクリップボードに自動コピーしました！${c.reset}`);
+      else console.log(`  ${c.red}${c.bold}⚠ クリップボードにコピーできませんでした。いま [Ctrl + V] を押すと前にコピーした別の内容が貼られます。開いたファイルで [Ctrl + A] → [Ctrl + C] でコピーしてください（${qiitaFile}）${c.reset}`);
       console.log(`  ${c.dim}※ この記事は「Qiita送客済み [✓]」としてステータスを自動記録しました。${c.reset}`);
       console.log(`${c.green}--------------------------------------------------------------------------------${c.reset}`);
       console.log(`  【投稿手順 (最短15秒)】`);
-      console.log(`  1. ブラウザの本文欄で ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け`);
+      console.log(`  1. ブラウザの本文欄で ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け${qiitaCopied ? '' : '（上のファイルからコピーした後）'}`);
       console.log(`  2. タグ欄に ${c.yellow}Python, OSS, GitHub, AI, アーキテクチャ${c.reset} 等を入力`);
       console.log(`  3. 「Qiitaに投稿」をクリックするだけで、国内最大の技術コミュニティからアクセスを独占！`);
       console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
@@ -859,13 +873,13 @@ function runPublishHelper(mode) {
         }
 
         openUrl(safeData.intentUrl);
-        copyTextToClipboard(safeData.tweet);
+        const tweetCopied = copyTextToClipboard(safeData.tweet);
 
         console.log(`\n${c.blue}${c.bold}================================================================================${c.reset}`);
         console.log(`  ${c.blue}✓ X投稿画面を開きました（記事リンク自動挿入 ＆ 文字数安全チェック済み）！${c.reset}`);
         console.log(`  ${c.cyan}  ・投稿文字数: ${safeData.charsJp} 文字 / 140 文字制限 (安全マージン: ${((280 - safeData.weight) / 2).toFixed(1)}文字)${c.reset}`);
         console.log(`  ${c.yellow}  ・挿入リンク: https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/${c.reset}`);
-        console.log(`  ${c.green}📋 【安全】ポスト本文をクリップボードにも自動コピーしました！${c.reset}`);
+        if (tweetCopied) console.log(`  ${c.green}📋 【安全】ポスト本文をクリップボードにも自動コピーしました！${c.reset}`);
         console.log(`  ${c.white}👉 ブラウザでそのまま青い「ポストする」を押すだけで投稿完了です！${c.reset}`);
         console.log(`${c.blue}${c.bold}================================================================================${c.reset}\n`);
         waitBack();
@@ -991,12 +1005,12 @@ function runAllInOnePublish() {
         }
 
         openUrl(safeData.intentUrl);
-        copyTextToClipboard(safeData.tweet);
+        const tweetCopied = copyTextToClipboard(safeData.tweet);
 
         console.log(`  ${c.blue}✓ X投稿画面を開きました（記事リンク自動挿入 ＆ 文字数安全チェック済み）！${c.reset}`);
         console.log(`  ${c.cyan}  ・投稿文字数: ${safeData.charsJp} 文字 / 140 文字制限 (安全マージン: ${((280 - safeData.weight) / 2).toFixed(1)}文字)${c.reset}`);
         console.log(`  ${c.yellow}  ・挿入リンク: https://ssk0224.github.io/auto-tech-radar/radar/${target.slug}/${c.reset}`);
-        console.log(`  ${c.green}📋 【安全】ポスト本文をクリップボードにも自動コピーしました！${c.reset}`);
+        if (tweetCopied) console.log(`  ${c.green}📋 【安全】ポスト本文をクリップボードにも自動コピーしました！${c.reset}`);
         console.log(`  ${c.white}👉 ブラウザでそのまま青い「ポストする」を押すだけで投稿完了です！${c.reset}`);
       }
 
@@ -1013,6 +1027,12 @@ function runCloudSync() {
   console.log(`   ${c.green}${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset}`);
   console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
   try {
+    // 衝突の印が残ったファイル・壊れた出品履歴を、git add . でそのままコミットして GitHub に送らない
+    reportRestored(repairWorkingTree(rootDir));
+    if (historyUnreadable()) {
+      execSync('git checkout HEAD -- scripts/publish_history.json', { cwd: rootDir, stdio: 'ignore' });
+      console.log(`${c.yellow}⚠ 壊れていた出品履歴（scripts/publish_history.json）を、最後に記録した版に戻しました。${c.reset}\n`);
+    }
     console.log('1. サイトの静的ビルド (npm run build)...');
     execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
     console.log('\n2. 変更ファイルをステージング (git add)...');
@@ -1025,15 +1045,11 @@ function runCloudSync() {
       console.log('コミット対象の新規変更はありませんでした。');
     }
     console.log('\n4. 最新のクラウド側の変更を取り込み中 (git pull --rebase)...');
-    // 出品履歴・note の URL 対応表は CI と同じマージドライバで統合する（.gitattributes 参照）
-    configureMergeDrivers(rootDir);
-    try {
-      execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'inherit' });
-    } catch (e) {
-      // 取り込みに失敗したら rebase を中止して元の状態に戻す（途中の状態で放置しない）
-      try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
-      throw e;
-    }
+    // 出品履歴・note の URL 対応表は CI と同じマージドライバで統合する（.gitattributes 参照）。
+    // 取り込みに失敗したら rebase を中止して元の状態に戻す（途中の状態で放置しない。utils/git_sync.mjs）
+    const pulled = pullLatest(rootDir);
+    reportRestored(pulled.restored);
+    if (!pulled.ok) throw new Error(pulled.message.split('\n').slice(-3).join(' / '));
     console.log('\n5. リモートへプッシュ中 (git push)...');
     execSync('git push origin main', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ クラウド同期（GitHub Pages自動デプロイ開始）が完了しました！${c.reset}\n`);
@@ -1094,16 +1110,13 @@ function pullBeforeRun(choice) {
     }
   };
   const before = head();
-  try {
-    configureMergeDrivers(rootDir);
-    execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
-    ensureDependencies();
-  } catch (e) {
-    const why = `${e.stderr || ''}${e.stdout || ''}`.toString().trim().split('\n').slice(-2).join(' / ') || e.message;
-    console.log(`${c.yellow}⚠ 最新版を取り込めませんでした（今の版で続けます）: ${why}${c.reset}\n`);
-    try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
+  const pulled = pullLatest(rootDir, 'main', { timeout: 30000 });
+  reportRestored(pulled.restored);
+  if (!pulled.ok) {
+    console.log(`${c.yellow}⚠ 最新版を取り込めませんでした（今の版で続けます）: ${pulled.message.split('\n').slice(-2).join(' / ')}${c.reset}\n`);
     return;
   }
+  ensureDependencies();
   const after = head();
   if (!before || after === before) return;
   let changed = '';

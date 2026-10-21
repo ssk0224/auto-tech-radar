@@ -1,5 +1,7 @@
 // オーナー端末（ランチャー）から出品履歴などを GitHub に同期する共通処理。CI と同じマージドライバを使う。
 // 失敗を握りつぶさない: 取り込みに失敗したら rebase を中止して作業ツリーを元に戻し、理由を返す
+import fs from "fs";
+import path from "path";
 import { spawnSync } from "child_process";
 
 const MERGE_DRIVERS = {
@@ -8,32 +10,64 @@ const MERGE_DRIVERS = {
   "merge.note-status.driver": "node scripts/merge_note_status.mjs %O %A %B",
 };
 
-const git = (cwd, args) => {
-  const r = spawnSync("git", args, { cwd, encoding: "utf8" });
-  return { ok: r.status === 0, out: `${r.stdout || ""}${r.stderr || ""}`.trim() };
+const git = (cwd, args, timeout) => {
+  const r = spawnSync("git", args, { cwd, encoding: "utf8", ...(timeout ? { timeout } : {}) });
+  return { ok: r.status === 0, out: `${r.stdout || ""}${r.stderr || ""}`.trim() || (r.error ? r.error.message : "") };
 };
 
 export function configureMergeDrivers(cwd) {
   for (const [k, v] of Object.entries(MERGE_DRIVERS)) git(cwd, ["config", k, v]);
 }
 
-// paths をコミットし、最新の main に載せ直して push する。戻り値 { ok, step, message }
+// 途中で止まった rebase を中止し、衝突の印（<<<<<<<）が入ったまま残っているファイルを最新の版（HEAD）に戻す。戻したファイルを返す。
+// `git pull --rebase --autostash` は、手元の未コミットの変更が取り込んだ更新とぶつかると、成功（終了コード 0）を返したまま
+// そのファイルに衝突の印を書き込む（手元の変更は stash に残る）。そのままだと出品履歴などの JSON が読めず（出品の上限が効かない）、
+// 以後の取り込み・コミットもすべて失敗して、ランチャーが古い版のまま動き続ける
+export function repairWorkingTree(cwd) {
+  for (const p of ["rebase-merge", "rebase-apply"]) {
+    const dir = git(cwd, ["rev-parse", "--git-path", p]);
+    if (dir.ok && fs.existsSync(path.resolve(cwd, dir.out))) {
+      git(cwd, ["rebase", "--abort"]);
+      break;
+    }
+  }
+  const u = git(cwd, ["diff", "--name-only", "--diff-filter=U"]);
+  const files = u.ok ? u.out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  if (files.length) git(cwd, ["checkout", "HEAD", "--", ...files]);
+  return files;
+}
+
+// 最新の branch を取り込む（未コミットの変更は autostash で退避して戻す）。戻り値 { ok, message, restored }。
+// restored: 手元の変更が更新とぶつかったため最新の版に戻したファイル（手元の変更は git stash に残っている）
+export function pullLatest(cwd, branch = "main", { timeout } = {}) {
+  configureMergeDrivers(cwd);
+  const restored = repairWorkingTree(cwd);
+  const r = git(cwd, ["pull", "--rebase", "--autostash", "origin", branch], timeout);
+  if (!r.ok) {
+    git(cwd, ["rebase", "--abort"]);
+    restored.push(...repairWorkingTree(cwd));
+    return { ok: false, message: r.out, restored };
+  }
+  restored.push(...repairWorkingTree(cwd));
+  return { ok: true, message: r.out, restored };
+}
+
+// paths をコミットし、最新の main に載せ直して push する。戻り値 { ok, step, message, restored }
 export function commitAndSync(cwd, paths, message, branch = "main") {
   configureMergeDrivers(cwd);
+  const restored = repairWorkingTree(cwd);
   let r = git(cwd, ["add", "--", ...paths]);
-  if (!r.ok) return { ok: false, step: "add", message: r.out };
+  if (!r.ok) return { ok: false, step: "add", message: r.out, restored };
   const staged = !git(cwd, ["diff", "--cached", "--quiet", "--", ...paths]).ok;
   if (staged) {
     r = git(cwd, ["commit", "-m", message, "--", ...paths]);
-    if (!r.ok) return { ok: false, step: "commit", message: r.out };
+    if (!r.ok) return { ok: false, step: "commit", message: r.out, restored };
   }
   // 他の未コミットの変更があっても取り込めるよう autostash を使う
-  r = git(cwd, ["pull", "--rebase", "--autostash", "origin", branch]);
-  if (!r.ok) {
-    git(cwd, ["rebase", "--abort"]);
-    return { ok: false, step: "pull", message: r.out };
-  }
+  const p = pullLatest(cwd, branch);
+  restored.push(...p.restored);
+  if (!p.ok) return { ok: false, step: "pull", message: p.message, restored };
   r = git(cwd, ["push", "origin", `HEAD:${branch}`]);
-  if (!r.ok) return { ok: false, step: "push", message: r.out };
-  return { ok: true, step: "done", message: staged ? "pushed" : "nothing to commit" };
+  if (!r.ok) return { ok: false, step: "push", message: r.out, restored };
+  return { ok: true, step: "done", message: staged ? "pushed" : "nothing to commit", restored };
 }

@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { exec, execSync } from 'child_process';
+import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
-import { openNoteForPublishing } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { pullLatest } from './utils/git_sync.mjs';
+import { copyTextToClipboard } from './utils/clipboard.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -14,14 +15,17 @@ const xDir = path.join(rootDir, 'x_posts');
 
 const mode = process.argv[2] || 'note'; // 'note' or 'x'
 
-// 起動時にリモート（GitHub Actionsが朝6時に生成した最新原稿）を自動同期
-try {
-  process.stdout.write('🔄 最新のリモート原稿・画像を自動同期中 (Git Pull)... ');
-  execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
-  console.log('✓ 完了');
-} catch (e) {
-  console.log('(オフライン/スキップ)');
+// note の新規出品はランチャー（【収益化】AutoTechRadar.bat）のメニュー [4]・[A]・[M] からだけ行う。
+// ランチャーは出品の上限（1日1本・直近7日で3本。utils/note_listing.mjs）を確かめてから出品画面を開き、出品を publish_history.json に記録する。
+// ここで出品画面を開くと、上限を確かめず、出品の記録もしない（上限の本数に数えられず、重複出品も防げない）
+if (mode === 'note') {
+  console.log('note の新規出品は、ランチャー（【収益化】AutoTechRadar.bat）のメニュー [4] から行ってください（出品の上限の確認と出品の記録のため）。');
+  process.exit(1);
 }
+
+// 起動時にリモート（GitHub Actionsが朝6時に生成した最新原稿）を自動同期（失敗したら rebase を中止して元に戻す）
+process.stdout.write('🔄 最新のリモート原稿・画像を自動同期中 (Git Pull)... ');
+console.log(pullLatest(rootDir, 'main', { timeout: 30000 }).ok ? '✓ 完了' : '(オフライン/スキップ)');
 
 // 下書き一覧を取得
 function getDrafts() {
@@ -122,56 +126,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
     exec(`start "" "${filePath}"`);
   }
 
-  function copyTextToClipboard(text) {
-    if (!text) return false;
-    try {
-      const escaped = text.replace(/'/g, "''");
-      execSync(`powershell -NoProfile -Command "Set-Clipboard -Value '${escaped}'"`, { stdio: 'ignore', timeout: 4000 });
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  if (mode === 'note') {
-    // 1. note新規投稿画面を開く
-    openUrl("https://note.com/notes/new");
-    // 2. 原稿ファイル（有料部分を復号した出品用の完全版）を既定エディタで直接開く
-    let noteOpenPath;
-    try {
-      noteOpenPath = openNoteForPublishing(selected.noteFile);
-    } catch (e) {
-      console.error(`❌ ${e.message}`);
-      process.exit(1);
-    }
-    openFile(noteOpenPath);
-
-    // 3. 記事専用のサムネイルPNGがあればエクスプローラーでハイライト表示
-    const thumbPng = path.join(rootDir, 'public', 'ogp', `${selected.slug}.png`);
-    if (fs.existsSync(thumbPng)) {
-      exec(`explorer /select,"${thumbPng}"`);
-    }
-
-    console.log('===============================================================================');
-    console.log('✓ noteの新規投稿画面、原稿テキスト、専用サムネイル画像を開きました！');
-    console.log('-------------------------------------------------------------------------------');
-    if (selected.isLeadMagnet) {
-      console.log('【無料リードマグネット出品手順（超速1分）】');
-      console.log('  1. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
-      console.log('  2. note新規投稿画面に [Ctrl + V] で貼り付け');
-      console.log('  3. ★「無料公開」（有料設定なし）のまま「投稿」をクリック！');
-      console.log('     ※noteの強力なSEOと「スキ」で閲覧数が爆発し、有料記事・メンバーシップへ自動送客されます。');
-    } else {
-      console.log('【有料レポート出品手順（超速1分）】');
-      console.log('  1. 開いたエクスプローラーの画像（選択中）を、note画面の「画像を追加」へドラッグ＆ドロップ！');
-      console.log('     ※プロ級サイバー調サムネが即時セットされ、クリック率が爆増します');
-      console.log('  2. 開いた原稿テキストを [Ctrl + A] → [Ctrl + C] で全コピー');
-      console.log('  3. note投稿画面に [Ctrl + V] で貼り付け');
-      console.log('  4. 「無料プレビュー」と「有料エリア」の境界で「有料ライン」を挿入');
-      console.log('  5. 価格 980円 に設定し、メンバーシップ特典にも追加して公開！');
-    }
-    console.log('===============================================================================\n');
-  } else if (mode === 'zenn') {
+  if (mode === 'zenn') {
     // Zenn への投稿は停止中（2026-10-21）。自動生成した記事は Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないため、
     // 原稿は published: false の下書きのままにし、クリップボードへのコピーや投稿画面を開くことはしない
     console.error('Zenn への投稿は停止しています（自動生成した記事は Zenn の規約に沿わないため）。articles/ と zenn_drafts/ の原稿は published: false のままにしてください。');
@@ -190,7 +145,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
       }
 
       openUrl(safeData.intentUrl);
-      copyTextToClipboard(safeData.tweet);
+      const copied = copyTextToClipboard(safeData.tweet);
 
       console.log('===============================================================================');
       console.log('✓ Xの投稿画面を開きました（記事リンク自動挿入 ＆ 文字数安全チェック済み）！');
@@ -198,7 +153,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
       console.log(`  ・挿入リンク: https://ssk0224.github.io/auto-tech-radar/radar/${selected.slug}/`);
       console.log('-------------------------------------------------------------------------------');
       console.log('ブラウザの投稿画面で「ポストする」を押すだけで完了です。');
-      console.log('（クリップボードにもポスト本文を自動コピーしてあります）');
+      if (copied) console.log('（クリップボードにもポスト本文を自動コピーしてあります）');
       console.log('===============================================================================\n');
     } else {
       console.log('⚠️ この記事の専用X投稿文がありません。共通告知画面を開きます...');
