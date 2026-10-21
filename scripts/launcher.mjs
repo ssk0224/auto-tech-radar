@@ -48,7 +48,7 @@ if (!process.env.ATR_LAUNCHER_UPDATED) {
   const before = head();
   try {
     configureMergeDrivers(rootDir);
-    execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
+    execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
     console.log('✓ 完了\n');
   } catch (e) {
     // 失敗の理由を隠さない（古いコードのまま動いていることに気づけるように）
@@ -396,8 +396,9 @@ function promptMenu() {
   });
 }
 
-function handleChoice(choice) {
+function handleChoice(choice, pulled = false) {
   const norm = (choice || '').trim().toLowerCase();
+  if (!pulled && norm && norm !== '0') pullBeforeRun(norm);
   switch (norm) {
     case 'a':
       runAllInOnePublish();
@@ -412,7 +413,6 @@ function handleChoice(choice) {
       runPublishHelper('qiita');
       break;
     case 'u':
-      pullBeforeRun();
       runNoteUpdates();
       break;
     case 'm':
@@ -1108,24 +1108,46 @@ function runNoteApiSync() {
 
 // note の見出し画像（アイキャッチ）を、公開済みで未設定の記事に一括で設定する。
 // ローカルブリッジ（--eyecatch-only は秘密鍵不要）を起動し、ブラウザで実行するスクリプトをクリップボードへコピーする
-// 実行の直前に最新版を取り込む（ランチャーを開いたまま何度も実行すると、起動時の古い版のまま動くため）。
-// 実行するスクリプトは毎回ディスクから読み込まれるので、取り込めば次の実行から新しい版になる
-function pullBeforeRun() {
+// メニューを選ぶたびに、実行の直前に最新版を取り込む（ランチャーを開いたままだと起動時の古い版のまま動くため）。
+// 別に起動するスクリプトはディスクから読まれるので取り込むだけで新しくなるが、このランチャー自身（とその読み込むファイル）が
+// 変わったときは、読み込み済みの古いコードのままになる（2026-10-21、[U] が古い判定で「残り 0 本」と出た）。
+// その場合は新しい版で起動し直し、選んだ項目をそのまま実行する
+function pullBeforeRun(choice) {
+  const head = () => {
+    try {
+      return execSync('git rev-parse HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    } catch (e) {
+      return '';
+    }
+  };
+  const before = head();
   try {
     configureMergeDrivers(rootDir);
-    execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
+    execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
     ensureDependencies();
   } catch (e) {
     const why = `${e.stderr || ''}${e.stdout || ''}`.toString().trim().split('\n').slice(-2).join(' / ') || e.message;
     console.log(`${c.yellow}⚠ 最新版を取り込めませんでした（今の版で続けます）: ${why}${c.reset}\n`);
     try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
+    return;
   }
+  const after = head();
+  if (!before || after === before) return;
+  let changed = '';
+  try {
+    changed = execSync(`git diff --name-only ${before} ${after} -- scripts/launcher.mjs scripts/utils src package.json package-lock.json`, { cwd: rootDir, encoding: 'utf8' }).trim();
+  } catch (e) {
+    changed = 'unknown';
+  }
+  if (!changed) return;
+  console.log(`${c.cyan}🔁 ランチャーが更新されたため、新しい版で開き直して続けます...${c.reset}\n`);
+  const r = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: { ...process.env, ATR_LAUNCHER_UPDATED: '1', ATR_LAUNCHER_START: choice } });
+  process.exit(r.status ?? 0);
 }
 
 function runNoteEyecatch() {
   console.clear();
   console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定（自動） ===${c.reset}\n`);
-  pullBeforeRun();
   console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。\n`);
   try {
     execSync('node scripts/note_browser.mjs eyecatch', { cwd: rootDir, stdio: 'inherit' });
@@ -1144,4 +1166,8 @@ purgeOpenedNotes();
 process.on('exit', () => purgeOpenedNotes(0));
 
 // 起動
-promptMenu();
+// 更新で開き直したときは、選ばれていた項目をそのまま実行する（取り込みは済んでいる）
+const startChoice = process.env.ATR_LAUNCHER_START;
+delete process.env.ATR_LAUNCHER_START;
+if (startChoice) handleChoice(startChoice, true);
+else promptMenu();
