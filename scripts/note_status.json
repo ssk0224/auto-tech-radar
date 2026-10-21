@@ -1,13 +1,15 @@
 {
-  "checkedAt": "2026-10-21T08:40:49.550Z",
+  "checkedAt": "2026-10-21T10:59:40.242Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
-        "freeChars": 1160,
-        "draftFreeChars": 1209,
-        "endPct": 100,
+        "freeChars": 1163,
+        "draftFreeChars": 1201,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -35,11 +37,15 @@
     },
     "anatomy": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1606,
-        "draftFreeChars": 1661,
-        "endPct": 100,
+        "draftFreeChars": 1636,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -67,11 +73,13 @@
     },
     "answer-me-with-html": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 1493,
-        "draftFreeChars": 1492,
-        "endPct": 100,
+        "draftFreeChars": 1481,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -99,11 +107,14 @@
     },
     "cadcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1732,
-        "draftFreeChars": 1408,
-        "endPct": 100,
+        "draftFreeChars": 1389,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -131,11 +142,15 @@
     },
     "compositor": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1537,
-        "draftFreeChars": 1592,
-        "endPct": 100,
+        "draftFreeChars": 1568,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -163,11 +178,15 @@
     },
     "diplay": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1329,
-        "draftFreeChars": 1379,
-        "endPct": 100,
+        "draftFreeChars": 1355,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -195,11 +214,15 @@
     },
     "droiddeck": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1643,
-        "draftFreeChars": 1698,
-        "endPct": 100,
+        "draftFreeChars": 1674,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -227,11 +250,15 @@
     },
     "dsh-our-free-model": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 2227,
-        "draftFreeChars": 2290,
-        "endPct": 100,
+        "draftFreeChars": 2261,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -259,11 +286,14 @@
     },
     "dsh-tavern": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1581,
-        "draftFreeChars": 1642,
-        "endPct": 100,
+        "draftFreeChars": 1623,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -291,11 +321,13 @@
     },
     "effectcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 7485,
-        "draftFreeChars": 7010,
-        "endPct": 100,
+        "draftFreeChars": 6999,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -323,11 +355,15 @@
     },
     "filmcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1649,
-        "draftFreeChars": 1703,
-        "endPct": 100,
+        "draftFreeChars": 1678,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -358,8 +394,8 @@
       "issues": [],
       "paidLine": {
         "freeChars": 775,
-        "draftFreeChars": 1224,
-        "endPct": 67,
+        "draftFreeChars": 1213,
+        "endPct": 68,
         "pastDraft": false,
         "endsWith": "たい特定レイヤーのビット幅を個別に制御可能。 🔒 有料エリアで公開する実践ナレッジ（980円 / メンバーシップ特典）"
       },
@@ -387,11 +423,14 @@
     },
     "gridcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1616,
-        "draftFreeChars": 1673,
-        "endPct": 100,
+        "draftFreeChars": 1651,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -419,11 +458,14 @@
     },
     "how-to-live-better": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1373,
-        "draftFreeChars": 1433,
-        "endPct": 100,
+        "draftFreeChars": 1410,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -451,11 +493,14 @@
     },
     "jev-chat-jarvis": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1345,
-        "draftFreeChars": 1403,
-        "endPct": 100,
+        "draftFreeChars": 1380,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -483,11 +528,15 @@
     },
     "jev-ultrafast": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1589,
-        "draftFreeChars": 1649,
-        "endPct": 100,
+        "draftFreeChars": 1621,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -515,11 +564,13 @@
     },
     "jiuwenswarm": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 1762,
-        "draftFreeChars": 1676,
-        "endPct": 100,
+        "draftFreeChars": 1665,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -547,11 +598,15 @@
     },
     "kev": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 2342,
-        "draftFreeChars": 2403,
-        "endPct": 100,
+        "draftFreeChars": 2379,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -579,11 +634,14 @@
     },
     "laya-mlx": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1778,
-        "draftFreeChars": 1838,
-        "endPct": 100,
+        "draftFreeChars": 1808,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -611,11 +669,15 @@
     },
     "laya": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1444,
-        "draftFreeChars": 1498,
-        "endPct": 100,
+        "draftFreeChars": 1474,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -643,11 +705,15 @@
     },
     "lightcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1694,
-        "draftFreeChars": 1749,
-        "endPct": 100,
+        "draftFreeChars": 1725,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -675,11 +741,15 @@
     },
     "magpie": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1705,
-        "draftFreeChars": 1759,
-        "endPct": 100,
+        "draftFreeChars": 1735,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -707,11 +777,13 @@
     },
     "md3music": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 1791,
-        "draftFreeChars": 1840,
-        "endPct": 100,
+        "draftFreeChars": 1829,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -739,11 +811,15 @@
     },
     "opendots": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1581,
-        "draftFreeChars": 1634,
-        "endPct": 100,
+        "draftFreeChars": 1622,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -774,8 +850,8 @@
       "issues": [],
       "paidLine": {
         "freeChars": 828,
-        "draftFreeChars": 1189,
-        "endPct": 74,
+        "draftFreeChars": 1178,
+        "endPct": 75,
         "pastDraft": false,
         "endsWith": "選定理由を解説しました。続く有料エリアでは、社内稟議や受託提案、実環境への導入にそのまま使える実務資料を公開しています。"
       },
@@ -803,11 +879,15 @@
     },
     "pdfcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1452,
-        "draftFreeChars": 1505,
-        "endPct": 100,
+        "draftFreeChars": 1481,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -835,11 +915,15 @@
     },
     "photocraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1660,
-        "draftFreeChars": 1717,
-        "endPct": 100,
+        "draftFreeChars": 1693,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -867,11 +951,13 @@
     },
     "pinvou-agent": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 1580,
-        "draftFreeChars": 1716,
-        "endPct": 100,
+        "draftFreeChars": 1705,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -899,11 +985,13 @@
     },
     "potatotool": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 2154,
-        "draftFreeChars": 2202,
-        "endPct": 100,
+        "draftFreeChars": 2191,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -931,11 +1019,14 @@
     },
     "solidcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1445,
-        "draftFreeChars": 1496,
-        "endPct": 100,
+        "draftFreeChars": 1477,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -963,11 +1054,15 @@
     },
     "strata": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1815,
-        "draftFreeChars": 1870,
-        "endPct": 100,
+        "draftFreeChars": 1842,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -995,11 +1090,13 @@
     },
     "tokenspeed": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
+      ],
       "paidLine": {
         "freeChars": 3044,
-        "draftFreeChars": 3157,
-        "endPct": 100,
+        "draftFreeChars": 3146,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -1027,11 +1124,14 @@
     },
     "universal-modder": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1360,
-        "draftFreeChars": 1419,
-        "endPct": 100,
+        "draftFreeChars": 1400,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -1059,11 +1159,15 @@
     },
     "vectorcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1470,
-        "draftFreeChars": 1526,
-        "endPct": 100,
+        "draftFreeChars": 1495,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -1091,11 +1195,15 @@
     },
     "wordcraft": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1465,
-        "draftFreeChars": 1522,
-        "endPct": 100,
+        "draftFreeChars": 1498,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },
@@ -1123,11 +1231,14 @@
     },
     "zcode": {
       "eyecatch": true,
-      "issues": [],
+      "issues": [
+        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
+        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
+      ],
       "paidLine": {
         "freeChars": 1552,
-        "draftFreeChars": 1605,
-        "endPct": 100,
+        "draftFreeChars": 1586,
+        "endPct": null,
         "pastDraft": false,
         "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
       },

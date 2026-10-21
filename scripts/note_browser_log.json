@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-21T07:58:18.778Z",
-  "version": "5fe8c02",
+  "at": "2026-10-21T10:49:50.215Z",
+  "version": "88ce969",
   "cmd": "maintain",
-  "ok": true,
+  "ok": false,
   "result": {
     "set": [],
     "skipped": [
@@ -47,21 +47,31 @@
     "failed": [],
     "manual": [],
     "steps": {
-      "wording:effectcraft": [
+      "wording:aihot": [
         {
           "at": "wording-editor",
-          "url": "https://editor.note.com/notes/n6d872b00a5d6/edit/",
-          "liveChars": 10839,
-          "draftChars": 10684
+          "url": "https://editor.note.com/notes/n002178c660d1/edit/",
+          "liveChars": 5091,
+          "draftChars": 4397,
+          "rules": [
+            "invoice",
+            "hype-heading",
+            "copipe-kit",
+            "hype-close-order"
+          ]
         },
         {
           "at": "wording-replaced",
-          "replaced": -1,
-          "draftChars": 10684
+          "replaced": {
+            "hype-heading": 1,
+            "copipe-kit": 1,
+            "hype-close-order": 1
+          },
+          "draftChars": 4400
         },
         {
           "at": "editor",
-          "url": "https://editor.note.com/notes/n6d872b00a5d6/edit/",
+          "url": "https://editor.note.com/notes/n002178c660d1/edit/",
           "buttons": [
             "閉じる",
             "一時保存",
@@ -86,7 +96,7 @@
         },
         {
           "at": "publish",
-          "url": "https://editor.note.com/notes/n6d872b00a5d6/publish/",
+          "url": "https://editor.note.com/notes/n002178c660d1/publish/",
           "buttons": [
             "キャンセル",
             "有料エリア設定",
@@ -99,21 +109,16 @@
             "#エンジニア",
             "#DX",
             "#個人開発",
-            "#SaaS",
             "#OSS",
-            "#無料版",
-            "#商用",
-            "#lottie",
-            "#EffectCraft",
-            "#EffectCraft",
-            "#商用",
-            "#Lottie",
-            "#無料版",
+            "#000",
+            "#AIHOT",
             "#SaaS",
+            "#人日",
+            "#工数",
             "3,128件3,128件10月25日まで",
             "4,827件4,827件11月1日まで",
-            "#チームだからできたことwith 日本経済新聞2,064件2,064件",
             "#おいしいは元気のはじまりwith 明治ホールディングス株式会社4,247件4,247件",
+            "#チームだからできたことwith 日本経済新聞2,064件2,064件",
             "もっと見る",
             "マガジン",
             "メンバーシップ",
@@ -132,7 +137,7 @@
         },
         {
           "at": "paid-area",
-          "url": "https://editor.note.com/notes/n6d872b00a5d6/publish/",
+          "url": "https://editor.note.com/notes/n002178c660d1/publish/",
           "buttons": [
             "キャンセル",
             "更新する",
@@ -149,7 +154,7 @@
             "ラインをこの場所に変更",
             "ラインをこの場所に変更",
             "ラインをこの場所に変更",
-            "ラインをこの場所に変更",
+            "このラインより先を有料にする",
             "ラインをこの場所に変更",
             "ラインをこの場所に変更",
             "ラインをこの場所に変更",
@@ -188,18 +193,25 @@
         },
         {
           "at": "after-update",
-          "url": "https://editor.note.com/notes/n6d872b00a5d6/publish/"
+          "url": "https://editor.note.com/notes/n002178c660d1/publish/"
         }
       ]
     },
     "wording": {
-      "fixed": [
-        "effectcraft"
+      "fixed": [],
+      "failed": [
+        "aihot: 「更新する」の後も記事に反映されていません"
       ],
-      "failed": []
+      "manual": [],
+      "remaining": 35,
+      "budget": {
+        "left": 12,
+        "used": 0,
+        "nextAt": null
+      }
     },
     "stats": {
-      "totalPv": 221,
+      "totalPv": 237,
       "totalLike": 37,
       "totalComment": 0,
       "notes": [
@@ -207,6 +219,18 @@
           "name": "海外急上昇OSS「vectorcraft」商用化マニュアル｜社内DX提案書 ＆ ",
           "pv": 11,
           "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「EffectCraft」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 11,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 8,
+          "like": 1,
           "comment": 0
         },
         {
@@ -240,15 +264,9 @@
           "comment": 0
         },
         {
-          "name": "海外急上昇OSS「EffectCraft」商用化マニュアル｜社内DX提案書 ＆ ",
+          "name": "海外急上昇OSS「solidcraft」商用化マニュアル｜社内DX提案書 ＆ 自",
           "pv": 7,
-          "like": 2,
-          "comment": 0
-        },
-        {
-          "name": "海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ ",
-          "pv": 7,
-          "like": 1,
+          "like": 0,
           "comment": 0
         },
         {
@@ -270,9 +288,33 @@
           "comment": 0
         },
         {
-          "name": "海外急上昇OSS「solidcraft」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "name": "海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社S",
           "pv": 6,
           "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 6,
+          "like": 2,
           "comment": 0
         },
         {
@@ -324,21 +366,9 @@
           "comment": 0
         },
         {
-          "name": "海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "name": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社",
           "pv": 5,
-          "like": 0,
-          "comment": 0
-        },
-        {
-          "name": "海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社S",
-          "pv": 5,
-          "like": 0,
-          "comment": 0
-        },
-        {
-          "name": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社S",
-          "pv": 5,
-          "like": 0,
+          "like": 1,
           "comment": 0
         },
         {
@@ -381,18 +411,6 @@
           "name": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース1",
           "pv": 4,
           "like": 1,
-          "comment": 0
-        },
-        {
-          "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社",
-          "pv": 4,
-          "like": 0,
-          "comment": 0
-        },
-        {
-          "name": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ ",
-          "pv": 4,
-          "like": 2,
           "comment": 0
         },
         {
@@ -456,12 +474,6 @@
           "comment": 0
         },
         {
-          "name": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社",
-          "pv": 3,
-          "like": 1,
-          "comment": 0
-        },
-        {
           "name": "海外急上昇OSS「md3Music」商用化マニュアル｜社内DX提案書 ＆ 自社S",
           "pv": 2,
           "like": 0,
@@ -495,6 +507,12 @@
           "name": "海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社Saa",
           "pv": 2,
           "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「filmcraft」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 1,
+          "like": 0,
           "comment": 0
         },
         {
