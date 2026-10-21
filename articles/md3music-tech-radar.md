@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「md3Music」のアーキテクチ�
 emoji: "⚡"
 type: "tech"
 topics: ["dart", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # md3Music: 概要と革新性

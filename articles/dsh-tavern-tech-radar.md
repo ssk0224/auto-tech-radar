@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「dsh-tavern」のアーキテク�
 emoji: "⚡"
 type: "tech"
 topics: ["javascript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # dsh-tavern: 概要と革新性

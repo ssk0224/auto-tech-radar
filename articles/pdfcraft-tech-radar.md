@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「pdfcraft」のアーキテクチ�
 emoji: "⚡"
 type: "tech"
 topics: ["rust", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # pdfcraft: 概要と革新性

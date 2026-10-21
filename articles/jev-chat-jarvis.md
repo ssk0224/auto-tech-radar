@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「jev-chat-jarvis」のアーキテ
 emoji: "⚡"
 type: "tech"
 topics: ["kotlin", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # jev-chat-jarvis: 概要と革新性

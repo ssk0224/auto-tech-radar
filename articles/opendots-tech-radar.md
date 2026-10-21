@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「OpenDots」のアーキテクチ�
 emoji: "⚡"
 type: "tech"
 topics: ["typescript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # OpenDots: 概要と革新性

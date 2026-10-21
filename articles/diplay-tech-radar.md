@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「DiPlay」のアーキテクチャ
 emoji: "⚡"
 type: "tech"
 topics: ["kotlin", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # DiPlay: 概要と革新性
