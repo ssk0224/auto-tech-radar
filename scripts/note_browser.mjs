@@ -295,12 +295,13 @@ async function draftBlocksOf(ed) {
   return (await ed.evaluate(noteBlocks, {})) || [];
 }
 
-// ログインしていない読者が読める無料部分（更新前）。更新後に有料ラインの位置が変わっていないことを確かめるため
-async function freePartBefore(page, key) {
+// ログインしていない読者が読める無料部分（更新前）と、更新後にあるべき無料部分（rules なら規則を当てたもの、でなければ更新前のまま）。
+// 更新後に有料ラインの位置が変わっていないことを確かめるため
+async function freePartBefore(page, key, { rules }) {
   const before = await publicBody(page, key);
   if (before.error) throw new Error(before.error);
   const blocks = (await inPage(page, noteBlocks, { html: before.body })) || [];
-  return { old: normBlocks(blocks), want: normBlocks(blocks.map(applyNoteRules)) };
+  return { old: normBlocks(blocks), want: normBlocks(rules ? blocks.map(applyNoteRules) : blocks) };
 }
 
 // 「更新する」の後、無料部分が「更新前の無料部分に規則を当てたもの」（規則を当てない更新なら更新前そのもの）と同じであること。
@@ -335,7 +336,7 @@ async function publishDraft(ctx, page, key, steps) {
   const live = await noteBody(page, key);
   if (live.error) throw new Error(live.error);
   const want = normBlocks(await inPage(page, noteBlocks, { html: live.body }));
-  const free = await freePartBefore(page, key);
+  const free = await freePartBefore(page, key, { rules: false });
   const ed = await ctx.newPage();
   try {
     await openEditor(ed, key, steps);
@@ -452,7 +453,7 @@ async function fixNoteText(ctx, page, t, steps, { onUpdate } = {}) {
   if (!liveRules.length) throw new NotFixed("公開中の記事に直す表現が見つからないため、自動では直しません（公開はしていません）");
   // 直した後にあるべき本文（公開中の本文に規則を当てたもの）と、無料部分
   const want = normBlocks((await inPage(page, noteBlocks, { html: live.body })).map(applyNoteRules));
-  const free = await freePartBefore(page, t.key);
+  const free = await freePartBefore(page, t.key, { rules: true });
   const ed = await ctx.newPage();
   try {
     await openEditor(ed, t.key, steps);

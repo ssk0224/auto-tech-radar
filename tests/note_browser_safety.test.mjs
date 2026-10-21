@@ -59,6 +59,13 @@ test("見出し画像の予備の「更新する」: 編集画面の下書きが
   assert.doesNotMatch(r.out, /✓ 見出し画像を設定: zcode/);
 });
 
+test("見出し画像の予備の「更新する」: 無料部分に直す表現が残っている記事も、本文は変えずに公開し、無料部分が更新前と同じことを確かめる", { skip }, () => {
+  const r = runNote("eyecatch", (k) => ({ ATR_NOTE_MOCK_TARGET: k.zcode, ATR_NOTE_MOCK_INVOICE: k.zcode }));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /✓ 見出し画像を設定: zcode/);
+  assert.match(noteHtmlText(r.live[r.keys.zcode]), /インボイス対応領収書/, "見出し画像のための更新では本文を変えない");
+});
+
 test("見出し画像の予備の「更新する」: 公開されていない記事（最後のボタンが「投稿する」）は押さない（新規出品にしない）", { skip }, () => {
   const r = runNote("eyecatch", (k) => ({ ATR_NOTE_MOCK_TARGET: k.zcode, ATR_NOTE_MOCK_UNPUBLISHED: k.zcode }));
   assert.deepEqual(r.live, {}, `公開していない: ${r.out}`);
