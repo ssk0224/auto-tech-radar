@@ -1,0 +1,159 @@
+{
+  "checkedAt": "2026-10-21T04:34:13.460Z",
+  "notes": {
+    "aihot": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "anatomy": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "answer-me-with-html": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "cadcraft": {
+      "eyecatch": false,
+      "issues": []
+    },
+    "compositor": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "diplay": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "droiddeck": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "dsh-our-free-model": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "dsh-tavern": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "effectcraft": {
+      "eyecatch": false,
+      "issues": [
+        "第三者（ThoughtWorks）の評価のような表現"
+      ]
+    },
+    "filmcraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "gptqmodel": {
+      "eyecatch": false,
+      "issues": [
+        "第三者（ThoughtWorks）の評価のような表現"
+      ]
+    },
+    "gridcraft": {
+      "eyecatch": false,
+      "issues": []
+    },
+    "how-to-live-better": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "jev-chat-jarvis": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "jev-ultrafast": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "jiuwenswarm": {
+      "eyecatch": false,
+      "issues": []
+    },
+    "kev": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "laya-mlx": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "laya": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "lightcraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "magpie": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "md3music": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "opendots": {
+      "eyecatch": false,
+      "issues": []
+    },
+    "opensandbox": {
+      "eyecatch": false,
+      "issues": [
+        "第三者（ThoughtWorks）の評価のような表現"
+      ]
+    },
+    "pdfcraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "photocraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "pinvou-agent": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "potatotool": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "solidcraft": {
+      "eyecatch": false,
+      "issues": []
+    },
+    "strata": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "tokenspeed": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "universal-modder": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "vectorcraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "wordcraft": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "zcode": {
+      "eyecatch": true,
+      "issues": []
+    },
+    "LEAD_MAGNET_CHEAT_SHEET": {
+      "eyecatch": true,
+      "issues": []
+    }
+  }
+}
