@@ -4,7 +4,6 @@
 import { repoFullNameFromUrl, velocityFor } from "../../scripts/utils/ledger.mjs";
 import { dateLabel } from "./dates.js";
 
-
 // 掲載時から現在までのスター増加率（%、小数 1 桁）。比べられなければ null
 export function growthPct(starsAtPublish, starsNow) {
   const a = Number(starsAtPublish);
@@ -13,11 +12,21 @@ export function growthPct(starsAtPublish, starsNow) {
   return Math.round(((b - a) / a) * 1000) / 10;
 }
 
-// 記事の frontmatter と velocity から API 用の値を作る。velocity に記録が無ければ現在値は null
+// 「現在」として使える記録か。記録日（台帳の UTC 日付）が掲載日（日本時間の日付）より前の記録は使わない。
+// 台帳は生成より先に取るため、朝の定期実行で掲載した記事には前日の記録しか無く、
+// 「掲載時 ★11,608（10-23）→ 現在 ★11,000（10-22 時点）」のように掲載より前の値を「現在」と出してしまう
+function currentRecord(v, pubDate) {
+  if (!v || !Number.isFinite(Number(v.stars_now)) || v.stars_now === null || !dateLabel(v.last_seen)) return null;
+  const pub = dateLabel(pubDate);
+  if (pub && dateLabel(v.last_seen) < pub) return null;
+  return v;
+}
+
+// 記事の frontmatter と velocity から API 用の値を作る。velocity に（掲載日以降の）記録が無ければ現在値は null
 export function trackRecordFor(frontmatter, velocity) {
   const rawStars = frontmatter?.stars;
   const starsAtPublish = rawStars === undefined || rawStars === null || rawStars === "" || !Number.isFinite(Number(rawStars)) ? null : Number(rawStars);
-  const v = velocityFor(velocity, repoFullNameFromUrl(frontmatter?.repoUrl));
+  const v = currentRecord(velocityFor(velocity, repoFullNameFromUrl(frontmatter?.repoUrl)), frontmatter?.pubDate);
   const starsNow = v ? v.stars_now : null;
   return {
     stars_at_publish: starsAtPublish,

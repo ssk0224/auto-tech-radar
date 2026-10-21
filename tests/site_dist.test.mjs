@@ -10,6 +10,7 @@ import os from "os";
 import path from "path";
 import http from "http";
 import { dateLabel, jstDayStart, withinLastWeek } from "../src/utils/dates.js";
+import { trackRecordFor, trackRecordLine } from "../src/utils/track_record.js";
 import { dateModifiedOf, datePublishedOf, jsonLdText, tagsOf, noteOfferFor, ellipsis } from "../src/utils/article_page.js";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -92,6 +93,18 @@ test("note の価格が数値でない（\"¥980\"・\"abc\"）・負の値な�
   }
   assert.equal(noteOfferFor("z", { z: { url, price: "980" } }, undefined).priceLabel, "¥980");
   assert.equal(noteOfferFor("z", { z: { url, price: 1480 } }, undefined).priceLabel, "¥1,480");
+});
+
+test("スター数の「現在」は掲載日以降の記録だけ（朝の定期実行で掲載した記事に、前日の台帳の値を「現在」と出さない）", () => {
+  const fm = { stars: 11608, pubDate: "2026-10-23", repoUrl: "https://github.com/o/r" };
+  const before = { repos: { "o/r": { stars_now: 11000, last_seen: "2026-10-22" } } };
+  assert.equal(trackRecordLine(fm, before), null);
+  assert.deepEqual(trackRecordFor(fm, before), { stars_at_publish: 11608, stars_now: null, stars_now_date: null, growth_pct: null });
+  const sameDay = { repos: { "o/r": { stars_now: 11700, last_seen: "2026-10-23" } } };
+  assert.equal(trackRecordLine(fm, sameDay), "掲載時 ★11,608（2026-10-23）→ 現在 ★11,700（2026-10-23 時点）");
+  assert.equal(trackRecordLine({ ...fm, pubDate: new Date("2026-10-23") }, sameDay), "掲載時 ★11,608（2026-10-23）→ 現在 ★11,700（2026-10-23 時点）");
+  // 壊れた記録（stars_now が無い）は出さない（「★NaN」にしない）
+  assert.equal(trackRecordLine(fm, { repos: { "o/r": { last_seen: "2026-10-24" } } }), null);
 });
 
 test("関連記事・新着ピックアップのタイトルは、長いものだけを切って「...」を付ける", () => {
@@ -285,12 +298,12 @@ test("配信物の監査は、壊れた構造化データ・存在しない OGP 
     html = html.replace(/(<script type="application\/ld\+json">)[\s\S]*?(<\/script>)/, `$1{"@type":"TechArticle","headline":"a </script><script>x()</script>"}$2`);
     html = html.replace(/og-card\.png/g, `ogp/${PROBE_SLUG}.png`);
     html = html.replace(/(<article id="article-body"[^>]*>)/, '$1<p><img alt="" onerror="alert(1)"></p>');
-    html = html.replace("</main>", `<a href="/auto-tech-radar/radar/${PROBE_SLUG}">x</a><span>Tue Oct 20 2026 09:00:00 GMT+0900 (日本標準時)</span><p>有料版（note ¥NaN）</p></main>`);
+    html = html.replace("</main>", `<a href="/auto-tech-radar/radar/${PROBE_SLUG}">x</a><span>Tue Oct 20 2026 09:00:00 GMT+0900 (日本標準時)</span><p>有料版（note ¥NaN）</p><p class="track-record">掲載時 ★11,608（2026-10-23）→ 現在 ★11,000（2026-10-22 時点）</p></main>`);
     fs.writeFileSync(path.join(broken, rel), html);
     const r = spawnSync(process.execPath, [path.join(root, "scripts/audit_dist.mjs"), broken], { cwd: root, encoding: "utf8" });
     const out = r.stdout + r.stderr;
     assert.notEqual(r.status, 0);
-    for (const s of ["JSON-LD", "404 DEAD LINK", "NO TRAILING SLASH", "Date の文字列", "NaN / undefined", "スクリプトを動かす"]) assert.ok(out.includes(s), `${s} を検出していない\n${out.slice(0, 3000)}`);
+    for (const s of ["JSON-LD", "404 DEAD LINK", "NO TRAILING SLASH", "Date の文字列", "NaN / undefined", "スクリプトを動かす", "掲載日（2026-10-23）より前の記録"]) assert.ok(out.includes(s), `${s} を検出していない\n${out.slice(0, 3000)}`);
   } finally {
     fs.rmSync(broken, { recursive: true, force: true });
   }
