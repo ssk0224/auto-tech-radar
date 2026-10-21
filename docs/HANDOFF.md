@@ -20,7 +20,7 @@
 | ノイズ判定 | 生成・X 投稿・noindex・サイトマップで同じ基準 | `scripts/utils/noise_filter.mjs` |
 | 出品履歴 | git マージドライバで投稿済みフラグの和集合 | `scripts/merge_publish_history.mjs`, `.gitattributes` |
 | 旧形式の移行 | 修正前の生成物（平文の有料部分・Web の PRO セクション・旧 Zenn 送客文）を現在の形式に揃える（冪等） | `scripts/migrate_legacy_content.mjs` |
-| テスト | `npm test`（CI でビルド前に実行）。性質の検査＋わざと不具合を入れて監査が止めることの検証＋生成スクリプトのモック実行 | `tests/` |
+| テスト | `npm test`（CI でビルド前に実行。Windows・CRLF の作業ツリーでも `.github/workflows/ci-windows.yml` が全部走らせる）。性質の検査＋わざと不具合を入れて監査が止めることの検証＋生成スクリプトのモック実行 | `tests/` |
 
 鍵の作り直し: Actions を一時停止 → `npm run vault:rotate` → `keys/` と `note_drafts/` をコミット → 再開。古い鍵で暗号化された原稿が混ざったら `npm run vault:reseal`。
 
@@ -36,14 +36,14 @@
 - **オーナーPC（Windows）の同期・秘密鍵の確立・全38本の再封印**（2026-10-19 20:15 JST）:
   - オーナー端末に残っていた履歴書き換え前のクローンを `C:\Users\free1\_quarantine_auto-tech-radar_prerewrite_20261019\old_history.bundle` に隔離退避し、作業ツリーを `origin/main` と完全一致化・旧オブジェクトを `git gc --prune=now` で物理パージ済み。
   - オーナー端末（`%USERPROFILE%\.auto-tech-radar\note_vault_private.pem`）に新しい4096-bit RSA秘密鍵を生成し、隔離バンドルから復元した全38本の有料本文（`laya-mlx` / `jiuwenswarm` / `opendots` / 自作Docker 11本の誠実化パッチ適用済み）を新公開鍵（`kid: 77ba83a4762520e8`）で再暗号化・`npm run vault:open` での往復復号を検証済み。
-  - Windows環境（`core.autocrlf=true`）で公開鍵やZenn送客文がCRLFになることで `keyId()` や監査・テストが不一致になっていた問題を `scripts/utils/note_vault.mjs` / `scripts/audit_quality.mjs` / `tests/boundaries.test.mjs` で正規化修正済み。
+  - Windows環境（`core.autocrlf=true`）で公開鍵やZenn送客文がCRLFになることで `keyId()` や監査・テストが不一致になっていた問題を `scripts/utils/note_vault.mjs` / `scripts/audit_quality.mjs` / `tests/boundaries.test.mjs` で正規化修正済み（その場しのぎだった。2026-10-22 から、リポの改行は `.gitattributes` の `* text=auto eol=lf` で LF に固定。読み込み側の正規化は `scripts/utils/eol.mjs`・テストは `tests/helpers/read_src.mjs`）。
   - `README.md`・`src/pages/*.astro`・`scripts/crawl_and_generate.mjs`・`scripts/launcher.mjs` に残っていた旧表記（`gemini-3.8-flash`、固定単価表、`完全保存版`、`ドル箱`、生成プロンプト内の「全アーカイブが読み放題」）を除去し、`tests/claims.test.mjs` の検査対象に追加。
 - **note.com 全記事の差し替え・重複/ノイズ削除・全37本の完全同期（全自動完結）**（2026-10-19 23:05 JST）:
   - **秘密鍵の二重バックアップ完了**: `C:\Users\free1\.auto-tech-radar\note_vault_private.pem` を `D:\auto-tech-radar-vault-backup\note_vault_private_20261019.pem` および `C:\Users\free1\OneDrive\.auto-tech-radar-vault-backup\note_vault_private_20261019.pem` にユーザー専用ACL（`free1:(R)`）で退避済み。
   - **note.com ProseMirror HTML レンダラーの開発・テスト整備** (`scripts/utils/note_html.mjs`, `tests/note_html.test.mjs`): note.com では Markdown の `|---|---|` 表が解釈されず `<p>` になってしまう仕様を解決するため、表を構造化された定義リスト・箇条書きに変換し、インラインコード・太字・リンク・改行を note.com ProseMirror エディタと 100% 互換にする変換パイプラインを構築。
   - **全40原稿の誠実化＆未出品2本（`gptqmodel`, `opensandbox`）の追加**: 根拠のない価格表記・未検証のコマンドを正直化・注釈付きに修正し、欠落していた `gptqmodel` と `opensandbox` の有料版（社内提案書・工数見積表付き）を新規作成・暗号化封印。
   - **note 上の全 37 記事（無料リードマグネット 1 本＋有料マニュアル 36 本）の完全同期**: `note_api_server.mjs` 経由で既存 35 本の更新および新規 2 本の出品（¥980）を全自動完了。`node scripts/sync_note_urls.mjs` により **37 本中 37 本が原稿と 1 対 1 で `scripts/note_urls.json` に完全対応（37/37本・重複0・ノイズ0・タイトル正規化済み）**。
-  - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
+  - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test` と `npm run build`（ALL PASS）で検証した（その時点の結果。件数は書かない）。
 
 ## 未完了（今後の自動運用・任意設定）
 - **【2026-10-21 22:30 JST ローカルセッション（オーナー PC）の状態】**
@@ -51,7 +51,7 @@
   - **Cloudflare Web Analytics（有効化・58e36b1）**: `webmaster_setup.mjs cf` で token を取得。beacon と privacy.astro の外部送信の記載は同じ設定値で出る（ビルドと audit_dist で確認済み）。計測値は Cloudflare のダッシュボード（同じ専用プロファイルでログイン済み）。
   - 時刻だけのコミット: CI が `note_status.json`・`zenn_status.json` の `checkedAt` だけを変えて「chore: auto-index new tech radar entry」というコミットを毎回作る（件名が実態と合わない・履歴と rebase の手間が増える）。直す候補。
   - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
-  - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
+  - **Windows の owner PC で落ちていたテストは 2026-10-22 に原因ごとに直した**（CRLF・symlink の EPERM・astro build の同時実行・git 同期・Linux 固定の Chrome 探し・USERPROFILE を差し替えると Chrome が応答しない件）。同じ種類を入れさせない仕組みは `.github/workflows/ci-windows.yml`（Windows・autocrlf=true・全ファイル CRLF で全テスト、Chrome 無しは失敗）と `tests/env_portability.test.mjs`。**件数はここに書かない**（書いた時点の数字は古くなる）。現在の合否は Windows の CI の実行結果と owner PC の `npm test`。鍵がある owner PC だけで動く有料本文の検査（cleanyourtv・deepinfer の赤）と note_html の本数は別系統（bughunt_summary.md のクラス 4）。
   - **バグ洗い出し wf_8baf0270-60c は 2026-10-21 23:27 に完了**（55 件発見 → 敵対的検証で 47 件確認: CRITICAL 2・HIGH 4・MEDIUM 18・LOW 23、系統別の対策案つき）。結果はオーナー PC の `~/.auto-tech-radar/handoff/`（`bughunt_summary.md`＝一覧、`bughunt_wf_8baf0270-60c_result.json`＝全文、`scratch/`＝再現用スクリプト）。公開リポに置かないのは有料本文の漏れ方の詳細を含むため。**次のセッションは `bughunt_summary.md` を読み、CRITICAL→HIGH の順に、バグごとに原因＋同じ種類を止める仕組みで直す**。
     - CRITICAL（2 件は同じ事象）: 書き換え前の有料本文入りコミットが GitHub に SHA 指定で匿名で読めた → 2026-10-22 にリポの作り直しで解消（上の「完了」参照）。残りは docs に SHA を書かせない検査。
     - HIGH: git_sync が git の stderr（Windows の autocrlf 警告）をファイル名として扱い、衝突の修復がオーナー PC で効かない／有料ラインの漏れ検知が「位置不明」を合格扱い（23〜24 本が未計測なのに「34 本確認」と書いていた）／有料本文の検査がオーナー PC でだけ動き、cleanyourtv・deepinfer で赤。
@@ -77,7 +77,7 @@
 - **【次のセッション（オーナー PC のローカル）で最初にやること】** オーナー決定（2026-10-21）: クラウドのクレジットが尽きたためローカル（デスクトップアプリ／`claude remote-control`、コンピュータユース可、PC は閉じない）に移る。
   1. Google Search Console の登録と、Cloudflare Web Analytics の登録を、オーナーと一緒に行う（ローカルで実施すると決定済み）。登録後に Claude が確認用メタタグ／解析タグをサイトに入れ、`privacy.astro` の外部送信一覧を同じコミットで更新する。
   2. 10/22 19:49 JST 以降に [E]（残り 23 本）。ローカルなら note.com を直接確認できる（クラウドの環境は note.com への通信が 403 で拒否されていた）。
-  3. 全体のバグ洗い出し（2026-10-21、3 系統で計 48 件をテストで再現して修正、テスト 270 件）の初回本番を確認: daily-crawl の「Configure git」ステップ・2 段の品質ゲート・12:17 の停止アラート（origin/main を見る）・Gemini 1 回 6 分のタイムアウト。Zenn の公開確認は CI から全件 HTTP 403 で、これまで実際には確認できていなかった（今は毎回警告が出る）→ ローカルから確認する。
+  3. 全体のバグ洗い出し（2026-10-21、3 系統で計 48 件をテストで再現して修正）の初回本番を確認: daily-crawl の「Configure git」ステップ・2 段の品質ゲート・12:17 の停止アラート（origin/main を見る）・Gemini 1 回 6 分のタイムアウト。Zenn の公開確認は CI から全件 HTTP 403 で、これまで実際には確認できていなかった（今は毎回警告が出る）→ ローカルから確認する。
   4. ロードマップの続き: 週次のオーナー報告 issue、Radar Weekly（11/2 開始）、Vol.1（11/4 頃）。
 - **比較調査のロードマップ（2026-10-21、要点）**: 収益ゼロの主因は ①自分の読者リストが無い ②商品が README の言い換えで同型 ¥980 が 38 本 ③選定の根拠が無い。優先順: (1) 生成停止の検知とモデル切替 (2) 毎日のリポジトリ記録（後から作れないデータ）と掲載後の推移表示 (3) ライセンス誤記・根拠のない推奨の訂正と再発防止 (4) 勢い（7 日のスター増）での選定・同一オーナー上限・選定基準ページ (5) note のタイトル・カタログ整理（オーナー承認後）(6) 週次号の固定 URL＋GitHub Releases（メールは後）(7) 事実だけで決める区分 (12) 週次のオーナー報告 issue。(1)〜(4) は第 2 弾として実装中。
 - **【2026-10-21 15:21 JST 確認】見出し画像は全 37 本に設定済み**（CI の `scripts/note_status.json` で no eyecatch 0 本）。[E] の実機ログ（`scripts/note_browser_log.json`、版 8cb9cfb）: 正しくログインした状態ならアップロードだけで記事に反映され、「公開に進む→更新する」の予備処理は使われなかった（それ以前の「下書きにだけ付く」という見立ては誤り。以前は note.com 側のログインが不完全だった可能性）。残りは effectcraft / gptqmodel / opensandbox の無料部分の見出し「🎯 ThoughtWorks成熟度リング判定…」（note 上の更新日時 10/19 のまま）。[U] が見出し 1 行だけの修正として案内する（`scripts/utils/note_pending.mjs`）。オーナーの [U] 実施待ち → 次の CI の検査で issues が消えたか確認する。

@@ -1,0 +1,42 @@
+name: Windows tests
+
+# owner PC（Windows 11・core.autocrlf=true・symlink の権限なし）と同じ条件で全テストを走らせる。
+# 本番の定期実行（daily-crawl.yml）は Linux なので、それだけでは「Windows でだけ落ちる」不具合が見えず、owner PC の赤が「環境のノイズ」として放置された。
+# この workflow が赤なら、Windows で壊れているということ（公開・生成は止めない。気づくためのもの）。tests/env_portability.test.mjs がこの手順の崩れを検査する。
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      # owner PC と同じ git 設定にしてから checkout する（この設定は checkout より前でないと効かない）
+      - name: Match the owner PC git settings
+        run: git config --global core.autocrlf true
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: "npm"
+      - run: npm ci
+      # リポは .gitattributes で LF に固定されているが、owner PC の作業ツリーには CRLF のファイル（古い checkout・エディタの保存）が残る。
+      # 同じ状態（追跡しているテキストを全部 CRLF）にして、改行に依存するコードを見つける
+      - name: Make the working tree CRLF like the owner PC
+        run: node tests/helpers/worktree_eol.mjs crlf
+      # 鍵が無いので有料本文の検査（復号）は skip になる。Chrome が見つからないことは skip でなく失敗にする（緑のまま何も検証しない事故を防ぐ）
+      - name: Run all tests
+        env:
+          ATR_REQUIRE_CHROME: "1"
+        run: npm test
