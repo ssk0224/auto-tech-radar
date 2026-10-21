@@ -10,7 +10,7 @@ const noteUrls = (noteUrlsRaw || {}) as Record<string, { url?: string }>;
 const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note.com/vast_ixora7005";
 ---
 
-<Layout title="OSS商用化チートシート ＆ 比較マトリクス | Auto Tech Radar" description="世界で急上昇するオープンソースの技術領域・SaaS展開性・技術スタックを横断比較できるエンジニア・CTO向け商用化データベース。">
+<Layout title="OSS商用化チートシート ＆ 比較マトリクス | Auto Tech Radar" description="世界で急上昇するオープンソースを技術領域・GitHub スター数・技術スタックで横断比較できるエンジニア・CTO向け商用化データベース。">
   <div style="margin-bottom: 2rem;">
     <!-- ヘッダーバナー -->
     <div style="background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 70%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 2.2rem 1.5rem; text-align: center; margin-bottom: 2rem;">
@@ -70,7 +70,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
             <th style="padding: 1rem; white-space: nowrap;">OSS リポジトリ</th>
             <th style="padding: 1rem; white-space: nowrap;">技術領域 / 言語</th>
             <th style="padding: 1rem; white-space: nowrap;">GitHub Stars</th>
-            <th style="padding: 1rem; white-space: nowrap;">商用ポテンシャル</th>
+            <th style="padding: 1rem; white-space: nowrap;">活用領域（簡易分類）</th>
             <th style="padding: 1rem; text-align: right; white-space: nowrap;">レポート</th>
           </tr>
         </thead>
@@ -206,7 +206,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
       const origMdText = copyMdBtn.innerHTML;
       let mdTimer = null;
       copyMdBtn.addEventListener('click', () => {
-        let md = '| OSS | スター数区分 | 技術領域 | Stars | 商用ポテンシャル | 記事URL |\n';
+        let md = '| OSS | スター数区分 | 技術領域 | Stars | 活用領域（簡易分類） | 記事URL |\n';
         md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
@@ -240,7 +240,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     const exportCsvBtn = document.getElementById('export-cheatsheet-csv');
     if (exportCsvBtn) {
       exportCsvBtn.addEventListener('click', () => {
-        let csv = 'OSS,スター数区分,技術領域,Stars,商用ポテンシャル,記事URL\n';
+        let csv = 'OSS,スター数区分,技術領域,Stars,活用領域（簡易分類）,記事URL\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
             const tds = row.querySelectorAll('td');
