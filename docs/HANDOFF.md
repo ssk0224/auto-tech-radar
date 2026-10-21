@@ -29,7 +29,7 @@
 - **git 履歴の書き換え済み**（`git filter-repo`、main とブランチを force push、書き換え後の先頭 `e31c676`）。生成コンテンツの過去版を最新版に置換し、有料キットを書き戻していた削除済みスクリプトを履歴から除去。元の履歴の有料本文 2,522 行を全オブジェクトで照合し、残存 0（コード内の見出しテンプレートのみ一致）。
   - **オーナー端末の古いクローンは使わず、取り直すこと**（`git clone https://github.com/ssk0224/auto-tech-radar`）。古いクローンから push すると平文の履歴が戻る。
   - 書き換え後も GitHub は古いコミットを SHA 指定で匿名に表示していた。**2026-10-22 00:10 JST に GitHub 上のリポを削除→同名で作り直し→main と claude/upbeat-tesla-7dei50 を push して解消**（オーナー判断。フォーク・スター・PR・issue は 0 だった）。旧 main・旧ブランチ先頭・旧ルートの 3 コミットとも API は 422「No commit found」、匿名の `.patch` は 404 を確認。GitHub Support への依頼は不要になった（下書きはオーナー PC の `~/.auto-tech-radar/handoff/github_support_request.md`）。**GitHub の「削除したリポの復元」は使わない**（使うと漏れが戻る）。外部のミラー（Software Heritage 等）に複製があるかは未確認。
-  - 作り直しで消えたもの: Actions の実行履歴（run 番号は 1 から）・成果物、シークレット `GH_PAT`（未登録のまま。workflow は `GITHUB_TOKEN` に切り替わる）。`GEMINI_API_KEY` はオーナーが再登録済み。Pages（GitHub Actions）・workflow の書き込み権限・説明文・トピックは元の値で設定済み。作り直し前の全ブランチと設定は `D:\ClaudeBackup\auto-tech-radar\`（bundle と repo 設定 JSON）。
+  - 作り直しで消えたもの: Actions の実行履歴（run 番号は 1 から）・成果物、シークレット `GH_PAT`（未登録のまま。workflow は `GITHUB_TOKEN` に切り替わる）。`GEMINI_API_KEY` はオーナーが再登録済み（Google AI Studio の HEAVEN アカウントの、2026-04 頃に作られたキー。FREE アカウントにも 2026-10-22 作成のキーがあるが使っていない）。Pages（GitHub Actions）・workflow の書き込み権限・説明文・トピックは元の値で設定済み。作り直し前の全ブランチと設定は `D:\ClaudeBackup\auto-tech-radar\`（bundle と repo 設定 JSON）。
   - 再公開前に、旧履歴の有料部分の行（3,246 行、25 字以上・無料部分に無いもの）を新しい履歴の全オブジェクトと照合した。一致は 71 行で、すべて生成テンプレートの見出し・ハッシュタグ・README 由来のコマンド・effectcraft の現行の無料部分（旧形式で無料部分が長い記事）。
   - **公開リポにコミット SHA（旧履歴のもの）を書かない**。
 - 乱数で作っていた閲覧者数（「現在 N 名が閲覧・研究中」）を削除、「全記事読み放題」系の表現を修正、sponsor の根拠のない読者層の主張を修正。テストに禁止表現として追加。
