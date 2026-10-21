@@ -196,6 +196,20 @@ export function paidContentSummary(paidText) {
 }
 export const summaryFileFor = (noteFile) => noteFile.replace(/\.md$/, ".paid.json");
 
+// 公開リポジトリに置く note 原稿（無料部分 + 暗号化プレースホルダ + 末尾）の本文。有料ラインが無ければ原稿そのまま
+export function publicNoteText(noteFile, fullContent) {
+  const parts = splitPaid(fullContent);
+  return parts ? [...parts.head, placeholderFor(noteFile), ...parts.tail].join("\n") : fullContent;
+}
+
+// 公開側の原稿の最小の長さ（品質ゲート scripts/audit_quality.mjs と生成スクリプトで共通。これより短い原稿は壊れているとみなす）
+export const MIN_PUBLIC_NOTE_CHARS = 500;
+// 生成スクリプトが保存前に確かめる: 保存される公開側の原稿が品質ゲートの最小の長さを満たすか
+export function publicNoteProblems(noteFile, fullContent) {
+  const n = publicNoteText(noteFile, fullContent).length;
+  return n < MIN_PUBLIC_NOTE_CHARS ? [`公開部分が短すぎます（${n}文字、${MIN_PUBLIC_NOTE_CHARS}文字以上が必要）`] : [];
+}
+
 export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublicKey()) {
   const parts = splitPaid(fullContent);
   if (!parts) {
@@ -203,7 +217,7 @@ export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublic
     fs.writeFileSync(noteFile, fullContent, "utf8");
     return { sealed: false };
   }
-  const publicText = [...parts.head, placeholderFor(noteFile), ...parts.tail].join("\n");
+  const publicText = publicNoteText(noteFile, fullContent);
   const aad = path.basename(noteFile);
   fs.writeFileSync(sealedFileFor(noteFile), encryptText(parts.paid.join("\n"), publicKeyPem, aad), "utf8");
   fs.writeFileSync(summaryFileFor(noteFile), JSON.stringify(paidContentSummary(parts.paid.join("\n")), null, 2) + "\n", "utf8");
