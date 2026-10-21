@@ -54,7 +54,20 @@ test("workflow が記録する実行結果の reason は run_status の一覧に
   assert.ok(used.includes("rejected"));
   for (const r of used) assert.ok(RUN_REASONS.includes(r), `${r} は RUN_REASONS にありません`);
   const gate = steps.find((s) => s.id === "gate");
-  assert.ok(gate.run.indexOf("run_status.mjs rejected") < gate.run.indexOf("git checkout --"), "取り除く前に記録する");
+  assert.ok(gate.run.indexOf("run_status.mjs rejected") < gate.run.indexOf("git checkout -- src/pages/radar"), "取り除く前に記録する");
+});
+
+test("品質ゲートに落ちたとき、この実行が commit するもの（data/ の実行記録を除く）はすべて元に戻せる（戻せないものが原因で公開が止まらない）", () => {
+  const commit = steps.find((s) => s.name === "Commit and push changes");
+  const added = commit.run.match(/^\s*git add (.+)$/m)[1].trim().split(/\s+/).map((p) => p.replace(/\/$/, ""));
+  const gate = steps.find((s) => s.id === "gate");
+  const restored = [...gate.run.matchAll(/^\s*git checkout -- (.+)$/gm)].flatMap((m) => m[1].trim().split(/\s+/).map((p) => p.replace(/\/$/, "")));
+  for (const p of added.filter((x) => x !== "data")) assert.ok(restored.includes(p), `${p} を品質ゲートで元に戻していません`);
+  // note の同期結果（scripts/note_urls.json など）は、生成物より先に戻して確かめる（同期の食い違いだけで記事を捨てない）
+  assert.ok(gate.run.indexOf("scripts/note_urls.json") < gate.run.indexOf("git checkout -- src/pages/radar"));
+  // 同期結果だけを戻して公開した回も、実行を失敗にして気づけるようにする
+  const fail = steps.find((s) => s.name === "Fail if generated content was rejected");
+  assert.match(fail.if, /sync_rejected/);
 });
 
 test("run_status の CLI は reason を記録し、一覧に無い reason では失敗する", () => {

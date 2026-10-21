@@ -87,14 +87,23 @@ jobs:
           node scripts/check_zenn.mjs || true
 
       # 新規生成物も含めた品質テスト（禁止表現・暗号化境界・送客リンク整合性）
-      # 不合格なら、この回に生成した記事だけを取り除いて既存の記事で公開を続ける（1本の不備でサイト更新・X 投稿まで止めない）。
-      # 取り除いた場合は最後の「Fail if generated content was rejected」でこの実行を失敗にして気づけるようにする
+      # 不合格なら、まず note / Zenn の同期結果（この回に取り直した対応表）を前回のものに戻して確かめ、
+      # それでも不合格なら、この回に生成した記事も取り除いて既存の記事で公開を続ける（1本の不備・同期の食い違いでサイト更新・X 投稿まで止めない）。
+      # どちらの場合も最後の「Fail if generated content was rejected」でこの実行を失敗にして気づけるようにする。
+      # ここで戻す・取り除くファイルは、この実行が commit するもの（data/ の実行記録を除く）をすべて含む（tests/workflow.test.mjs が確かめる）
       - name: Post-Crawl Quality Test Gate
         id: gate
         env:
           RUN_SCHEDULE: ${{ github.event.schedule }}
         run: |
           if npm test; then
+            exit 0
+          fi
+          # note の公開状況の変化（非公開にした・タイトルを変えた記事）で対応表が変わり、テストに通らなくなることがある
+          git checkout -- scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
+          if npm test; then
+            echo "::error title=note sync rejected::note / Zenn の同期結果がテストに通らなかったため、前回の対応表のまま公開します（公開中の note と原稿の対応を確認してください）"
+            echo "sync_rejected=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "::error title=Generated content rejected::生成した記事がテストに通らなかったため、この回の生成物を取り除いて既存の記事で公開します"
@@ -198,9 +207,13 @@ jobs:
         run: node scripts/ping_search_engines.mjs
 
       - name: Fail if generated content was rejected
-        if: steps.gate.outputs.rejected == 'true'
+        if: steps.gate.outputs.rejected == 'true' || steps.gate.outputs.sync_rejected == 'true'
         run: |
-          echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
+          if [ "${{ steps.gate.outputs.rejected }}" = "true" ]; then
+            echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
+          else
+            echo "::error::note / Zenn の同期結果はテスト不合格のため反映していません（記事の公開は続けています）。上の Post-Crawl Quality Test Gate のログを確認してください"
+          fi
           exit 1
 
       # 第3便（12:17 JST）の最後に、日本時間の今日の記事が 1 本も無ければ Issue（ラベル pipeline-alert）でアラートする。
