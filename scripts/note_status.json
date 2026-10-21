@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-21T06:43:31.424Z",
+  "checkedAt": "2026-10-21T06:46:05.747Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
@@ -72,12 +72,9 @@
     },
     "gptqmodel": {
       "eyecatch": true,
-      "issues": [
-        "第三者（ThoughtWorks）の評価のような表現"
-      ],
+      "issues": [],
       "name": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-19T23:03:03.000+09:00",
-      "excerpt": "9f-92cf8ae8682e\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
+      "updatedAt": "2026-10-19T23:03:03.000+09:00"
     },
     "gridcraft": {
       "eyecatch": true,
@@ -153,12 +150,9 @@
     },
     "opensandbox": {
       "eyecatch": true,
-      "issues": [
-        "第三者（ThoughtWorks）の評価のような表現"
-      ],
+      "issues": [],
       "name": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-19T23:03:04.000+09:00",
-      "excerpt": "9b-1625e6ee64d4\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
+      "updatedAt": "2026-10-19T23:03:04.000+09:00"
     },
     "pdfcraft": {
       "eyecatch": true,
