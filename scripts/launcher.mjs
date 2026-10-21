@@ -10,6 +10,7 @@ import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './util
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
+import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { hiddenAfterOwnerFix, oldRingWordingSpot, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -92,6 +93,8 @@ const c = {
 
 // 100%確実にユーザーのGUI画面でブラウザを開く関数（Windows FileProtocolHandler API）
 function openUrl(url) {
+  // note は出品用アカウントでログインした専用プロファイルの Chrome で開く（普段のブラウザは別アカウントのことがある）
+  if (isNoteUrl(url) && openInNoteChrome(url)) return;
   exec(`rundll32 url.dll,FileProtocolHandler "${url}"`, (err) => {
     if (err) {
       exec(`start "" "${url}"`);

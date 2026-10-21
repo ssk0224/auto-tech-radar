@@ -2,34 +2,21 @@
 // 専用プロファイル（~/.auto-tech-radar/chrome-note）を使うので、初回だけ開いた窓で note にログインする。以後はログイン状態が残る。
 // 使い方: node scripts/note_browser.mjs eyecatch
 import fs from "fs";
-import os from "os";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
+import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROFILE = path.join(os.homedir(), ".auto-tech-radar", "chrome-note");
+const PROFILE = NOTE_PROFILE;
 
 // Google などのログインは、自動操作中のブラウザを「安全でない」として拒否する。
 // そのためログインだけは、自動操作なしの普通の Chrome を同じ専用プロファイルで開いて行い、窓が閉じられたら自動操作に戻る
 class LoginRequired extends Error {}
 
-function chromeExe() {
-  const env = process.env;
-  const candidates = [
-    env.CHROME_PATH,
-    env.PROGRAMFILES && path.join(env.PROGRAMFILES, "Google", "Chrome", "Application", "chrome.exe"),
-    env["PROGRAMFILES(X86)"] && path.join(env["PROGRAMFILES(X86)"], "Google", "Chrome", "Application", "chrome.exe"),
-    env.LOCALAPPDATA && path.join(env.LOCALAPPDATA, "Google", "Chrome", "Application", "chrome.exe"),
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium",
-  ];
-  return candidates.find((p) => p && fs.existsSync(p));
-}
 
 async function manualLogin() {
   console.log("\n  📝 note にログインしてください。普通の Chrome の窓を開きます（自動操作の窓では Google がログインを拒否するため）。");

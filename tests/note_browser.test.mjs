@@ -86,3 +86,11 @@ test("[U]: 古い成熟度の表現だけが問題の記事は、その語の置
   assert.equal(oldRingWordingSpot({ issues: [] }), null);
   assert.ok(!/🎯/.test(NEW_RING_WORDS), "見出しの 🎯 が二重にならない");
 });
+
+test("note のページは出品用アカウントの専用プロファイルで開く（note 以外は普段のブラウザ）", async () => {
+  const { isNoteUrl } = await import("../scripts/utils/note_chrome.mjs");
+  for (const u of ["https://note.com/notes/new", "https://editor.note.com/notes/n1/edit/", "https://note.com/dashboard/membership"]) assert.equal(isNoteUrl(u), true, u);
+  for (const u of ["https://zenn.dev/", "https://evilnote.com/", "https://note.com.example.org/", "not a url"]) assert.equal(isNoteUrl(u), false, u);
+  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  assert.match(src, /function openUrl\(url\) \{\n[^\n]*\n  if \(isNoteUrl\(url\) && openInNoteChrome\(url\)\) return;/);
+});
