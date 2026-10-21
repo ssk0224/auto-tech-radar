@@ -6,6 +6,10 @@ pubDate: "2026-10-11"
 tags: ["HTML", "OSS", "GitHub", "Python", "Offline-First", "KnowledgeBase"]
 repoUrl: "https://github.com/cdyforever/how-to-live-better"
 stars: 10927
+updatedDate: "2026-10-21"
+corrections:
+  - date: "2026-10-21"
+    note: "LICENSE ファイルを確認できないため、利用条件を「要確認」と明記"
 ---
 
 # how-to-live-better: 概要と革新性
@@ -124,4 +128,4 @@ python build.py 1 2 16 -o custom.html --repo /tmp/upstream
 - **原著コンテンツ（eternity4719/HowToLiveBetter）**: **Unlicense**（パブリックドメイン）。著作権が放棄されており、営利・非営利を問わず改変、再配布、商用利用が完全に自由です。
 - **本リポジトリのビルドコード（cdyforever/how-to-live-better）**: READMEに「本仓库的构建脚本同样不作任何权利保留（本倉庫のビルドスクリプトも同様に一切の権利を留保しない）」と明記されており、同じくパブリックドメイン準拠です。
 
-**結論**: 企業内システムの受託開発や、コードをベースにした商用SaaS・独自ツールの構築・販売に関して、ライセンス表示義務すら課されない極めて自由度の高い設計となっています。受託開発のテンプレート資産として安全に組み込み可能です。
+**結論**: README の記載どおりであれば利用の自由度は高いと考えられますが、リポジトリ直下の LICENSE ファイルは当サイトでは確認できなかったため、利用条件は要確認です。商用で利用する場合は [README](https://github.com/cdyforever/how-to-live-better#readme) と原著リポジトリのライセンス表記を確認してください。

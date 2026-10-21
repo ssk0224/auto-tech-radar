@@ -108,7 +108,7 @@ graph TD
 ## インストール & クイックスタート手順
 
 ### 1. ワンライナーによるインストール
-macOS、Linux環境では公式スクリプトで即座に導入できます。
+macOS、Linux環境では公式のインストールスクリプトで導入できます。
 
 ```bash
 curl -fsSL https://usemagpie.ai/install.sh | sh

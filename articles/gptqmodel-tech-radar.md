@@ -57,19 +57,19 @@ GPTQModelは、これらの課題に対し、以下の統合的かつモジュ�
 GPTQModelは、LLM量子化の分野において、既存のツールやサービスと比較して独自の強みを持っています。
 
 *   **Hugging Face Optimum**:
-    *   **GPTQModelの優位点**: Optimumは汎用的な最適化ライブラリであり、GPTQModelはOptimumとネイティブ統合されています。しかし、GPTQModelはParoQuant, QQQ, GGUF, FP8, EXL3といったより多様な先進的量子化手法を直接サポートし、AMD ROCm, Huawei Ascend, Intel XPU, Apple MPS向けのネイティブカーネル統合において、より深い最適化と広範なハードウェアカバレッジを提供します。特にGGUFのネイティブロードパスやEXL3のサポートはGPTQModelの強みです。
+    *   **GPTQModelの特徴**: Optimumは汎用的な最適化ライブラリであり、GPTQModelはOptimumとネイティブ統合されています。しかし、GPTQModelはParoQuant, QQQ, GGUF, FP8, EXL3といったより多様な先進的量子化手法を直接サポートし、AMD ROCm, Huawei Ascend, Intel XPU, Apple MPS向けのネイティブカーネル統合において、より深い最適化と広範なハードウェアカバレッジを提供します。特にGGUFのネイティブロードパスやEXL3のサポートはGPTQModelの強みです。
     *   **機能比較**: Optimumはより広範なモデル最適化（剪定、蒸留など）をカバーする一方、GPTQModelはLLMの量子化に特化し、その分野での網羅性と深度を追求しています。
 *   **vLLM / SGLang**:
-    *   **GPTQModelの優位点**: vLLMやSGLangは高速なLLM推論エンジンであり、量子化プロセス自体は提供しません。GPTQModelはこれらのエンジンと統合し、量子化されたモデルを効率的にデプロイするための補完ツールとして機能します。GPTQModelは、vLLMやSGLangがサポートする量子化フォーマット（GPTQ, AWQ Marlinなど）に加えて、GGUFやEXL3といった他のフォーマットもサポートし、より柔軟なモデル選択と最適化パスを提供します。
+    *   **GPTQModelの特徴**: vLLMやSGLangは高速なLLM推論エンジンであり、量子化プロセス自体は提供しません。GPTQModelはこれらのエンジンと統合し、量子化されたモデルを効率的にデプロイするための補完ツールとして機能します。GPTQModelは、vLLMやSGLangがサポートする量子化フォーマット（GPTQ, AWQ Marlinなど）に加えて、GGUFやEXL3といった他のフォーマットもサポートし、より柔軟なモデル選択と最適化パスを提供します。
     *   **機能比較**: 推論速度最適化に特化したvLLM/SGLangに対し、GPTQModelはモデルの圧縮とハードウェア最適化に焦点を当て、両者は相補的な関係にあります。
 *   **llama.cpp**:
-    *   **GPTQModelの優位点**: llama.cppはGGUFフォーマットのデファクトスタンダードであり、CPUおよび一部GPUでの推論に強みを持っています。GPTQModelはGGUFのネイティブ量子化と推論をサポートし、llama.cppと競合する側面もありますが、Pythonエコシステム内での統合性、GPTQ, AWQ, EXL3などGGUF以外の多様な量子化手法、およびNVIDIA/AMD/Intel/Huaweiといった広範なハードウェアアクセラレーションにおいて優位性があります。Python開発者にとっては、GPTQModelの方が既存のMLパイプラインに統合しやすいという利点があります。
+    *   **GPTQModelの特徴**: llama.cppはGGUFフォーマットのデファクトスタンダードであり、CPUおよび一部GPUでの推論に強みを持っています。GPTQModelはGGUFのネイティブ量子化と推論をサポートし、llama.cppと競合する側面もありますが、Pythonエコシステム内での統合性、GPTQ, AWQ, EXL3などGGUF以外の多様な量子化手法、およびNVIDIA/AMD/Intel/Huaweiといった広範なハードウェアアクセラレーションに対応している点が特徴です。Python開発者にとっては、GPTQModelの方が既存のMLパイプラインに統合しやすいという利点があります。
     *   **機能比較**: llama.cppはC++ベースで低レベルな最適化に強みを持つ一方、GPTQModelはPythonベースで開発の柔軟性と多様な量子化手法のサポートに優れます。
 *   **BitsAndBytes**:
-    *   **GPTQModelの優位点**: BitsAndBytesはHugging Face Transformersで広く利用される量子化ライブラリですが、GPTQModelはBitsAndBytesもサポートしつつ、GPTQ, AWQ, ParoQuant, QQQ, FP8, EXL3など、より多様な先進的量子化手法と、それらを統一的に扱うAPIを提供します。BitsAndBytesが主に4bit/8bitのロードと推論に焦点を当てるのに対し、GPTQModelは量子化プロセス自体を詳細に制御し、品質評価やデプロイまでをカバーする包括的なソリューションです。
+    *   **GPTQModelの特徴**: BitsAndBytesはHugging Face Transformersで広く利用される量子化ライブラリですが、GPTQModelはBitsAndBytesもサポートしつつ、GPTQ, AWQ, ParoQuant, QQQ, FP8, EXL3など、より多様な先進的量子化手法と、それらを統一的に扱うAPIを提供します。BitsAndBytesが主に4bit/8bitのロードと推論に焦点を当てるのに対し、GPTQModelは量子化プロセス自体を詳細に制御し、品質評価やデプロイまでをカバーする包括的なソリューションです。
     *   **機能比較**: BitsAndBytesは手軽な量子化ロードに特化する一方、GPTQModelは量子化プロセスのカスタマイズ性と網羅性に強みがあります。
 *   **商用SaaS (例: Anyscale, Together AI)**:
-    *   **GPTQModelの優位点**: これらのSaaSはマネージドなLLM推論サービスを提供し、多くの場合、量子化モデルのデプロイもサポートします。GPTQModelは、ユーザーが自社のインフラストラクチャ上でLLMを量子化・デプロイするためのツールであり、SaaSの代替または補完として機能します。SaaSは手軽ですが、カスタマイズ性やコスト面で制約がある場合があります。GPTQModelは、より細かい制御とコスト最適化を求める企業にとって、オンプレミスまたはプライベートクラウドでの運用を可能にし、データ主権の維持にも貢献します。
+    *   **GPTQModelの特徴**: これらのSaaSはマネージドなLLM推論サービスを提供し、多くの場合、量子化モデルのデプロイもサポートします。GPTQModelは、ユーザーが自社のインフラストラクチャ上でLLMを量子化・デプロイするためのツールであり、SaaSの代替または補完として機能します。SaaSは手軽ですが、カスタマイズ性やコスト面で制約がある場合があります。GPTQModelは、より細かい制御とコスト最適化を求める企業にとって、オンプレミスまたはプライベートクラウドでの運用を可能にし、データ主権の維持にも貢献します。
     *   **コスト比較**: SaaSは従量課金制であり、大規模な利用ではコストが高騰する可能性があります。GPTQModelを活用した自社運用は、初期投資は必要ですが、長期的に見て運用コストを大幅に削減できるポテンシャルを秘めています。
 
 ## 📖 続きと実務キットについて

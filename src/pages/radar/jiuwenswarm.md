@@ -6,6 +6,10 @@ pubDate: "2026-10-09"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/openJiuwen-ai/jiuwenswarm"
 stars: 5978
+updatedDate: "2026-10-21"
+corrections:
+  - date: "2026-10-21"
+    note: "比較表が当サイトで検証したものではないことを明記し、勧める表現を訂正"
 ---
 
 # jiuwenswarm: 概要と革新性
@@ -36,7 +40,7 @@ flowchart TD
 
 ## 競合ツール/商用SaaSとの徹底比較
 
-JiuwenSwarmは、既存の商用AIエージェントSaaSや他のオープンソースフレームワークと比較して、いくつかの明確な優位性を持っています。
+README に記載された JiuwenSwarm の機能を、一般的な商用 AI エージェント SaaS などと比べた表です（比較対象側は一般的な傾向で、当サイトで検証したものではありません）。
 
 | 比較項目 | JiuwenSwarm (OSS) | 一般的な商用マルチエージェントSaaS | 単一タスク型AIエージェント |
 |---|---|---|---|
@@ -81,4 +85,4 @@ uv pip install -e .
 
 ## 商用利用可否 & ライセンス考察
 
-JiuwenSwarmは **Apache License 2.0** の下で公開されており、商用利用、改変、社内システムや受託開発案件への組み込みが可能です。利用にあたってはリポジトリ内の `LICENSE` ファイルに基づき著作権表示とライセンス通知を保持してください。接続するLLM API（OpenAI互換APIやローカルLLM等）の利用規約・データ取り扱いポリシーもあわせて確認することを推奨します。
+JiuwenSwarmは **Apache License 2.0** の下で公開されており、商用利用、改変、社内システムや受託開発案件への組み込みが可能です。利用にあたってはリポジトリ内の `LICENSE` ファイルに基づき著作権表示とライセンス通知を保持してください。接続するLLM API（OpenAI互換APIやローカルLLM等）の利用規約・データ取り扱いポリシーもあわせて確認してください。

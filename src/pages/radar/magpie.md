@@ -6,6 +6,10 @@ pubDate: "2026-10-14"
 tags: ["Go", "OSS", "GitHub"]
 repoUrl: "https://github.com/yetone/magpie"
 stars: 11503
+updatedDate: "2026-10-21"
+corrections:
+  - date: "2026-10-21"
+    note: "導入手順の表現を訂正"
 ---
 
 # magpie: 概要と革新性
@@ -110,7 +114,7 @@ graph TD
 ## インストール & クイックスタート手順
 
 ### 1. ワンライナーによるインストール
-macOS、Linux環境では公式スクリプトで即座に導入できます。
+macOS、Linux環境では公式のインストールスクリプトで導入できます。
 
 ```bash
 curl -fsSL https://usemagpie.ai/install.sh | sh

@@ -94,7 +94,7 @@
   <!-- リポジトリ概要（抜粋） -->
   <g transform="translate(60, 395)">
     <text x="0" y="0" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="500">
-      投機的意思決定とDOM最適化により最速・最安を実現する次世代Webブラウザ自律エージェント
+      投機的な意思決定とDOMの扱いを工夫したWebブラウザ自律エージェント
     </text>
   </g>
 

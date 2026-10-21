@@ -6,6 +6,10 @@ pubDate: "2023-10-27"
 stars: 26000
 tags: ["Nix", "Nixpkgs", "NixOS", "パッケージマネージャー", "Linuxディストリビューション", "純粋関数型", "DevOps", "再現性"]
 repoUrl: "https://github.com/NixOS/nixpkgs"
+updatedDate: "2026-10-21"
+corrections:
+  - date: "2026-10-21"
+    note: "インストール方法を勧める表現を訂正"
 ---
 # Nixpkgs
 
@@ -67,7 +71,7 @@ NixpkgsはNixパッケージマネージャーのパッケージ定義の集合�
 Nixパッケージマネージャーは、LinuxまたはmacOSシステムにインストールできます。
 
 1.  **インストーラスクリプトの実行**:
-    マルチユーザー環境へのインストールを推奨します。これにより、複数のユーザーがNixを安全に利用できます。
+    マルチユーザー環境へのインストールを選ぶと、複数のユーザーが Nix を利用できます（インストール方法の詳細は Nix の公式ドキュメントを確認してください）。
 
     ```bash
     curl -L https://nixos.org/nix/install | sh
