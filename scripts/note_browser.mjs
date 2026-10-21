@@ -4,7 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import readline from "readline";
+import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
@@ -12,10 +12,40 @@ import { eyecatchPng } from "./utils/eyecatch.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = path.join(os.homedir(), ".auto-tech-radar", "chrome-note");
-const ask = (q) => new Promise((r) => {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  rl.question(q, (a) => (rl.close(), r(a)));
-});
+
+// Google などのログインは、自動操作中のブラウザを「安全でない」として拒否する。
+// そのためログインだけは、自動操作なしの普通の Chrome を同じ専用プロファイルで開いて行い、窓が閉じられたら自動操作に戻る
+class LoginRequired extends Error {}
+
+function chromeExe() {
+  const env = process.env;
+  const candidates = [
+    env.CHROME_PATH,
+    env.PROGRAMFILES && path.join(env.PROGRAMFILES, "Google", "Chrome", "Application", "chrome.exe"),
+    env["PROGRAMFILES(X86)"] && path.join(env["PROGRAMFILES(X86)"], "Google", "Chrome", "Application", "chrome.exe"),
+    env.LOCALAPPDATA && path.join(env.LOCALAPPDATA, "Google", "Chrome", "Application", "chrome.exe"),
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+  ];
+  return candidates.find((p) => p && fs.existsSync(p));
+}
+
+async function manualLogin() {
+  console.log("\n  📝 note にログインしてください。普通の Chrome の窓を開きます（自動操作の窓では Google がログインを拒否するため）。");
+  console.log("     ① 開いた窓で note にログイン（Google でのログインも可）");
+  console.log("     ② ログインできたら、その Chrome の窓を右上の × で閉じる → 自動で続きます");
+  // テスト用: ATR_NOTE_LOGIN_HOOK に Chrome の代わりに実行する Node スクリプト
+  const hook = process.env.ATR_NOTE_LOGIN_HOOK;
+  const exe = hook ? process.execPath : chromeExe();
+  if (!exe) throw new Error("Chrome が見つかりません（Chrome をインストールするか CHROME_PATH を指定）");
+  const args = hook ? [hook] : [`--user-data-dir=${PROFILE}`, "--no-first-run", "--no-default-browser-check", "https://note.com/login"];
+  await new Promise((resolve, reject) => {
+    const p = spawn(exe, args, { stdio: "ignore" });
+    p.on("error", reject);
+    p.on("exit", resolve);
+  });
+}
 
 // ブラウザ内のスクリプトが「ローカルブリッジ」に出す要求を、この Node プロセスが直接返す。
 // ページから localhost への通信をしないので、Chrome のローカルネットワーク許可（版により付与できない）に左右されない
@@ -40,7 +70,7 @@ async function serveBridge(ctx) {
   return tasks;
 }
 
-async function openNote() {
+async function openNote(afterLogin = false) {
   fs.mkdirSync(PROFILE, { recursive: true });
   // テスト用: ATR_NOTE_HEADLESS=1 で画面なし、ATR_NOTE_MOCK に note.com の応答を差し替えるモジュール
   const opts = { headless: process.env.ATR_NOTE_HEADLESS === "1", viewport: null };
@@ -56,10 +86,10 @@ async function openNote() {
   const page = ctx.pages()[0] || (await ctx.newPage());
   await page.goto("https://note.com/notes", { waitUntil: "domcontentloaded" });
   if (/login/.test(page.url())) {
-    console.log("\n開いた Chrome の窓で note にログインしてください（初回だけ。次回からは不要）。");
-    await ask("ログインできたら Enter > ");
-    await page.goto("https://note.com/notes", { waitUntil: "domcontentloaded" });
-    if (/login/.test(page.url())) throw new Error("note にログインできていません");
+    if (afterLogin) throw new Error("note にログインできていません");
+    await ctx.close().catch(() => {});
+    await manualLogin();
+    return openNote(true);
   }
   return { ctx, page };
 }
@@ -109,7 +139,7 @@ const buttonTexts = (p) => p.$$eval("button, a[role=button]", (els) => els.map((
 // 公開中の記事は、見出し画像が下書きに付くだけなので、編集画面で「公開に進む」→「更新する」を押して反映する。
 // 押すのは文言が一致するボタンだけ。各段階の URL とボタンの文言を記録する（画面構成が違ったときに原因を確認するため）
 // 編集画面（editor.note.com）は note.com のログイン画面（?redirectPath=編集画面）を経由することがある。
-// ログイン済みなら自動で戻るのを待ち、戻らなければ開いた窓でのログインを待つ（ログイン後に別の画面へ行ったら編集画面を開き直す）
+// ログイン済みなら自動で戻るのを待ち、戻らなければログインが必要（LoginRequired）として呼び出し元に知らせる
 async function openEditor(ed, key, steps) {
   const editUrl = `https://editor.note.com/notes/${key}/edit/`;
   const onEditor = () => new URL(ed.url()).hostname === "editor.note.com" && ed.url().includes(`/notes/${key}/edit`);
@@ -117,15 +147,7 @@ async function openEditor(ed, key, steps) {
   if (!onEditor()) await ed.waitForURL(() => onEditor(), { timeout: 20000 }).catch(() => {});
   if (onEditor()) return;
   steps.push({ at: "login", url: ed.url(), buttons: await buttonTexts(ed) });
-  console.log("\n  📝 開いた Chrome の窓で note にログインしてください（ログインすると自動で続きます。10 分まで待ちます）");
-  await ed.bringToFront().catch(() => {});
-  const until = Date.now() + 10 * 60 * 1000;
-  while (!onEditor()) {
-    if (Date.now() > until) throw new Error("note の編集画面を開けません（ログインが確認できませんでした）");
-    await ed.waitForTimeout(2000);
-    const u = new URL(ed.url());
-    if (u.hostname === "note.com" && !/login|signup|sign_in|auth|sns|password/i.test(u.pathname)) await ed.goto(editUrl, { waitUntil: "domcontentloaded" }).catch(() => {});
-  }
+  throw new LoginRequired("note の編集画面を開くにはログインが必要です");
 }
 
 async function publishDraft(ctx, key, steps) {
@@ -155,9 +177,9 @@ async function eyecatch() {
   let ctx;
   const result = { set: [], skipped: [], failed: [], manual: [], steps: {} };
   try {
-    const opened = await openNote();
-    ctx = opened.ctx;
-    const page = opened.page;
+    let { ctx: c, page } = await openNote();
+    ctx = c;
+    let loggedIn = false;
     const root = path.join(__dirname, "..");
     const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
     // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない
@@ -166,8 +188,10 @@ async function eyecatch() {
       const st = JSON.parse(fs.readFileSync(path.join(__dirname, "note_status.json"), "utf8"));
       flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
     } catch (e) {}
-    if (tasks.length) await page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
-    for (const t of tasks) {
+    const base = async () => tasks.length && page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
+    await base();
+    for (let i = 0; i < tasks.length; i++) {
+      const t = tasks[i];
       try {
         const info = await noteInfo(page, t.key);
         if (info.error) throw new Error(info.error);
@@ -192,6 +216,16 @@ async function eyecatch() {
         result.set.push(t.slug);
         console.log(`  ✓ 見出し画像を設定: ${t.slug}`);
       } catch (e) {
+        // 編集画面にログインが必要なら、普通の Chrome でログインしてもらってから同じ記事をやり直す（1 回だけ）
+        if (e instanceof LoginRequired && !loggedIn) {
+          loggedIn = true;
+          await ctx.close().catch(() => {});
+          await manualLogin();
+          ({ ctx, page } = await openNote(true));
+          await base();
+          i--;
+          continue;
+        }
         result.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
         console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
         break; // 画面構成の想定違いなどで同じ失敗を繰り返さないよう、最初の失敗で止める

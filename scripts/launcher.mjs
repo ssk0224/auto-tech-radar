@@ -1071,7 +1071,7 @@ function runNoteApiSync() {
 function runNoteEyecatch() {
   console.clear();
   console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定（自動） ===${c.reset}\n`);
-  console.log(`専用の Chrome が開きます。初回だけ、その窓で note にログインしてください（以後は不要）。\n`);
+  console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。\n`);
   try {
     execSync('node scripts/note_browser.mjs eyecatch', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認し、ヘッダーの「見出し画像なし」の本数が更新されます。${c.reset}`);
