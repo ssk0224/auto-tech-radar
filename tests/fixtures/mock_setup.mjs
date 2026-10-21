@@ -8,6 +8,10 @@ globalThis.fetch = async (url) => {
   url = String(url);
   if (url.includes("/search/repositories")) return new Response(JSON.stringify({ items }), { status: 200 });
   if (url.includes("/readme")) return new Response("# testtool\nInstall: go install acme/testtool@latest", { status: 200 });
+  // LICENSE ファイル（/repos/{o}/{r}/license）。MOCK_LICENSE_TEXT があればその本文を GitHub の判定 "Other"（NOASSERTION）で返し、無ければ 404（LICENSE ファイル無し）
+  if (url.includes("/license") && process.env.MOCK_LICENSE_TEXT) {
+    return new Response(JSON.stringify({ html_url: "https://github.com/acme/testtool/blob/main/LICENSE", encoding: "base64", content: Buffer.from(process.env.MOCK_LICENSE_TEXT).toString("base64"), license: { key: "other", spdx_id: "NOASSERTION", name: "Other" } }), { status: 200 });
+  }
   if (url.startsWith("https://ghcr.io/token")) return new Response("denied", { status: 403 }); // 匿名で取得できないイメージ
   if (url.startsWith("https://hub.docker.com/")) return new Response("{}", { status: 200 });
   return new Response("", { status: 404 });

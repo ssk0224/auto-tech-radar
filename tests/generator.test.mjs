@@ -12,7 +12,8 @@ const SKIP = new Set(["node_modules", "dist", ".git", ".astro"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
 // receipt: 無料部分の領収書の案内（生成モデルが雛形の定型文を少し言い換えた形。保存時に定型文にそろえる）
-const output = ({ mermaid = true, footer = true, image = "", hype = "", paidExtra = "", receipt = "> ※noteは購入後、マイページから領収書を発行できます。" } = {}) => `=== WEB ARTICLE ===
+// web: Web 記事の末尾に足す本文（導入の勧め・ライセンスの節などの検査用）
+const output = ({ mermaid = true, footer = true, image = "", hype = "", paidExtra = "", web = "", receipt = "> ※noteは購入後、マイページから領収書を発行できます。" } = {}) => `=== WEB ARTICLE ===
 ---
 layout: "../../layouts/Layout.astro"
 title: "testtool - test"
@@ -25,6 +26,7 @@ stars: 99999
 # testtool: 概要と革新性
 ## 解決する主要な課題とアーキテクチャ
 ${mermaid ? '```mermaid\ngraph TD\n  A["CLI"] --> B["Core"]\n```' : "図なし"}
+${web}
 === NOTE ARTICLE ===
 # testtool note
 無料部分の導入。${hype}経費精算にも使えます。
@@ -123,6 +125,10 @@ for (const [name, opts, why] of [
   ["有料部分に収入の金額を含む", { paidExtra: "このSaaSでMRR 50万円を見込めます。" }, /誇張・結果保証の表現/],
   ["無料部分に領収書の案内が無い", { receipt: "" }, /領収書の案内（定型文）が無料部分にありません/],
   ["無料部分でインボイス対応をうたう", { hype: "インボイス制度にも対応しています。" }, /インボイス対応・即時発行・経費精算できるという断定/],
+  ["Web記事で導入を勧める", { web: "本番環境への導入を推奨します。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
+  ["Web記事に引用の無い比較（優位）を含む", { web: "競合よりも優位です。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
+  ["Web記事で禁止の記載が無いことを根拠にライセンスを推測する", { web: "## 商用利用可否 & ライセンス考察\n明示的な禁止がないため、OSSの慣例として許容されることが多いです。" }, /禁止の記載が無いことを根拠にしたライセンスの推測/],
+  ["LICENSE ファイルが無いのに、Web記事が MIT と書く", { web: "## 商用利用可否 & ライセンス考察\nMIT License なので商用利用は可能です。" }, /ライセンス未指定である旨が書かれていない/],
 ]) {
   test(`不採用になる: ${name}`, () => {
     const { dir, log } = run(output(opts));
@@ -134,6 +140,51 @@ for (const [name, opts, why] of [
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 }
+
+test("ライセンスは GitHub の表示ではなく LICENSE ファイルの本文から判定してプロンプトに渡し、Web 記事の表記が一致すれば採用する", () => {
+  const promptFile = path.join(os.tmpdir(), `atr-prompt-${process.pid}`);
+  const mit = "MIT License\n\nCopyright (c) 2026 acme\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction.\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n";
+  const { dir, log } = run(output({ web: "## 商用利用可否 & ライセンス考察\nMIT License です（[LICENSE](https://github.com/acme/testtool/blob/main/LICENSE)）。" }), { MOCK_LICENSE_TEXT: mit, MOCK_PROMPT: promptFile });
+  try {
+    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    const prompt = fs.readFileSync(promptFile, "utf8");
+    assert.match(prompt, /^ライセンス: MIT License（SPDX: MIT）$/m);
+    assert.match(prompt, /^ライセンスの確認先: https:\/\/github\.com\/acme\/testtool\/blob\/main\/LICENSE$/m);
+    assert.match(prompt, /禁止の記載が無いことを利用できる根拠にしない/);
+    assert.match(prompt, /「要確認」と書き/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(promptFile, { force: true });
+  }
+});
+
+test("LICENSE ファイルが無いリポジトリは、GitHub の検索結果のライセンス欄があっても「ライセンス未指定」としてプロンプトに渡す", () => {
+  const promptFile = path.join(os.tmpdir(), `atr-prompt-none-${process.pid}`);
+  const { dir, log } = run(output(), { MOCK_PROMPT: promptFile });
+  try {
+    const prompt = fs.readFileSync(promptFile, "utf8");
+    assert.match(prompt, /^ライセンス: ライセンス未指定（利用許諾なし）$/m, log);
+    assert.doesNotMatch(prompt, /^ライセンス: MIT/m);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(promptFile, { force: true });
+  }
+});
+
+test("Web 記事の検査で不採用になった候補は保存せず、次の候補を試す（CI の npm test で止めない）", () => {
+  const calls = path.join(os.tmpdir(), `atr-calls-web-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  const { dir, log } = run(output({ web: "即座に導入すべきツールです。" }), { MOCK_SECOND_REPO: "1", MOCK_CALLS: calls });
+  try {
+    assert.equal(fs.readFileSync(calls, "utf8").length, 2, log);
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")));
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/othertool.md")));
+    assert.match(log, /::warning title=No new article::/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
+});
 
 test("Gemini の利用枠切れ（429 quota）では再試行も次の候補も試さず、警告を出して止める", () => {
   const calls = path.join(os.tmpdir(), `atr-calls-${process.pid}`);
