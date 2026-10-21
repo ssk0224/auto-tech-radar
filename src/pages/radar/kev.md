@@ -5,6 +5,7 @@ description: "Qwen3.5/3.8を基盤にゼロから自前ホスト・学習可能�
 pubDate: "2026-10-14"
 tags: ["Python", "OSS", "GitHub", "LLM", "AI", "MachineLearning"]
 repoUrl: "https://github.com/jaredpalmer/kev"
+repoCreatedAt: "2026-09-18"
 stars: 9128
 ---
 

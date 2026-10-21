@@ -5,6 +5,7 @@ description: "AIエージェントのテキストの壁を解消。LLMの出力�
 pubDate: "2026-10-09"
 tags: ["JavaScript", "OSS", "GitHub", "AI", "LLM", "ClaudeCode", "AgentSkills"]
 repoUrl: "https://github.com/QingYunA/answer-me-with-html"
+repoCreatedAt: "2026-10-02"
 stars: 2358
 ---
 

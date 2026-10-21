@@ -5,6 +5,7 @@ description: "Qwen3.8-Flash-Next on any consumer hardware: one-click install for
 pubDate: "2026-10-10"
 tags: ["C++", "OSS", "GitHub"]
 repoUrl: "https://github.com/Niko1221/Strata"
+repoCreatedAt: "2026-09-25"
 stars: 19544
 ---
 

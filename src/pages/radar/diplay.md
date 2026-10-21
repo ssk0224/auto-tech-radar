@@ -5,6 +5,7 @@ description: "Independent CarPlay receiver for compatible Android head units. Wi
 pubDate: "2026-10-14"
 tags: ["Kotlin", "OSS", "GitHub"]
 repoUrl: "https://github.com/shihabal3amri/DiPlay"
+repoCreatedAt: "2026-09-25"
 stars: 10296
 ---
 

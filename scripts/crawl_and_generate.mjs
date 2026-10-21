@@ -17,6 +17,7 @@ import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
 import { normalizeHeadings } from "./utils/headings.mjs";
+import { rankCandidates, watchlistDocument, pubDateProblem, jstDate, SELECTION_CONFIG, REJECTION_REASONS } from "./utils/selection.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -539,6 +540,31 @@ function getExistingIndexedData(webDir) {
   return { existingUrls, existingSlugs };
 }
 
+// 掲載済み記事の対象リポジトリ（選定のオーナー上限・集中の判定に使う）
+function getFeaturedRepos(webDir) {
+  if (!fs.existsSync(webDir)) return [];
+  const out = [];
+  for (const f of fs.readdirSync(webDir).filter((x) => x.endsWith(".md"))) {
+    try {
+      const fm = (fs.readFileSync(path.join(webDir, f), "utf8").match(/^---\r?\n([\s\S]*?)\r?\n---/) || [])[1] || "";
+      const field = (k) => (fm.match(new RegExp(`^${k}:\\s*["']?([^"'\\n]*)["']?\\s*$`, "m")) || [])[1]?.trim() || null;
+      const full = (field("repoUrl") || "").match(/github\.com\/([^/]+\/[^/#?]+)/)?.[1];
+      if (!full) continue;
+      out.push({ full_name: full, pubDate: field("pubDate"), stars: Number(field("stars")) || 0, created_at: field("repoCreatedAt") });
+    } catch (e) {}
+  }
+  return out;
+}
+
+// 7日間のスター増加数（data/derived/velocity.json）。まだ無い場合は空（累計スター数 ÷ 経過日数で代用する）
+function loadVelocity() {
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(SELECTION_CONFIG.score.velocityFile), "utf8"));
+  } catch (e) {
+    return {};
+  }
+}
+
 async function run() {
   console.log("=== Auto Tech Radar Pipeline 4.0 (Web + note有料 + X + Zenn一括生成) ===");
 
@@ -576,10 +602,28 @@ async function run() {
     return;
   }
 
-  // 急上昇OSSの探索（既存記事のURL/スラグは除外済み）
-  const repos = await fetchTrendingRepos(existingUrls, existingSlugs);
-  if (repos.length === 0) {
+  // 急上昇OSSの探索（既存記事のURL/スラグは除外済み）。検索は候補集めだけに使い、並べ替えは selection.mjs で行う
+  const candidates = await fetchTrendingRepos(existingUrls, existingSlugs);
+  if (candidates.length === 0) {
     console.log("ℹ️ 新規候補リポジトリが見つかりませんでした（全件インデックス済み、または一時的なGitHub検索制限）。安全に終了します。");
+    return;
+  }
+
+  // 7日間のスター増加数とテーマで並べ、除外条件（オーナー上限・短期間の集中など）に当たる候補を外す
+  const selection = rankCandidates(candidates, { velocity: loadVelocity(), featured: getFeaturedRepos(webDir), now: Date.now() });
+  for (const r of selection.rejected) {
+    console.log(`選定から除外: ${r.full_name}（${REJECTION_REASONS[r.reason] || r.reason}）`);
+  }
+  try {
+    fs.mkdirSync(path.resolve("data"), { recursive: true });
+    fs.writeFileSync(path.resolve("data/watchlist.json"), JSON.stringify(watchlistDocument(selection, Date.now()), null, 2) + "\n", "utf8");
+    console.log(`✓ ウォッチリスト（2〜${selection.watchlist.length + 1} 位）を保存: data/watchlist.json`);
+  } catch (e) {
+    console.warn(`ウォッチリストの保存をスキップ: ${e.message}`);
+  }
+  const repos = selection.ranked.map((r) => r.item);
+  if (repos.length === 0) {
+    console.log("ℹ️ 選定条件を満たす候補がありませんでした。安全に終了します。");
     return;
   }
 
@@ -667,6 +711,11 @@ async function run() {
       if (webBackticks % 2 !== 0) {
         result.web += "\n```\n";
       }
+
+      // 公開日（生成した日の JST の日付）がリポジトリの作成日より前になる記事は書かない。作成日は frontmatter にも残す（選定の集中判定に使う）
+      if (repo.created_at) result.web = setFrontmatterField(result.web, "repoCreatedAt", `"${jstDate(repo.created_at)}"`);
+      const dateProblem = pubDateProblem((result.web.match(/^pubDate:\s*["']?([^"'\n]*)["']?/m) || [])[1], repo.created_at);
+      if (dateProblem) throw new Error(dateProblem);
 
       writeSealedNote(noteFile, noteText);
 

@@ -5,6 +5,7 @@ description: "情報源とキュレーション基準を定義するだけで自
 pubDate: "2026-10-16"
 tags: ["TypeScript", "OSS", "GitHub"]
 repoUrl: "https://github.com/KKKKhazix/AIHOT"
+repoCreatedAt: "2026-09-29"
 stars: 7887
 ---
 

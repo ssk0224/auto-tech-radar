@@ -5,6 +5,7 @@ description: "DroidDeckは、AndroidデバイスでSteamOSのゲーミング体�
 pubDate: "2026-10-15"
 tags: ["Kotlin", "OSS", "GitHub", "Android", "Gaming", "SteamOS", "Proton"]
 repoUrl: "https://github.com/Droid-Deck/DroidDeck"
+repoCreatedAt: "2026-09-25"
 stars: 8333
 ---
 

@@ -5,6 +5,7 @@ description: "Z.aiが主導するフルスタックAIコーディングエージ
 pubDate: "2026-10-15"
 tags: ["TypeScript", "OSS", "GitHub", "AI-Agent", "Developer-Tools"]
 repoUrl: "https://github.com/zai-org/ZCode"
+repoCreatedAt: "2026-09-20"
 stars: 7854
 ---
 

@@ -5,6 +5,7 @@ description: "Native MLX runtime for Laya typed decision models — 7–14 ms sh
 pubDate: "2026-10-17"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/mizorewww/laya-mlx"
+repoCreatedAt: "2026-09-19"
 stars: 6956
 ---
 

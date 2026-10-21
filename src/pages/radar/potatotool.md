@@ -5,6 +5,7 @@ description: "这款工具是一款功能强大的网络安全综合工具，旨
 pubDate: "2026-10-09"
 tags: ["Java", "OSS", "GitHub"]
 repoUrl: "https://github.com/potato-security/PotatoTool"
+repoCreatedAt: "2024-05-07"
 stars: 1237
 ---
 

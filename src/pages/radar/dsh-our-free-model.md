@@ -5,6 +5,7 @@ description: "DeepSeek Harness (dsh) のプラグイン「dsh-our-free-model」�
 pubDate: "2026-10-13"
 tags: ["JavaScript", "OSS", "GitHub", "AI", "DeepSeek", "Kimi", "LLM"]
 repoUrl: "https://github.com/Ebony-Vinyl/dsh-our-free-model"
+repoCreatedAt: "2026-09-25"
 stars: 12121
 ---
 

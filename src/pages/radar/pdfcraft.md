@@ -5,6 +5,7 @@ description: "Adobe Acrobatを純粋なRustでゼロからクリーンルーム�
 pubDate: "2026-10-13"
 tags: ["Rust", "OSS", "GitHub", "PDF", "MCP", "AI"]
 repoUrl: "https://github.com/storytold/pdfcraft"
+repoCreatedAt: "2026-09-30"
 stars: 11454
 ---
 

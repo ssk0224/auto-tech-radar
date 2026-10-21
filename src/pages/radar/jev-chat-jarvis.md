@@ -5,6 +5,7 @@ description: "単なるテキスト自動生成ではなく、相手の真意や
 pubDate: "2026-10-16"
 tags: ["Kotlin", "OSS", "GitHub", "Android", "LLM", "Human-in-the-loop"]
 repoUrl: "https://github.com/jev-chat/jev-chat-jarvis"
+repoCreatedAt: "2026-09-21"
 stars: 7815
 ---
 

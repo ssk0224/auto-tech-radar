@@ -5,6 +5,7 @@ description: "基于DSH的Agent酒馆。类酒馆文字游戏Agent。兼容Silly
 pubDate: "2026-10-09"
 tags: ["JavaScript", "OSS", "GitHub"]
 repoUrl: "https://github.com/flizzywine/dsh-tavern"
+repoCreatedAt: "2026-08-16"
 stars: 819
 ---
 

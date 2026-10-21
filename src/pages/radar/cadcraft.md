@@ -5,6 +5,7 @@ description: "AutoCAD互換の操作体系をPure Rustでフルスクラッチ�
 pubDate: "2026-10-18"
 tags: ["Rust", "OSS", "GitHub", "CAD", "MCP", "AI-Agent"]
 repoUrl: "https://github.com/storytold/cadcraft"
+repoCreatedAt: "2026-10-07"
 stars: 5766
 ---
 

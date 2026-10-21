@@ -2,9 +2,10 @@
 layout: "../../layouts/Layout.astro"
 title: "effectcraft - EffectCraft: An open-source motion graphics and compositing tool written by scratch in pure Rust"
 description: "EffectCraft: An open-source motion graphics and compositing tool written by scratch in pure Rust"
-pubDate: "2024-07-20"
+pubDate: "2026-10-18"
 tags: ["Rust", "OSS", "GitHub", "Motion Graphics", "After Effects Alternative", "AI Automation"]
 repoUrl: "https://github.com/storytold/effectcraft"
+repoCreatedAt: "2026-10-01"
 stars: 7161
 ---
 

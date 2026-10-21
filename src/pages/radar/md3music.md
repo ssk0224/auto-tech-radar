@@ -5,6 +5,7 @@ description: "酷狗概念版 第三方音乐播放器 Flutter + Rust"
 pubDate: "2026-10-09"
 tags: ["Dart", "OSS", "GitHub", "Flutter", "Rust", "MaterialDesign"]
 repoUrl: "https://github.com/zzyoxml/md3Music"
+repoCreatedAt: "2026-05-29"
 stars: 858
 ---
 

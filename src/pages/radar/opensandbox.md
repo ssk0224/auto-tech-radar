@@ -5,6 +5,7 @@ description: "Secure, Fast, and Extensible Sandbox runtime for AI agents."
 pubDate: "2026-10-09"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/opensandbox-group/OpenSandbox"
+repoCreatedAt: "2025-12-17"
 stars: 15739
 ---
 

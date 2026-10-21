@@ -5,6 +5,7 @@ description: "FilmCraft: An open-source, nonlinear video editor written by scrat
 pubDate: "2026-10-12"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/storytold/filmcraft"
+repoCreatedAt: "2026-09-30"
 stars: 10085
 ---
 

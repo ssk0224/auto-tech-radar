@@ -5,6 +5,7 @@ description: "Claude CodeなどのAIエージェントと連携し、詳細か�
 pubDate: "2026-10-14"
 tags: ["JavaScript", "OSS", "GitHub", "AI", "SVG", "WebGL", "Architecture"]
 repoUrl: "https://github.com/wheresryan22/anatomy"
+repoCreatedAt: "2026-10-08"
 stars: 9975
 ---
 

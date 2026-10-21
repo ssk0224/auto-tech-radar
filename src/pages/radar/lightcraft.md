@@ -5,6 +5,7 @@ description: "LightCraft: An open-source non-destructive photo editor written by
 pubDate: "2026-10-12"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/storytold/lightcraft"
+repoCreatedAt: "2026-09-30"
 stars: 10183
 ---
 

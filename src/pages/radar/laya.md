@@ -5,6 +5,7 @@ description: "Non-autoregressive System 1 decision engine. Typed choice, score a
 pubDate: "2026-10-10"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/NandhaKishorM/laya"
+repoCreatedAt: "2026-09-18"
 stars: 31976
 ---
 

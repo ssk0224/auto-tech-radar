@@ -5,6 +5,7 @@ description: "単一HTMLで完結するゼロ外部依存・完全オフライ�
 pubDate: "2026-10-11"
 tags: ["HTML", "OSS", "GitHub", "Python", "Offline-First", "KnowledgeBase"]
 repoUrl: "https://github.com/cdyforever/how-to-live-better"
+repoCreatedAt: "2026-09-18"
 stars: 10927
 ---
 

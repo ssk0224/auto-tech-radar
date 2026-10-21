@@ -5,6 +5,7 @@ description: "LLM model quantization (compression) toolkit with HW acceleration 
 pubDate: "2026-10-09"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/ModelCloud/GPTQModel"
+repoCreatedAt: "2024-06-17"
 stars: 1270
 ---
 
