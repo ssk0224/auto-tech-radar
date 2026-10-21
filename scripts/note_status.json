@@ -1,17 +1,15 @@
 {
-  "checkedAt": "2026-10-21T10:59:40.242Z",
+  "checkedAt": "2026-10-21T11:11:40.711Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1163,
+        "freeChars": 1152,
         "draftFreeChars": 1201,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -37,17 +35,13 @@
     },
     "anatomy": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1606,
+        "freeChars": 1581,
         "draftFreeChars": 1636,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
