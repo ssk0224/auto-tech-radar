@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-10-21T14:43:10.213Z",
+  "checkedAt": "2026-10-21T15:26:32.777Z",
   "summary": {
-    "total": 38,
+    "total": 39,
     "live": 0,
     "likes": 0,
     "users": [],
@@ -193,6 +193,12 @@
       "published": false,
       "live": null,
       "status": 403
+    },
+    {
+      "slug": "rea-tech-radar",
+      "published": false,
+      "live": false,
+      "status": 404
     },
     {
       "slug": "solidcraft-tech-radar",

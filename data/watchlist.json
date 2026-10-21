@@ -1,5 +1,116 @@
 {
-  "date": null,
+  "date": "2026-10-22",
   "note": "選定スコアの 2〜10 位（記事化の候補。評価や推奨ではありません）",
-  "items": []
+  "items": [
+    {
+      "rank": 2,
+      "full_name": "DietrichGebert/ponytail",
+      "url": "https://github.com/DietrichGebert/ponytail",
+      "score": 13640.52,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent",
+        "claude-code"
+      ],
+      "stars": 170968
+    },
+    {
+      "rank": 3,
+      "full_name": "mattpocock/skills",
+      "url": "https://github.com/mattpocock/skills",
+      "score": 12086.97,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent"
+      ],
+      "stars": 299495
+    },
+    {
+      "rank": 4,
+      "full_name": "affaan-m/ECC",
+      "url": "https://github.com/affaan-m/ECC",
+      "score": 10830.64,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent",
+        "mcp",
+        "claude-code",
+        "codex"
+      ],
+      "stars": 285316
+    },
+    {
+      "rank": 5,
+      "full_name": "ultraworkers/claw-code",
+      "url": "https://github.com/ultraworkers/claw-code",
+      "score": 10027.34,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent"
+      ],
+      "stars": 195073
+    },
+    {
+      "rank": 6,
+      "full_name": "obra/superpowers",
+      "url": "https://github.com/obra/superpowers",
+      "score": 8442.19,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent"
+      ],
+      "stars": 302969
+    },
+    {
+      "rank": 7,
+      "full_name": "Graphify-Labs/graphify",
+      "url": "https://github.com/Graphify-Labs/graphify",
+      "score": 6851.03,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent",
+        "mcp",
+        "claude-code",
+        "codex",
+        "rag"
+      ],
+      "stars": 131137
+    },
+    {
+      "rank": 8,
+      "full_name": "JuliusBrussee/caveman",
+      "url": "https://github.com/JuliusBrussee/caveman",
+      "score": 5980.64,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent",
+        "claude-code"
+      ],
+      "stars": 114044
+    },
+    {
+      "rank": 9,
+      "full_name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "score": 5893.54,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent",
+        "claude-code",
+        "codex"
+      ],
+      "stars": 255785
+    },
+    {
+      "rank": 10,
+      "full_name": "msitarzewski/agency-agents",
+      "url": "https://github.com/msitarzewski/agency-agents",
+      "score": 4581.04,
+      "basis": "stars_per_age",
+      "themes": [
+        "agent"
+      ],
+      "stars": 162794
+    }
+  ]
 }
