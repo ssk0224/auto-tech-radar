@@ -138,7 +138,7 @@ async function fetchNoteDetail(key) {
   return (await res.json())?.data || {};
 }
 
-async function checkPublishedNotes(map) {
+async function checkPublishedNotes(map, unlinked = []) {
   const status = {};
   for (const [slug, v] of Object.entries(map)) {
     const key = v.url.match(/\/n\/(n\w+)/)?.[1];
@@ -173,7 +173,21 @@ async function checkPublishedNotes(map) {
   console.log(`✓ 公開中の note を検査: ${Object.keys(status).length} 本（見出し画像なし ${noImage.length} 本 / 問題のある表現 ${withIssues.length} 本）`);
   if (noImage.length) console.log(`::warning title=note の見出し画像::未設定 ${noImage.length} 本: ${noImage.join(', ')}（ランチャー [E] で設定）`);
   for (const s of withIssues) console.log(`::warning title=note の公開内容::${s}: ${status[s].issues.join(' / ')}（ランチャー [N] で原稿の内容に更新）`);
-  fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), notes: status }, null, 2) + '\n', 'utf8');
+  // 原稿と対応づかない公開中の note（古い版の出品が残っているなど）も記録する。古い表現の検査もする
+  const others = [];
+  for (const n of unlinked) {
+    const key = n.noteUrl.match(/\/n\/(n\w+)/)?.[1];
+    let issues = [];
+    try {
+      if (key) issues = publishedNoteIssues(await fetchNoteDetail(key));
+      await new Promise((r) => setTimeout(r, 800));
+    } catch (e) {
+      issues = [`取得失敗: ${e.message}`];
+    }
+    others.push({ name: n.name, url: n.noteUrl, price: n.price, publishAt: n.publishAt, issues });
+  }
+  if (others.length) console.log(`::warning title=原稿と対応づかない公開中の note::${others.length} 本（古い版の出品の可能性。scripts/note_status.json の unlinked）`);
+  fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), notes: status, unlinked: others }, null, 2) + '\n', 'utf8');
 }
 
 async function main() {
@@ -205,8 +219,9 @@ async function main() {
   for (const [slug, v] of Object.entries(mapped)) {
     if (v.duplicates) console.log(`::warning title=note の重複出品::${slug} が note に ${v.duplicates.length + 1} 本あります。ランチャー [U] で 1 本にしてください`);
   }
-  for (const n of notes.filter((n) => !linked.has(n.noteUrl))) console.log(`  - 未対応の note: ${n.name}`);
-  await checkPublishedNotes(finalMap);
+  const unlinked = notes.filter((n) => !linked.has(n.noteUrl));
+  for (const n of unlinked) console.log(`  - 未対応の note: ${n.name}`);
+  await checkPublishedNotes(finalMap, unlinked);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

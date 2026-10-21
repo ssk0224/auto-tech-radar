@@ -133,6 +133,15 @@ const uploadEyecatch = (page, args) =>
     return { ok: r.ok, status: r.status, text: r.ok ? "" : (await r.text()).slice(0, 200) };
   }, args);
 
+// 「更新」「投稿」「公開」を含む短い文言の要素（種類・role・aria-label・無効か）。公開設定画面の作りを遠隔で確かめるため
+const publishCandidates = (p) =>
+  p.evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((e) => /更新|投稿|公開/.test(e.textContent || "") && (e.textContent || "").trim().length <= 12 && ![...e.children].some((c) => /更新|投稿|公開/.test(c.textContent || "")))
+      .slice(0, 20)
+      .map((e) => ({ tag: e.tagName.toLowerCase(), role: e.getAttribute("role"), aria: e.getAttribute("aria-label"), disabled: e.disabled || e.getAttribute("aria-disabled"), text: e.textContent.trim(), parent: e.parentElement?.tagName.toLowerCase() })),
+  ).catch(() => []);
+
 const buttonTexts = (p) => p.$$eval("button, a[role=button]", (els) => els.map((e) => e.textContent.trim()).filter(Boolean).slice(0, 40)).catch(() => []);
 
 // アップロード後も記事に見出し画像が出ないとき（下書きにだけ付いたとき）の予備。編集画面で「公開に進む」→「更新する」を押して反映する。
@@ -178,10 +187,15 @@ async function pressPublish(ed, steps) {
     steps.push({ at: "editor", url: ed.url(), buttons: await buttonTexts(ed) });
     if ((await next.count()) === 0) throw new Error("編集画面に「公開に進む」ボタンが見つかりません");
     await next.click();
-    const update = ed.getByRole("button", { name: /^\s*更新する\s*$/ }).first();
-    await update.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
-    steps.push({ at: "publish", url: ed.url(), buttons: await buttonTexts(ed) });
+    // 実機（2026-10-21）では、公開設定画面の <button> に「更新する」が無かった。ボタン以外の要素・部分一致・スクロール先も探し、
+    // 見つからなければ「更新」「投稿」「公開」を含む要素の種類と文言を記録して止める（押せる要素を推測で選んで押さない）
+    await ed.waitForTimeout(2000);
+    await ed.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    const update = ed.locator('button, [role="button"], a, input[type="submit"], div[tabindex]').filter({ hasText: /^\s*(更新する|投稿する)\s*$/ }).first();
+    await update.waitFor({ state: "attached", timeout: 30000 }).catch(() => {});
+    steps.push({ at: "publish", url: ed.url(), buttons: await buttonTexts(ed), candidates: await publishCandidates(ed) });
     if ((await update.count()) === 0) throw new Error("公開設定画面に「更新する」ボタンが見つかりません");
+    await update.scrollIntoViewIfNeeded().catch(() => {});
     await update.click();
     // 公開設定画面（/publish）から離れるか、20 秒たつまで待つ
     await ed.waitForURL((u) => !/\/publish/.test(u.toString()), { timeout: 20000 }).catch(() => {});
@@ -233,15 +247,16 @@ async function fixWording(ctx, page, t, steps) {
     if (!draftChars || Math.abs(draftChars - liveChars) > Math.max(40, liveChars * 0.03)) {
       throw new Error(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません`);
     }
-    let replaced = 0;
-    while (replaced < 5 && (await selectWords(ed, t.words))) {
+    // 前回の実行で置き換えたまま公開に至らなかった下書き（古い語が無く、新しい語がある）は、そのまま公開に進む
+    let replaced = !draft.includes(t.words) && draft.includes(NEW_RING_WORDS) ? -1 : 0;
+    while (replaced >= 0 && replaced < 5 && (await selectWords(ed, t.words))) {
       await ed.keyboard.insertText(NEW_RING_WORDS);
       await ed.waitForTimeout(500);
       replaced++;
     }
     const after = await editorText(ed);
     steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length });
-    if (!replaced || /ThoughtWorks/.test(after) || !after.includes(NEW_RING_WORDS)) throw new Error("編集画面で語を置き換えられませんでした（公開はしていません）");
+    if (replaced === 0 || /ThoughtWorks/.test(after) || !after.includes(NEW_RING_WORDS)) throw new Error("編集画面で語を置き換えられませんでした（公開はしていません）");
     await pressPublish(ed, steps);
   } finally {
     await ed.close().catch(() => {});
@@ -255,7 +270,7 @@ async function fixWording(ctx, page, t, steps) {
 const noteStats = (page) =>
   inPage(page, async () => {
     const out = { pages: [] };
-    for (let p = 1; p <= 3; p++) {
+    for (let p = 1; p <= 10; p++) {
       const r = await fetch(`/api/v1/stats/pv?filter=all&page=${p}&sort=pv`, { credentials: "include", headers: { "X-Requested-With": "XMLHttpRequest" } });
       const text = await r.text();
       if (!r.ok) return { ...out, error: `HTTP ${r.status}`, raw: text.slice(0, 500) };
