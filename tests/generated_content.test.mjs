@@ -35,6 +35,9 @@ test("タイトル・説明文は YAML として正しい文字列に書き直�
   // 生成モデルが正しくエスケープした \" や単引用符の文字列も元の文字列になる
   assert.equal(parseFrontmatter(quoteFrontmatterStrings('---\ntitle: "a \\"b\\""\ndescription: \'it\'\'s\'\n---\n')).frontmatter.title, 'a "b"');
   assert.equal(parseFrontmatter(quoteFrontmatterStrings('---\ntitle: "a"\ndescription: \'it\'\'s\'\n---\n')).frontmatter.description, "it's");
+  // 複数行の書き方（ブロック）は書き換えない
+  const folded = "---\ntitle: >-\n  long\n  title\ndescription: \"d\"\n---\n";
+  assert.equal(parseFrontmatter(quoteFrontmatterStrings(folded)).frontmatter.title, "long title");
 });
 
 test("```markdown の包みだけを外し、記事の最後のコードブロックの閉じは残す", () => {

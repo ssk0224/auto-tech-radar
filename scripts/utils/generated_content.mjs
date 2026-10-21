@@ -31,6 +31,8 @@ export function quoteFrontmatterStrings(content, keys = ["title", "description"]
     const m = (out.match(FM_RE) || [])[1]?.match(new RegExp(`^${key}:[ \\t]*(.*?)\\r?$`, "m"));
     if (!m) continue;
     const raw = m[1].trim();
+    // 値が次の行以降に続く書き方（`title: >-` などのブロック・空）はそのまま（YAML として読めるかは保存前の最終検査で確かめる）
+    if (!raw || /^[|>]/.test(raw)) continue;
     let value = raw;
     if (raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"')) value = raw.slice(1, -1).replace(/\\"/g, '"');
     else if (raw.length >= 2 && raw.startsWith("'") && raw.endsWith("'")) value = raw.slice(1, -1).replace(/''/g, "'");
