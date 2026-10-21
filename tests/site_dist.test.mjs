@@ -10,7 +10,7 @@ import os from "os";
 import path from "path";
 import http from "http";
 import { dateLabel, jstDayStart, withinLastWeek } from "../src/utils/dates.js";
-import { dateModifiedOf, datePublishedOf, jsonLdText, tagsOf } from "../src/utils/article_page.js";
+import { dateModifiedOf, datePublishedOf, jsonLdText, tagsOf, noteOfferFor, ellipsis } from "../src/utils/article_page.js";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (p) => fs.readFileSync(p, "utf8");
@@ -81,6 +81,36 @@ test("構造化データの文字列は < > & を \\u 形式にし、JSON とし
   assert.deepEqual(tagsOf({ tags: ["Go", "OSS"] }), ["Go", "OSS"]);
   assert.deepEqual(tagsOf({ tags: "Go, OSS" }), ["Go", "OSS"]);
   assert.deepEqual(tagsOf({}), []);
+});
+
+test("note の価格が数値でない（\"¥980\"・\"abc\"）・負の値なら、見出しに価格を出さない（「¥NaN」にしない）", () => {
+  const url = "https://note.com/x/n/n1";
+  for (const price of ["¥980", "abc", -980, Infinity, true, {}]) {
+    const o = noteOfferFor("z", { z: { url, price } }, undefined);
+    assert.equal(o.heading, "有料版（note）に含まれるもの", String(price));
+    assert.equal(o.priceLabel, "");
+  }
+  assert.equal(noteOfferFor("z", { z: { url, price: "980" } }, undefined).priceLabel, "¥980");
+  assert.equal(noteOfferFor("z", { z: { url, price: 1480 } }, undefined).priceLabel, "¥1,480");
+});
+
+test("関連記事・新着ピックアップのタイトルは、長いものだけを切って「...」を付ける", () => {
+  assert.equal(ellipsis("kev - short", 50), "kev - short");
+  assert.equal(ellipsis("x".repeat(51), 50), `${"x".repeat(50)}...`);
+  assertSiteBuilt();
+  const titles = new Map();
+  const radarDir = path.join(root, "src/pages/radar");
+  for (const f of fs.readdirSync(radarDir).filter((x) => x.endsWith(".md"))) {
+    const t = read(path.join(radarDir, f)).match(/^title:\s*"(.*)"\s*$/m)?.[1];
+    if (t) titles.set(t.slice(0, 40), t);
+  }
+  for (const f of htmlFiles(siteOut)) {
+    for (const m of read(f).matchAll(/>([^<>]{1,60})\.\.\.<\/a>/g)) {
+      const shown = m[1].trim().replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+      const full = titles.get(shown.slice(0, 40));
+      if (full) assert.ok(full.length > shown.length, `${path.relative(siteOut, f)}: 切れていないタイトルに「...」: ${shown}`);
+    }
+  }
 });
 
 test("実際のビルド: RSS の日付は日本時間の公開日の 0 時、記事への内部リンクは末尾スラッシュ付き、配信物の監査に合格する", () => {
@@ -252,12 +282,12 @@ test("配信物の監査は、壊れた構造化データ・存在しない OGP 
     let html = read(path.join(broken, rel));
     html = html.replace(/(<script type="application\/ld\+json">)[\s\S]*?(<\/script>)/, `$1{"@type":"TechArticle","headline":"a </script><script>x()</script>"}$2`);
     html = html.replace(/og-card\.png/g, `ogp/${PROBE_SLUG}.png`);
-    html = html.replace("</main>", `<a href="/auto-tech-radar/radar/${PROBE_SLUG}">x</a><span>Tue Oct 20 2026 09:00:00 GMT+0900 (日本標準時)</span></main>`);
+    html = html.replace("</main>", `<a href="/auto-tech-radar/radar/${PROBE_SLUG}">x</a><span>Tue Oct 20 2026 09:00:00 GMT+0900 (日本標準時)</span><p>有料版（note ¥NaN）</p></main>`);
     fs.writeFileSync(path.join(broken, rel), html);
     const r = spawnSync(process.execPath, [path.join(root, "scripts/audit_dist.mjs"), broken], { cwd: root, encoding: "utf8" });
     const out = r.stdout + r.stderr;
     assert.notEqual(r.status, 0);
-    for (const s of ["JSON-LD", "404 DEAD LINK", "NO TRAILING SLASH", "Date の文字列"]) assert.ok(out.includes(s), `${s} を検出していない\n${out.slice(0, 3000)}`);
+    for (const s of ["JSON-LD", "404 DEAD LINK", "NO TRAILING SLASH", "Date の文字列", "NaN / undefined"]) assert.ok(out.includes(s), `${s} を検出していない\n${out.slice(0, 3000)}`);
   } finally {
     fs.rmSync(broken, { recursive: true, force: true });
   }

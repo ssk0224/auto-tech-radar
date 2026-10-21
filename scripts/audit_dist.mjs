@@ -141,6 +141,9 @@ function pageStructureProblems(html, relPath) {
   // 日付が Date のまま文字列化された跡（YAML で引用符の無い日付を、そのまま表示した場合に出る）
   const leaked = markup.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z|GMT[+-]\d{4} \(|(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2} \d{4}/);
   if (leaked) problems.push(`日付が YYYY-MM-DD ではなく Date の文字列のまま表示されています: ${leaked[0]}`);
+  // 数値の埋め込み漏れ（価格・スター数・字数・件数が NaN / undefined）
+  const badNumber = markup.match(/[¥★]\s?(?:NaN|undefined|null)|(?:NaN|undefined)\s?(?:字|本|件|円)/);
+  if (badNumber) problems.push(`数値が NaN / undefined のまま表示されています: ${badNumber[0]}`);
   return problems;
 }
 

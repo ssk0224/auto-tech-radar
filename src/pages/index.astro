@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
 import { getArticles, hrefOf } from "../utils/articles.js";
 import { dateLabel } from "../utils/dates.js";
+import { ellipsis } from "../utils/article_page.js";
 import { ogpPathFor } from "../utils/ogp.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
@@ -112,7 +113,7 @@ const posts = getArticles() as any[];
                 </div>
                 <h4 style="margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 700; line-height: 1.4;">
                   <a href={hrefOf(featPost)} style="color: #f8fafc; text-decoration: none;">
-                    {featPost.frontmatter?.title?.slice(0, 45) || featPost.file}...
+                    {ellipsis(featPost.frontmatter?.title || featPost.file, 45)}
                   </a>
                 </h4>
                 <p style="margin: 0; font-size: 0.84rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">

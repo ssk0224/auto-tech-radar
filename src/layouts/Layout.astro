@@ -3,7 +3,7 @@ import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
 import { getArticles, hrefOf, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
 // note 有料版の案内・構造化データの更新日（updatedDate が無ければ公開日。固定の日付は入れない）を決める関数
-import { noteOfferFor, splitAfterIntro, dateModifiedOf, datePublishedOf, tagsOf, jsonLdText } from "../utils/article_page.js";
+import { noteOfferFor, splitAfterIntro, dateModifiedOf, datePublishedOf, tagsOf, jsonLdText, ellipsis } from "../utils/article_page.js";
 import { dateLabel } from "../utils/dates.js";
 import { ogpPathFor } from "../utils/ogp.js";
 import noteUrls from "../../scripts/note_urls.json";
@@ -613,7 +613,7 @@ const ringBadgeBorder = tier.border;
                     )}
                   </div>
                   <h4 style="margin: 0 0 0.5rem; font-size: 0.98rem; font-weight: 700; line-height: 1.4;">
-                    <a href={hrefOf(rp)} style="color: #f1f5f9; text-decoration: none;">{rp.frontmatter?.title?.slice(0, 50) || rp.file}...</a>
+                    <a href={hrefOf(rp)} style="color: #f1f5f9; text-decoration: none;">{ellipsis(rp.frontmatter?.title || rp.file, 50)}</a>
                   </h4>
                   <p style="margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                     {rp.frontmatter?.description}
@@ -826,7 +826,8 @@ const ringBadgeBorder = tier.border;
           // ⚡ 30秒エグゼクティブ・サマリー（Executive Summary Box）
           // 要約は本文の最初の段落から作る（導入部に段落が無い記事で note の案内の文面を拾わないように除外する）
           const firstP = Array.from(article.querySelectorAll('p')).find((p) => !p.closest('.note-offer'));
-          const summaryText = esc(firstP ? firstP.textContent.slice(0, 240) + '...' : '');
+          const firstText = firstP ? firstP.textContent.trim() : '';
+          const summaryText = esc(firstText.length > 240 ? firstText.slice(0, 240) + '...' : firstText);
           // 記事のリポジトリURL（frontmatter の repoUrl）。タイトルからは所有者名が分からないため使わない
           const cloneUrlRaw = document.querySelector('main')?.dataset.repoUrl || '';
           const cloneUrl = esc(cloneUrlRaw);

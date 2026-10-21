@@ -18,7 +18,9 @@ export function approxCharsLabel(chars) {
 export function noteOfferFor(slug, noteUrls, paidSummary) {
   const item = noteUrls?.[slug];
   if (!item?.url) return null;
-  const priceLabel = item.price ? `¥${Number(item.price).toLocaleString("ja-JP")}` : "";
+  // 価格は正の数値のときだけ出す（null・0・"¥980" のような数値でない値は、推測せず価格なしの見出しにする）
+  const price = typeof item.price === "number" || (typeof item.price === "string" && /^\d+$/.test(item.price.trim())) ? Number(item.price) : NaN;
+  const priceLabel = Number.isFinite(price) && price > 0 ? `¥${price.toLocaleString("ja-JP")}` : "";
   return {
     url: item.url,
     priceLabel,
@@ -48,6 +50,12 @@ export function dateModifiedOf(frontmatter) {
 // JSON-LD の datePublished。無ければ出さない（固定の日付で代用しない）
 export function datePublishedOf(frontmatter) {
   return dateLabel(frontmatter?.pubDate) || undefined;
+}
+
+// 長い文字列だけ n 文字で切って「...」を付ける（短いタイトルに「...」を付けて切れているように見せない）
+export function ellipsis(s, n) {
+  const t = String(s ?? "");
+  return t.length > n ? `${t.slice(0, n)}...` : t;
 }
 
 // frontmatter の tags を文字列の配列にする（配列でない書き方でもビルドを止めない）
