@@ -35,8 +35,9 @@ jobs:
       # 同じ状態（追跡しているテキストを全部 CRLF）にして、改行に依存するコードを見つける
       - name: Make the working tree CRLF like the owner PC
         run: node tests/helpers/worktree_eol.mjs crlf
-      # 鍵が無いので有料本文の検査（復号）は skip になる。Chrome が見つからないことは skip でなく失敗にする（緑のまま何も検証しない事故を防ぐ）
+      # 鍵が無いので有料本文の検査（復号）は skip になる。Chrome が見つからないことなど、許可していない理由の skip は失敗にする（緑のまま何も検証しない事故を防ぐ。tests/helpers/skip_gate_reporter.mjs）
       - name: Run all tests
         env:
           ATR_REQUIRE_CHROME: "1"
+          ATR_FORBID_SKIP: "1"
         run: npm test
