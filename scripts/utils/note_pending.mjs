@@ -5,10 +5,14 @@ export function hiddenAfterOwnerFix(noteUpdatedAt, checkedAt) {
   return Boolean(noteUpdatedAt && checkedAt && noteUpdatedAt > checkedAt);
 }
 
-// 公開中の note に残っている古い見出し（オーナーに「この見出しを探して直す」と伝えるためだけに使う。公開文面には出さない）
-export const OLD_RING_HEADING = "🎯 ThoughtWorks成熟度リング判定";
+// 公開中の note に残っている古い表現（オーナーに「この語を探して直す」と伝えるためだけに使う。公開文面には出さない）
+export const OLD_RING_WORDS = "ThoughtWorks成熟度リング";
+// 置き換え後の語。🎯 などの前後の文字は含めない（見出しの 🎯 ごと貼ると 🎯 が二重になった、2026-10-21）
+export const NEW_RING_WORDS = "成熟度の目安（AI による見立て）";
 
-// CI の検査結果が「古い見出しだけ」の問題なら true（見出し 1 行の修正で済む）
-export function onlyOldRingHeading(status) {
-  return Boolean(status.issues?.length) && status.issues.every((i) => /ThoughtWorks/.test(i)) && (status.excerpt || "").includes(OLD_RING_HEADING.replace(/^🎯\s*/, ""));
+// CI の検査結果が「古い表現だけ」の問題なら、その箇所（前後の文）を返す。語の置き換えだけで済む。それ以外は null
+export function oldRingWordingSpot(status) {
+  if (!status.issues?.length || !status.issues.every((i) => /ThoughtWorks/.test(i))) return null;
+  const excerpt = (status.excerpt || "").replace(/^[^>]*">/, "").trim();
+  return excerpt.includes(OLD_RING_WORDS) ? excerpt : null;
 }

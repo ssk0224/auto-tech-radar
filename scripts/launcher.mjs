@@ -10,7 +10,7 @@ import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './util
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
-import { hiddenAfterOwnerFix, onlyOldRingHeading, OLD_RING_HEADING } from './utils/note_pending.mjs';
+import { hiddenAfterOwnerFix, oldRingWordingSpot, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -240,15 +240,9 @@ function getPendingNoteUpdates() {
     for (const [slug, v] of Object.entries(st.notes || {})) {
       if (!v.issues?.length || items.some((i) => i.slug === slug)) continue;
       if (hiddenAfterOwnerFix(history[slug]?.noteUpdatedAt, st.checkedAt)) continue;
-      // 問題が「古い成熟度の見出し」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、見出し 1 行だけ直してもらう
-      const heading = (() => {
-        try {
-          return fs.readFileSync(fileOf(slug), 'utf8').match(/^##\s*(🎯\s*成熟度の目安[^\n]*)$/m)?.[1].trim();
-        } catch (e) {
-          return '';
-        }
-      })();
-      if (onlyOldRingHeading(v) && heading) items.push({ slug, action: 'heading', heading, reason: `無料部分に古い見出し「${OLD_RING_HEADING}…」が残っています` });
+      // 問題が「古い成熟度の表現」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、その語だけ直してもらう
+      const spot = oldRingWordingSpot(v);
+      if (spot) items.push({ slug, action: 'wording', spot, reason: `無料部分に古い表現「${OLD_RING_WORDS}」が残っています` });
       else items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
     }
   } catch (e) {}
@@ -550,18 +544,19 @@ function runNoteUpdates() {
     console.log(`     ${c.green}○ 残す: ${item.url}${c.reset}\n`);
   }
 
-  if (item.action === 'heading') {
-    const tmp = path.join(os.tmpdir(), 'atr_note_heading.txt');
-    fs.writeFileSync(tmp, item.heading, 'utf8');
+  if (item.action === 'wording') {
+    const tmp = path.join(os.tmpdir(), 'atr_note_wording.txt');
+    fs.writeFileSync(tmp, NEW_RING_WORDS, 'utf8');
     const copied = copyFileToClipboard(tmp);
     const key = item.url?.match(/\/n\/(n\w+)/)?.[1];
     if (key) openUrl(`https://editor.note.com/notes/${key}/edit/`);
-    console.log(`  ${c.cyan}${copied ? '📋 新しい見出しをクリップボードにコピーしました' : '新しい見出し'}: ${c.bold}${item.heading}${c.reset}`);
-    console.log(`  ${c.bold}手順（見出し 1 行だけ直します。本文の他の部分は触りません）:${c.reset}`);
-    console.log(`  1. 開いた note の編集画面で、見出し「${OLD_RING_HEADING}（ADOPT / …）」を探す（本文の上の方）`);
-    console.log(`  2. その見出しの文字だけをドラッグで選んで ${c.cyan}[Ctrl + V]${c.reset}（上の新しい見出しに置き換わります）`);
-    console.log(`  3. ${c.yellow}${c.bold}右上の「公開に進む」→ 有料ラインの位置が今までどおりか確認 →「更新する」${c.reset}`);
-    console.log(`  ${c.dim}（編集画面の本文が公開中の記事と違って見える場合は、以前の貼り付けが下書きに残っています。その記事は「s」で後回しにして知らせてください）${c.reset}`);
+    console.log(`  GitHub の検査で見つかった箇所: ${c.yellow}…${item.spot}…${c.reset}`);
+    console.log(`  ${c.cyan}${copied ? '📋 置き換える語をクリップボードにコピーしました' : '置き換える語'}: ${c.bold}${NEW_RING_WORDS}${c.reset}`);
+    console.log(`  ${c.bold}手順（この語だけ直します。本文の他の部分・有料ライン・公開範囲は触りません）:${c.reset}`);
+    console.log(`  1. 開いた note の編集画面で ${c.cyan}[Ctrl + F]${c.reset} →「${OLD_RING_WORDS.slice(0, 12)}」と入力して探す`);
+    console.log(`  2. 「${OLD_RING_WORDS}」の部分だけをドラッグで選んで ${c.cyan}[Ctrl + V]${c.reset}（🎯 や前後の文字はそのまま）`);
+    console.log(`  3. ほかにも「${OLD_RING_WORDS.slice(0, 12)}」が見つかれば同じように直す`);
+    console.log(`  4. ${c.yellow}${c.bold}右上の「公開に進む」→ 設定は変えずに「更新する」${c.reset}`);
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     rl.question(`\n${c.yellow}${c.bold}「更新する」まで押したら Enter（後回し: s / メニューに戻る: 0） > ${c.reset}`, (ans) => {
       rl.close();

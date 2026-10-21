@@ -7,6 +7,7 @@ import { pathToFileURL } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
+import { splitPaid } from './utils/note_vault.mjs';
 
 const NOTE_URLNAME = new URL(siteConfig.noteProfileUrl).pathname.replace(/\//g, '');
 const OUT_FILE = path.resolve('scripts/note_urls.json');
@@ -97,6 +98,37 @@ export function publishedNoteIssues(d) {
   return issues;
 }
 
+// 比較用に、記号・空白・Markdown/HTML の書式を除いた本文にする
+const plain = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').normalize('NFKC').replace(/[\s\p{P}\p{S}]/gu, '');
+
+// 公開中の無料部分が、原稿で決めた有料ラインのどこで終わっているか。
+// note の API はログインなしだと有料ラインより前（無料部分）だけを返すので、その終わりが原稿の無料部分のどこにあたるかを見る。
+// endPct: 原稿の無料部分の何 % の位置で終わっているか（100 前後なら原稿どおり。小さいほど有料ラインが上）。
+// pastDraft: 原稿の無料部分の終わりより先まで無料で見えている（有料部分が無料で読める可能性）
+export function paidLineReport(body, draftContent) {
+  const split = splitPaid(draftContent || '');
+  if (!split) return null;
+  const free = plain(body);
+  const draftFree = plain(split.head.slice(0, -1).join('\n').replace(/^#+\s*/gm, ''));
+  const tail = free.slice(-30);
+  const at = tail.length >= 10 ? draftFree.indexOf(tail) : -1;
+  const draftEnd = draftFree.slice(-30);
+  const endIdx = free.indexOf(draftEnd);
+  const pastDraft = endIdx !== -1 && free.length - (endIdx + draftEnd.length) > 200;
+  return {
+    freeChars: free.length,
+    draftFreeChars: draftFree.length,
+    endPct: at === -1 ? null : Math.round(((at + tail.length) / draftFree.length) * 100),
+    pastDraft,
+    endsWith: String(body || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(-60),
+  };
+}
+
+// 価格・メンバーシップ・有料設定にかかわる項目だけを残す（note の非公式 API の項目名は変わりうるため、名前で拾う）
+function saleFields(d) {
+  return Object.fromEntries(Object.entries(d).filter(([k, v]) => /price|limit|member|paid|purchas|can_read|magazine/i.test(k) && (v === null || ['boolean', 'number', 'string'].includes(typeof v))));
+}
+
 async function fetchNoteDetail(key) {
   const res = await fetch(`https://note.com/api/v3/notes/${key}`, {
     headers: { 'User-Agent': 'auto-tech-radar (+https://github.com/ssk0224/auto-tech-radar)' },
@@ -115,9 +147,18 @@ async function checkPublishedNotes(map) {
       const d = await fetchNoteDetail(key);
       // 更新日時とタイトルも残す（オーナーの差し替えが note に届いたかを、日時で確かめられるように）
       const tw = String(d.body || '').match(/.{0,20}ThoughtWorks.{0,20}/);
+      let draft = '';
+      try {
+        draft = fs.readFileSync(path.join(NOTE_DIR, slug === 'LEAD_MAGNET_CHEAT_SHEET' ? `${slug}.md` : `${slug}_note.md`), 'utf8');
+      } catch (e) {}
+      const paidLine = paidLineReport(d.body, draft);
+      const issues = publishedNoteIssues(d);
+      if (paidLine?.pastDraft) issues.push('有料ラインが原稿の位置より下（有料部分が無料で読める可能性）');
       status[slug] = {
         eyecatch: Boolean(d.eyecatch),
-        issues: publishedNoteIssues(d),
+        issues,
+        ...(paidLine ? { paidLine } : {}),
+        sale: saleFields(d),
         name: d.name || '',
         updatedAt: d.updated_at || d.updatedAt || d.publish_at || d.publishAt || '',
         ...(tw ? { excerpt: tw[0].replace(/<[^>]+>/g, '') } : {}),

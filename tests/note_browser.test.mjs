@@ -76,11 +76,13 @@ test("[U]: 差し替えの記録が CI の確認より前なら、問題が残�
   assert.equal(hiddenAfterOwnerFix(undefined, "2026-10-21T06:21:50.012Z"), false);
 });
 
-test("[U]: 古い成熟度の見出しだけが問題の記事は、見出し 1 行の修正として扱う", async () => {
-  const { onlyOldRingHeading } = await import("../scripts/utils/note_pending.mjs");
+test("[U]: 古い成熟度の表現だけが問題の記事は、その語の置き換えとして扱い、箇所を示す", async () => {
+  const { oldRingWordingSpot, NEW_RING_WORDS } = await import("../scripts/utils/note_pending.mjs");
   const tw = "第三者（ThoughtWorks）の評価のような表現";
-  assert.equal(onlyOldRingHeading({ issues: [tw], excerpt: 'e1">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI' }), true);
-  assert.equal(onlyOldRingHeading({ issues: [tw, "受託単価"], excerpt: "ThoughtWorks成熟度リング判定" }), false);
-  assert.equal(onlyOldRingHeading({ issues: [tw], excerpt: "ThoughtWorks によると" }), false);
-  assert.equal(onlyOldRingHeading({ issues: [] }), false);
+  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: '1a3a0c93">これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま' }), "これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま");
+  assert.ok(oldRingWordingSpot({ issues: [tw], excerpt: 'e1">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI' }));
+  assert.equal(oldRingWordingSpot({ issues: [tw, "受託単価"], excerpt: "ThoughtWorks成熟度リング判定" }), null);
+  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: "ThoughtWorks によると" }), null);
+  assert.equal(oldRingWordingSpot({ issues: [] }), null);
+  assert.ok(!/🎯/.test(NEW_RING_WORDS), "見出しの 🎯 が二重にならない");
 });
