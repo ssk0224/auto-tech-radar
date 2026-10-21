@@ -1,159 +1,236 @@
 {
-  "checkedAt": "2026-10-21T05:47:35.324Z",
+  "checkedAt": "2026-10-21T05:50:05.988Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「AIHOT」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-17T10:32:53.000+09:00"
     },
     "anatomy": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「anatomy」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-15T10:07:56.000+09:00"
     },
     "answer-me-with-html": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「answer-me-with-html」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T15:36:19.000+09:00"
     },
     "cadcraft": {
       "eyecatch": false,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:18.000+09:00"
     },
     "compositor": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「Compositor」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-12T21:49:42.000+09:00"
     },
     "diplay": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-14T10:14:04.000+09:00"
     },
     "droiddeck": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「DroidDeck」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-15T11:51:25.000+09:00"
     },
     "dsh-our-free-model": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「dsh-our-free-model」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-13T11:31:22.000+09:00"
     },
     "dsh-tavern": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「dsh-tavern」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T20:28:33.000+09:00"
     },
     "effectcraft": {
       "eyecatch": false,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
-      ]
+      ],
+      "name": "海外急上昇OSS「EffectCraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:22.000+09:00",
+      "excerpt": "e1-9fdab1b4a26f\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
     },
     "filmcraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「filmcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-12T21:47:08.000+09:00"
     },
     "gptqmodel": {
       "eyecatch": false,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
-      ]
+      ],
+      "name": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T23:03:03.000+09:00",
+      "excerpt": "9f-92cf8ae8682e\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
     },
     "gridcraft": {
       "eyecatch": false,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:19.000+09:00"
     },
     "how-to-live-better": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「how-to-live-better」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-12T21:50:48.000+09:00"
     },
     "jev-chat-jarvis": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「jev-chat-jarvis」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-17T16:01:23.000+09:00"
     },
     "jev-ultrafast": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「jev-ultrafast」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-10T10:27:28.000+09:00"
     },
     "jiuwenswarm": {
       "eyecatch": false,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:23.000+09:00"
     },
     "kev": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「kev」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-15T10:09:35.000+09:00"
     },
     "laya-mlx": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T07:26:03.000+09:00"
     },
     "laya": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「laya」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-10T10:02:56.000+09:00"
     },
     "lightcraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「lightcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-12T21:48:16.000+09:00"
     },
     "magpie": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「magpie」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-14T10:15:11.000+09:00"
     },
     "md3music": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「md3Music」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T20:21:18.000+09:00"
     },
     "opendots": {
       "eyecatch": false,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:20.000+09:00"
     },
     "opensandbox": {
       "eyecatch": false,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
-      ]
+      ],
+      "name": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T23:03:04.000+09:00",
+      "excerpt": "9b-1625e6ee64d4\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
     },
     "pdfcraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「pdfcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-13T11:30:23.000+09:00"
     },
     "photocraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「photocraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-10T10:05:20.000+09:00"
     },
     "pinvou-agent": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「pinvou-agent」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T20:31:30.000+09:00"
     },
     "potatotool": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「PotatoTool」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T20:18:19.000+09:00"
     },
     "solidcraft": {
       "eyecatch": false,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「solidcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-19T22:12:21.000+09:00"
     },
     "strata": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「Strata」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-10T10:26:03.000+09:00"
     },
     "tokenspeed": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「tokenspeed」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-09T20:22:19.000+09:00"
     },
     "universal-modder": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「universal-modder」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-17T01:47:42.000+09:00"
     },
     "vectorcraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「vectorcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-15T21:47:37.000+09:00"
     },
     "wordcraft": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「wordcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-14T10:53:59.000+09:00"
     },
     "zcode": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外急上昇OSS「ZCode」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
+      "updatedAt": "2026-10-16T09:09:52.000+09:00"
     },
     "LEAD_MAGNET_CHEAT_SHEET": {
       "eyecatch": true,
-      "issues": []
+      "issues": [],
+      "name": "海外で注目を集めるオープンソース15選 早見表（2026-10-19 時点・GitHub スター数順）",
+      "updatedAt": "2026-10-15T11:50:10.000+09:00"
     }
   }
 }
