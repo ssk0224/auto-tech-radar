@@ -8,6 +8,9 @@ import { dateLabel } from "../utils/dates.js";
 import { ogpPathFor } from "../utils/ogp.js";
 import noteUrls from "../../scripts/note_urls.json";
 import TrackRecord from "../components/TrackRecord.astro"; // 掲載時→現在のスター数（Radar Ledger）
+import { googleVerificationContent, cloudflareBeaconConfig } from "../utils/site_tags.js";
+const googleVerification = googleVerificationContent(siteConfig.googleSiteVerification);
+const cloudflareBeacon = cloudflareBeaconConfig(siteConfig.cloudflareAnalyticsToken);
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
@@ -81,6 +84,8 @@ const ringBadgeBorder = tier.border;
     <link rel="alternate" type="application/rss+xml" title="Auto Tech Radar RSS Feed" href="https://ssk0224.github.io/auto-tech-radar/rss.xml" />
     <link rel="manifest" href={`${baseUrl}/manifest.json`} />
     <meta name="theme-color" content="#030712" />
+    {googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+    {cloudflareBeacon && <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={cloudflareBeacon}></script>}
     {isArticle && isNoise(currentSlug) && <meta name="robots" content="noindex" />}
     {isArticle ? (
       <script type="application/ld+json" set:html={jsonLdText({

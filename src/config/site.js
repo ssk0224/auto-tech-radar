@@ -15,6 +15,12 @@ export const siteConfig = {
   xAccountUrl: "https://x.com/AutoTechRadar",
   xHandle: "@AutoTechRadar",
   
+  // 検索エンジンの所有確認（Search Console の「HTML タグ」の content の値）と、
+  // アクセス解析（Cloudflare Web Analytics の token）。空ならタグを出さない（src/utils/site_tags.js）。
+  // 解析を入れると src/pages/privacy.astro の外部送信一覧にも自動で載る。
+  googleSiteVerification: "",
+  cloudflareAnalyticsToken: "",
+
   // 💻 公式 GitHub リポジトリ
   githubUrl: "https://github.com/ssk0224/auto-tech-radar",
   

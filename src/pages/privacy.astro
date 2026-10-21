@@ -1,6 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { siteConfig } from "../config/site.js";
+import { cloudflareBeaconConfig } from "../utils/site_tags.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+// レイアウトが解析タグを出すかどうかと同じ値で、記載を切り替える
+const usesAnalytics = !!cloudflareBeaconConfig(siteConfig.cloudflareAnalyticsToken);
 ---
 
 <Layout title="プライバシーポリシー | Auto Tech Radar" description="Auto Tech Radar における個人情報の取り扱いについて">
@@ -16,8 +20,9 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
     <h2 style="color: #fff;">3. 外部サービスの利用（外国にある第三者への提供）</h2>
     <p>フォームの送信内容は、メール転送サービス FormSubmit（formsubmit.co、日本国外で運営）を経由して当サイト運営者のメールアドレスへ送られます。フォームを送信された時点で、この取り扱いに同意いただいたものとします。各サービスにおける取り扱いは、各社のプライバシーポリシーをご確認ください。</p>
-    <p>ページを表示すると、お使いのブラウザから次の外部サービスへ情報が送信されます（電気通信事業法の外部送信規律に基づく公表）。当サイトはアクセス解析ツール・広告タグを使用していません。</p>
+    <p>ページを表示すると、お使いのブラウザから次の外部サービスへ情報が送信されます（電気通信事業法の外部送信規律に基づく公表）。{usesAnalytics ? "当サイトは広告タグを使用していません。アクセス解析は cookie を使わない下記のサービスのみを使用しています。" : "当サイトはアクセス解析ツール・広告タグを使用していません。"}</p>
     <ul>
+      {usesAnalytics && <li>Cloudflare Web Analytics（Cloudflare, Inc.、static.cloudflareinsights.com / cloudflareinsights.com）: アクセス解析。閲覧したURL、リファラ、ブラウザの種類、画面サイズ、ページの表示速度、IPアドレス（同社の説明では、訪問者の識別に使わず cookie・localStorage も使用しない）。目的: 閲覧数・流入元の把握とサイトの改善。</li>}
       <li>GitHub Pages（GitHub, Inc.）: 当サイトの配信。IPアドレス、閲覧したURL、ブラウザの種類などのアクセスログ。目的: ページの配信・不正アクセスの防止。</li>
       <li>Google Fonts（Google LLC、fonts.googleapis.com / fonts.gstatic.com）: 文字フォントの読み込み。IPアドレス、閲覧ページの情報（リファラ）、ブラウザの種類。目的: フォントの配信。</li>
       <li>jsDelivr（cdn.jsdelivr.net）: 図表（Mermaid）の表示用プログラムの読み込み。IPアドレス、リファラ、ブラウザの種類。目的: プログラムの配信。</li>
