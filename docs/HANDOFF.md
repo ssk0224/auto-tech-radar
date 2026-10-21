@@ -28,7 +28,10 @@
 - main に反映済み・GitHub Actions 全ステップ成功（run 120）。
 - **git 履歴の書き換え済み**（`git filter-repo`、main とブランチを force push、書き換え後の先頭 `e31c676`）。生成コンテンツの過去版を最新版に置換し、有料キットを書き戻していた削除済みスクリプトを履歴から除去。元の履歴の有料本文 2,522 行を全オブジェクトで照合し、残存 0（コード内の見出しテンプレートのみ一致）。
   - **オーナー端末の古いクローンは使わず、取り直すこと**（`git clone https://github.com/ssk0224/auto-tech-radar`）。古いクローンから push すると平文の履歴が戻る。
-  - GitHub は古いコミットを SHA 指定でしばらく表示できる。完全に消すには GitHub サポートに「Remove cached views」を依頼する（対象のコミットはオーナー PC の `~/.auto-tech-radar/handoff/purge_shas.md` にだけ記録。**公開リポに SHA を書かない**＝書くと有料本文の場所を公開することになる）。2026-10-21 時点で未依頼・匿名で読める状態を確認済み（最優先の未解決事項）。
+  - 書き換え後も GitHub は古いコミットを SHA 指定で匿名に表示していた。**2026-10-22 00:10 JST に GitHub 上のリポを削除→同名で作り直し→main と claude/upbeat-tesla-7dei50 を push して解消**（オーナー判断。フォーク・スター・PR・issue は 0 だった）。旧 main・旧ブランチ先頭・旧ルートの 3 コミットとも API は 422「No commit found」、匿名の `.patch` は 404 を確認。GitHub Support への依頼は不要になった（下書きはオーナー PC の `~/.auto-tech-radar/handoff/github_support_request.md`）。**GitHub の「削除したリポの復元」は使わない**（使うと漏れが戻る）。外部のミラー（Software Heritage 等）に複製があるかは未確認。
+  - 作り直しで消えたもの: Actions の実行履歴（run 番号は 1 から）・成果物、シークレット `GH_PAT`（未登録のまま。workflow は `GITHUB_TOKEN` に切り替わる）。`GEMINI_API_KEY` はオーナーが再登録済み。Pages（GitHub Actions）・workflow の書き込み権限・説明文・トピックは元の値で設定済み。作り直し前の全ブランチと設定は `D:\ClaudeBackup\auto-tech-radar\`（bundle と repo 設定 JSON）。
+  - 再公開前に、旧履歴の有料部分の行（3,246 行、25 字以上・無料部分に無いもの）を新しい履歴の全オブジェクトと照合した。一致は 71 行で、すべて生成テンプレートの見出し・ハッシュタグ・README 由来のコマンド・effectcraft の現行の無料部分（旧形式で無料部分が長い記事）。
+  - **公開リポにコミット SHA（旧履歴のもの）を書かない**。
 - 乱数で作っていた閲覧者数（「現在 N 名が閲覧・研究中」）を削除、「全記事読み放題」系の表現を修正、sponsor の根拠のない読者層の主張を修正。テストに禁止表現として追加。
 - **オーナーPC（Windows）の同期・秘密鍵の確立・全38本の再封印**（2026-10-19 20:15 JST）:
   - オーナー端末に残っていた履歴書き換え前のクローンを `C:\Users\free1\_quarantine_auto-tech-radar_prerewrite_20261019\old_history.bundle` に隔離退避し、作業ツリーを `origin/main` と完全一致化・旧オブジェクトを `git gc --prune=now` で物理パージ済み。
@@ -50,7 +53,7 @@
   - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
   - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
   - **バグ洗い出し wf_8baf0270-60c は 2026-10-21 23:27 に完了**（55 件発見 → 敵対的検証で 47 件確認: CRITICAL 2・HIGH 4・MEDIUM 18・LOW 23、系統別の対策案つき）。結果はオーナー PC の `~/.auto-tech-radar/handoff/`（`bughunt_summary.md`＝一覧、`bughunt_wf_8baf0270-60c_result.json`＝全文、`scratch/`＝再現用スクリプト）。公開リポに置かないのは有料本文の漏れ方の詳細を含むため。**次のセッションは `bughunt_summary.md` を読み、CRITICAL→HIGH の順に、バグごとに原因＋同じ種類を止める仕組みで直す**。
-    - CRITICAL（2 件は同じ事象）: 書き換え前の有料本文入りコミットが GitHub に SHA 指定で匿名で読める。HANDOFF の SHA は削除済み（このコミット）。残りは GitHub Support への削除依頼（オーナーのアカウントで送る）と、docs に SHA を書かせない検査。
+    - CRITICAL（2 件は同じ事象）: 書き換え前の有料本文入りコミットが GitHub に SHA 指定で匿名で読めた → 2026-10-22 にリポの作り直しで解消（上の「完了」参照）。残りは docs に SHA を書かせない検査。
     - HIGH: git_sync が git の stderr（Windows の autocrlf 警告）をファイル名として扱い、衝突の修復がオーナー PC で効かない／有料ラインの漏れ検知が「位置不明」を合格扱い（23〜24 本が未計測なのに「34 本確認」と書いていた）／有料本文の検査がオーナー PC でだけ動き、cleanyourtv・deepinfer で赤。
   - **星履歴 API は第三者のリポジトリで使える**（`gh api repos/<owner>/<repo>/stargazers/history` が HTTP 200・日別の星数、2026-10-21 実測）。→「Radar Ledger は後から作れないデータ」という前提は誤り。差別化は「いつ何を選んだかの事前記録・検証ログ・日本語の判断」に置く。
   - **Zenn**: `scripts/zenn_status.json` は 38 本とも 403（確認不能）。上の「34 本は 404」は現行データでは裏付けが無い（未確認として扱う）。
