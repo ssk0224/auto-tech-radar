@@ -18,7 +18,7 @@ export const siteConfig = {
   // 検索エンジンの所有確認（Search Console の「HTML タグ」の content の値）と、
   // アクセス解析（Cloudflare Web Analytics の token）。空ならタグを出さない（src/utils/site_tags.js）。
   // 解析を入れると src/pages/privacy.astro の外部送信一覧にも自動で載る。
-  googleSiteVerification: "",
+  googleSiteVerification: "Voz6J6GTC47_IhzS51uDQFdMynW6EwHGvtxwdGavHF8",
   cloudflareAnalyticsToken: "",
 
   // 💻 公式 GitHub リポジトリ
