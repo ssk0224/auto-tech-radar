@@ -8,49 +8,19 @@
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
-import { spawnSync } from "child_process";
 import { jstDate, readRunStatus } from "./utils/run_status.mjs";
+import { RADAR_DIR, articlesPublishedOn, articlesPublishedOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
 
 export const ALERT_LABEL = "pipeline-alert";
 export const ALERT_TITLE = "パイプライン停止アラート";
 
-const RADAR = "src/pages/radar";
-const publishedOn = (date) => {
-  const re = new RegExp(`^pubDate:\\s*["']?${date}["']?\\s*$`, "m");
-  return (content) => {
-    const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    return !!fm && re.test(fm[1]);
-  };
-};
-
-// pubDate が date（YYYY-MM-DD）の記事のスラッグ一覧（作業ツリー）
-export function articlesPublishedOn(radarDir, date) {
-  if (!fs.existsSync(radarDir)) return [];
-  const isOn = publishedOn(date);
-  return fs.readdirSync(radarDir)
-    .filter((f) => f.endsWith(".md"))
-    .filter((f) => isOn(fs.readFileSync(path.join(radarDir, f), "utf8")))
-    .map((f) => f.replace(/\.md$/, ""));
-}
-
-// git の ref（push 済みの origin/main など）にある記事のうち、pubDate が date のもののスラッグ一覧。読めなければ例外
-export function articlesPublishedOnRef(rootDir, ref, date) {
-  const git = (...args) => {
-    const r = spawnSync("git", args, { cwd: rootDir, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-    if (r.status !== 0) throw new Error(`git ${args.join(" ")}: ${(r.stderr || "").trim()}`);
-    return r.stdout;
-  };
-  const isOn = publishedOn(date);
-  return git("ls-tree", "--name-only", `${ref}:${RADAR}`).split("\n")
-    .filter((f) => f.endsWith(".md"))
-    .filter((f) => isOn(git("show", `${ref}:${RADAR}/${f}`)))
-    .map((f) => f.replace(/\.md$/, ""));
-}
+// 「その日の記事」の判定は生成スクリプトの 1 日の上限と共通（scripts/utils/published_articles.mjs）
+export { articlesPublishedOn, articlesPublishedOnRef };
 
 // ref を渡すと、その ref（push 済みの内容）で判定する。省くと作業ツリーで判定する
 export function decideAlert({ rootDir = process.cwd(), now = Date.now(), ref = null } = {}) {
   const date = jstDate(now);
-  const slugs = ref ? articlesPublishedOnRef(rootDir, ref, date) : articlesPublishedOn(path.join(rootDir, ...RADAR.split("/")), date);
+  const slugs = ref ? articlesPublishedOnRef(rootDir, ref, date) : articlesPublishedOn(path.join(rootDir, ...RADAR_DIR.split("/")), date);
   const status = readRunStatus(rootDir, date);
   const runs = Array.isArray(status?.runs) ? status.runs : [];
   return { date, alert: slugs.length === 0, slugs, runs };
@@ -117,8 +87,8 @@ export async function sendAlert({ repo, token, body, fetchImpl = globalThis.fetc
 // CI では最新の origin/main を取り込み、push 済みの記事で判定する（取り込めなければ作業ツリーで判定し、警告を出す）
 function decideInCi() {
   if (!process.env.GITHUB_ACTIONS) return decideAlert();
-  spawnSync("git", ["fetch", "--quiet", "origin", "main"], { encoding: "utf8" });
   try {
+    fetchOriginMain(process.cwd());
     return decideAlert({ ref: "origin/main" });
   } catch (e) {
     console.log(`::warning title=No article check::push 済みの記事（origin/main）を読めないため、作業ツリーで判定します: ${e.message}`);

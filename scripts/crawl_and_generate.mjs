@@ -23,6 +23,7 @@ import { resolveModelOrder, classifyGeminiError, GeminiStopError } from "./utils
 import { recordRunStatus as writeRunStatus, jstDate as jstToday } from "./utils/run_status.mjs";
 import { rankCandidates, watchlistDocument, pubDateProblem, jstDate, SELECTION_CONFIG, REJECTION_REASONS } from "./utils/selection.mjs";
 import { slugForRepoName } from "./utils/blocklist.mjs";
+import { isPublishedOn, radarArticlesOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
 import { setFrontmatterField, quoteFrontmatterStrings, unwrapMarkdownFence, closeOpenFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
 
 // 実行結果（data/run_status）は、どの終わり方でも必ず 1 回記録する（記録の無い日は、アラートが理由を示せない）
@@ -623,18 +624,28 @@ async function run() {
   // 多重スケジュール（遅延救済バックアップ便）実行時の安全ガード：本日分が既に生成済みならスキップ
   // 日本時間の今日（この実行の間は固定。本日分の上限の判定と、生成する記事の公開日に同じ日付を使う）
   const today = jstToday(Date.now());
-  let todayCount = 0;
+  // 手元の作業ツリーが古い（オーナー端末のランチャーから手動で実行した等）と、CI が今日すでに公開した記事を数えられず
+  // 1 日に 2 本目を作ってしまうため、push 済みの記事（origin/main）も数える。取り込めない（オフライン・git でない）ときは手元だけで判定する
+  const todaySlugs = new Set();
+  try {
+    fetchOriginMain(process.cwd());
+    for (const a of radarArticlesOnRef(process.cwd(), "origin/main")) {
+      existingSlugs.add(a.slug.toLowerCase());
+      const url = (a.content.match(/repoUrl:\s*["']([^"']+)["']/i) || [])[1];
+      if (url) existingUrls.add(url.trim().toLowerCase().replace(/\/$/, ""));
+      if (isPublishedOn(a.content, today)) todaySlugs.add(a.slug);
+    }
+  } catch (e) {
+    console.warn(`push 済みの記事（origin/main）を確認できないため、手元の記事だけで本日分を数えます: ${String(e.message).split("\n")[0]}`);
+  }
   if (fs.existsSync(webDir)) {
-    const existing = fs.readdirSync(webDir).filter((f) => f.endsWith(".md"));
-    for (const f of existing) {
+    for (const f of fs.readdirSync(webDir).filter((x) => x.endsWith(".md"))) {
       try {
-        const c = fs.readFileSync(path.join(webDir, f), "utf8");
-        if (new RegExp(`pubDate:\\s*["']?${today}["']?`).test(c)) {
-          todayCount++;
-        }
+        if (isPublishedOn(fs.readFileSync(path.join(webDir, f), "utf8"), today)) todaySlugs.add(f.replace(/\.md$/, ""));
       } catch (e) {}
     }
   }
+  const todayCount = todaySlugs.size;
 
   if (todayCount >= TARGET_NEW_COUNT) {
     console.log(`✓ 本日（${today} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);

@@ -1,7 +1,7 @@
 // 生成スクリプト（毎日 CI で無人実行）が、不正な生成物を保存せずに止めることを確かめる
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "child_process";
+import { spawnSync, execFileSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -45,7 +45,7 @@ hello
 
 // keepDates: 既存記事の公開日を書き換えず、生成スクリプトの現在時刻（MOCK_NOW）を 3 日後にずらして「本日分は生成済み」を避ける
 // （複製をそのまま CI の品質ゲートにかけるため。公開日を 2000-01-01 にすると、公開日の検査に既存記事が落ちる）
-function run(mockOut, extraEnv = {}, { keepDates = false, timeout } = {}) {
+function run(mockOut, extraEnv = {}, { keepDates = false, timeout, prepare } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gen-"));
   fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
   fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"), "junction"); // Windows ではディレクトリの symlink に権限が要るため junction を使う
@@ -57,6 +57,7 @@ function run(mockOut, extraEnv = {}, { keepDates = false, timeout } = {}) {
       fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/^pubDate:.*$/m, 'pubDate: "2000-01-01"'));
     }
   }
+  if (prepare) prepare(dir); // 生成スクリプトを動かす前に複製を整える（git の履歴を作るなど）
   const env = { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...(keepDates ? { MOCK_NOW: String(Date.now() + 3 * 24 * 3600 * 1000) } : {}), ...extraEnv };
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], {
     cwd: dir, encoding: "utf8", env, timeout,
@@ -373,6 +374,41 @@ test("選定ですべての候補が除外された日も、実行結果（reaso
     assert.equal(last.reason, "no_candidates", log);
     assert.equal(last.generated, 0);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("手元の作業ツリーが古くても、push 済み（origin/main）に今日の記事があれば 2 本目を生成しない（1 日 1 本）", () => {
+  const g = (cwd, ...a) => execFileSync("git", a, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const calls = path.join(os.tmpdir(), `atr-calls-remote-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  let remote;
+  const { dir, log } = run(output(), { MOCK_CALLS: calls }, {
+    prepare: (d) => {
+      // 手元（d）: 今日の記事が無い古い状態。リモート: CI が今日の記事を push 済み
+      remote = `${d}-remote.git`;
+      g(d, "init", "-q", "-b", "main");
+      g(d, "add", "-A");
+      g(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "old");
+      g(d, "init", "-q", "--bare", "-b", "main", remote);
+      g(d, "remote", "add", "origin", remote);
+      g(d, "push", "-q", "origin", "main");
+      const ci = `${d}-ci`;
+      g(d, "clone", "-q", remote, ci);
+      fs.writeFileSync(path.join(ci, "src/pages/radar/ci-article.md"), `---\ntitle: "ci"\ndescription: "d"\npubDate: "${jstTodayStr()}"\nrepoUrl: "https://github.com/ci/ci-article"\nstars: 1\n---\n# ci\n`);
+      g(ci, "add", "-A");
+      g(ci, "-c", "user.name=c", "-c", "user.email=c@c", "commit", "-qm", "ci article");
+      g(ci, "push", "-q", "origin", "main");
+      fs.rmSync(ci, { recursive: true, force: true });
+    },
+  });
+  try {
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    assert.ok(!fs.existsSync(calls), "Gemini を呼んだ");
+    assert.equal(runStatusOf(dir).runs.at(-1).reason, "cap_reached", log);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    if (remote) fs.rmSync(remote, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
 });
 
 test("Gemini が応答を返さないままでも、時間切れにして次のモデルへ進み、実行結果を記録して終了する", () => {
