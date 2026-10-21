@@ -1,6 +1,6 @@
 // note.com の操作をオーナーの Chrome で自動実行する（DevTools にスクリプトを貼る手作業をなくす）。
 // 専用プロファイル（~/.auto-tech-radar/chrome-note）を使うので、初回だけ開いた窓で note にログインする。以後はログイン状態が残る。
-// 使い方: node scripts/note_browser.mjs eyecatch
+// 使い方: node scripts/note_browser.mjs maintain（見出し画像の設定 → 古い表現の修正 → 閲覧数の取得。eyecatch は見出し画像だけ）
 import fs from "fs";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
@@ -9,6 +9,7 @@ import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
+import { oldRingWordingSpot, NEW_RING_WORDS } from "./utils/note_pending.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = NOTE_PROFILE;
@@ -102,6 +103,17 @@ const noteInfo = (page, key) =>
     return { id: d.id, eyecatch: d.eyecatch || "", updatedAt: d.updated_at || d.updatedAt || "" };
   }, key);
 
+// 記事の本文（オーナーとしてログインしているので有料部分を含む全文）
+const noteBody = (page, key) =>
+  inPage(page, async (k) => {
+    const r = await fetch(`/api/v3/notes/${k}`, { credentials: "include", headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!r.ok) return { error: `記事情報の取得に失敗 HTTP ${r.status}` };
+    return { body: ((await r.json()).data || {}).body || "" };
+  }, key);
+
+// 比較用に、記号・空白・HTML の書式を除く
+const plain = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
+
 const uploadEyecatch = (page, args) =>
   inPage(page, async ({ id, width, height, b64, name }) => {
     const xsrf = decodeURIComponent((document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/) || [])[1] || "");
@@ -152,6 +164,15 @@ async function publishDraft(ctx, key, steps) {
   const ed = await ctx.newPage();
   try {
     await openEditor(ed, key, steps);
+    await pressPublish(ed, steps);
+  } finally {
+    await ed.close().catch(() => {});
+  }
+}
+
+// 編集画面で「公開に進む」→ 公開設定は変えずに「更新する」を押す
+async function pressPublish(ed, steps) {
+  {
     const next = ed.getByRole("button", { name: /公開に進む/ }).first();
     await next.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
     steps.push({ at: "editor", url: ed.url(), buttons: await buttonTexts(ed) });
@@ -166,14 +187,99 @@ async function publishDraft(ctx, key, steps) {
     await ed.waitForURL((u) => !/\/publish/.test(u.toString()), { timeout: 20000 }).catch(() => {});
     await ed.waitForTimeout(2000);
     steps.push({ at: "after-update", url: ed.url() });
-  } finally {
-    await ed.close().catch(() => {});
   }
 }
 
-async function eyecatch() {
+// 編集画面の本文（編集できる領域のうち、いちばん長いもの）
+const editorText = (ed) =>
+  ed.evaluate(() => [...document.querySelectorAll('[contenteditable="true"]')].map((e) => e.innerText).sort((a, b) => b.length - a.length)[0] || "");
+
+// 編集画面の本文から語 words を探して選択する（見つからなければ false）
+const selectWords = (ed, words) =>
+  ed.evaluate((w) => {
+    const roots = [...document.querySelectorAll('[contenteditable="true"]')].sort((a, b) => b.innerText.length - a.innerText.length);
+    const root = roots[0];
+    if (!root) return false;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const i = n.data.indexOf(w);
+      if (i === -1) continue;
+      root.focus();
+      const r = document.createRange();
+      r.setStart(n, i);
+      r.setEnd(n, i + w.length);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      return true;
+    }
+    return false;
+  }, words);
+
+// 公開中の記事に残った古い表現（CI が見つけた語）だけを置き換えて「更新する」まで行う。
+// 編集画面の下書きが公開中の記事と違う（以前の手作業の変更が残っている）記事は、意図しない内容を公開しないよう置き換えずに止める
+async function fixWording(ctx, page, t, steps) {
+  const live = await noteBody(page, t.key);
+  if (live.error) throw new Error(live.error);
+  const ed = await ctx.newPage();
+  try {
+    await openEditor(ed, t.key, steps);
+    await ed.getByRole("button", { name: /公開に進む/ }).first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
+    await ed.waitForTimeout(1500);
+    const draft = await editorText(ed);
+    const liveChars = plain(live.body).length;
+    const draftChars = plain(draft).length;
+    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars });
+    if (!draftChars || Math.abs(draftChars - liveChars) > Math.max(40, liveChars * 0.03)) {
+      throw new Error(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません`);
+    }
+    let replaced = 0;
+    while (replaced < 5 && (await selectWords(ed, t.words))) {
+      await ed.keyboard.insertText(NEW_RING_WORDS);
+      await ed.waitForTimeout(500);
+      replaced++;
+    }
+    const after = await editorText(ed);
+    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length });
+    if (!replaced || /ThoughtWorks/.test(after) || !after.includes(NEW_RING_WORDS)) throw new Error("編集画面で語を置き換えられませんでした（公開はしていません）");
+    await pressPublish(ed, steps);
+  } finally {
+    await ed.close().catch(() => {});
+  }
+  const updated = await noteBody(page, t.key);
+  if (updated.error) throw new Error(updated.error);
+  if (/ThoughtWorks/.test(updated.body) || !updated.body.includes(NEW_RING_WORDS)) throw new Error("「更新する」の後も記事に反映されていません");
+}
+
+// 自分の記事の閲覧数・スキ数（note の統計。収益ゼロの原因を数字で見るため。非公開の API なので形式が変わりうる → 生の応答も残す）
+const noteStats = (page) =>
+  inPage(page, async () => {
+    const out = { pages: [] };
+    for (let p = 1; p <= 3; p++) {
+      const r = await fetch(`/api/v1/stats/pv?filter=all&page=${p}&sort=pv`, { credentials: "include", headers: { "X-Requested-With": "XMLHttpRequest" } });
+      const text = await r.text();
+      if (!r.ok) return { ...out, error: `HTTP ${r.status}`, raw: text.slice(0, 500) };
+      let d;
+      try {
+        d = JSON.parse(text).data;
+      } catch (e) {
+        return { ...out, raw: text.slice(0, 1500) };
+      }
+      out.pages.push(d);
+      if (d?.last_page !== false && d?.is_last_page !== false) break;
+    }
+    return out;
+  });
+
+function summarizeStats(s) {
+  const d0 = s.pages?.[0] || {};
+  const notes = s.pages.flatMap((d) => d?.note_stats || []).map((n) => ({ name: (n.name || "").slice(0, 40), pv: n.read_count ?? null, like: n.like_count ?? null, comment: n.comment_count ?? null }));
+  return { totalPv: d0.total_pv ?? null, totalLike: d0.total_like ?? null, totalComment: d0.total_comment ?? null, notes, ...(notes.length ? {} : { raw: JSON.stringify(s).slice(0, 2000) }), ...(s.error ? { error: s.error } : {}) };
+}
+
+async function eyecatch({ wording = false, stats = false } = {}) {
   let ctx;
-  const result = { set: [], skipped: [], failed: [], manual: [], steps: {} };
+  const result = { set: [], skipped: [], failed: [], manual: [], steps: {}, wording: { fixed: [], failed: [] } };
   try {
     let { ctx: c, page } = await openNote();
     ctx = c;
@@ -232,6 +338,53 @@ async function eyecatch() {
     }
     console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 本文の差し替え待ち ${result.manual.length} / 失敗 ${result.failed.length}`);
     result.manual.forEach((m) => console.log(`  … ${m}`));
+
+    // 古い表現の自動修正（CI の検査で「古い表現だけ」が問題の記事。語だけ置き換えて「更新する」）
+    if (wording && !result.failed.length) {
+      let status = {};
+      try {
+        status = JSON.parse(fs.readFileSync(process.env.ATR_NOTE_STATUS || path.join(__dirname, "note_status.json"), "utf8")).notes || {};
+      } catch (e) {}
+      const urls = JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8"));
+      const fixes = Object.entries(status)
+        .map(([slug, v]) => ({ slug, spot: oldRingWordingSpot(v), key: urls[slug]?.url?.match(/\/n\/(n\w+)/)?.[1] }))
+        .filter((f) => f.spot && f.key)
+        .map((f) => ({ slug: f.slug, key: f.key, words: f.spot.words }));
+      for (let i = 0; i < fixes.length; i++) {
+        const t = fixes[i];
+        result.steps[`wording:${t.slug}`] = [];
+        try {
+          await fixWording(ctx, page, t, result.steps[`wording:${t.slug}`]);
+          result.wording.fixed.push(t.slug);
+          console.log(`  ✓ 古い表現を修正して更新: ${t.slug}`);
+        } catch (e) {
+          if (e instanceof LoginRequired && !loggedIn) {
+            loggedIn = true;
+            await ctx.close().catch(() => {});
+            await manualLogin();
+            ({ ctx, page } = await openNote(true));
+            await base();
+            i--;
+            continue;
+          }
+          result.wording.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
+          console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
+          break;
+        }
+      }
+      if (fixes.length) console.log(`✏ 古い表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}`);
+    }
+
+    // 閲覧数・スキ数（収益につながっているかを数字で見る）
+    if (stats) {
+      try {
+        result.stats = summarizeStats(await noteStats(page));
+        const top = result.stats.notes.slice(0, 5).map((n) => `${n.name}… ${n.pv ?? "?"}`).join(" / ");
+        console.log(`📊 note の閲覧数: 合計 ${result.stats.totalPv ?? "?"} / スキ ${result.stats.totalLike ?? "?"}${top ? `（多い順: ${top}）` : ""}`);
+      } catch (e) {
+        result.stats = { error: e.message.split("\n")[0] };
+      }
+    }
     return result;
   } finally {
     await ctx?.close().catch(() => {});
@@ -253,15 +406,16 @@ function writeLog(entry) {
 
 if (process.argv[1] && process.argv[1].endsWith("note_browser.mjs")) {
   const cmd = process.argv[2];
-  const run = cmd === "eyecatch" ? eyecatch : null;
+  const run = cmd === "eyecatch" ? () => eyecatch() : cmd === "maintain" ? () => eyecatch({ wording: true, stats: true }) : null;
   if (!run) {
-    console.log("使い方: node scripts/note_browser.mjs eyecatch");
+    console.log("使い方: node scripts/note_browser.mjs maintain | eyecatch");
     process.exit(2);
   }
   run().then(
     (result) => {
-      writeLog({ cmd, ok: result.failed.length === 0, result });
-      process.exit(result.failed.length === 0 ? 0 : 1);
+      const ok = result.failed.length === 0 && result.wording.failed.length === 0;
+      writeLog({ cmd, ok, result });
+      process.exit(ok ? 0 : 1);
     },
     (e) => {
       console.error(`❌ ${e.message}`);

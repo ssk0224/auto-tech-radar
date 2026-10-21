@@ -365,7 +365,7 @@ function promptMenu() {
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
   console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
   console.log(`   ${c.dim}[N] (本文の一括自動更新: 現在は使えないため [U] に案内します)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note の見出し画像を一括設定する${c.reset} ${c.dim}(自動・未設定の記事だけ。初回のみ note にログイン)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note 自動メンテ（見出し画像・古い表現の修正・閲覧数の取得）${c.reset} ${c.dim}(全自動。初回のみ note にログイン)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -1145,13 +1145,13 @@ function pullBeforeRun(choice) {
 
 function runNoteEyecatch() {
   console.clear();
-  console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定（自動） ===${c.reset}\n`);
+  console.log(`${c.cyan}${c.bold}=== 🖼 note 自動メンテ（見出し画像・古い表現の修正・閲覧数） ===${c.reset}\n`);
   console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。\n`);
   try {
-    execSync('node scripts/note_browser.mjs eyecatch', { cwd: rootDir, stdio: 'inherit' });
-    console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認し、ヘッダーの「見出し画像なし」の本数が更新されます。${c.reset}`);
+    execSync('node scripts/note_browser.mjs maintain', { cwd: rootDir, stdio: 'inherit' });
+    console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認します（結果は自動で GitHub に送られます。操作はこれで終わりです）。${c.reset}`);
   } catch (e) {
-    console.log(`\n${c.red}見出し画像を設定できなかった記事があります（上の ✕ を確認）。${c.reset}`);
+    console.log(`\n${c.red}自動でできなかった記事があります（上の ✕）。結果は GitHub に送られるので、こちらで原因を確認して直します。${c.reset}`);
   }
   // 結果を GitHub に送る（成功・失敗の内容を遠隔で確認できるように）
   const r = commitAndSync(rootDir, ['scripts/note_browser_log.json'], 'chore(note): eyecatch run log');

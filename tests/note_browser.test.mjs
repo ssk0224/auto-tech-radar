@@ -95,3 +95,37 @@ test("note のページは出品用アカウントの専用プロファイルで
   const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
   assert.match(src, /function openUrl\(url\) \{\n[^\n]*\n  if \(isNoteUrl\(url\) && openInNoteChrome\(url\)\) return;/);
 });
+
+// [E]（maintain）: 古い表現の自動修正。CI の検査結果は fixture で与える（実際の note_status.json の中身に左右されないように）
+function runMaintain(extraEnv) {
+  const urls = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
+  const key = urls.zcode.url.split("/n/")[1];
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
+  const status = path.join(home, "status.json");
+  fs.writeFileSync(status, JSON.stringify({ checkedAt: "x", notes: { zcode: { eyecatch: true, issues: ["第三者（ThoughtWorks）の評価のような表現"], excerpt: '1a">これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。' } } }));
+  try {
+    const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "maintain"], {
+      encoding: "utf8",
+      timeout: 240000,
+      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_WORDING: key, ATR_NOTE_STATUS: status, ...extraEnv(key) },
+    });
+    return { status: r.status, out: r.stdout + r.stderr };
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+}
+
+test("[E] 古い表現だけ置き換えて「更新する」まで行い、公開中の本文で反映を確かめる。閲覧数も取得する", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
+  const r = runMaintain(() => ({}));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /✓ 古い表現を修正して更新: zcode/);
+  assert.match(r.out, /古い表現の修正: 修正 1 \/ 失敗 0/);
+  assert.match(r.out, /note の閲覧数: 合計 12 \/ スキ 1/);
+});
+
+test("[E] 編集画面の下書きが公開中と違う記事は、置き換えも公開もしない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
+  const r = runMaintain((key) => ({ ATR_NOTE_MOCK_DRIFT: key }));
+  assert.notEqual(r.status, 0, r.out);
+  assert.match(r.out, /下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
+  assert.doesNotMatch(r.out, /✓ 古い表現を修正/);
+});
