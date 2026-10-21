@@ -2,6 +2,8 @@
 import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
 import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
+// note 有料版の案内・構造化データの更新日（updatedDate が無ければ公開日。固定の日付は入れない）を決める関数
+import { noteOfferFor, splitAfterIntro, dateModifiedOf } from "../utils/article_page.js";
 import noteUrls from "../../scripts/note_urls.json";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
@@ -40,12 +42,14 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
   : "https://ssk0224.github.io/auto-tech-radar/og-card.png";
 
 const starsCount = Number(frontmatter?.stars) || 0;
-// この記事の有料版（note）。note に公開済みで対応が取れた記事だけ単発購入を案内する（scripts/sync_note_urls.mjs）
-const noteItem = isArticle ? (noteUrls as Record<string, { url: string; price: number | null }>)[currentSlug] : undefined;
-const notePriceLabel = noteItem?.price ? `¥${noteItem.price.toLocaleString()}` : "";
 // 有料版に実際に含まれる項目（暗号化時に有料部分の見出しから作る。本文は含まない）
 const paidSummaries = import.meta.glob("../../note_drafts/*_note.paid.json", { eager: true, import: "default" }) as Record<string, { chars: number; features: string[] }>;
 const paidSummary = paidSummaries[`../../note_drafts/${currentSlug}_note.paid.json`];
+// この記事の有料版（note）の案内。note に公開済みで対応が取れた記事（scripts/note_urls.json）だけに出す（scripts/sync_note_urls.mjs）
+const noteOffer = isArticle ? noteOfferFor(currentSlug, noteUrls, paidSummary) : null;
+// 案内は記事末尾ではなく導入部の直後に置くため、本文を HTML として受け取り最初の h2 の手前で分ける
+const articleHtml = isArticle ? await Astro.slots.render("default") : "";
+const [introHtml, restHtml] = noteOffer ? splitAfterIntro(articleHtml) : [articleHtml, ""];
 // GitHub スター数による区分（共通定義: src/utils/articles.js）
 const tier = starTier(starsCount);
 const ringLabel = tier.label;
@@ -86,7 +90,7 @@ const ringBadgeBorder = tier.border;
         "image": ogImage,
         "url": `https://ssk0224.github.io${Astro.url.pathname}`,
         "datePublished": frontmatter?.pubDate || "2026-10-09",
-        "dateModified": frontmatter?.pubDate || "2026-10-19",
+        "dateModified": dateModifiedOf(frontmatter),
         "isAccessibleForFree": true,
         "author": {
           "@type": "Organization",
@@ -320,110 +324,36 @@ const ringBadgeBorder = tier.border;
       article th { background: #1e293b; color: #f1f5f9; white-space: nowrap; }
       article td { background: #0f172a; }
 
-      /* Visual Paywall & Content Lock */
-      .paywall-divider {
-        position: relative;
-        text-align: center;
-        margin: 3rem 0 2rem;
-      }
-      .paywall-divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #6366f1, transparent);
-      }
-      .paywall-badge {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #1e1b4b;
-        color: #a5b4fc;
+      /* note 有料版の案内（記事の導入部の直後に 1 か所だけ）。
+         本文の `article p` などより優先させるため、子要素は .note-offer から指定する */
+      .note-offer {
+        background: linear-gradient(135deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
         border: 1px solid #4338ca;
-        padding: 0.4rem 1.2rem;
-        border-radius: 9999px;
-        font-size: 0.85rem;
+        border-radius: 12px;
+        padding: 1.3rem 1.5rem;
+        margin: 2rem 0;
+      }
+      .note-offer .note-offer-title { margin: 0 0 0.7rem; font-size: 1.08rem; font-weight: 800; color: #e0e7ff; line-height: 1.5; }
+      .note-offer .note-offer-list { margin: 0 0 0.6rem; padding-left: 1.3rem; font-size: 0.92rem; color: #cbd5e1; line-height: 1.7; }
+      .note-offer .note-offer-meta { margin: 0 0 1rem; font-size: 0.85rem; color: #a5b4fc; line-height: 1.6; }
+      .note-offer .note-offer-btn {
+        display: inline-block;
+        background: #2cb696;
+        color: #fff !important;
         font-weight: 700;
-        box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4);
-      }
-
-      .atr-paywall-gate {
-        position: relative;
-        margin: -40px 0 2.5rem;
-        background: linear-gradient(135deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
-        border: 2px solid #6366f1;
-        border-radius: 16px;
-        padding: 2.2rem 1.8rem;
-        text-align: center;
-        box-shadow: 0 20px 45px -5px rgba(99, 102, 241, 0.4);
-        z-index: 10;
-      }
-
-      /* Monetization Offer Card */
-      .monetization-box {
-        background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-        border: 1px solid #4338ca;
-        border-radius: 14px;
-        padding: 2rem 1.8rem;
-        margin: 2.5rem 0;
-        text-align: center;
-        box-shadow: 0 10px 25px -5px rgba(67, 56, 202, 0.25);
-      }
-      .monetization-box h3 { margin: 0 0 0.5rem; color: #e0e7ff; font-size: 1.35rem; font-weight: 800; }
-      .monetization-box p { margin: 0 auto 1.4rem; font-size: 0.95rem; color: #a5b4fc; max-width: 600px; }
-      .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1.2rem;
-        margin-top: 1.2rem;
-        text-align: left;
-      }
-      .price-card {
-        background: #0f172a;
-        border: 1px solid #312e81;
-        border-radius: 10px;
-        padding: 1.3rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .price-card.featured {
-        border-color: #6366f1;
-        background: rgba(30, 27, 75, 0.6);
-        position: relative;
-      }
-      .badge-rec {
-        position: absolute;
-        top: -10px;
-        right: 12px;
-        background: #6366f1;
-        color: #fff;
-        font-size: 0.7rem;
-        padding: 0.15rem 0.5rem;
-        border-radius: 9999px;
-        font-weight: 700;
-      }
-      .price-card h4 { margin: 0 0 0.4rem; font-size: 1.05rem; color: #fff; }
-      .price-val { font-size: 1.6rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.6rem; }
-      .price-val span { font-size: 0.85rem; color: #94a3b8; font-weight: normal; }
-      .feature-list { list-style: none; padding: 0; margin: 0 0 1.2rem; font-size: 0.85rem; color: #cbd5e1; }
-      .feature-list li { margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
-      .cta-btn {
-        display: block;
-        text-align: center;
-        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        padding: 0.7rem 1.3rem;
         border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.92rem;
         text-decoration: none !important;
-        transition: transform 0.1s, filter 0.15s;
+        transition: filter 0.15s;
       }
-      .cta-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
-      .cta-primary { background: #635bff; color: #fff !important; }
-      .cta-note { background: #2cb696; color: #fff !important; }
+      .note-offer .note-offer-btn:hover { filter: brightness(1.08); }
+      .note-offer .note-offer-sub { margin: 0.9rem 0 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.6; }
+      .note-offer .note-offer-sub a { color: #93c5fd; text-decoration: underline; }
+      @media (max-width: 640px) {
+        .note-offer { padding: 1.1rem 1rem; }
+        .note-offer .note-offer-btn { display: block; text-align: center; min-height: 44px; }
+      }
 
       footer {
         margin-top: 4rem;
@@ -488,38 +418,11 @@ const ringBadgeBorder = tier.border;
       #toc-box a { color: #93c5fd; text-decoration: none; }
       #toc-box a:hover { text-decoration: underline; color: #60a5fa; }
 
-      /* Mobile Responsive Optimization for Conversion Elements */
-      @media (max-width: 640px) {
-        #sticky-bar {
-          padding: 0.6rem 0.8rem !important;
-          padding-bottom: max(0.8rem, env(safe-area-inset-bottom)) !important;
-          gap: 0.5rem !important;
-        }
-        .sticky-text {
-          display: none !important;
-        }
-        #sticky-bar > div:last-child {
-          width: 100% !important;
-          display: flex !important;
-          gap: 0.5rem !important;
-        }
-        #sticky-bar a {
-          flex: 1 !important;
-          text-align: center !important;
-          padding: 0.65rem 0.4rem !important;
-          font-size: 0.82rem !important;
-          min-height: 44px;
-          display: inline-flex !important;
-          align-items: center;
-          justify-content: center;
-        }
-      }
-
       /* A4資料・PDF保存用の完全印刷スタイル（ByteByteGoホワイトペーパースタイル） */
       @media print {
         body { background: #fff !important; color: #000 !important; font-size: 11pt; }
         header, .nav-links, footer, .reading-meta-bar button, .reading-meta-bar a,
-        #reading-progress, .paywall-divider, .monetization-box,
+        #reading-progress, .note-offer,
         .btn-gh, .btn-x, .btn-note, #copy-cheatsheet-url, #copy-cheatsheet-md,
         #export-cheatsheet-csv, #filter-search, #print-pdf-btn {
           display: none !important;
@@ -551,8 +454,7 @@ const ringBadgeBorder = tier.border;
           <a href={`${baseUrl}/cheatsheet/`} class="pill-btn" style="background: rgba(16, 185, 129, 0.15); color: #34d399 !important; border: 1px solid rgba(16, 185, 129, 0.4);">📊 OSS比較チートシート</a>
           <a href={`${baseUrl}/estimate/`} class="pill-btn" style="background: rgba(16, 185, 129, 0.25); color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.5);">⚡ 開発見積もり試算</a>
           <a href={`${baseUrl}/expense/`} class="pill-btn" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.4);">💼 経費精算ガイド</a>
-          <a href={`${baseUrl}/contact/`} class="pill-btn" style="background: rgba(37, 99, 235, 0.2); color: #93c5fd !important; border: 1px solid rgba(37, 99, 235, 0.5);">📩 受託・導入相談</a>
-          <a href={`${baseUrl}/sponsor/`} class="pill-btn" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc !important; border: 1px solid rgba(99, 102, 241, 0.4);">📢 協賛・広告掲載</a>
+          {/* 受託相談・協賛のページはフッターからのみ案内する（記事ページに B2B の案内を出さない） */}
           <a href={`${baseUrl}/api/radar.json`} target="_blank" rel="noopener noreferrer" class="pill-btn" style="background: rgba(168, 85, 247, 0.2); color: #c084fc !important; border: 1px solid rgba(168, 85, 247, 0.5);">🤖 AI Agent API</a>
           <a href="https://x.com/AutoTechRadar" target="_blank" rel="noopener noreferrer" class="pill-btn btn-x">𝕏 @AutoTechRadar</a>
           <a href="https://note.com/vast_ixora7005" target="_blank" rel="noopener noreferrer" class="pill-btn btn-note">note 公式ページ</a>
@@ -574,7 +476,32 @@ const ringBadgeBorder = tier.border;
           />
         </div>
       )}
-      {isArticle ? <article id="article-body"><slot /></article> : <slot />}
+      {isArticle ? (
+        <article id="article-body">
+          <Fragment set:html={introHtml} />
+          {/* note 有料版の案内（導入部の直後に 1 か所だけ）。atr-paywall-gate は購入導線の目印（scripts/audit_quality.mjs が確認する） */}
+          {noteOffer && (
+            <aside class="note-offer atr-paywall-gate" aria-labelledby="note-offer-title">
+              <p class="note-offer-title" id="note-offer-title">{noteOffer.heading}</p>
+              {noteOffer.features.length > 0 ? (
+                <ul class="note-offer-list">
+                  {noteOffer.features.map((f) => <li>{f}</li>)}
+                </ul>
+              ) : (
+                <p class="note-offer-meta">含まれる内容は note の記事ページに記載しています。</p>
+              )}
+              {noteOffer.charsLabel && <p class="note-offer-meta">有料部分の分量: {noteOffer.charsLabel}</p>}
+              <a href={noteOffer.url} target="_blank" rel="noopener" class="note-offer-btn" id="note-buy-btn">
+                note で有料版を見る{noteOffer.priceLabel ? `（${noteOffer.priceLabel}）` : ""}
+              </a>
+              <p class="note-offer-sub">
+                定期購読の <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer">note メンバーシップ（{siteConfig.membershipMonthlyPrice}/月）</a> もあります。特典の対象記事はメンバーシップページでご確認ください。
+              </p>
+            </aside>
+          )}
+          <Fragment set:html={restHtml} />
+        </article>
+      ) : <slot />}
 
       <!-- AI 生成であることの表示（読者が一次情報を確認できるように） -->
       {isArticle && (
@@ -583,105 +510,14 @@ const ringBadgeBorder = tier.border;
         </p>
       )}
 
-      <!-- ビジュアル・ペイウォール境界線（記事詳細のみ表示） -->
-      {isArticle && (
-        <div class="paywall-divider atr-paywall-gate">
-          <span class="paywall-badge">🔒 商用化マニュアル ＆ 実務キットは note の有料記事で提供しています</span>
-        </div>
-      )}
-
-      <!-- 最適化マネタイズ導線（買い切り＋定期購読の二段構え：記事詳細のみ表示） -->
-      {isArticle && (
-        <section class="monetization-box">
-          <h3>🔓 Auto Tech Radar PRO（商用活用 ＆ 実践レポート）</h3>
-          <p>導入提案書テンプレート・工数見積表・導入手順などの実務向けの内容は、note の有料記事・メンバーシップで提供しています（含まれる内容は記事ごとに異なります）。</p>
-        
-        <div class="pricing-grid">
-          {noteItem && (
-          <div class="price-card">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                <h4 style="margin: 0;">この記事の有料版（note）</h4>
-              </div>
-              {notePriceLabel && <div class="price-val">{notePriceLabel} <span>/ 買い切り</span></div>}
-              {paidSummary && (
-                <ul class="feature-list">
-                  {paidSummary.features.map((f) => <li>✓ {f}</li>)}
-                  <li>✓ 有料部分 約{(Math.round(paidSummary.chars / 100) * 100).toLocaleString()}字</li>
-                </ul>
-              )}
-            </div>
-            <a href={noteItem.url} target="_blank" rel="noopener" class="cta-btn cta-primary" id="note-buy-btn">
-              💳 noteでこの記事の有料版を見る{notePriceLabel ? `（${notePriceLabel}）` : ""}
-            </a>
-          </div>
-          )}
-
-          <div class="price-card featured">
-            <span class="badge-rec">おすすめ</span>
-            <div>
-              <h4>note メンバーシップ（定期購読）</h4>
-              <div class="price-val">¥1,980 <span>/ 月額（解約自由）</span></div>
-              <ul class="feature-list">
-                <li>✓ メンバーシップ特典に追加された有料記事を閲覧可能</li>
-                <li>✓ 特典の対象記事は note のメンバーシップページで確認できます</li>
-                <li>✓ noteアプリで通勤・スキマ時間に通知読込</li>
-              </ul>
-            </div>
-            <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer" class="cta-btn cta-note">📗 noteでメンバーシップ購読</a>
-          </div>
-
-          <div class="price-card">
-            <div>
-              <h4>B2B 協賛・開発コンサルティング</h4>
-              <div class="price-val">¥100,000〜 <span>/ 案件・スポンサー</span></div>
-              <ul class="feature-list">
-                <li>✓ 当メディア・XでのOSS活用プロダクト掲載</li>
-                <li>✓ レポート対象OSSの受託開発・導入支援</li>
-                <li>✓ 自社SaaS開発の技術顧問・アーキテクチャ設計</li>
-              </ul>
-            </div>
-            <div style="display: flex; gap: 0.4rem; flex-direction: column;">
-              <a href={`${baseUrl}/sponsor/`} class="cta-btn" style="background: #4338ca; color: #fff !important; font-size: 0.88rem; padding: 0.55rem;">📢 スポンサー詳細・掲載メニューを見る →</a>
-              <a href={`${baseUrl}/contact/?plan=sponsor&price=100000`} class="cta-btn" style="background: #2563eb; color: #fff !important; font-size: 0.84rem; padding: 0.5rem;">📩 協賛・タイアップ相談（無料） →</a>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid #312e81; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #94a3b8;">
-          <div style="display: flex; align-items: center; gap: 0.4rem;">
-            <span style="color: #f59e0b;">💼</span>
-            <span><a href={`${baseUrl}/expense/`} style="color: #fbbf24; text-decoration: underline; font-weight: 700;">研修費として経費申請する場合の申請書テンプレート（精算可否は所属先の規定によります）→</a></span>
-          </div>
-        </div>
-      </section>
-      )}
-
-      <!-- 🏢 法人・企業向け受託開発 ＆ AIエージェント導入相談バナー -->
-      {isArticle && (
-        <section style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%); border: 1px solid #3b82f6; border-radius: 12px; padding: 1.6rem 2rem; margin: 2rem 0; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-          <div>
-            <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; margin-bottom: 0.4rem;">
-              🏢 企業・開発責任者様向け
-            </div>
-            <h3 style="margin: 0 0 0.3rem; font-size: 1.15rem; font-weight: 800; color: #fff;">
-              本OSSを活用した社内DX・AIエージェント導入のご相談
-            </h3>
-            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">
-              商用環境構築、社内データ連携、オンプレミス運用、NDA締結対応などについて、導入支援のご相談を受け付けています。
-            </p>
-          </div>
-          <a href={`${baseUrl}/contact/?plan=${currentSlug}&price=800000`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.4rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
-            📩 無料相談・見積もり依頼 →
-          </a>
-        </section>
-      )}
+      {/* 有料版の案内は本文の導入部の直後（上の .note-offer）の 1 か所だけ。
+          記事末尾の購入カード・追従バーや、B2B（協賛・導入支援）の案内は置かない（/sponsor/・/contact/ はフッターから案内する） */}
 
       <!-- Substack/TLDRモデル: 読者リテンション・エンゲージメントボックス -->
       {isArticle && (
         <section style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #334155; border-radius: 12px; padding: 1.8rem; margin: 3rem 0; text-align: center;">
           <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem;">
-            🔔 毎日自動で更新（新着は1日最大2本）
+            🔔 毎日自動で更新（新着は1日最大1本）
           </div>
           <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
             明日の海外急上昇OSS解剖レポートを見逃さないために
@@ -774,22 +610,7 @@ const ringBadgeBorder = tier.border;
       )}
     </main>
 
-    <!-- Floating Sticky Action Bar (読者が50%スクロールした際にフワッと出現する高成約バー: note販売中の記事のみ表示) -->
-    {isArticle && noteItem?.url && (
-      <div id="sticky-bar" style="position: fixed; bottom: -80px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #312e81; padding: 0.75rem 1.2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; z-index: 9998; transition: bottom 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
-        <div style="font-size: 0.88rem; color: #cbd5e1; font-weight: 600;" class="sticky-text">
-          ⚡ <span style="color: #60a5fa;">本記事の実務キット</span> は note で（メンバーシップ 月額1,980円 / 単発 ¥980）
-        </div>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer" style="background: #2cb696; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">noteで定期購読</a>
-          <a href={noteItem.url} target="_blank" rel="noopener noreferrer" style="background: #635bff; color: #fff !important; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none;">
-            単発購入(¥980)
-          </a>
-        </div>
-      </div>
-    )}
-
-    <footer style={isArticle && noteItem?.url ? "padding-bottom: 5.5rem;" : ""}>
+    <footer>
       <p style="margin-bottom: 0.8rem;">
         <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
         <a href={`${baseUrl}/api/radar.json`} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem; color: #c084fc; font-weight: 700;">🤖 AI Agent API (JSON)</a> |
@@ -811,23 +632,13 @@ const ringBadgeBorder = tier.border;
       // innerHTML のテンプレートに入れる文字列は必ずエスケープする
       const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-      // Reading progress bar & Sticky action bar trigger
+      // Reading progress bar
       window.addEventListener('scroll', () => {
         const winScroll = document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
         const bar = document.getElementById('reading-progress');
         if (bar) bar.style.width = scrolled + '%';
-
-        // 35%以上スクロールでフワッと出現、最下部付近でも維持
-        const stickyBar = document.getElementById('sticky-bar');
-        if (stickyBar) {
-          if (scrolled > 30) {
-            stickyBar.style.bottom = '0px';
-          } else {
-            stickyBar.style.bottom = '-80px';
-          }
-        }
       });
 
       // Code blocks 1-click copy button
@@ -898,8 +709,9 @@ const ringBadgeBorder = tier.border;
             list.appendChild(li);
           });
 
-          // 読了時間バッジ & クイック共有バー
-          const textLength = article.innerText.length;
+          // 読了時間バッジ & クイック共有バー（note 有料版の案内 .note-offer は本文の文字数に数えない）
+          const offerBox = article.querySelector('.note-offer');
+          const textLength = article.innerText.length - (offerBox ? offerBox.innerText.length : 0);
           const readMinutes = Math.max(1, Math.ceil(textLength / 600)); // 日本語約600字/分
           const articleTitle = document.title.split('|')[0].trim();
           const pageUrl = window.location.href;
@@ -986,7 +798,8 @@ const ringBadgeBorder = tier.border;
           const firstH1 = article.querySelector('h1');
           
           // ⚡ 30秒エグゼクティブ・サマリー（Executive Summary Box）
-          const firstP = article.querySelector('p');
+          // 要約は本文の最初の段落から作る（導入部に段落が無い記事で note の案内の文面を拾わないように除外する）
+          const firstP = Array.from(article.querySelectorAll('p')).find((p) => !p.closest('.note-offer'));
           const summaryText = esc(firstP ? firstP.textContent.slice(0, 240) + '...' : '');
           // 記事のリポジトリURL（frontmatter の repoUrl）。タイトルからは所有者名が分からないため使わない
           const cloneUrlRaw = document.querySelector('main')?.dataset.repoUrl || '';
