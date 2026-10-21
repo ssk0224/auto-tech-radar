@@ -97,6 +97,14 @@ function pageStructureProblems(html, relPath) {
   const ldOpen = (html.match(/<script\b[^>]*type="application\/ld\+json"/g) || []).length;
   if (ldOpen !== blocks.length) problems.push('JSON-LD の script 要素が正しく閉じていません');
 
+  // 記事本文（Markdown から作る。README・生成文の生の HTML がそのまま入る）にスクリプトを動かすものが無い
+  if (isArticle) {
+    const start = html.indexOf('<article id="article-body"');
+    const body = start === -1 ? '' : html.slice(start, html.indexOf('</article>', start));
+    const active = body.match(/<script\b|<iframe\b|<object\b|<embed\b|\son[a-z]+\s*=|(?:href|src)\s*=\s*"\s*javascript:/i);
+    if (active) problems.push(`記事本文にスクリプトを動かす HTML があります: ${active[0]}`);
+  }
+
   const canonical = attrOf(html, /<link rel="canonical" href="([^"]*)"/);
   const ogUrl = attrOf(html, /<meta property="og:url" content="([^"]*)"/);
   if (fullSite) {
