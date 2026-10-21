@@ -5,7 +5,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { execFileSync } from "child_process";
-import { sanitizeAndAttachUrlToTweet, calcTwitterWeight } from "../scripts/utils/twitter_formatter.mjs";
+import { sanitizeAndAttachUrlToTweet, extractTweet1, calcTwitterWeight } from "../scripts/utils/twitter_formatter.mjs";
 import { classifyXResponse } from "../scripts/auto_tweet_x.mjs";
 import { recentArticleUrls } from "../scripts/ping_search_engines.mjs";
 
@@ -21,6 +21,20 @@ test("ツイートは行数に関係なく weight 245 以内に収まり、URL �
     assert.ok(r.tweet.includes("👇"));
   }
   assert.ok(sanitizeAndAttachUrlToTweet(`見出し\n${long}`, "demo").tweet.startsWith("見出し\n"), "先頭のフックは残す");
+});
+
+// x_posts/*.txt は Windows の作業ツリーでは CRLF のことがある。\r が本文に残ると、文字数（weight）が行ごとに増え、投稿文に \r\n と \n が混ざる
+test("CRLF の x_posts から取り出したツイートも LF と同じ文面・同じ weight になり、\\r が残らない", () => {
+  const lines = ["[TWEET 1]", "行1あ", "行2い", "行3う 👇", "", "[TWEET 2]", "続き"];
+  const results = ["\n", "\r\n"].map((eol) => sanitizeAndAttachUrlToTweet(extractTweet1(lines.join(eol)), "demo"));
+  assert.equal(results[1].tweet, results[0].tweet);
+  assert.equal(results[1].weight, results[0].weight);
+  assert.ok(!results[1].tweet.includes("\r"));
+  // 上限ぎりぎりで切り詰める分岐（行ごとに split する）でも \r を持ち込まない
+  const long = ["[TWEET 1]", ...Array.from({ length: 6 }, (_, i) => `${i}行目 ${"あ".repeat(30)}`), "👇", "", "[TWEET 2]", "x"];
+  const trimmed = ["\n", "\r\n"].map((eol) => sanitizeAndAttachUrlToTweet(extractTweet1(long.join(eol)), "demo"));
+  assert.equal(trimmed[1].tweet, trimmed[0].tweet);
+  assert.ok(!trimmed[1].tweet.includes("\r"));
 });
 
 test("X の応答: 429 と 5xx だけ再試行し、他の 4xx は失敗として記録してキューを止めない", () => {

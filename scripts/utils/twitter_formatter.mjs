@@ -9,6 +9,8 @@
  * - Target Max Weight: 245 units (~122.5 Japanese characters) to guarantee a 35-unit safety margin.
  */
 
+import { normalizeEol } from './eol.mjs';
+
 export function calcTwitterWeight(text) {
   if (!text) return 0;
   const urlRegex = /https?:\/\/[^\s]+/g;
@@ -43,7 +45,8 @@ export function sanitizeAndAttachUrlToTweet(rawTweet, slug, customUrl = null) {
   const targetUrl = customUrl || `https://ssk0224.github.io/auto-tech-radar/radar/${slug}/`;
 
   // Remove existing URLs to avoid duplication
-  let text = (rawTweet || '').replace(/https?:\/\/[^\s]+/g, '').trim();
+  // x_posts/*.txt は Windows の作業ツリーでは CRLF。\r が残ると文字数が行ごとに増え、投稿文に \r\n と \n が混ざる
+  let text = normalizeEol(rawTweet).replace(/https?:\/\/[^\s]+/g, '').trim();
 
   // Normalize pointer emoji
   if (!text.includes('👇')) {
@@ -107,8 +110,9 @@ export function sanitizeAndAttachUrlToTweet(rawTweet, slug, customUrl = null) {
  * @param {string} fallbackTitle - Fallback string if no section is found
  * @returns {string} - Extracted Tweet 1 text
  */
-export function extractTweet1(xText, fallbackTitle = '') {
-  if (!xText) return fallbackTitle;
+export function extractTweet1(rawXText, fallbackTitle = '') {
+  if (!rawXText) return fallbackTitle;
+  const xText = normalizeEol(rawXText);
 
   // 1. Match standard Tweet 1 blocks
   const match = xText.match(/(?:【ツイート\s*1】|\[TWEET\s*1\]|##\s*ツイート\s*1)\r?\n([\s\S]*?)(?=\r?\n\r?\n(?:【ツイート\s*2】|\[TWEET\s*2\]|##\s*ツイート\s*2|👉\s*ワンクリック|--------------------------------------------------|$))/i);

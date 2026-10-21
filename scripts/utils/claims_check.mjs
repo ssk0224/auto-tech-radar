@@ -1,4 +1,6 @@
 // 禁止表現・誇張表現の統一バリデーター（クローラー生成時とテスト・監査で同一定義を共用）
+import { normalizeEol } from "./eol.mjs";
+
 export const FORBIDDEN = [
   [/想定受託単価|推奨受託単価/, "スター数・カテゴリから機械的に決めた受託単価"],
   [/完全保存版|ドル箱|完全無人化|完全網羅/, "根拠のない誇張"],
@@ -15,8 +17,9 @@ export const FORBIDDEN = [
   [/全編読み放題|全記事読み放題|全レポート読み放題/, "メンバーシップで全記事が読めるかのような表現（特典に追加した記事のみ）"]
 ];
 
-export function findForbiddenClaims(text) {
-  if (!text) return [];
+export function findForbiddenClaims(rawText) {
+  if (!rawText) return [];
+  const text = normalizeEol(rawText);
   const hits = [];
   for (const [re, why] of FORBIDDEN) {
     const m = text.match(re);
@@ -57,7 +60,8 @@ const stripCode = (s) => String(s || "").replace(/```[\s\S]*?```/g, "");
 
 export function findWebArticleClaims(text) {
   if (!text) return [];
-  const body = stripCode(text);
+  // CRLF のままだと段落の区切り（空行）が見つからず、別の段落の引用付きリンクで比較の表現を見逃す
+  const body = stripCode(normalizeEol(text));
   const hits = [];
   for (const [re, why] of WEB_ADOPTION_RULES) {
     const m = body.match(re);

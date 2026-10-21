@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
 import { zennSummary, zennWarnings } from "../scripts/check_zenn.mjs";
+import { readText } from "./helpers/read_src.mjs";
 
 const frontmatter = (s) => s.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
 
@@ -13,14 +14,14 @@ test("articles/*.md に published: true の記事が無い（すべて published
   const files = fs.readdirSync("articles").filter((f) => f.endsWith(".md"));
   assert.ok(files.length > 0);
   for (const f of files) {
-    const s = fs.readFileSync(path.join("articles", f), "utf8");
+    const s = readText(path.join("articles", f));
     assert.doesNotMatch(s, /^published:\s*true\b/m, f);
     assert.match(frontmatter(s), /^published:\s*false\s*$/m, `${f}: front matter に published: false が無い`);
   }
 });
 
 test("生成スクリプトは Zenn 原稿を published: false でしか書かない", () => {
-  const src = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
+  const src = readText("scripts/crawl_and_generate.mjs");
   assert.doesNotMatch(src, /^published:\s*true\b/m);
   // 条件しだいで true になる書き方（published: ${...}）も戻さない
   assert.doesNotMatch(src, /^published:\s*\$\{/m);
@@ -37,27 +38,27 @@ test("どのスクリプトも Zenn 原稿を published: true で書かず、zen
   walk("scripts");
   assert.ok(scripts.includes(path.join("scripts", "launcher.mjs")));
   for (const f of scripts) {
-    const s = fs.readFileSync(f, "utf8");
+    const s = readText(f);
     assert.doesNotMatch(s, /^published:\s*true\b/m, f);
     assert.doesNotMatch(s, /^published:\s*\$\{/m, f);
   }
   const drafts = fs.readdirSync("zenn_drafts").filter((f) => f.endsWith(".md"));
   assert.ok(drafts.length > 0);
   for (const f of drafts) {
-    const s = fs.readFileSync(path.join("zenn_drafts", f), "utf8");
+    const s = readText(path.join("zenn_drafts", f));
     assert.doesNotMatch(s, /^published:\s*true\b/m, f);
     assert.match(frontmatter(s), /^published:\s*false\s*$/m, `${f}: front matter に published: false が無い`);
   }
 });
 
 test("ランチャー・投稿補助は Zenn に投稿する流れを開かず、自動公開をうたわない", () => {
-  const launcher = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const launcher = readText("scripts/launcher.mjs");
   // [9]・[Z]→[3] は投稿の補助（runPublishHelper('zenn')）ではなく停止の案内
   assert.doesNotMatch(launcher, /runPublishHelper\('zenn'\)/);
   assert.match(launcher, /case '9':\n\s*zennFrozenNotice\(\);/);
   assert.match(launcher, /if \(mode === 'zenn'\) return zennFrozenNotice\(\);/);
   assert.doesNotMatch(launcher, /zenn\.dev\/articles\/new|0クリック自動公開|自動公開されます|ユーザーの操作不要で自動公開|「公開」を押すだけ/);
-  const helper = fs.readFileSync("scripts/publish_helper.mjs", "utf8");
+  const helper = readText("scripts/publish_helper.mjs");
   assert.doesNotMatch(helper, /zenn\.dev\/articles\/new|「公開」を押すだけ/);
   assert.match(helper, /Zenn への投稿は停止しています/);
 });

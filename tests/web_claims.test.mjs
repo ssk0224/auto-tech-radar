@@ -50,6 +50,18 @@ test("導入の勧め・引用の無い比較・ライセンスの推測を検�
   for (const s of NG) assert.ok(findWebArticleClaims(s).length > 0, s);
 });
 
+// Windows の owner PC の作業ツリーは CRLF のことがある。改行が違うだけで、段落の区切りや引用の判定が変わって見逃してはならない
+test("改行が CRLF でも LF と同じ結果になる（Windows の作業ツリーで比較・最上級の表現を見逃さない）", () => {
+  const crlf = (s) => s.replace(/\n/g, "\r\n");
+  for (const s of [...NG, ...OK]) assert.deepEqual(findWebArticleClaims(crlf(s)), findWebArticleClaims(s), JSON.stringify(s));
+  const para = "前の段落です。\n\n他のツールを圧倒的に上回る性能です。\n\n次の段落です。";
+  assert.ok(findWebArticleClaims(crlf(para)).some((h) => h.includes("引用の無い比較")), "段落の区切りが CRLF でも検出する");
+  // 別の段落にある引用付きのリンクで、比較の段落まで「引用あり」と見なして見逃さない（段落の区切りが CRLF だと 1 つの段落に見えてしまう）
+  const separate = "他のツールを圧倒的に上回る性能です。\n\n> 公式の説明 — [README](https://github.com/o/r#readme)";
+  assert.equal(findWebArticleClaims(separate).length, 1, "LF では検出する");
+  assert.deepEqual(findWebArticleClaims(crlf(separate)), findWebArticleClaims(separate), "CRLF でも同じ");
+});
+
 test("要件・README に基づく推奨環境・引用付きの比較・ライセンス以外の話題は検出しない", () => {
   for (const s of OK) assert.deepEqual(findWebArticleClaims(s), [], s);
 });

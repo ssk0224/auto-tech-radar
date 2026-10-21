@@ -19,6 +19,7 @@ import {
 } from "../scripts/utils/note_pending.mjs";
 import { publishedNoteIssues } from "../scripts/sync_note_urls.mjs";
 import { noteListingBlock, jstDay } from "../scripts/utils/note_listing.mjs";
+import { readText } from "./helpers/read_src.mjs";
 
 const INVOICE = "※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。";
 const issueOf = (id) => NOTE_TEXT_RULES.find((r) => r.id === id).issue;
@@ -77,7 +78,7 @@ test("雛形由来の誇張（世界中で爆発的に・即決など）を決�
   assert.deepEqual(publishedNoteIssues({ name: "x", body: "<p>需要が爆発的に伸びた</p>" }), []);
   // 原稿（note の無料部分）は [E] が公開中の記事に当てる規則の結果と同じ文にしてある（規則を当てても変わらない）
   for (const f of fs.readdirSync("note_drafts").filter((x) => x.endsWith(".md"))) {
-    const s = fs.readFileSync(`note_drafts/${f}`, "utf8");
+    const s = readText(`note_drafts/${f}`);
     assert.deepEqual(applicableNoteRules(s).map((r) => r.id), [], f);
     assert.ok(!hasNoteTextIssue(s), f);
   }
@@ -129,13 +130,13 @@ test("[E] の修正は直近 24 時間で 12 本まで（続けて [E] を押し
   assert.deepEqual(noteFixBudget(ahead, now), { left: 0, used: 12, nextAt: "2026-10-22T12:00:00.000Z" });
   assert.equal(noteFixBudget([{ at: "2099-01-01T00:00:00.000Z" }], now).left, 11);
   // ランチャーは「次の [E] ですぐ直す」とは案内しない
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   assert.doesNotMatch(src, /1回に\$\{NOTE_FIX_MAX\}本まで。残りは次の \[E\] で/);
   assert.match(src, /24時間に\$\{NOTE_FIX_MAX\}本まで/);
 });
 
 test("[E] は全文を読んでから直す記事を決め、記事の間を約 20 秒あけ、上限 NOTE_FIX_MAX を使う", () => {
-  const src = fs.readFileSync("scripts/note_browser.mjs", "utf8");
+  const src = readText("scripts/note_browser.mjs");
   assert.match(src, /const live = await noteBody\(page, t\.key\);/);
   // 本数の上限は直近 24 時間で数え（オーナー端末の記録。読めなければ 0 本）、「更新する」を押す直前に記録する
   assert.match(src, /const budget = history\.error \? \{ left: 0, used: null, nextAt: null \} : noteFixBudget\(history\.entries, Date\.now\(\), max\);/);
@@ -193,7 +194,7 @@ test("[U] の一覧: [E] で自動修正できる表現だけの記事は出さ�
 });
 
 test("ランチャーの [U] は CI の結果を statusUpdateItems で振り分け、見出しに [E] の自動修正の本数を出す", () => {
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   const pending = src.match(/function getPendingNoteUpdates\(\) \{[\s\S]*?\n\}/)[0];
   assert.match(pending, /statusUpdateItems\(st, history,/);
   assert.doesNotMatch(pending, /action: 'replace', reason: `公開中の note に問題があります/);
@@ -227,12 +228,12 @@ test("note の新規出品は 1日1本・直近7日で3本まで（publish_histo
   const night = new Date("2026-10-21T14:00:00Z");
   assert.equal(noteListingBlock({ a: { noteAt: jstDay(night.getTime()) } }, new Date("2026-10-21T23:00:00Z")), null);
   // ランチャーの記録も日本時間の日付
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   assert.match(src.match(/function recordPublish\([\s\S]*?\n\}/)[0], /const todayStr = jstDay\(\);/);
 });
 
 test("ランチャーで note の新規出品を記録する流れは、すべて出品の上限を先に確かめる（X の投稿は止めない）", () => {
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   const fns = src.split(/\n(?=function )/).filter((f) => /recordPublish\([^)]*'note'\)/.test(f));
   assert.deepEqual(fns.map((f) => f.match(/^function (\w+)/)[1]).sort(), ["runAllInOnePublish", "runLeadMagnetPublish", "runPublishHelper"]);
   for (const f of fns) {

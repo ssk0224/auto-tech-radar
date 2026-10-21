@@ -6,8 +6,10 @@ import os from "os";
 import path from "path";
 import { copyTextToClipboard, CLIPBOARD_PS } from "../scripts/utils/clipboard.mjs";
 import { dependencyProblems } from "../scripts/utils/deps.mjs";
+import { readText } from "./helpers/read_src.mjs";
 
-const scripts = () => fs.readdirSync("scripts").filter((f) => f.endsWith(".mjs")).map((f) => path.join("scripts", f)).concat(fs.readdirSync("scripts/utils").filter((f) => f.endsWith(".mjs")).map((f) => path.join("scripts/utils", f)));
+// リポ内の相対パスは区切りが / のもの（Windows の path.join は \ にしてしまい、"scripts/launcher.mjs" と比べられない）
+const scripts = () => fs.readdirSync("scripts").filter((f) => f.endsWith(".mjs")).map((f) => path.posix.join("scripts", f)).concat(fs.readdirSync("scripts/utils").filter((f) => f.endsWith(".mjs")).map((f) => path.posix.join("scripts/utils", f)));
 
 test("クリップボード: 本文（改行・引用符・数千字）をコマンドラインに入れず、UTF-8 のファイルから丸ごとコピーする", () => {
   const text = `1 行目 "引用" と 'シングル' & | ^ %OS% 💡\n2 行目\nhttps://example.com/?a=1&b=2\n${"長い本文。".repeat(4000)}`;
@@ -33,7 +35,7 @@ test("クリップボード: 本文（改行・引用符・数千字）をコマ
 
 test("クリップボード: スクリプトは本文を Set-Clipboard -Value の引数に埋め込まない。コピーの成否を見ずに「コピーしました」と言わない", () => {
   for (const f of scripts()) {
-    const src = fs.readFileSync(f, "utf8");
+    const src = readText(f);
     assert.doesNotMatch(src, /Set-Clipboard -Value/, `${f}: 本文をコマンドラインに入れている`);
     assert.doesNotMatch(src, /^\s*copyTextToClipboard\([^)]*\);/m, `${f}: コピーの成否を見ていない`);
   }
@@ -41,11 +43,11 @@ test("クリップボード: スクリプトは本文を Set-Clipboard -Value �
 
 test("GitHub からの取り込みは utils/git_sync.mjs の pullLatest だけで行う（衝突の印を残さない・失敗したら元に戻す）", () => {
   for (const f of ["scripts/launcher.mjs", "scripts/publish_helper.mjs", "scripts/note_browser.mjs", "scripts/setup_wizard.mjs"]) {
-    const src = fs.readFileSync(f, "utf8");
+    const src = readText(f);
     assert.doesNotMatch(src, /exec(Sync)?\(\s*['"`]git pull/, `${f}: git pull を直接実行している`);
     assert.doesNotMatch(src, /spawnSync\(\s*['"]git['"],\s*\[\s*['"]pull/, `${f}: git pull を直接実行している`);
   }
-  const launcher = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const launcher = readText("scripts/launcher.mjs");
   assert.equal((launcher.match(/pullLatest\(rootDir/g) || []).length, 3, "起動時・メニュー実行前・[S] の 3 か所");
   // [S] は git add . の前に衝突の印・壊れた出品履歴を直す（そのままコミットして GitHub に送らない）
   const sync = launcher.match(/function runCloudSync\(\) \{[\s\S]*?\n\}/)[0];
@@ -55,22 +57,22 @@ test("GitHub からの取り込みは utils/git_sync.mjs の pullLatest だけ�
 });
 
 test("note の新規出品の画面を開くのはランチャーだけ（ランチャーは出品の上限を確かめてから開き、出品を記録する）", () => {
-  const opens = scripts().filter((f) => /notes\/new/.test(fs.readFileSync(f, "utf8")));
+  const opens = scripts().filter((f) => /notes\/new/.test(readText(f)));
   assert.deepEqual(opens, ["scripts/launcher.mjs"]);
-  const helper = fs.readFileSync("scripts/publish_helper.mjs", "utf8");
+  const helper = readText("scripts/publish_helper.mjs");
   assert.match(helper, /if \(mode === 'note'\) \{\n[^\n]*ランチャー[^\n]*\n\s*process\.exit\(1\);/);
   assert.ok(helper.indexOf("if (mode === 'note')") < helper.indexOf("pullLatest("), "note のときは何もせずに終わる");
 });
 
 test("ランチャー: 出品履歴が壊れていたら出品させず、上書きもしない（空として扱うと上限が効かず、GitHub の履歴も消える）", () => {
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   const save = src.match(/function saveHistory\(history\) \{[\s\S]*?\n\}/)[0];
   assert.match(save, /if \(historyUnreadable\(\)\) \{[\s\S]*?return false;/);
   assert.match(src, /function noteListingRefused\(\) \{\n  const why = historyUnreadable\(\)/);
 });
 
 test("ランチャー [U]: 後回し（s）はどの記事でも一覧の末尾に回し、GitHub で管理しているファイルを書き換えない", () => {
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   const fn = src.match(/function runNoteUpdates\(\) \{[\s\S]*?\n\}/)[0];
   assert.doesNotMatch(fn, /writeFileSync\(noteUpdatesFile/);
   assert.match(fn, /if \(a === 's'\) \{[\s\S]*?skippedUpdates\.add\(item\.slug\);\n\s*return runNoteUpdates\(\);/);
@@ -94,7 +96,7 @@ test("パッケージの確認: 入っているかだけでなく、package-lock
     fs.rmSync(path.join(root, "node_modules/sharp"), { recursive: true });
     assert.ok(dependencyProblems(root).includes("sharp（未導入）"));
     // ランチャーは版の違いも見て入れ直す（起動時と、メニュー実行前に取り込んだ後）
-    const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+    const src = readText("scripts/launcher.mjs");
     assert.match(src.match(/function ensureDependencies\(\) \{[\s\S]*?\n\}/)[0], /dependencyProblems\(rootDir\)/);
     assert.match(src.match(/function pullBeforeRun\(choice\) \{[\s\S]*?\n\}/)[0], /ensureDependencies\(\);/);
   } finally {
