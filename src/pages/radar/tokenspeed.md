@@ -5,6 +5,7 @@ description: "TokenSpeed is a speed-of-light LLM inference engine."
 pubDate: "2026-10-09"
 tags: ["Python", "OSS", "GitHub", "LLM", "Inference", "AgenticAI"]
 repoUrl: "https://github.com/lightseekorg/tokenspeed"
+repoCreatedAt: "2026-05-06"
 stars: 2201
 ---
 

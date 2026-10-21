@@ -5,6 +5,7 @@ description: "Debloat any Android or Google TV over Wi-Fi and get an Apple TV-st
 pubDate: "2026-10-21"
 tags: ["Java", "OSS", "GitHub"]
 repoUrl: "https://github.com/Gathin23/cleanyourtv"
+repoCreatedAt: "2026-10-17"
 stars: 11608
 ---
 

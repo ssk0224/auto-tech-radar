@@ -5,6 +5,7 @@ description: "JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It ext
 pubDate: "2026-10-09"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/openJiuwen-ai/jiuwenswarm"
+repoCreatedAt: "2026-03-05"
 stars: 5978
 ---
 

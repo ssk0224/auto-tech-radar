@@ -5,6 +5,7 @@ description: "テキスト・音声通話・Slackを行き来し、専用サン�
 pubDate: "2026-10-19"
 tags: ["TypeScript", "OSS", "GitHub", "AI-Agents", "CopilotKit"]
 repoUrl: "https://github.com/CopilotKit/OpenDots"
+repoCreatedAt: "2026-09-30"
 stars: 5570
 ---
 

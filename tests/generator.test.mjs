@@ -79,6 +79,9 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
     const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     assert.match(web, new RegExp(`^pubDate: "${jstToday}"$`, "m"));
     assert.match(web, /^stars: 1234$/m);
+    // リポジトリの作成日（JST）を残し、選定のウォッチリストを書く
+    assert.match(web, /^repoCreatedAt: "2026-01-15"$/m);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, "data/watchlist.json"), "utf8")).date, jstToday);
     // 推奨ハッシュタグは生成モデルの固定タグ（#副業 #受託開発 を含む）ではなく、言語・トピックから作ったもの
     const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
     assert.match(pub, /^#OSS #Go #cli #devops$/m);

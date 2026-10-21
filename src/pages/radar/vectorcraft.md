@@ -5,6 +5,7 @@ description: "VectorCraft: An open-source, vector art tool written by scratch in
 pubDate: "2026-10-15"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/storytold/vectorcraft"
+repoCreatedAt: "2026-09-30"
 stars: 8898
 ---
 

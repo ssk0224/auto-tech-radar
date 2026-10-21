@@ -5,6 +5,7 @@ description: "Every agent's model. One place. Codex on DeepSeek, Claude Code on 
 pubDate: "2026-10-14"
 tags: ["Go", "OSS", "GitHub"]
 repoUrl: "https://github.com/yetone/magpie"
+repoCreatedAt: "2026-09-24"
 stars: 11503
 ---
 

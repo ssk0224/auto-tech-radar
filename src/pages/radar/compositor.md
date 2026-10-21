@@ -5,6 +5,7 @@ description: "Apple Siliconネイティブで動作し、AIエージェントに
 pubDate: "2026-10-11"
 tags: ["Swift", "OSS", "GitHub", "macOS", "Metal", "AI"]
 repoUrl: "https://github.com/robbietilton/Compositor"
+repoCreatedAt: "2026-09-17"
 stars: 15455
 ---
 

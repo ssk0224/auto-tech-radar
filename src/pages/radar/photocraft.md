@@ -5,6 +5,7 @@ description: "An open-source, clean-room reimplementation of Adobe Photoshop in 
 pubDate: "2026-10-10"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/storytold/photocraft"
+repoCreatedAt: "2026-09-30"
 stars: 35313
 ---
 

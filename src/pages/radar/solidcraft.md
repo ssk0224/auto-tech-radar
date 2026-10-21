@@ -5,6 +5,7 @@ description: "SolidCraft: an open-source parametric 3D CAD application built in 
 pubDate: "2026-10-19"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/tangency-labs/solidcraft"
+repoCreatedAt: "2026-10-08"
 stars: 5717
 ---
 

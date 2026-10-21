@@ -5,6 +5,7 @@ description: "Claude CodeなどのAIエージェントにPCゲームのMod開発
 pubDate: "2026-10-15"
 tags: ["Python", "OSS", "GitHub", "ReverseEngineering", "GameDev", "LLM", "ClaudeCode"]
 repoUrl: "https://github.com/rehan-remade/universal-modder"
+repoCreatedAt: "2026-09-30"
 stars: 7929
 ---
 

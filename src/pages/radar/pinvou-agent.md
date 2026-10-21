@@ -5,6 +5,7 @@ description: "Open-source desktop AI agent for tools, files, knowledge, workflow
 pubDate: "2026-10-09"
 tags: ["Rust", "OSS", "GitHub"]
 repoUrl: "https://github.com/Pinvou/pinvou-agent"
+repoCreatedAt: "2026-07-24"
 stars: 2399
 ---
 

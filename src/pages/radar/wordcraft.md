@@ -5,6 +5,7 @@ description: "メモリ安全かつ超高速。Model Context Protocol（MCP）�
 pubDate: "2026-10-14"
 tags: ["Rust", "OSS", "GitHub", "MCP", "AI-Agents"]
 repoUrl: "https://github.com/storytold/wordcraft"
+repoCreatedAt: "2026-10-07"
 stars: 11077
 ---
 

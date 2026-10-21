@@ -6,6 +6,7 @@ import { findProLeaks } from './utils/pro_boundary.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { REMOVED_SLUGS } from './utils/blocklist.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { mermaidProblems } from './utils/mermaid.mjs';
 import { mermaidParseErrors } from './utils/mermaid_parse.mjs';
@@ -538,6 +539,8 @@ if (fs.existsSync(noteDraftsDir)) {
     const matches = content.match(/auto-tech-radar\/radar\/([a-zA-Z0-9_-]+)/g) || [];
     for (const m of matches) {
       const slug = m.split('/').pop();
+      // 取り下げた記事（scripts/utils/blocklist.mjs）の note 原稿は非公開化済みで編集しないため、自分の記事ページへのリンクだけは許す
+      if (REMOVED_SLUGS.includes(slug) && file === `${slug}_note.md`) continue;
       if (!existingWebSlugs.includes(slug)) {
         console.error(`  ❌ [NOTE DRAFT 404 LINK] ${file}: ${slug} (対象Web記事が存在しません)`);
         noteUrlErrors++;

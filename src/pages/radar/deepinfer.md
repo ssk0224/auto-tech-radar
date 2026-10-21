@@ -5,6 +5,7 @@ description: "DeepInfer: High-performance, large-scale inference framework for D
 pubDate: "2026-10-21"
 tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/deepseek-ai/DeepInfer"
+repoCreatedAt: "2026-10-16"
 stars: 12071
 ---
 

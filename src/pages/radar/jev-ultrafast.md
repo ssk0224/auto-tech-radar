@@ -5,6 +5,7 @@ description: "投機的意思決定とDOM最適化により最速・最安を実
 pubDate: "2026-10-10"
 tags: ["Python", "OSS", "GitHub", "AI-Agents", "Automation"]
 repoUrl: "https://github.com/browser-use/jev-ultrafast"
+repoCreatedAt: "2026-09-17"
 stars: 22480
 ---
 

@@ -1,0 +1,51 @@
+---
+// 記事にする OSS の選定基準。表示する数値・テーマ・除外条件は、生成スクリプトが実際に使う設定
+// （scripts/utils/selection.mjs の SELECTION_CONFIG）をそのまま読み込んで作る（公開している基準とコードがずれないように）
+import Layout from "../layouts/Layout.astro";
+import { SELECTION_CONFIG, REJECTION_REASONS } from "../../scripts/utils/selection.mjs";
+import { STAR_TIERS, STAR_TIER_NOTE } from "../utils/articles.js";
+
+const cfg = SELECTION_CONFIG;
+const gates = Object.entries(REJECTION_REASONS);
+---
+
+<Layout title="選定基準 | Auto Tech Radar" description="Auto Tech Radar が解説する OSS をどう選んでいるか（スコアの計算、重点テーマ、除外条件、同一オーナーの上限）">
+  <div style="max-width: 760px; margin: 2rem auto; line-height: 1.8; color: #cbd5e1;">
+    <h1 style="color: #fff;">選定基準</h1>
+    <p>解説する OSS は、GitHub の検索 API で集めた候補を、次の基準で機械的に並べて選んでいます。このページの数値・テーマ・除外条件は、記事を作るスクリプトが使う設定から直接表示しています。</p>
+    <p>スコアや順位は「記事にする順番」を決めるためのもので、採用の推奨や品質の評価ではありません。</p>
+    <p>この基準は 2026年10月21日の選定から適用しています。それより前に掲載した記事には、この基準では選ばれないものも含まれます。</p>
+
+    <h2 style="color: #fff;">1. スコア（直近の伸び）</h2>
+    <p>スコアの単位は「{cfg.score.windowDays} 日あたりのスター増加数」です。累計のスター数ではなく、直近の伸びで比べます。</p>
+    <ul>
+      <li>作成から {cfg.score.minAgeDaysForVelocity} 日以上たったリポジトリは、スター数の記録から求めた直近 {cfg.score.windowDays} 日間の増加数を使います。</li>
+      <li>記録がまだ無い場合や、作成から {cfg.score.minAgeDaysForVelocity} 日未満の場合は、「累計スター数 ÷ 作成からの日数」（1 日平均）の {cfg.score.windowDays} 日分で見積もります。</li>
+      <li>名前・説明・トピックが下の重点テーマのどれかに当たる場合は、スコアを {cfg.themeWeight} 倍にします（複数当たっても 1 回だけ）。</li>
+    </ul>
+
+    <h2 style="color: #fff;">2. 重点テーマ</h2>
+    <ul>
+      {cfg.themes.map((t) => <li>{t.label}</li>)}
+    </ul>
+
+    <h2 style="color: #fff;">3. 選ばない候補（除外条件）</h2>
+    <ul>
+      {gates.map(([, label]) => <li>{label}</li>)}
+    </ul>
+    <p>書籍・リンク集の判定は、言語が判定されない（または文書だけの言語の）リポジトリで、説明やトピックが書籍・一覧のように見えるものに限っています。</p>
+
+    <h2 style="color: #fff;">4. 同じオーナーの上限</h2>
+    <p>同じ GitHub のオーナー（ユーザー・組織）のリポジトリは、{cfg.ownerCap.windowDays} 日間に {cfg.ownerCap.maxArticles} 本までしか記事にしません。</p>
+
+    <h2 style="color: #fff;">5. 短期間の集中</h2>
+    <p>{cfg.cluster.notice}。</p>
+    <p>目安: 同じオーナーが {cfg.cluster.windowDays} 日以内に作成したリポジトリのうち、スターが {cfg.cluster.minStars.toLocaleString("ja-JP")} を超えるものが {cfg.cluster.minRepos} 本以上ある場合。理由の推測やリポジトリの評価はしていません。</p>
+
+    <h2 style="color: #fff;">6. スター数の区分について</h2>
+    <p>記事やレーダーに表示する区分（{STAR_TIERS.map((t) => t.label).join(" / ")}）: {STAR_TIER_NOTE}</p>
+
+    <h2 style="color: #fff;">7. 候補の記録</h2>
+    <p>毎回の選定で 2〜{cfg.watchlistSize + 1} 位になった候補は、リポジトリの data/watchlist.json に記録しています（記事化の候補で、推奨ではありません）。</p>
+  </div>
+</Layout>

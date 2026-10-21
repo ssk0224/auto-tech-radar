@@ -5,6 +5,7 @@ description: "GridCraftはピュアRustで構築されたオープンソース�
 pubDate: "2026-10-18"
 tags: ["Rust", "OSS", "GitHub", "Spreadsheet", "MCP", "WebAssembly"]
 repoUrl: "https://github.com/storytold/gridcraft"
+repoCreatedAt: "2026-10-07"
 stars: 5729
 ---
 
