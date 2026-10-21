@@ -108,22 +108,42 @@ const buttonTexts = (p) => p.$$eval("button, a[role=button]", (els) => els.map((
 
 // 公開中の記事は、見出し画像が下書きに付くだけなので、編集画面で「公開に進む」→「更新する」を押して反映する。
 // 押すのは文言が一致するボタンだけ。各段階の URL とボタンの文言を記録する（画面構成が違ったときに原因を確認するため）
+// 編集画面（editor.note.com）は note.com のログイン画面（?redirectPath=編集画面）を経由することがある。
+// ログイン済みなら自動で戻るのを待ち、戻らなければ開いた窓でのログインを待つ（ログイン後に別の画面へ行ったら編集画面を開き直す）
+async function openEditor(ed, key, steps) {
+  const editUrl = `https://editor.note.com/notes/${key}/edit/`;
+  const onEditor = () => new URL(ed.url()).hostname === "editor.note.com" && ed.url().includes(`/notes/${key}/edit`);
+  await ed.goto(editUrl, { waitUntil: "domcontentloaded" });
+  if (!onEditor()) await ed.waitForURL(() => onEditor(), { timeout: 20000 }).catch(() => {});
+  if (onEditor()) return;
+  steps.push({ at: "login", url: ed.url(), buttons: await buttonTexts(ed) });
+  console.log("\n  📝 開いた Chrome の窓で note にログインしてください（ログインすると自動で続きます。10 分まで待ちます）");
+  await ed.bringToFront().catch(() => {});
+  const until = Date.now() + 10 * 60 * 1000;
+  while (!onEditor()) {
+    if (Date.now() > until) throw new Error("note の編集画面を開けません（ログインが確認できませんでした）");
+    await ed.waitForTimeout(2000);
+    const u = new URL(ed.url());
+    if (u.hostname === "note.com" && !/login|signup|sign_in|auth|sns|password/i.test(u.pathname)) await ed.goto(editUrl, { waitUntil: "domcontentloaded" }).catch(() => {});
+  }
+}
+
 async function publishDraft(ctx, key, steps) {
   const ed = await ctx.newPage();
   try {
-    await ed.goto(`https://editor.note.com/notes/${key}/edit/`, { waitUntil: "domcontentloaded" });
-    await ed.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+    await openEditor(ed, key, steps);
+    const next = ed.getByRole("button", { name: /公開に進む/ }).first();
+    await next.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
     steps.push({ at: "editor", url: ed.url(), buttons: await buttonTexts(ed) });
-    const next = ed.getByRole("button", { name: /公開に進む/ });
     if ((await next.count()) === 0) throw new Error("編集画面に「公開に進む」ボタンが見つかりません");
-    await next.first().click();
-    await ed.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
-    await ed.waitForTimeout(1500);
+    await next.click();
+    const update = ed.getByRole("button", { name: /^\s*更新する\s*$/ }).first();
+    await update.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
     steps.push({ at: "publish", url: ed.url(), buttons: await buttonTexts(ed) });
-    const update = ed.getByRole("button", { name: /^\s*更新する\s*$/ });
     if ((await update.count()) === 0) throw new Error("公開設定画面に「更新する」ボタンが見つかりません");
-    await update.first().click();
-    await ed.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
+    await update.click();
+    // 公開設定画面（/publish）から離れるか、20 秒たつまで待つ
+    await ed.waitForURL((u) => !/\/publish/.test(u.toString()), { timeout: 20000 }).catch(() => {});
     await ed.waitForTimeout(2000);
     steps.push({ at: "after-update", url: ed.url() });
   } finally {
