@@ -76,13 +76,14 @@ test("[U]: 差し替えの記録が CI の確認より前なら、問題が残�
   assert.equal(hiddenAfterOwnerFix(undefined, "2026-10-21T06:21:50.012Z"), false);
 });
 
-test("[U]: 古い成熟度の表現だけが問題の記事は、その語の置き換えとして扱い、箇所を示す", async () => {
+test("[U]: 古い成熟度の表現だけが問題の記事は、その語の置き換えとして扱い、箇所と選ぶ語を示す", async () => {
   const { oldRingWordingSpot, NEW_RING_WORDS } = await import("../scripts/utils/note_pending.mjs");
   const tw = "第三者（ThoughtWorks）の評価のような表現";
-  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: '1a3a0c93">これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま' }), "これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま");
-  assert.ok(oldRingWordingSpot({ issues: [tw], excerpt: 'e1">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI' }));
+  assert.deepEqual(oldRingWordingSpot({ issues: [tw], excerpt: '1a3a0c93">これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま' }), { excerpt: "これらの状況を鑑み、ThoughtWorks成熟度リングでは「TRIAL」と判定しま", words: "ThoughtWorks成熟度リング" });
+  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: 'e1">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI' }).words, "ThoughtWorks成熟度リング判定");
+  // 途中まで直して「ThoughtWorks」だけ残った形（2026-10-21 effectcraft の実例）
+  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: '1a3a0c93">これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。' }).words, "ThoughtWorks");
   assert.equal(oldRingWordingSpot({ issues: [tw, "受託単価"], excerpt: "ThoughtWorks成熟度リング判定" }), null);
-  assert.equal(oldRingWordingSpot({ issues: [tw], excerpt: "ThoughtWorks によると" }), null);
   assert.equal(oldRingWordingSpot({ issues: [] }), null);
   assert.ok(!/🎯/.test(NEW_RING_WORDS), "見出しの 🎯 が二重にならない");
 });

@@ -245,7 +245,7 @@ function getPendingNoteUpdates() {
       if (hiddenAfterOwnerFix(history[slug]?.noteUpdatedAt, st.checkedAt)) continue;
       // 問題が「古い成熟度の表現」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、その語だけ直してもらう
       const spot = oldRingWordingSpot(v);
-      if (spot) items.push({ slug, action: 'wording', spot, reason: `無料部分に古い表現「${OLD_RING_WORDS}」が残っています` });
+      if (spot) items.push({ slug, action: 'wording', spot: spot.excerpt, words: spot.words, reason: `無料部分に古い表現「${spot.words}」が残っています` });
       else items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
     }
   } catch (e) {}
@@ -556,8 +556,8 @@ function runNoteUpdates() {
     console.log(`  GitHub の検査で見つかった箇所: ${c.yellow}…${item.spot}…${c.reset}`);
     console.log(`  ${c.cyan}${copied ? '📋 置き換える語をクリップボードにコピーしました' : '置き換える語'}: ${c.bold}${NEW_RING_WORDS}${c.reset}`);
     console.log(`  ${c.bold}手順（この語だけ直します。本文の他の部分・有料ライン・公開範囲は触りません）:${c.reset}`);
-    console.log(`  1. 開いた note の編集画面で ${c.cyan}[Ctrl + F]${c.reset} →「${OLD_RING_WORDS.slice(0, 12)}」と入力して探す`);
-    console.log(`  2. 「${OLD_RING_WORDS}」の部分だけをドラッグで選んで ${c.cyan}[Ctrl + V]${c.reset}（🎯 や前後の文字はそのまま）`);
+    console.log(`  1. 開いた note の編集画面で ${c.cyan}[Ctrl + F]${c.reset} →「${item.words.slice(0, 12)}」と入力して探す`);
+    console.log(`  2. 「${c.bold}${item.words}${c.reset}」の文字だけをドラッグで選んで ${c.cyan}[Ctrl + V]${c.reset}（🎯 や前後の文字はそのまま。貼った後に「${NEW_RING_WORDS}」になっているか目で確認）`);
     console.log(`  3. ほかにも「${OLD_RING_WORDS.slice(0, 12)}」が見つかれば同じように直す`);
     console.log(`  4. ${c.yellow}${c.bold}右上の「公開に進む」→ 設定は変えずに「更新する」${c.reset}`);
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
