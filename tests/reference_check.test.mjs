@@ -28,3 +28,9 @@ test("pip / npx の VCS・URL 指定（git+https://…、https://…whl）は、
   assert.deepEqual(refs.pypi.sort(), ["requests", "uv"]);
   assert.deepEqual(refs.npm, []);
 });
+
+test("docker-compose で build: と並ぶ image:（自分でビルドするイメージの名前）は、レジストリの実在確認の対象にしない", () => {
+  // README に公式イメージが無いときの「自作のコンテナ化例」で生成モデルがよく書く形。以前は Docker Hub に無いため不採用になっていた
+  const compose = "services:\n  app:\n    build: .\n    image: testtool:latest\n    ports:\n      - \"8080:8080\"\n  db:\n    image: postgres:16-alpine\n  worker:\n    image: acme/worker:dev\n    build:\n      context: ./worker\n";
+  assert.deepEqual(extractReferences(compose).images, ["postgres:16-alpine"]);
+});

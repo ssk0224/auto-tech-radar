@@ -55,12 +55,27 @@ async function imageExists(ref) {
   return exists(`https://hub.docker.com/v2/repositories/${repo}/tags/${encodeURIComponent(tag)}`);
 }
 
+// docker-compose のサービスで build: と同じ階層にある image: は、自分でビルドしたイメージに付ける名前（レジストリから取得しない）
+function hasSiblingBuild(lines, i) {
+  const indent = (l) => l.match(/^\s*/)[0].length;
+  const ind = indent(lines[i]);
+  const inBlock = (j) => lines[j].trim() === "" || indent(lines[j]) >= ind;
+  const isBuild = (j) => lines[j].trim() !== "" && indent(lines[j]) === ind && /^\s*build\s*:/.test(lines[j]);
+  for (let j = i - 1; j >= 0 && inBlock(j); j--) if (isBuild(j)) return true;
+  for (let j = i + 1; j < lines.length && inBlock(j); j++) if (isBuild(j)) return true;
+  return false;
+}
+
 // テキストから確認対象を抜き出す
 export function extractReferences(text) {
   const images = new Set();
   const npm = new Set();
   const pypi = new Set();
-  for (const m of text.matchAll(/^\s*image:\s*(["']?[A-Za-z0-9][\w.\/:@-]*["']?)\s*$/gm)) images.add(m[1].replace(/["']/g, ""));
+  const lines = text.split("\n");
+  lines.forEach((l, i) => {
+    const m = l.match(/^\s*image:\s*(["']?[A-Za-z0-9][\w.\/:@-]*["']?)\s*$/);
+    if (m && !hasSiblingBuild(lines, i)) images.add(m[1].replace(/["']/g, ""));
+  });
   // マルチステージの `FROM x AS name` で付けた名前は、後続の `FROM name` や `--from=name` にも現れるので除外する
   const stages = new Set([...text.matchAll(/^\s*FROM\s+(?:--platform=\S+\s+)?\S+\s+[Aa][Ss]\s+([\w.-]+)/gm)].map((m) => m[1].toLowerCase()));
   // FROM は大文字のみ（小文字だと Python の `from x import y` を拾う）。イメージ名として完全に妥当なものだけ採る（`${VAR}` 入りの ARG イメージ・scratch・ステージ名は対象外）
