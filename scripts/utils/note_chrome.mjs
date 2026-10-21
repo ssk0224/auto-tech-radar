@@ -1,11 +1,11 @@
 // note.com を開く Chrome。出品用の note アカウントでログインした専用プロファイルを、[E]（自動操作）と [U]・[N] など（手作業）で共有する。
 // 普段のブラウザは別の note アカウントでログインしていることがあり、そこで編集画面を開くと入れない（2026-10-21 に実際に起きた）
 import fs from "fs";
-import os from "os";
+import { ownerDir } from "./owner_dir.mjs";
 import path from "path";
 import { spawn } from "child_process";
 
-export const NOTE_PROFILE = path.join(os.homedir(), ".auto-tech-radar", "chrome-note");
+export const NOTE_PROFILE = path.join(ownerDir, "chrome-note");
 
 export function chromeExe() {
   const env = process.env;

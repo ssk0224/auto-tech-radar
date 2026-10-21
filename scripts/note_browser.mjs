@@ -4,7 +4,7 @@
 import fs from "fs";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
@@ -129,7 +129,7 @@ async function openNote(afterLogin = false) {
     }
   }
   await serveBridge(ctx);
-  if (process.env.ATR_NOTE_MOCK) await (await import(process.env.ATR_NOTE_MOCK)).default(ctx);
+  if (process.env.ATR_NOTE_MOCK) await (await import(pathToFileURL(path.resolve(process.env.ATR_NOTE_MOCK)).href)).default(ctx); // Windows の絶対パス（C:...）は import() に直接渡せないので file:// URL にする
   const page = ctx.pages()[0] || (await ctx.newPage());
   await page.goto("https://note.com/notes", { waitUntil: "domcontentloaded" });
   if (/login/.test(page.url())) {

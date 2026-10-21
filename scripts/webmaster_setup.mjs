@@ -9,17 +9,17 @@
 //   node scripts/webmaster_setup.mjs gsc-verify  （確認コードがデプロイされた後）「確認」を押し、サイトマップを送信する
 //   node scripts/webmaster_setup.mjs cf          Cloudflare Web Analytics にサイトを追加し、token を src/config/site.js に書く
 import fs from "fs";
-import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { chromium } from "playwright-core";
 import { chromeExe } from "./utils/note_chrome.mjs";
+import { ownerDir } from "./utils/owner_dir.mjs";
 import { GSC_PROPERTY, SITEMAP_URL, CF_HOST, extractGoogleVerification, extractCloudflareToken, setSiteConfigValue } from "./utils/webmaster.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SITE_CONFIG = path.join(ROOT, "src", "config", "site.js");
-const PROFILE = path.join(os.homedir(), ".auto-tech-radar", "chrome-webmaster");
+const PROFILE = path.join(ownerDir, "chrome-webmaster");
 const STEP_TIMEOUT_MS = 10 * 60 * 1000;
 const HINT_AFTER_MS = 40 * 1000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

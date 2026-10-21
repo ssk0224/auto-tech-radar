@@ -7,6 +7,7 @@ import { spawnSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { prepareBuildRoot, astroBuild, removeDir } from "./helpers/site_build.mjs";
 import { noteOfferFor, splitAfterIntro, approxCharsLabel, dateModifiedOf } from "../src/utils/article_page.js";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -69,15 +70,17 @@ test("経費精算ガイドは適格請求書（インボイス）の発行を�
 });
 
 // ---- 実際のビルド結果での確認（astro build を一時ディレクトリに出力する） ----
+// リポ本体の中ではビルドしない（site_dist.test.mjs など、並列に走る他のテストの astro build と作業ファイルを壊し合う）
+let buildRoot = "";
 let outDir = "";
 let build = null;
 before(() => {
-  outDir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-site-"));
-  const astroBin = path.join(root, "node_modules", "astro", JSON.parse(read(path.join(root, "node_modules/astro/package.json"))).bin.astro);
-  build = spawnSync(process.execPath, [astroBin, "build", "--outDir", outDir], { cwd: root, encoding: "utf8", timeout: 240000 });
+  buildRoot = prepareBuildRoot("atr-site-");
+  outDir = path.join(buildRoot, "dist");
+  build = astroBuild(buildRoot, outDir);
 });
 after(() => {
-  if (outDir) fs.rmSync(outDir, { recursive: true, force: true });
+  if (buildRoot) removeDir(buildRoot);
 });
 const page = (rel) => read(path.join(outDir, rel));
 const assertBuilt = () => assert.equal(build?.status, 0, `astro build が失敗: ${(build?.stderr || "") + (build?.stdout || "")}`.slice(0, 4000));

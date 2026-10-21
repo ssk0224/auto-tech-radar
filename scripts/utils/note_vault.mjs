@@ -4,7 +4,7 @@
 // 復号できるのは秘密鍵を持つオーナー端末のみ（既定: ~/.auto-tech-radar/note_vault_private.pem）。
 import crypto from "crypto";
 import fs from "fs";
-import os from "os";
+import { ownerDir } from "./owner_dir.mjs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const rootDir = path.resolve(__dirname, "..", "..");
 export const noteDir = path.join(rootDir, "note_drafts");
 export const publicKeyFile = path.join(rootDir, "keys", "note_vault_public.pem");
-export const ownerDir = path.join(os.homedir(), ".auto-tech-radar");
+export { ownerDir };
 export const privateKeyFile = process.env.NOTE_VAULT_PRIVATE_KEY_FILE || path.join(ownerDir, "note_vault_private.pem");
 export const openedDir = path.join(ownerDir, "note_full");
 

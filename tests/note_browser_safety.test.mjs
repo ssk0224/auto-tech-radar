@@ -9,8 +9,8 @@ import { spawnSync } from "child_process";
 import { PAID_HEAD_HTML, RICH_MD } from "./fixtures/note_mock.mjs";
 import { applyNoteRules, hasNoteTextIssue, noteHtmlText } from "../scripts/utils/note_pending.mjs";
 import { mdToNoteHtml } from "../scripts/utils/note_html.mjs";
+import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
 
-const chrome = [process.env.CHROME_PATH, "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "/usr/bin/google-chrome"].find((p) => p && fs.existsSync(p));
 const skip = !chrome && "Chrome が無い環境では未実施";
 
 // cmd: maintain | eyecatch。extraEnv(keys) に note_urls.json の記事キー（slug → key）が渡る。
@@ -33,7 +33,7 @@ function runNote(cmd, extraEnv, { history, status = {} } = {}) {
       encoding: "utf8",
       timeout: 240000,
       env: {
-        ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1",
+        ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1",
         ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump,
         ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile, ATR_NOTE_LOG: logFile, ...extraEnv(keys),
       },
@@ -48,7 +48,7 @@ function runNote(cmd, extraEnv, { history, status = {} } = {}) {
     };
     return { status: r.status, out: r.stdout + r.stderr, live: JSON.parse(read(dump, "{}")), keys, fixes: parse(read(historyFile, "[]"), null), historyRaw: read(historyFile, null), log: read(logFile, "") };
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 }
 
@@ -166,7 +166,7 @@ nb.on("exit", (code) => { holder.kill(); console.log(JSON.stringify({ code, out 
     const r = spawnSync(xvfb, ["-a", process.execPath, driver], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: path.join(home, "none.json"), ATR_NOTE_PROFILE_WAIT_MS: "60000" },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: path.join(home, "none.json"), ATR_NOTE_PROFILE_WAIT_MS: "60000" },
     });
     const res = JSON.parse(r.stdout.trim().split("\n").pop());
     assert.match(res.out, /note 用の Chrome の窓が開いたままです/);
@@ -174,7 +174,7 @@ nb.on("exit", (code) => { holder.kill(); console.log(JSON.stringify({ code, out 
     assert.equal(res.code, 0, res.out);
     assert.match(res.out, /設定 1 \/ 設定済みのため変更なし \d+ \/ 本文の差し替え待ち 0 \/ 失敗 0/);
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 });
 

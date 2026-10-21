@@ -5,8 +5,9 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
+import { readText } from "./helpers/read_src.mjs";
+import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
 
-const chrome = [process.env.CHROME_PATH, "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "/usr/bin/google-chrome"].find((p) => p && fs.existsSync(p));
 
 // CI の検査結果（note_status.json）の代わり。実データは CI が毎回書き換える（公開中の記事に要修正の表現があれば issues が入る）ので、
 // テストは実データに左右されないよう、記事ごとの問題を指定したファイルを ATR_NOTE_STATUS で渡す
@@ -17,41 +18,41 @@ function statusFile(dir, issuesBySlug) {
 }
 
 test("見出し画像が未設定の記事だけにアップロードし、下書きなら「更新する」まで押して、記事への反映を確認する", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const key = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8")).zcode.url.split("/n/")[1];
+  const key = JSON.parse(readText("scripts/note_urls.json")).zcode.url.split("/n/")[1];
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
   try {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "eyecatch"], {
       encoding: "utf8",
       timeout: 240000,
       // zcode に問題が無い検査結果（実データで zcode に問題が見つかっていても、このテストの結果は変わらない）
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: statusFile(home, { zcode: [] }) },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: statusFile(home, { zcode: [] }) },
     });
     const out = r.stdout + r.stderr;
     assert.equal(r.status, 0, out);
     assert.match(out, /設定 1 \/ 設定済みのため変更なし \d+ \/ 本文の差し替え待ち 0 \/ 失敗 0/);
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 });
 
 test("本文に要修正の問題がある記事は、下書きに画像を付けるだけで自動では再公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const key = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8")).zcode.url.split("/n/")[1];
+  const key = JSON.parse(readText("scripts/note_urls.json")).zcode.url.split("/n/")[1];
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
   try {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "eyecatch"], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: statusFile(home, { zcode: ["インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"] }) },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: statusFile(home, { zcode: ["インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"] }) },
     });
     const out = r.stdout + r.stderr;
     assert.match(out, /本文の差し替え待ち 1 \/ 失敗 0/, out);
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 });
 
 test("編集画面にログインが必要なら、自動操作なしの Chrome でログインしてもらい、閉じたら同じ記事を続ける", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const key = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8")).zcode.url.split("/n/")[1];
+  const key = JSON.parse(readText("scripts/note_urls.json")).zcode.url.split("/n/")[1];
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
   try {
     const session = path.join(home, "session");
@@ -61,14 +62,14 @@ test("編集画面にログインが必要なら、自動操作なしの Chrome 
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "eyecatch"], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_MOCK_SESSION: session, ATR_NOTE_LOGIN_HOOK: hook, ATR_NOTE_STATUS: statusFile(home, { zcode: [] }) },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_MOCK_SESSION: session, ATR_NOTE_LOGIN_HOOK: hook, ATR_NOTE_STATUS: statusFile(home, { zcode: [] }) },
     });
     const out = r.stdout + r.stderr;
     assert.equal(r.status, 0, out);
     assert.match(out, /ログインできたら、その Chrome の窓/);
     assert.match(out, /設定 1 \/ 設定済みのため変更なし \d+ \/ 本文の差し替え待ち 0 \/ 失敗 0/);
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 });
 
@@ -98,7 +99,7 @@ test("note のページは出品用アカウントの専用プロファイルで
   const { isNoteUrl } = await import("../scripts/utils/note_chrome.mjs");
   for (const u of ["https://note.com/notes/new", "https://editor.note.com/notes/n1/edit/", "https://note.com/dashboard/membership"]) assert.equal(isNoteUrl(u), true, u);
   for (const u of ["https://zenn.dev/", "https://evilnote.com/", "https://note.com.example.org/", "not a url"]) assert.equal(isNoteUrl(u), false, u);
-  const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  const src = readText("scripts/launcher.mjs");
   assert.match(src, /function openUrl\(url\) \{\n[^\n]*\n  if \(isNoteUrl\(url\) && openInNoteChrome\(url\)\) return;/);
 });
 
@@ -106,7 +107,7 @@ test("note のページは出品用アカウントの専用プロファイルで
 // extraEnv(keys) には note_urls.json の記事キー（slug → key）が渡る。待ち時間は縮める（記事の間の約 20 秒 → 0.2 秒）。
 // history: 以前の [E] で直した記録（オーナー端末の ~/.auto-tech-radar/note_fix_history.json）。実行後の記録を fixes で返す
 function runMaintain(extraEnv, { history } = {}) {
-  const urls = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
+  const urls = JSON.parse(readText("scripts/note_urls.json"));
   const keys = Object.fromEntries(Object.entries(urls).map(([slug, v]) => [slug, v.url.split("/n/")[1]]));
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
   const dump = path.join(home, "live.json");
@@ -119,13 +120,13 @@ function runMaintain(extraEnv, { history } = {}) {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "maintain"], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump, ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile(home, {}), ...extraEnv(keys) },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump, ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile(home, {}), ...extraEnv(keys) },
     });
-    const live = fs.existsSync(dump) ? JSON.parse(fs.readFileSync(dump, "utf8")) : {};
-    const fixes = fs.existsSync(historyFile) ? JSON.parse(fs.readFileSync(historyFile, "utf8")) : [];
+    const live = fs.existsSync(dump) ? JSON.parse(readText(dump)) : {};
+    const fixes = fs.existsSync(historyFile) ? JSON.parse(readText(historyFile)) : [];
     return { status: r.status, out: r.stdout + r.stderr, live, keys, fixes };
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    rmDir(home);
   }
 }
 

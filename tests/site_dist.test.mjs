@@ -11,15 +11,12 @@ import path from "path";
 import http from "http";
 import { dateLabel, jstDayStart, withinLastWeek } from "../src/utils/dates.js";
 import { trackRecordFor, trackRecordLine } from "../src/utils/track_record.js";
+import { chrome } from "./helpers/chrome.mjs";
+import { prepareBuildRoot, astroBuild, removeDir } from "./helpers/site_build.mjs";
 import { dateModifiedOf, datePublishedOf, jsonLdText, tagsOf, noteOfferFor, ellipsis } from "../src/utils/article_page.js";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (p) => fs.readFileSync(p, "utf8");
-const astroBin = path.join(root, "node_modules", "astro", JSON.parse(read(path.join(root, "node_modules/astro/package.json"))).bin.astro);
-
-function astroBuild(cwd, outDir) {
-  return spawnSync(process.execPath, [astroBin, "build", "--outDir", outDir], { cwd, encoding: "utf8", timeout: 240000 });
-}
 
 function htmlFiles(dir) {
   const out = [];
@@ -33,14 +30,17 @@ function htmlFiles(dir) {
 }
 
 // ---- 実際のサイトのビルド ----
+// リポ本体の中ではビルドしない（並列に走る他のテストの astro build と作業ファイルを壊し合う）。テスト専用のコピーでビルドする
+let siteRoot = "";
 let siteOut = "";
 let siteBuild = null;
 before(() => {
-  siteOut = fs.mkdtempSync(path.join(os.tmpdir(), "atr-dist-"));
-  siteBuild = astroBuild(root, siteOut);
+  siteRoot = prepareBuildRoot("atr-dist-");
+  siteOut = path.join(siteRoot, "dist");
+  siteBuild = astroBuild(siteRoot, siteOut);
 });
 after(() => {
-  if (siteOut) fs.rmSync(siteOut, { recursive: true, force: true });
+  if (siteRoot) removeDir(siteRoot);
 });
 const assertSiteBuilt = () => assert.equal(siteBuild?.status, 0, `astro build が失敗: ${(siteBuild?.stderr || "") + (siteBuild?.stdout || "")}`.slice(0, 4000));
 
@@ -239,16 +239,12 @@ let probeRoot = "";
 let probeOut = "";
 let probeBuild = null;
 before(() => {
-  probeRoot = fs.mkdtempSync(path.join(os.tmpdir(), "atr-probe-"));
-  for (const d of ["node_modules", "public", "scripts", "data", "note_drafts"]) fs.symlinkSync(path.join(root, d), path.join(probeRoot, d), "dir");
-  for (const f of ["astro.config.mjs", "package.json"]) fs.copyFileSync(path.join(root, f), path.join(probeRoot, f));
-  fs.cpSync(path.join(root, "src"), path.join(probeRoot, "src"), { recursive: true });
-  fs.writeFileSync(path.join(probeRoot, "src/pages/radar", `${PROBE_SLUG}.md`), PROBE_MD);
+  probeRoot = prepareBuildRoot("atr-probe-", (dir) => fs.writeFileSync(path.join(dir, "src/pages/radar", `${PROBE_SLUG}.md`), PROBE_MD));
   probeOut = path.join(probeRoot, "dist");
   probeBuild = astroBuild(probeRoot, probeOut);
 });
 after(() => {
-  if (probeRoot) fs.rmSync(probeRoot, { recursive: true, force: true });
+  if (probeRoot) removeDir(probeRoot);
 });
 const assertProbeBuilt = () => assert.equal(probeBuild?.status, 0, `astro build が失敗: ${(probeBuild?.stderr || "") + (probeBuild?.stdout || "")}`.slice(0, 4000));
 const probePage = (rel) => read(path.join(probeOut, rel));
@@ -336,7 +332,8 @@ async function launchBrowser() {
   } catch {
     return null;
   }
-  const candidates = [undefined, "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"];
+  // chrome: helpers/chrome.mjs の探し方（Windows・macOS の通常のインストール先を含む）。固定の Linux パスだけでは owner PC で skip になる
+  const candidates = [undefined, chrome, "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser"];
   for (const executablePath of candidates) {
     if (executablePath && !fs.existsSync(executablePath)) continue;
     try {
