@@ -119,6 +119,30 @@ test("403（レート制限）では途中までを .partial に書いて止め�
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("アクセスが止められた掲載済みリポジトリ（403 Repository access blocked）はレート制限と取り違えず、その 1 件だけ飛ばして完了にする", async () => {
+  const dir = tmpRoot(["https://github.com/acme/blocked", "https://github.com/acme/second"]);
+  try {
+    const { calls, fetchImpl } = mockFetch((url) => {
+      if (url.includes("/search/repositories")) return json({ items: [item("acme/cand", 500)] });
+      if (url === "https://api.github.com/repos/acme/blocked") {
+        return new Response(JSON.stringify({ message: "Repository access blocked", block: { reason: "tos" } }), { status: 403, headers: { "x-ratelimit-remaining": "4990" } });
+      }
+      if (url === "https://api.github.com/repos/acme/second") return json(item("acme/second", 50));
+    });
+    const r = await snapshotLedger({ rootDir: dir, now: NOW, fetchImpl, delayMs: 0 });
+    assert.equal(r.status, "complete");
+    assert.ok(calls.includes("https://api.github.com/repos/acme/second"), "止められたリポジトリの後も記録を続ける");
+    assert.deepEqual(readLedger(dir).map((x) => x.full_name).sort(), ["acme/cand", "acme/second"]);
+    // 本当のレート制限（残り 0）では従来どおり止める
+    const limited = mockFetch((url) => (url.includes("/search/repositories") ? new Response("{}", { status: 403, headers: { "x-ratelimit-remaining": "0" } }) : undefined));
+    const dir2 = tmpRoot([]);
+    try {
+      const r2 = await snapshotLedger({ rootDir: dir2, now: NOW, fetchImpl: limited.fetchImpl, delayMs: 0 });
+      assert.equal(r2.reason, "rate_limit");
+    } finally { fs.rmSync(dir2, { recursive: true, force: true }); }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("通信失敗でも例外を投げず .partial にする（デプロイを止めない）", async () => {
   const dir = tmpRoot([]);
   try {
