@@ -19,7 +19,7 @@ export const siteConfig = {
   // アクセス解析（Cloudflare Web Analytics の token）。空ならタグを出さない（src/utils/site_tags.js）。
   // 解析を入れると src/pages/privacy.astro の外部送信一覧にも自動で載る。
   googleSiteVerification: "Voz6J6GTC47_IhzS51uDQFdMynW6EwHGvtxwdGavHF8",
-  cloudflareAnalyticsToken: "",
+  cloudflareAnalyticsToken: "6ed43d34957a49fcb90ec8e43f7db523",
 
   // 💻 公式 GitHub リポジトリ
   githubUrl: "https://github.com/ssk0224/auto-tech-radar",
