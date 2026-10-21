@@ -5,8 +5,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
+import { NOTE_TEXT_RULES, applyNoteRules } from "../scripts/utils/note_pending.mjs";
+import { paidLineReport } from "../scripts/sync_note_urls.mjs";
 
-const RECEIPT = "> ※領収書は購入後、note の「購入・チップ履歴」から発行できます。経費精算の可否は所属先の規程をご確認ください。";
+const RECEIPT = "> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。";
 const OLD_CLAIM = /インボイス|即時発行可能|経費精算いただけます/;
 
 test("note 原稿の無料部分に、正しい領収書の案内があり、インボイス対応・経費精算できるという断定が無い", () => {
@@ -25,4 +27,18 @@ test("生成スクリプトの雛形も同じ案内を使い、インボイス�
     assert.doesNotMatch(fs.readFileSync(f, "utf8"), OLD_CLAIM, f);
   }
   assert.ok(fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8").split("\n").includes(RECEIPT));
+});
+
+test("[E] が公開中の note で直した後の案内は原稿の案内と同じ文になり、CI の原稿との比較（endPct）が一致する", () => {
+  // 公開中の記事の古い案内は「※noteは購入後、」に [E] の規則の from が続く形。[E] は from だけを to に置き換える
+  const invoice = NOTE_TEXT_RULES.find((r) => r.id === "invoice");
+  const oldLine = `> ※noteは購入後、${invoice.from}`;
+  assert.equal(applyNoteRules(oldLine), RECEIPT);
+  // 案内は無料部分の最後の行なので、ここがずれると CI の paidLineReport が有料ラインの位置を読めなくなる（endPct が null）
+  const draft = fs.readFileSync("note_drafts/aihot_note.md", "utf8");
+  const lines = draft.split(/\r?\n/);
+  const at = lines.indexOf(RECEIPT);
+  assert.ok(at > 0);
+  const liveAfterFix = applyNoteRules([...lines.slice(0, at), oldLine].join("\n"));
+  assert.equal(paidLineReport(liveAfterFix, draft).endPct, 100);
 });
