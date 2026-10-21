@@ -1,43 +1,42 @@
 {
-  "at": "2026-10-21T06:19:38.272Z",
-  "version": "8cb9cfb",
-  "cmd": "eyecatch",
-  "ok": true,
+  "at": "2026-10-21T07:24:01.347Z",
+  "version": "1858612",
+  "cmd": "maintain",
+  "ok": false,
   "result": {
-    "set": [
-      "cadcraft",
-      "effectcraft",
-      "gptqmodel",
-      "gridcraft",
-      "jiuwenswarm",
-      "opendots",
-      "opensandbox",
-      "solidcraft"
-    ],
+    "set": [],
     "skipped": [
       "LEAD_MAGNET_CHEAT_SHEET",
       "aihot",
       "anatomy",
       "answer-me-with-html",
+      "cadcraft",
       "compositor",
       "diplay",
       "droiddeck",
       "dsh-our-free-model",
       "dsh-tavern",
+      "effectcraft",
       "filmcraft",
+      "gptqmodel",
+      "gridcraft",
       "how-to-live-better",
       "jev-chat-jarvis",
       "jev-ultrafast",
+      "jiuwenswarm",
       "kev",
       "laya",
       "laya-mlx",
       "lightcraft",
       "magpie",
       "md3music",
+      "opendots",
+      "opensandbox",
       "pdfcraft",
       "photocraft",
       "pinvou-agent",
       "potatotool",
+      "solidcraft",
       "strata",
       "tokenspeed",
       "universal-modder",
@@ -48,13 +47,307 @@
     "failed": [],
     "manual": [],
     "steps": {
-      "cadcraft": [
+      "wording:effectcraft": [
         {
-          "at": "login",
-          "url": "https://note.com/login?redirectPath=https%3A%2F%2Feditor.note.com%2Fnotes%2Fnbf94ef5bca83%2Fedit%2F",
+          "at": "wording-editor",
+          "url": "https://editor.note.com/notes/n6d872b00a5d6/edit/",
+          "liveChars": 10839,
+          "draftChars": 10682
+        },
+        {
+          "at": "wording-replaced",
+          "replaced": 1,
+          "draftChars": 10684
+        },
+        {
+          "at": "editor",
+          "url": "https://editor.note.com/notes/n6d872b00a5d6/edit/",
           "buttons": [
-            "ログイン"
+            "閉じる",
+            "一時保存",
+            "公開に進む",
+            "見出し",
+            "AIアシスタント",
+            "画像",
+            "音声",
+            "埋め込み",
+            "ファイル",
+            "コミック",
+            "目次",
+            "大見出し",
+            "小見出し",
+            "箇条書きリスト",
+            "番号付きリスト",
+            "引用",
+            "コード",
+            "区切り線",
+            "有料エリア指定"
           ]
+        },
+        {
+          "at": "publish",
+          "url": "https://editor.note.com/notes/n6d872b00a5d6/publish/",
+          "buttons": [
+            "キャンセル",
+            "有料エリア設定",
+            "ハッシュタグ",
+            "記事タイプ",
+            "記事の追加",
+            "クーポン",
+            "詳細設定",
+            "#AI",
+            "#エンジニア",
+            "#DX",
+            "#個人開発",
+            "#SaaS",
+            "#OSS",
+            "#無料版",
+            "#商用",
+            "#lottie",
+            "#EffectCraft",
+            "#EffectCraft",
+            "#商用",
+            "#Lottie",
+            "#無料版",
+            "#SaaS",
+            "4,827件4,827件11月1日まで",
+            "3,128件3,128件10月25日まで",
+            "#おいしいは元気のはじまりwith 明治ホールディングス株式会社4,247件4,247件",
+            "#チームだからできたことwith 日本経済新聞2,064件2,064件",
+            "もっと見る",
+            "マガジン",
+            "メンバーシップ",
+            "追加"
+          ]
+        }
+      ]
+    },
+    "wording": {
+      "fixed": [],
+      "failed": [
+        "effectcraft: 公開設定画面に「更新する」ボタンが見つかりません"
+      ]
+    },
+    "stats": {
+      "totalPv": 221,
+      "totalLike": 37,
+      "totalComment": 0,
+      "notes": [
+        {
+          "name": "海外急上昇OSS「vectorcraft」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 11,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「pdfcraft」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 7,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「magpie」商用化マニュアル｜社",
+          "pv": 7,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース1",
+          "pv": 7,
+          "like": 4,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「lightcraft」商用化マニュ",
+          "pv": 7,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース1",
+          "pv": 7,
+          "like": 3,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「EffectCraft」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 7,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 7,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「dsh-tavern」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「pinvou-agent」商用化マニュアル｜社内DX提案書 ＆",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「jev-chat-jarvis」商用化マニュアル｜社内DX提案",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「solidcraft」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 6,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「answer-me-with-html」商用化マニュアル｜社内",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【最新OSS解体新書】crates.io-indexとは？機能解説とビジネス",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「wordcraft」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「pdfcraft」商用化マニュアル",
+          "pv": 5,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「kev」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築",
+          "pv": 5,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外で注目を集めるオープンソース15選 早見表（2026-10-19 時点・Gi",
+          "pv": 5,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「DroidDeck」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 5,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「AIHOT」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 5,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「tokenspeed」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 4,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【最新OSS解体新書】homebrew-coreとは？機能解説とビジネス活用",
+          "pv": 4,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「magpie」商用化マニュアル｜社内DX提案書 ＆ 自社Saa",
+          "pv": 4,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「anatomy」商用化マニュアル｜社内DX提案書 ＆ 自社Sa",
+          "pv": 4,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「dsh-our-free-mode",
+          "pv": 4,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「universal-modder」商用化マニュアル｜社内DX提",
+          "pv": 4,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース1",
+          "pv": 4,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 4,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ ",
+          "pv": 4,
+          "like": 2,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「PotatoTool」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【最新OSS解体新書】Internships-2027とは？機能解説とビジネ",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【最新OSS解体新書】answer-me-with-htmlとは？機能解説と",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「photocraft」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
         }
       ]
     }
