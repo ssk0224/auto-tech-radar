@@ -305,7 +305,7 @@ test("配信物の監査は、記事一覧（サイトマップ・RSS・API）�
     const r = spawnSync(process.execPath, [path.join(root, "scripts/audit_dist.mjs"), broken], { cwd: root, encoding: "utf8" });
     const out = r.stdout + r.stderr;
     assert.notEqual(r.status, 0);
-    for (const s of ["サイトマップの URL が実在しません", "RSS の項目のリンクが実在しません", "api/radar.json に記事一覧に無い URL", "トップページの記事数の表示", "取り下げた記事 nixpkgs"]) {
+    for (const s of ["サイトマップの URL が実在しません", "RSS の項目のリンクが実在しません", "api/radar.json に記事一覧に無い URL", "トップページの記事数の表示", "アーカイブ数の表示", "記事カードの数", "cheatsheet/index.html の件数", "radar-map/index.html の件数", "取り下げた記事 nixpkgs"]) {
       assert.ok(out.includes(s), `${s} を検出していない\n${out.split("\n").filter((l) => l.includes("❌")).join("\n").slice(0, 3000)}`);
     }
   } finally {

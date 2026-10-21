@@ -216,8 +216,19 @@ function feedProblems() {
 
   // 一覧ページに出す記事数は、実際の記事ページの数と一致する
   if (exists('index.html')) {
-    const n = Number((readDist('index.html').match(/id="post-count"[^>]*>全 (\d+) 本/) || [])[1]);
+    const index = readDist('index.html');
+    const n = Number((index.match(/id="post-count"[^>]*>全 (\d+) 本/) || [])[1]);
     if (n !== listed.length) problems.push(`トップページの記事数の表示（${n}）が記事ページの数（${listed.length}）と違います`);
+    // 「38+ 本」のように実数より多く見せる表示をしない
+    const archive = (index.match(/id="archive-count"[^>]*>([^<]*)</) || [])[1];
+    if (archive !== undefined && archive.trim() !== `${listed.length} 本`) problems.push(`トップページのアーカイブ数の表示（${archive.trim()}）が記事ページの数（${listed.length} 本）と違います`);
+    const cards = (index.match(/<article class="post-card"/g) || []).length;
+    if (cards !== listed.length) problems.push(`トップページの記事カードの数（${cards}）が記事ページの数（${listed.length}）と違います`);
+  }
+  for (const [rel, re] of [['cheatsheet/index.html', /id="item-count"[^>]*>(\d+)</], ['radar-map/index.html', /aria-label="技術レーダーマップ。(\d+)件/]]) {
+    if (!exists(rel)) continue;
+    const n = Number((readDist(rel).match(re) || [])[1]);
+    if (n !== listed.length) problems.push(`${rel} の件数の表示（${n}）が記事ページの数（${listed.length}）と違います`);
   }
 
   // 取り下げた記事（scripts/utils/blocklist.mjs）へのリンク・ページが配信物のどこにも無い
