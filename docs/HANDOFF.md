@@ -43,6 +43,7 @@
   - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
+- **【進行中 2026-10-21 14:50 JST】note.com への反映が未完了**: CI の検査（`scripts/note_status.json`、更新日時つき）で、effectcraft / gptqmodel / opensandbox の無料部分に「ThoughtWorks成熟度リング判定」が残り（note 上の最終更新 10/19 のまま＝オーナーの [U] 差し替えが保存・公開されていない）、cadcraft / effectcraft / gptqmodel / gridcraft / jiuwenswarm / opendots / opensandbox / solidcraft の 8 本に見出し画像が無い。オーナーに [E] の再実行を依頼済み。[E] の結果は `scripts/note_browser_log.json` としてランチャーが GitHub に push する → 次はそのログで失敗原因を確認して直す。その後 [U] の手順（note 編集画面で貼り替え→「更新する」）を具体的に案内する。
 - **note の公開内容の確認**（2026-10-21〜）: CI が毎回、公開中の note を API で取得して本文の禁止表現・タイトル・見出し画像の有無を検査し、`scripts/note_status.json` とランチャーのヘッダーに出す。要修正の記事は [U] に自動で並ぶ。
 - **[E] 見出し画像**は `scripts/note_browser.mjs` が専用プロファイルの Chrome（`~/.auto-tech-radar/chrome-note`、初回のみ note にログイン）を自動操作する。DevTools への貼り付けは不要。
 - **[N] 本文の一括自動更新は使えない**: ブラウザで実行する本体がリポジトリに無いため。[U] に案内する。自動化するなら `note_browser.mjs` に note の下書き保存・公開の処理を足す（note の非公開 API の実通信を確認してから）。
