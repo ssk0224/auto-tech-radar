@@ -151,3 +151,83 @@ test("Gemini の利用枠切れ（429 quota）では再試行も次の候補も�
     fs.rmSync(calls, { force: true });
   }
 });
+
+// ---- 生成を無言で止めないための継続性ガード（モデルのフォールバック・実行結果の記録） ----
+const jstTodayStr = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+const runStatusOf = (dir) => JSON.parse(fs.readFileSync(path.join(dir, "data/run_status", `${jstTodayStr()}.json`), "utf8"));
+const NOT_FOUND = '{"error":{"code":404,"message":"models/gemini-2.5-flash is not found for API version v1beta, or is not supported for generateContent.","status":"NOT_FOUND"}}';
+
+test("先頭のモデルが 404（not found）なら次のモデルで生成し、使ったモデルを記事と run_status に残す", () => {
+  const log = path.join(os.tmpdir(), `atr-models-404-${process.pid}`);
+  fs.rmSync(log, { force: true });
+  const { dir, log: out } = run(output(), { MOCK_MODEL_ERRORS: JSON.stringify({ "gemini-2.5-flash": NOT_FOUND }), MOCK_MODELS_LOG: log });
+  try {
+    // 一覧が取れない（モックの既定）ときは静的な優先リストの順に試す
+    assert.deepEqual(fs.readFileSync(log, "utf8").trim().split("\n"), ["gemini-2.5-flash", "gemini-3.5-flash"], out);
+    const web = fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8");
+    assert.match(web, /^generator_model: "gemini-3\.5-flash"$/m);
+    const st = runStatusOf(dir);
+    assert.equal(st.date, jstTodayStr());
+    assert.deepEqual(Object.keys(st.runs[0]).sort(), ["at", "event", "generated", "model", "reason"]);
+    assert.equal(st.runs.at(-1).reason, "ok");
+    assert.equal(st.runs.at(-1).generated, 1);
+    assert.equal(st.runs.at(-1).model, "gemini-3.5-flash");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(log, { force: true });
+  }
+});
+
+test("モデル一覧が取れるときは、一覧に載っている優先モデルだけを順に試す", () => {
+  const log = path.join(os.tmpdir(), `atr-models-list-${process.pid}`);
+  fs.rmSync(log, { force: true });
+  const { dir, log: out } = run(output(), {
+    MOCK_MODELS: "gemini-2.5-flash-lite,gemini-2.5-flash,gemini-embedding-001",
+    MOCK_MODEL_ERRORS: JSON.stringify({ "gemini-2.5-flash": NOT_FOUND }),
+    MOCK_MODELS_LOG: log,
+  });
+  try {
+    assert.deepEqual(fs.readFileSync(log, "utf8").trim().split("\n"), ["gemini-2.5-flash", "gemini-2.5-flash-lite"], out);
+    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), out);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(log, { force: true });
+  }
+});
+
+test("429（利用枠切れ）では次のモデルも次の候補も呼ばずに止め、run_status の reason を quota にする", () => {
+  const calls = path.join(os.tmpdir(), `atr-calls-429-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  const { dir, log } = run(output(), {
+    MOCK_SECOND_REPO: "1",
+    MOCK_MODEL_ERRORS: JSON.stringify({ "gemini-2.5-flash": "got status: 429 Too Many Requests. RESOURCE_EXHAUSTED" }),
+    MOCK_CALLS: calls,
+  });
+  try {
+    assert.equal(fs.readFileSync(calls, "utf8").length, 1, log);
+    assert.match(log, /Gemini quota exhausted/);
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")));
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/othertool.md")));
+    const last = runStatusOf(dir).runs.at(-1);
+    assert.equal(last.reason, "quota");
+    assert.equal(last.generated, 0);
+    assert.equal(last.model, null);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
+});
+
+test("すべてのモデルが 404 なら次の候補を試さずに止め、reason を model_unavailable にする", () => {
+  const calls = path.join(os.tmpdir(), `atr-calls-allnf-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  const { dir, log } = run(output(), { MOCK_SECOND_REPO: "1", MOCK_ERROR: NOT_FOUND, MOCK_CALLS: calls });
+  try {
+    assert.equal(fs.readFileSync(calls, "utf8").length, 4, log); // 優先リストの 4 モデルを 1 回ずつ
+    assert.match(log, /Gemini model unavailable/);
+    assert.equal(runStatusOf(dir).runs.at(-1).reason, "model_unavailable");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
+});

@@ -17,10 +17,15 @@ import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
 import { normalizeHeadings } from "./utils/headings.mjs";
+import { trendingSearchQueries, searchReposUrl } from "./utils/github_queries.mjs";
+import { resolveModelOrder, classifyGeminiError, GeminiStopError } from "./utils/gemini_models.mjs";
+import { recordRunStatus } from "./utils/run_status.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
   console.warn("⚠️ Warning: GEMINI_API_KEY is not set. Skipping crawl and generation gracefully.");
+  // 定期実行で鍵が消えていた場合も「記事 0 本」の理由として残す（scripts/alert_if_no_article.mjs が拾う）
+  recordRunStatus({ generated: 0, reason: "error" });
   process.exit(0);
 }
 
@@ -47,23 +52,13 @@ function getGithubHeaders() {
 
 // 急上昇・高収益OSS（AIエージェント、SaaS代替、ローカル推論基盤、マイクロSaaS）の精密取得
 async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new Set()) {
-  const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-
-  // 3つの戦略クエリで検索（GitHub Search APIの「AND/OR/NOT演算子は最大5個まで」の制約に厳格準拠）
-  // 戦略1: 過去30日以内に生まれ、爆発的にスターを獲得している世界的新星OSS (Stars > 200)
-  // 戦略2: 直近アクティブなAIエージェント、自律実行基盤、MCP、推論基盤 (Stars > 400)
-  // 戦略3: SaaS代替、browser-use、ローカルAI基盤 (Stars > 400)
-  const queries = [
-    `created:>${oneMonthAgo} stars:>200 archived:false is:public`,
-    `(agent OR autonomous OR mcp OR "self-hosted" OR vllm) stars:>400 archived:false is:public pushed:>${oneWeekAgo}`,
-    `("browser-use" OR alternative OR inference) stars:>400 archived:false is:public pushed:>${oneWeekAgo}`
-  ];
+  // 検索クエリは scripts/utils/github_queries.mjs（日次スナップショットと共通）
+  const queries = trendingSearchQueries();
 
   const candidateMap = new Map();
 
   for (const q of queries) {
-    const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30`;
+    const url = searchReposUrl(q);
     let attempts = 0;
     const maxAttempts = 2;
 
@@ -317,7 +312,23 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
 `;
 
-  const models = ["gemini-2.5-flash"];
+  const { text, model } = await callGemini(prompt, systemInstruction);
+  const parsed = await parseGeneratedOutput(text, repo, today, model);
+  return { ...parsed, model };
+}
+
+// この実行で使えないと分かったモデル（404 等）は、以降の候補でも呼ばない
+let modelOrderPromise = null;
+const unavailableModels = new Set();
+
+// Gemini を呼び出し、3 セクションがそろった出力とそのモデル名を返す。
+// - 404 / not found / is not supported / deprecated … 次のモデルへ
+// - 429 / RESOURCE_EXHAUSTED（利用枠切れ）… 待っても次のモデルでも通らないとみなし、実行全体を止める（GeminiStopError "quota"）
+// - 5xx 等の一時的な失敗 … 同じモデルで再試行してから次のモデルへ
+// - すべてのモデルが使えない … 実行全体を止める（GeminiStopError "model_unavailable"）
+async function callGemini(prompt, systemInstruction) {
+  if (!modelOrderPromise) modelOrderPromise = resolveModelOrder(ai);
+  const models = (await modelOrderPromise).filter((m) => !unavailableModels.has(m));
   let lastError = null;
 
   for (const model of models) {
@@ -336,19 +347,21 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 
         const text = response.text || "";
         if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===") && text.includes("=== X THREAD ===")) {
-          return await parseGeneratedOutput(text, repo, today);
-        } else {
-          console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB, NOTE, and X THREAD).`);
+          return { text, model };
         }
-
+        console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB, NOTE, and X THREAD).`);
+        lastError = new Error(`Model ${model} の出力に必要なセクション（WEB / NOTE / X THREAD）がありません`);
       } catch (err) {
         lastError = err;
+        const kind = classifyGeminiError(err);
+        console.warn(`Model ${model} attempt ${attempt} failed (${kind}): ${err.message}`);
         // 日次の無料枠・課金枠を使い切った 429 は、待っても次の候補でも通らない。再試行せずに実行全体を止める
-        if (isQuotaExhausted(err)) throw err;
-        const isTransient = /503|429|500|resource_exhausted|unavailable|overloaded|timeout|fetch failed|econnreset|etimedout/i.test(err.message);
-        console.warn(`Model ${model} attempt ${attempt} failed: ${err.message}`);
-
-        if (attempt < maxRetriesPerModel && isTransient) {
+        if (kind === "quota") throw new GeminiStopError("quota", err);
+        if (kind === "unavailable") {
+          unavailableModels.add(model);
+          break; // 再試行せず次のモデルへ
+        }
+        if (attempt < maxRetriesPerModel && kind === "transient") {
           const waitTime = attempt * 3000;
           console.log(`Waiting ${waitTime}ms before retrying ${model}...`);
           await sleep(waitTime);
@@ -359,6 +372,9 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
     }
   }
 
+  if (models.every((m) => unavailableModels.has(m))) {
+    throw new GeminiStopError("model_unavailable", lastError || "利用できるモデルがありません");
+  }
   throw lastError || new Error("All Gemini models failed");
 }
 
@@ -369,11 +385,6 @@ function setFrontmatterField(content, key, value) {
   const re = new RegExp(`^${key}:.*$`, "m");
   const fm = re.test(m[1]) ? m[1].replace(re, `${key}: ${value}`) : `${m[1]}\n${key}: ${value}`;
   return content.replace(m[0], m[0].replace(m[1], fm));
-}
-
-// Gemini の利用枠切れ（429 RESOURCE_EXHAUSTED / "exceeded your current quota"）。一時的な混雑（503）とは区別する
-function isQuotaExhausted(err) {
-  return /exceeded your current quota|quota exceeded|RESOURCE_EXHAUSTED/i.test(err?.message || '');
 }
 
 // マークダウン構文・テーブル・異常空白サニタイズ
@@ -403,7 +414,7 @@ function sanitizeZennTopic(topic) {
 }
 
 // 出力テキストを各ファイル用にパース
-async function parseGeneratedOutput(rawText, repo, today) {
+async function parseGeneratedOutput(rawText, repo, today, model = null) {
   let webContent = "";
   let noteContent = "";
   let xContent = "";
@@ -444,6 +455,8 @@ ${webContent}`;
   webContent = setFrontmatterField(webContent, "pubDate", `"${today}"`);
   webContent = setFrontmatterField(webContent, "repoUrl", `"${repo.html_url}"`);
   webContent = setFrontmatterField(webContent, "stars", String(repo.stargazers_count));
+  // 実際に生成に使ったモデル（フォールバックが起きた日を後から追えるように）
+  if (model) webContent = setFrontmatterField(webContent, "generator_model", `"${model}"`);
 
   // サニタイズ＆品質不変条件ガード
   webContent = sanitizeMarkdownContent(webContent);
@@ -573,6 +586,7 @@ async function run() {
 
   if (todayCount >= TARGET_NEW_COUNT) {
     console.log(`✓ 本日（${jstToday} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);
+    recordRunStatus({ generated: 0, reason: "cap_reached" });
     return;
   }
 
@@ -580,12 +594,16 @@ async function run() {
   const repos = await fetchTrendingRepos(existingUrls, existingSlugs);
   if (repos.length === 0) {
     console.log("ℹ️ 新規候補リポジトリが見つかりませんでした（全件インデックス済み、または一時的なGitHub検索制限）。安全に終了します。");
+    recordRunStatus({ generated: 0, reason: "no_candidates" });
     return;
   }
 
   let generatedCount = 0;
   let attempts = 0;
   const rejections = [];
+  // 実行全体を止めた理由（"quota" | "model_unavailable"）と、実際に記事を生成したモデル
+  let stopReason = null;
+  let usedModel = null;
 
   for (const repo of repos) {
     if (attempts >= MAX_ATTEMPTS_PER_RUN) {
@@ -778,6 +796,7 @@ ${zennCta(slug)}
       existingSlugs.add(slug);
       existingUrls.add(normUrl);
       generatedCount++;
+      usedModel = result.model || usedModel;
 
       if (generatedCount < TARGET_NEW_COUNT) {
         await sleep(3000);
@@ -801,8 +820,14 @@ ${zennCta(slug)}
       for (const f of cleanupTargets) {
         try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
       }
-      if (isQuotaExhausted(err)) {
+      if (err instanceof GeminiStopError && err.reason === "quota") {
         console.log(`::warning title=Gemini quota exhausted::Gemini API の利用枠を使い切ったため、残りの候補の生成を中止しました（枠が戻る次回の実行で再開します）。`);
+        stopReason = "quota";
+        break;
+      }
+      if (err instanceof GeminiStopError && err.reason === "model_unavailable") {
+        console.log(`::warning title=Gemini model unavailable::生成に使える Gemini モデルが見つからないため、残りの候補の生成を中止しました（scripts/utils/gemini_models.mjs の優先リストを確認してください）。`);
+        stopReason = "model_unavailable";
         break;
       }
 
@@ -814,9 +839,12 @@ ${zennCta(slug)}
     // GitHub Actions の実行結果に警告として表示する（無言で記事ゼロの日を作らない）
     console.log(`::warning title=No new article::候補 ${attempts} 件をすべて不採用にしました: ${rejections.join(" | ").slice(0, 900)}`);
   }
+  const reason = generatedCount > 0 ? "ok" : (stopReason || (attempts === 0 ? "no_candidates" : "error"));
+  recordRunStatus({ generated: generatedCount, reason, model: usedModel });
 }
 
 run().catch((err) => {
   console.error("Fatal error:", err);
+  recordRunStatus({ generated: 0, reason: "error" });
   process.exit(1);
 });
