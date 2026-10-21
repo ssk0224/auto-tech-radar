@@ -108,12 +108,9 @@ async function guidePublishNote() {
   console.log(`     noteの「＋」ボタンから ${C.bold}「有料エリア設定」${C.reset} を挿入。`);
   console.log(`  ④ 販売価格（例: 500円〜980円）を設定して「公開」をクリック！\n`);
 
-  const answer = await prompt(`${C.bold}${C.yellow}👉 note 投稿画面と完成原稿（メモ帳）を開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
-  if (answer.toLowerCase() !== "n") {
-    openBrowser("https://note.com/notes/new");
-    exec(`start notepad "C:\\Users\\free1\\auto-tech-radar\\note_drafts\\answer-me-with-html_note.md"`);
-    console.log(`\n${C.green}✓ note 投稿画面と完成原稿（メモ帳）を開きました！${C.reset}`);
-  }
+  // 出品画面はここでは開かない。ランチャーの [4] は出品の上限（1日1本・直近7日で3本）を確かめ、有料部分を復号した原稿を開き、
+  // 出品を記録する（ここで開いていたのは出品済みの記事の、有料部分が暗号化されたままの原稿で、重複出品になっていた）
+  console.log(`${C.bold}${C.yellow}👉 出品は、ランチャー（【収益化】AutoTechRadar.bat）のメニュー [4] から行ってください（出品の上限の確認と出品の記録のため）。${C.reset}`);
 
   await prompt(`\n[Enter を押して戻る]`);
 }

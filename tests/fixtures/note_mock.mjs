@@ -8,10 +8,46 @@
 // 編集画面は本文を編集でき、「更新する」で編集後の本文が公開中の本文になる。ATR_NOTE_MOCK_DUMP を指定すると、更新のたびに更新した記事の本文（記事キー → 本文）をそのファイルに書く
 // 記事 API はログイン（Cookie）ありならオーナーとして全文を、なしなら無料部分（最後の有料部分の段落より前）だけを返す。
 // ATR_NOTE_MOCK_PAIDMOVE の記事は、「更新する」の後に有料ラインが外れて、ログインなしでも全文が読める（有料ラインの位置が変わった事故の再現）
+//
+// 実機の構造の再現（scripts/note_browser_log.json の 2026-10-21 の実機記録と、出品に使った scripts/utils/note_html.mjs の出力から）:
+// - 「有料エリア設定」の画面には記事の本文（有料部分を含む）が段落ごとに表示され、段落の間に「ラインをこの場所に変更」ボタンが並ぶ。
+//   このボタンが押されたら有料ラインを動かした事故として記録する（ATR_NOTE_MOCK_DUMP の "__movedLine"）
+// - ATR_NOTE_MOCK_RICH の記事は、note_html.mjs（mdToNoteHtml）で変換した本文（見出し・太字・リンク・改行・箇条書き・番号付き・表・引用・コード・区切り線）
+// - ATR_NOTE_MOCK_EXTRA の記事は、下書きに公開していない文が段落以外の要素（div）で残っている
+// - ATR_NOTE_MOCK_PAIDHEAD の記事は、有料部分に「更新」を含む短い見出しがある（記録に有料部分が混ざらないことの確認用）
+// - ATR_NOTE_MOCK_UNPUBLISHED の記事は公開されていない下書きで、最後のボタンは「更新する」ではなく「投稿する」（押すと新規出品になる）
+// - ATR_NOTE_MOCK_CLOSE の記事は、「更新する」で公開された直後に編集画面の窓が閉じられる（オーナーが窓を閉じた・ブラウザが落ちた）
 import fs from "fs";
+import { mdToNoteHtml } from "../../scripts/utils/note_html.mjs";
 
 const INVOICE_HTML = "マイページより<strong>インボイス対応領収書</strong>が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。";
 const PAID_HTML = "<p>有料部分の本文です。導入手順と見積表。</p>";
+export const PAID_HEAD_HTML = "<h3>更新手順</h3><p>公開中の設定を更新する</p>";
+// note_html.mjs で変換する本文（直す表現を、引用・表・見出し・太字の段落・改行の 2 行目に置く）
+export const RICH_MD = [
+  "## 世界中で爆発的に注目されているOSS",
+  "**概要**: このOSSは [公式サイト](https://example.com) で配布されています。",
+  "2 行目: GitHubで爆発的なスターを集めています。",
+  "",
+  "- 項目 A",
+  "  - 入れ子の項目",
+  "1. 手順その1",
+  "2. 手順その2",
+  "",
+  "| 項目 | 内容 |",
+  "| --- | --- |",
+  "| キット | コピペで本番投入できる設定一式 |",
+  "",
+  "> ※noteは購入後、マイページより**インボイス対応領収書**が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。",
+  "",
+  "```",
+  "docker compose up -d",
+  "```",
+  "",
+  "---",
+  "",
+  "最後の段落です。",
+].join("\n");
 
 export default async function install(ctx) {
   const sessionFile = process.env.ATR_NOTE_MOCK_SESSION;
@@ -19,17 +55,21 @@ export default async function install(ctx) {
   const target = process.env.ATR_NOTE_MOCK_TARGET;
   const keysOf = (v) => (v || "").split(",").filter(Boolean);
   const has = (name, k) => keysOf(process.env[name]).includes(k);
+  const dump = () => process.env.ATR_NOTE_MOCK_DUMP && fs.writeFileSync(process.env.ATR_NOTE_MOCK_DUMP, JSON.stringify(state.updated));
   const live = (k) =>
     (state.live[k] ??= [
       "<h2>概要</h2><p>無料部分の本文です。</p>",
+      has("ATR_NOTE_MOCK_RICH", k) ? mdToNoteHtml(RICH_MD).html : "",
       has("ATR_NOTE_MOCK_WORDING", k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : "",
       has("ATR_NOTE_MOCK_COPIPE", k) ? "<ul><li><p>コピペで本番一発起動できる「Docker Compose &amp; .env 設定キット」</p></li></ul>" : "",
       // 引用は実機と同じく figure で包む（この形で出品している: scripts/utils/note_html.mjs の引用の変換）
       has("ATR_NOTE_MOCK_INVOICE", k) ? `<figure name="q1" id="q1"><blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote><figcaption></figcaption></figure>` : "",
       PAID_HTML,
+      has("ATR_NOTE_MOCK_PAIDHEAD", k) ? PAID_HEAD_HTML : "",
     ].join(""));
   const draft = (k) => {
     if (has("ATR_NOTE_MOCK_DRIFT", k)) return `${live(k)}<p>${"以前の手作業で貼り付けた別の本文。".repeat(20)}</p>`;
+    if (has("ATR_NOTE_MOCK_EXTRA", k)) return live(k).replace(PAID_HTML, `<div>まだ公開していない追記の文。</div>${PAID_HTML}`);
     if (has("ATR_NOTE_MOCK_RESUME", k)) return live(k).replace(INVOICE_HTML, "「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。");
     if (has("ATR_NOTE_MOCK_OTHER", k)) return live(k).replace(INVOICE_HTML, "購入後の手続きは note の設定画面からできます。詳しくは note のヘルプをご覧ください。");
     return live(k);
@@ -48,7 +88,7 @@ export default async function install(ctx) {
     if (m) {
       const owner = /XSRF-TOKEN=/.test((await req.allHeaders()).cookie || "");
       const full = live(m[1]);
-      const moved = has("ATR_NOTE_MOCK_PAIDMOVE", m[1]) && state.updated[m[1]];
+      const moved = (has("ATR_NOTE_MOCK_PAIDMOVE", m[1]) && state.updated[m[1]]) || state.movedLine;
       const body = owner || moved ? full : full.slice(0, full.lastIndexOf(PAID_HTML));
       return route.fulfill({ json: { data: { id: 42, eyecatch: m[1] === target ? state.published : "https://x/img.png", updated_at: "x", body } } });
     }
@@ -67,15 +107,30 @@ export default async function install(ctx) {
     if (u.pathname.endsWith("/edit/") && !(sessionFile ? fs.existsSync(sessionFile) : state.editorSession)) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><script>setTimeout(()=>location.replace(${JSON.stringify(`https://note.com/login?redirectPath=${encodeURIComponent(u.href)}`)}),1000)</script></body></html>` });
     const key = u.pathname.match(/\/notes\/(n\w+)\//)?.[1];
     if (u.pathname.endsWith("/edit/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><textarea>タイトル</textarea><div contenteditable="true" id="ed">${draft(key)}</div><button onclick="sessionStorage.setItem('d', document.getElementById('ed').innerHTML); location.href='/notes/${key}/publish/'">公開に進む</button></body></html>` });
-    // 実機と同じく、公開設定の画面には「更新する」が無く、「有料エリア設定」を押した次の画面に出る
-    if (u.pathname.endsWith("/publish/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><h1>公開設定</h1><button>キャンセル</button><button onclick="document.getElementById('paid').style.display='block';this.remove()">有料エリア設定</button><div id="paid" style="display:none"><p>有料ラインの位置</p><button onclick="fetch('/mock-publish?key=${key}',{method:'POST',body:sessionStorage.getItem('d')||''}).then(()=>location.href='/notes/${key}/edit/')">更新する</button></div></body></html>` });
+    // 実機と同じく、公開設定の画面には「更新する」が無く、「有料エリア設定」を押した次の画面に出る。
+    // その画面には本文が段落ごとに表示され、段落の間に「ラインをこの場所に変更」が並ぶ（押してはいけない）
+    if (u.pathname.endsWith("/publish/")) {
+      const final = has("ATR_NOTE_MOCK_UNPUBLISHED", key) ? "投稿する" : "更新する";
+      const showPaid = `document.getElementById('paid').style.display='block';this.remove();` +
+        `const d=document.createElement('div');d.innerHTML=sessionStorage.getItem('d')||'';const area=document.getElementById('area');` +
+        `for(const b of [...d.children]){area.appendChild(b);const l=document.createElement('button');l.textContent='ラインをこの場所に変更';l.onclick=()=>fetch('/mock-move-line',{method:'POST'});area.appendChild(l);}`;
+      return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><h1>公開設定</h1><button>キャンセル</button><button onclick="${showPaid}">有料エリア設定</button><div id="paid" style="display:none"><p>有料ラインの位置</p><div id="area"></div><button onclick="fetch('/mock-publish?key=${key}',{method:'POST',body:sessionStorage.getItem('d')||''}).then(()=>location.href='/notes/${key}/edit/')">${final}</button></div></body></html>` });
+    }
+    if (u.pathname === "/mock-move-line") {
+      state.movedLine = true;
+      state.updated.__movedLine = true;
+      dump();
+      return route.fulfill({ body: "ok" });
+    }
     if (u.pathname === "/mock-publish") {
       const k = u.searchParams.get("key");
       if (k === target) state.published = state.draft;
       const body = route.request().postData();
       if (body) state.live[k] = state.updated[k] = body;
-      if (process.env.ATR_NOTE_MOCK_DUMP) fs.writeFileSync(process.env.ATR_NOTE_MOCK_DUMP, JSON.stringify(state.updated));
-      return route.fulfill({ body: "ok" });
+      dump();
+      await route.fulfill({ body: "ok" });
+      if (has("ATR_NOTE_MOCK_CLOSE", k)) await route.request().frame().page().close().catch(() => {});
+      return;
     }
     return route.fulfill({ status: 404, body: "" });
   });

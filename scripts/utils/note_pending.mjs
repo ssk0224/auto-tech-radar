@@ -117,10 +117,13 @@ export const NOTE_FIX_MAX = 12;
 export const NOTE_FIX_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 // 直した記録 history（[{ at: ISO 時刻, slug }]）から、今あと何本直せるか（left）と、0 本のときに次に直せるようになる時刻（nextAt）を返す
+// 今より後の時刻の記録（記録したときに端末の時計が進んでいて、後で合わせ直された）は「今」直したものとして数える。
+// 数えないと、時計を直しただけで直近に直した分が消えて上限を超える。今に寄せるので、次に直せる時刻が遠い先になることもない
 export function noteFixBudget(history, now = Date.now(), max = NOTE_FIX_MAX, windowMs = NOTE_FIX_WINDOW_MS) {
   const recent = (Array.isArray(history) ? history : [])
     .map((h) => Date.parse(h?.at))
-    .filter((t) => Number.isFinite(t) && t > now - windowMs && t <= now + 60 * 1000)
+    .filter((t) => Number.isFinite(t) && t > now - windowMs)
+    .map((t) => Math.min(t, now))
     .sort((a, b) => a - b);
   const left = Math.max(0, max - recent.length);
   // 古い方から数えて、期限切れになると残りが 1 本以上になる記録の、24 時間後
