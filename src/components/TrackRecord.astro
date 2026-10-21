@@ -1,0 +1,19 @@
+---
+// 記事ページの「掲載時 ★X（日付）→ 現在 ★Y（日付 時点）」の 1 行（src/layouts/Layout.astro から読み込む）。
+// Radar Ledger（data/derived/velocity.json）にこのリポジトリの記録がある記事だけに出す。
+// スター数の推移を示すだけで、掲載との因果関係は書かない
+import { trackRecordLine } from "../utils/track_record.js";
+import { velocity } from "../utils/velocity_data.js";
+const { frontmatter } = Astro.props;
+const line = trackRecordLine(frontmatter, velocity);
+---
+{line && <p class="track-record" title="GitHub のスター数（毎日の記録より）">{line}</p>}
+
+<style>
+  .track-record {
+    margin: 1.5rem 0 0;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+</style>
