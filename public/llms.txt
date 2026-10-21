@@ -1,24 +1,24 @@
 # Auto Tech Radar (自動テックレーダー)
 
-> 世界のGitHub急上昇オープンソース（OSS）を毎朝AIが自動検出し、日本語アーキテクチャ深層解剖・受託開発提案シナリオ・自社SaaSマネタイズ実践法を提供するプロフェッショナル向け技術メディア。
+> GitHub で注目されているオープンソース（OSS）を毎日選び、README などの公開情報をもとに AI（Google Gemini）が日本語で解説を下書きし、自動検査を通ったものを公開している技術メディア。導入や採用を勧めるものではなく、性能などの記述は README の記載に基づきます（当サイトで計測・動作検証したものではありません）。
 
 ## 公式リンク
 - Website: https://ssk0224.github.io/auto-tech-radar/
 - OSS Commercialization Cheatsheet: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
 - Corporate Expense Guide: https://ssk0224.github.io/auto-tech-radar/expense/
-- Sponsorship & Media Kit: https://ssk0224.github.io/auto-tech-radar/sponsor/
+- Advertising & Sponsorship (not open yet; will open after audience numbers are published): https://ssk0224.github.io/auto-tech-radar/sponsor/
 - RSS Feed: https://ssk0224.github.io/auto-tech-radar/rss.xml
 - Sitemap: https://ssk0224.github.io/auto-tech-radar/sitemap-index.xml
 - Official note: https://note.com/vast_ixora7005
 - Official X: https://x.com/AutoTechRadar
 
 ## 主な提供コンテンツと構造
-各技術レポートは以下の統一アーキテクチャで構成されています：
-1. **エグゼクティブ・サマリー**: 30秒で理解できるコアバリューと革新性
-2. **システムアーキテクチャ & Mermaid図解**: コンポーネント構成、データフロー、主要ボトルネックの解決法
-3. **競合・商用SaaSとの徹底比較**: コスト削減効果、ライセンス（MIT/Apache 2.0等）リスク評価
-4. **ビジネス活用アイデア**: 受託・自社SaaS化の検討材料（無料部分）
-5. **商用利用可否 & ライセンス考察**
+各技術レポートには、次の節があります：
+1. **解決する主要な課題とアーキテクチャ**: コンポーネント構成・データフローの Mermaid 図解
+2. **競合ツール/商用SaaSとの徹底比較**: README の記載に基づく比較
+3. **商用利用可否 & ライセンス考察**: リポジトリの LICENSE ファイルから判定したライセンスと確認先
+
+2026-10-20 以前に公開した記事には、ビジネス活用アイデア・インストール手順の節もあります。記事に表示している「★15,000+」などのスター数区分は、記事作成時点の GitHub スター数だけで機械的に分けたもので、推奨や品質の評価ではありません。
 
 導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順などの実務キットは、note の有料記事（https://note.com/vast_ixora7005）でのみ提供しています。サイトには掲載していません。
 

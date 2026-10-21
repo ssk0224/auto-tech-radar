@@ -1,16 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-import { getArticles, pubTime } from "../utils/articles.js";
+import { getArticles, hrefOf, pubTime } from "../utils/articles.js";
+import { dateLabel, withinLastWeek } from "../utils/dates.js";
 
-// 直近7日（ビルド時点）に公開された記事のみ。pubDate 降順・ノイズ除外は getArticles 側
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+// 直近7日（ビルド時点の日本時間で今日を含む 7 日間）に公開された記事のみ。pubDate 降順・ノイズ除外は getArticles 側
 const nowMs = Date.now();
 const topPosts = (getArticles() as any[])
-  .filter((p) => {
-    const t = pubTime(p);
-    return t !== null && nowMs - t <= WEEK_MS && t <= nowMs + 24 * 60 * 60 * 1000;
-  })
+  .filter((p) => withinLastWeek(pubTime(p), nowMs))
   .slice(0, 7);
 ---
 
@@ -68,7 +65,7 @@ const topPosts = (getArticles() as any[])
                   NEW #{idx + 1}
                 </span>
                 <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff;">
-                  <a href={post.url} style="color: #fff; text-decoration: none;">{title}</a>
+                  <a href={hrefOf(post)} style="color: #fff; text-decoration: none;">{title}</a>
                 </h3>
               </div>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -83,10 +80,10 @@ const topPosts = (getArticles() as any[])
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 8px; font-size: 0.82rem;">
               <div>
-                <span style="color: #64748b;">公開日:</span> <strong style="color: #38bdf8;">{post.frontmatter?.pubDate}</strong>
+                <span style="color: #64748b;">公開日:</span> <strong style="color: #38bdf8;">{dateLabel(post.frontmatter?.pubDate)}</strong>
               </div>
               <div style="text-align: right;">
-                <a href={post.url} style="color: #60a5fa; font-weight: 700; text-decoration: none;">完全解剖レポートを読む →</a>
+                <a href={hrefOf(post)} style="color: #60a5fa; font-weight: 700; text-decoration: none;">解説記事を読む →</a>
               </div>
             </div>
           </div>

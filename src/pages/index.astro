@@ -1,7 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-import { getArticles } from "../utils/articles.js";
+import { getArticles, hrefOf } from "../utils/articles.js";
+import { dateLabel } from "../utils/dates.js";
+import { ellipsis } from "../utils/article_page.js";
+import { ogpPathFor } from "../utils/ogp.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 ---
@@ -29,11 +32,11 @@ const posts = getArticles() as any[];
         <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">GitHub 公式 API で取得</div>
       </div>
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
-        <div style="font-size: 1.5rem; font-weight: 900; color: #a855f7;">商用SaaS手順</div>
-        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">受託・マネタイズ分析付</div>
+        <div style="font-size: 1.5rem; font-weight: 900; color: #a855f7;">ライセンス確認</div>
+        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">LICENSE ファイルから判定</div>
       </div>
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
-        <div style="font-size: 1.5rem; font-weight: 900; color: #f59e0b;">{posts.length}+ 本</div>
+        <div id="archive-count" style="font-size: 1.5rem; font-weight: 900; color: #f59e0b;">{posts.length} 本</div>
         <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">技術解剖アーカイブ</div>
       </div>
     </div>
@@ -96,9 +99,9 @@ const posts = getArticles() as any[];
                 新着 #{idx + 1}
               </div>
               <div>
-                <a href={featPost.url} style="text-decoration: none; display: block; margin-bottom: 0.8rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); background: #0b0f19;">
+                <a href={hrefOf(featPost)} style="text-decoration: none; display: block; margin-bottom: 0.8rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); background: #0b0f19;">
                   <img 
-                    src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/ogp/${featSlug}.png`} 
+                    src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}${ogpPathFor(featSlug)}`} 
                     alt={featPost.frontmatter?.title || featPost.file} 
                     loading="lazy"
                     style="width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; display: block;"
@@ -109,15 +112,15 @@ const posts = getArticles() as any[];
                   {featPost.frontmatter?.tags ? featPost.frontmatter.tags[0] : 'OSS'}
                 </div>
                 <h4 style="margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 700; line-height: 1.4;">
-                  <a href={featPost.url} style="color: #f8fafc; text-decoration: none;">
-                    {featPost.frontmatter?.title?.slice(0, 45) || featPost.file}...
+                  <a href={hrefOf(featPost)} style="color: #f8fafc; text-decoration: none;">
+                    {ellipsis(featPost.frontmatter?.title || featPost.file, 45)}
                   </a>
                 </h4>
                 <p style="margin: 0; font-size: 0.84rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                   {featPost.frontmatter?.description}
                 </p>
               </div>
-              <a href={featPost.url} style="margin-top: 1rem; font-size: 0.85rem; font-weight: 700; color: #60a5fa; text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem;">
+              <a href={hrefOf(featPost)} style="margin-top: 1rem; font-size: 0.85rem; font-weight: 700; color: #60a5fa; text-decoration: none; display: inline-flex; align-items: center; gap: 0.2rem;">
                 解剖レポートを見る →
               </a>
             </div>
@@ -176,9 +179,9 @@ const posts = getArticles() as any[];
             <article class="post-card" data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
               <div class="post-card-inner">
                 <div class="post-card-thumb">
-                  <a href={post.url} tabindex="-1" aria-hidden="true">
+                  <a href={hrefOf(post)} tabindex="-1" aria-hidden="true">
                     <img 
-                      src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/ogp/${slug}.png`} 
+                      src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}${ogpPathFor(slug)}`} 
                       alt={title} 
                       loading="lazy" 
                       width="320" 
@@ -191,8 +194,8 @@ const posts = getArticles() as any[];
                 <div class="post-card-content">
                   <div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
-                      <h3 style="margin: 0;"><a href={post.url}>{title}</a></h3>
-                      {post.frontmatter?.pubDate && <span class="meta-tag">{post.frontmatter.pubDate}</span>}
+                      <h3 style="margin: 0;"><a href={hrefOf(post)}>{title}</a></h3>
+                      {dateLabel(post.frontmatter?.pubDate) && <span class="meta-tag">{dateLabel(post.frontmatter?.pubDate)}</span>}
                     </div>
                     <p style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{post.frontmatter?.description}</p>
                     
@@ -206,14 +209,14 @@ const posts = getArticles() as any[];
                   </div>
 
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem; border-top: 1px solid rgba(31, 41, 55, 0.6); padding-top: 0.6rem;">
-                    <a href={post.url} style="font-weight: 700; color: #60a5fa; display: inline-flex; align-items: center; gap: 0.2rem; text-decoration: none;">
-                      日本語解剖レポート ＆ 商用手順書 →
+                    <a href={hrefOf(post)} style="font-weight: 700; color: #60a5fa; display: inline-flex; align-items: center; gap: 0.2rem; text-decoration: none;">
+                      日本語の解説を読む →
                     </a>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                       <button 
                         class="slack-share-btn"
                         data-title={title}
-                        data-url={post.url}
+                        data-url={hrefOf(post)}
                         style="background: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;"
                         onmouseover="this.style.background='#374151'"
                         onmouseout="this.style.background='#1f2937'"
@@ -221,7 +224,7 @@ const posts = getArticles() as any[];
                       >
                         💬 Slack共有
                       </button>
-                      <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('世界の注目OSS解体新書: ' + title + '\nhttps://ssk0224.github.io' + post.url + '\n#OSS #AutoTechRadar')}`}
+                      <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('世界の注目OSS解体新書: ' + title + '\nhttps://ssk0224.github.io' + hrefOf(post) + '\n#OSS #AutoTechRadar')}`}
                         target="_blank" rel="noopener noreferrer"
                         style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; text-decoration: none;"
                       >
@@ -240,7 +243,7 @@ const posts = getArticles() as any[];
 
   <!-- 🏢 法人・企業様向け受託開発 ＆ AIエージェント導入バナー -->
   <section style="margin-top: 3rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%); border: 1px solid #3b82f6; border-radius: 14px; padding: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 280px;">
+    <div style="flex: 1 1 280px; min-width: 0;">
       <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem;">
         🏢 法人・開発責任者・新規事業担当者様へ
       </div>
@@ -251,7 +254,7 @@ const posts = getArticles() as any[];
         「紹介されたAIエージェントを自社クラウドに構築したい」「商用SaaSをセルフホスト化して月額コストを削減したい」等、環境構築やAPI連携、NDA締結についても、導入支援のご相談を受け付けています。
       </p>
     </div>
-    <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
+    <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; max-width: 100%; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
       📩 受託・導入の無料相談・見積もり →
     </a>
   </section>
@@ -264,7 +267,7 @@ const posts = getArticles() as any[];
       <div>
         <h4 style="margin: 0 0 0.3rem; color: #93c5fd; font-size: 1rem;">Q. 一般のテックニュースやまとめ記事と何が違うのですか？</h4>
         <p style="margin: 0; color: #9ca3af; font-size: 0.92rem; line-height: 1.7;">
-          単なる機能紹介にとどまらず、「受託開発でクライアントにどう提案するか」や「自社SaaSとしてどう収益化するか」という実用的なビジネス・マネタイズ設計まで深掘りしている点です。一次情報の英語コードをAIが直接解析して解説します。
+          GitHub でスター数が伸びている OSS を選定基準に沿って毎日選び、README などの公開情報をもとに、構成図（Mermaid）・競合との比較・ライセンス（LICENSE ファイルから判定）を日本語でまとめている点です。ソースコードの解析や実機での動作検証は行っていません。受託提案・自社SaaS化の検討に使う提案書テンプレートや工数見積表は、note の有料版で提供しています。
         </p>
       </div>
 
