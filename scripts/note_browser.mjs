@@ -73,10 +73,18 @@ async function eyecatch() {
     const result = await opened.page.evaluate(script);
     console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 失敗 ${result.failed.length}`);
     result.failed.forEach((f) => console.log(`  ✕ ${f}`));
-    return result.failed.length === 0;
+    return result;
   } finally {
     await ctx?.close().catch(() => {});
   }
+}
+
+// 実行結果を scripts/note_browser_log.json に残す（ランチャーが GitHub に送り、遠隔で原因を確認できるように）
+function writeLog(entry) {
+  if (process.env.ATR_NOTE_MOCK) return; // テスト（模擬応答）の結果は残さない
+  try {
+    fs.writeFileSync(path.join(__dirname, "note_browser_log.json"), JSON.stringify({ at: new Date().toISOString(), ...entry }, null, 2) + "\n", "utf8");
+  } catch (e) {}
 }
 
 if (process.argv[1] && process.argv[1].endsWith("note_browser.mjs")) {
@@ -87,9 +95,13 @@ if (process.argv[1] && process.argv[1].endsWith("note_browser.mjs")) {
     process.exit(2);
   }
   run().then(
-    (ok) => process.exit(ok ? 0 : 1),
+    (result) => {
+      writeLog({ cmd, ok: result.failed.length === 0, result });
+      process.exit(result.failed.length === 0 ? 0 : 1);
+    },
     (e) => {
       console.error(`❌ ${e.message}`);
+      writeLog({ cmd, ok: false, error: String(e.stack || e.message).slice(0, 2000) });
       process.exit(1);
     },
   );

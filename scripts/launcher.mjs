@@ -1077,6 +1077,9 @@ function runNoteEyecatch() {
   } catch (e) {
     console.log(`\n${c.red}見出し画像を設定できなかった記事があります（上の ✕ を確認）。${c.reset}`);
   }
+  // 結果を GitHub に送る（成功・失敗の内容を遠隔で確認できるように）
+  const r = commitAndSync(rootDir, ['scripts/note_browser_log.json'], 'chore(note): eyecatch run log');
+  console.log(r.ok ? `${c.dim}（実行結果を GitHub に送りました）${c.reset}` : `${c.yellow}実行結果を GitHub に送れませんでした: ${r.message.slice(0, 200)}${c.reset}`);
   waitBack();
 }
 
