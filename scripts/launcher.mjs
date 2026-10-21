@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { exec, execSync } from 'child_process';
+import { exec, execSync, spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
@@ -18,14 +18,33 @@ const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
 const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 
-// 起動時にリモート（GitHub Actionsが朝自動巡回生成した最新レポート）を自動同期
-try {
-  process.stdout.write('🔄 最新のリモート原稿・レポートを自動同期中 (Git Pull)... ');
-  configureMergeDrivers(rootDir);
-  execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
-  console.log('✓ 完了\n');
-} catch (e) {
-  console.log('(オフライン/スキップ)\n');
+// 起動時に最新の main（CI が生成した記事・修正されたスクリプト）を取り込む。
+// 取り込みでこのランチャー自身が更新されたら、新しいコードで起動し直す（読み込み済みの古いコードのまま動かさない）
+if (!process.env.ATR_LAUNCHER_UPDATED) {
+  process.stdout.write('🔄 最新の原稿・スクリプトを GitHub から取り込み中 (git pull)... ');
+  const head = () => {
+    try {
+      return execSync('git rev-parse HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    } catch (e) {
+      return '';
+    }
+  };
+  const before = head();
+  try {
+    configureMergeDrivers(rootDir);
+    execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
+    console.log('✓ 完了\n');
+  } catch (e) {
+    // 失敗の理由を隠さない（古いコードのまま動いていることに気づけるように）
+    const why = `${e.stderr || ''}${e.stdout || ''}`.toString().trim().split('\n').slice(-3).join(' / ') || e.message;
+    console.log(`\n⚠ 取り込めませんでした（古いままで起動します）: ${why}\n`);
+    try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
+  }
+  if (before && head() !== before) {
+    console.log('🔁 更新を取り込んだため、新しいランチャーで起動し直します...\n');
+    const r = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: { ...process.env, ATR_LAUNCHER_UPDATED: '1' } });
+    process.exit(r.status ?? 0);
+  }
 }
 
 // ANSIカラー定数（高級感あるダークターミナルUI）
@@ -253,6 +272,21 @@ function renderHeader() {
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.yellow}⚡ Auto Tech Radar${c.reset}  ${c.white}${c.bold}|  海外急上昇OSS 徹底解剖 ＆ 商用化・実務導入支援コンソール${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
+  // 動いているランチャーの版（GitHub の最新と比べられるように）と、CI が確認した note の公開状態
+  let version = '';
+  try {
+    version = execSync('git log -1 --format="%h %cd" --date=format:"%m/%d %H:%M"', { cwd: rootDir, encoding: 'utf8' }).trim();
+  } catch (e) {}
+  let noteStatusLine = '';
+  try {
+    const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
+    const v = Object.values(st.notes || {});
+    const noImg = v.filter((n) => n.eyecatch === false).length;
+    const bad = v.filter((n) => n.issues?.length).length;
+    noteStatusLine = `note 公開状態（${st.checkedAt.slice(5, 16).replace('T', ' ')} UTC 確認）: 見出し画像なし ${noImg} 本 / 要修正の表現 ${bad} 本`;
+  } catch (e) {}
+  console.log(`  ${c.dim}ランチャーの版: ${version}${c.reset}`);
+  if (noteStatusLine) console.log(`  ${c.dim}${noteStatusLine}${c.reset}`);
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
   console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
   console.log(`  ${c.dim}販売:${c.reset} note（有料記事・メンバーシップ）  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);

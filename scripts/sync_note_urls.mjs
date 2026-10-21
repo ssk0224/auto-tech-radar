@@ -6,9 +6,11 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
+import { findForbiddenClaims } from './utils/claims_check.mjs';
 
 const NOTE_URLNAME = new URL(siteConfig.noteProfileUrl).pathname.replace(/\//g, '');
 const OUT_FILE = path.resolve('scripts/note_urls.json');
+const STATUS_FILE = path.resolve('scripts/note_status.json');
 const NOTE_DIR = path.resolve('note_drafts');
 
 // 記号・空白・全角半角の違いを無視して比べる
@@ -85,6 +87,46 @@ async function fetchAllNotes() {
   return notes;
 }
 
+// 公開中の note 記事そのもの（無料部分の本文・タイトル・見出し画像）を検査する。
+// オーナー端末からの一括更新（[N]）や見出し画像の設定（[E]）が実際に反映されたかを、note 側の公開内容で確かめるため
+export function publishedNoteIssues(d) {
+  const text = `${d.name || ''}\n${String(d.body || '').replace(/<[^>]+>/g, ' ')}`;
+  const issues = findForbiddenClaims(text);
+  if (/ThoughtWorks/.test(text)) issues.push('第三者（ThoughtWorks）の評価のような表現');
+  if (/^\s*#/.test(d.name || '')) issues.push('タイトルが # で始まる');
+  return issues;
+}
+
+async function fetchNoteDetail(key) {
+  const res = await fetch(`https://note.com/api/v3/notes/${key}`, {
+    headers: { 'User-Agent': 'auto-tech-radar (+https://github.com/ssk0224/auto-tech-radar)' },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json())?.data || {};
+}
+
+async function checkPublishedNotes(map) {
+  const status = {};
+  for (const [slug, v] of Object.entries(map)) {
+    const key = v.url.match(/\/n\/(n\w+)/)?.[1];
+    if (!key) continue;
+    try {
+      const d = await fetchNoteDetail(key);
+      status[slug] = { eyecatch: Boolean(d.eyecatch), issues: publishedNoteIssues(d) };
+    } catch (e) {
+      status[slug] = { error: e.message };
+    }
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  const noImage = Object.keys(status).filter((s) => status[s].eyecatch === false);
+  const withIssues = Object.keys(status).filter((s) => status[s].issues?.length);
+  console.log(`✓ 公開中の note を検査: ${Object.keys(status).length} 本（見出し画像なし ${noImage.length} 本 / 問題のある表現 ${withIssues.length} 本）`);
+  if (noImage.length) console.log(`::warning title=note の見出し画像::未設定 ${noImage.length} 本: ${noImage.join(', ')}（ランチャー [E] で設定）`);
+  for (const s of withIssues) console.log(`::warning title=note の公開内容::${s}: ${status[s].issues.join(' / ')}（ランチャー [N] で原稿の内容に更新）`);
+  fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), notes: status }, null, 2) + '\n', 'utf8');
+}
+
 async function main() {
   let notes;
   try {
@@ -115,6 +157,7 @@ async function main() {
     if (v.duplicates) console.log(`::warning title=note の重複出品::${slug} が note に ${v.duplicates.length + 1} 本あります。ランチャー [U] で 1 本にしてください`);
   }
   for (const n of notes.filter((n) => !linked.has(n.noteUrl))) console.log(`  - 未対応の note: ${n.name}`);
+  await checkPublishedNotes(finalMap);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

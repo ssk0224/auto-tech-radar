@@ -97,3 +97,12 @@ test("note_urls.json のマージ: 削除は復活させず、片側の更新は
   const theirs = { a: { url: "u1" }, b: { url: "u2" }, c: { url: "n3-ci" }, d: { url: "u4" } }; // CI が c を更新、d を追加
   assert.deepEqual(mergeNoteUrls(base, ours, theirs), { b: { url: "u2" }, c: { url: "n3-ci" }, d: { url: "u4" } });
 });
+
+test("公開中の note の検査: 禁止表現・ThoughtWorks・# 始まりのタイトルを見つける", async () => {
+  const { publishedNoteIssues } = await import("../scripts/sync_note_urls.mjs");
+  assert.deepEqual(publishedNoteIssues({ name: "海外急上昇OSS「x」解説", body: "<p>普通の本文</p>" }), []);
+  const bad = publishedNoteIssues({ name: "# 【受託80万〜250万】x", body: "<h2>ThoughtWorks成熟度リング判定</h2><p>案件単価80万</p>" });
+  assert.ok(bad.some((i) => /ThoughtWorks/.test(i)));
+  assert.ok(bad.some((i) => /#/.test(i)));
+  assert.ok(bad.some((i) => /単価/.test(i)));
+});
