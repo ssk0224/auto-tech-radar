@@ -41,7 +41,8 @@ export default async function install(ctx) {
     if (u.pathname.endsWith("/edit/") && !(sessionFile ? fs.existsSync(sessionFile) : state.editorSession)) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><script>setTimeout(()=>location.replace(${JSON.stringify(`https://note.com/login?redirectPath=${encodeURIComponent(u.href)}`)}),1000)</script></body></html>` });
     const key = u.pathname.match(/\/notes\/(n\w+)\//)?.[1];
     if (u.pathname.endsWith("/edit/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><textarea>タイトル</textarea><div contenteditable="true" id="ed">${draft(key)}</div><button onclick="sessionStorage.setItem('d', document.getElementById('ed').innerHTML); location.href='/notes/${key}/publish/'">公開に進む</button></body></html>` });
-    if (u.pathname.endsWith("/publish/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><button onclick="fetch('/mock-publish?key=${key}',{method:'POST',body:sessionStorage.getItem('d')||''}).then(()=>location.href='/notes/${key}/edit/')">更新する</button></body></html>` });
+    // 実機と同じく、公開設定の画面には「更新する」が無く、「有料エリア設定」を押した次の画面に出る
+    if (u.pathname.endsWith("/publish/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><h1>公開設定</h1><button>キャンセル</button><button onclick="document.getElementById('paid').style.display='block';this.remove()">有料エリア設定</button><div id="paid" style="display:none"><p>有料ラインの位置</p><button onclick="fetch('/mock-publish?key=${key}',{method:'POST',body:sessionStorage.getItem('d')||''}).then(()=>location.href='/notes/${key}/edit/')">更新する</button></div></body></html>` });
     if (u.pathname === "/mock-publish") {
       const k = u.searchParams.get("key");
       if (k === target) state.published = state.draft;

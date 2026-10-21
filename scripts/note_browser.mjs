@@ -191,9 +191,20 @@ async function pressPublish(ed, steps) {
     // 見つからなければ「更新」「投稿」「公開」を含む要素の種類と文言を記録して止める（押せる要素を推測で選んで押さない）
     await ed.waitForTimeout(2000);
     await ed.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
-    const update = ed.locator('button, [role="button"], a, input[type="submit"], div[tabindex]').filter({ hasText: /^\s*(更新する|投稿する)\s*$/ }).first();
-    await update.waitFor({ state: "attached", timeout: 30000 }).catch(() => {});
+    const update = ed.locator('button, [role="button"], a, input[type="submit"], div[tabindex]').filter({ hasText: /^\s*(更新する|投稿する)\s*$/, visible: true }).first();
+    await update.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
     steps.push({ at: "publish", url: ed.url(), buttons: await buttonTexts(ed), candidates: await publishCandidates(ed) });
+    // 有料記事は「公開設定」の次に「有料エリア設定」（有料ラインの位置を選ぶ画面）があり、「更新する」はそこにある（2026-10-21 の実機ログ）。
+    // 有料ラインの位置は変えずに次へ進むだけ
+    if ((await update.count()) === 0) {
+      const paidStep = ed.getByRole("button", { name: /^\s*有料エリア設定\s*$/ }).first();
+      if ((await paidStep.count()) > 0) {
+        await paidStep.click();
+        await ed.waitForTimeout(2000);
+        await update.waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
+        steps.push({ at: "paid-area", url: ed.url(), buttons: await buttonTexts(ed), candidates: await publishCandidates(ed) });
+      }
+    }
     if ((await update.count()) === 0) throw new Error("公開設定画面に「更新する」ボタンが見つかりません");
     await update.scrollIntoViewIfNeeded().catch(() => {});
     await update.click();
