@@ -356,7 +356,7 @@ function renderHeader() {
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
   console.log(`  ${c.dim}収益化アクション残:${c.reset} note出品: ${noteUnpostedCount > 0 ? c.yellow + c.bold + noteUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset} | 𝕏拡散: ${xUnpostedCount > 0 ? c.blue + c.bold + xUnpostedCount + ' 本' + c.reset : c.green + '0(完了)' + c.reset}`);
   console.log(`  ${c.dim}販売:${c.reset} note（有料記事・メンバーシップ）  |  ${c.dim}公式Web:${c.reset} ${c.cyan}https://ssk0224.github.io/auto-tech-radar/${c.reset}`);
-  console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)  ③B2B受託 (¥800,000〜)`);
+  console.log(`  ${c.dim}3大収益ピラー   :${c.reset} ①単発レポート (¥980)  ②noteサブスク (¥1,980/月)`);
 
   const pendingUpdates = getPendingNoteUpdates();
   if (pendingUpdates.length > 0) {
