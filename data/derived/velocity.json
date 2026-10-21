@@ -1,0 +1,698 @@
+{
+  "as_of": "2026-10-21",
+  "repos": {
+    "affaan-m/ECC": {
+      "stars_now": 285186,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "alchaincyf/huashu-art-motion": {
+      "stars_now": 4710,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "anomalyco/opencode": {
+      "stars_now": 219451,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "anthropics/claude-code": {
+      "stars_now": 152666,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "ARahim3/DigUp": {
+      "stars_now": 5294,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "awesome-selfhosted/awesome-selfhosted": {
+      "stars_now": 328858,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "browser-use/browser-use": {
+      "stars_now": 118730,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "browser-use/jev-ultrafast": {
+      "stars_now": 23370,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "cdyforever/how-to-live-better": {
+      "stars_now": 12959,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "CopilotKit/OpenDots": {
+      "stars_now": 5766,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "deepseek-ai/DeepInfer": {
+      "stars_now": 16560,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "DietrichGebert/ponytail": {
+      "stars_now": 170631,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Droid-Deck/DroidDeck": {
+      "stars_now": 12033,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "earendil-works/pi": {
+      "stars_now": 116868,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Ebony-Vinyl/dsh-our-free-model": {
+      "stars_now": 32477,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "f/prompts.chat": {
+      "stars_now": 173779,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "farion1231/cc-switch": {
+      "stars_now": 147094,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "firecrawl/firecrawl": {
+      "stars_now": 193657,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "flizzywine/dsh-tavern": {
+      "stars_now": 1178,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Gathin23/cleanyourtv": {
+      "stars_now": 15390,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "google-gemini/gemini-cli": {
+      "stars_now": 107482,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "google-research/harness2": {
+      "stars_now": 16575,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Graphify-Labs/graphify": {
+      "stars_now": 130868,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "immich-app/immich": {
+      "stars_now": 116817,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "jaredpalmer/kev": {
+      "stars_now": 9403,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "jev-chat/jev-chat-jarvis": {
+      "stars_now": 7955,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "JuliusBrussee/caveman": {
+      "stars_now": 113984,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "KKKKhazix/AIHOT": {
+      "stars_now": 8318,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "KnifeLemon/Filee": {
+      "stars_now": 8641,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "langchain-ai/langchain": {
+      "stars_now": 148187,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "langflow-ai/langflow": {
+      "stars_now": 155880,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "langgenius/dify": {
+      "stars_now": 159119,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "lightseekorg/tokenspeed": {
+      "stars_now": 2737,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Louis-CFM/coucou": {
+      "stars_now": 5666,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "mattpocock/skills": {
+      "stars_now": 299248,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "mizorewww/laya-mlx": {
+      "stars_now": 6991,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "ModelCloud/GPTQModel": {
+      "stars_now": 1274,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "morluto/rea": {
+      "stars_now": 353085,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "msitarzewski/agency-agents": {
+      "stars_now": 162724,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "n8n-io/n8n": {
+      "stars_now": 208205,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "NandhaKishorM/laya": {
+      "stars_now": 33787,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Niko1221/Strata": {
+      "stars_now": 29556,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "NousResearch/hermes-agent": {
+      "stars_now": 255741,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "obra/superpowers": {
+      "stars_now": 302847,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "omlahore/RemoveMacAI": {
+      "stars_now": 5088,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "open-webui/open-webui": {
+      "stars_now": 156347,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "openai/codex": {
+      "stars_now": 130252,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "openai/math": {
+      "stars_now": 15323,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "openJiuwen-ai/jiuwenswarm": {
+      "stars_now": 7791,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "opensandbox-group/OpenSandbox": {
+      "stars_now": 16015,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Pinvou/pinvou-agent": {
+      "stars_now": 2628,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "potato-security/PotatoTool": {
+      "stars_now": 1235,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "QingYunA/answer-me-with-html": {
+      "stars_now": 4151,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "rehan-remade/universal-modder": {
+      "stars_now": 8589,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "robbietilton/Compositor": {
+      "stars_now": 17616,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "rustdesk/rustdesk": {
+      "stars_now": 126505,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "shader-effects-inc/shaders": {
+      "stars_now": 5258,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "shihabal3amri/DiPlay": {
+      "stars_now": 11920,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Shubhamsaboo/awesome-llm-apps": {
+      "stars_now": 142482,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "Snailclimb/JavaGuide": {
+      "stars_now": 159171,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/cadcraft": {
+      "stars_now": 6246,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/effectcraft": {
+      "stars_now": 7568,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/filmcraft": {
+      "stars_now": 15429,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/gridcraft": {
+      "stars_now": 6094,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/lightcraft": {
+      "stars_now": 14109,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/pdfcraft": {
+      "stars_now": 16809,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/photocraft": {
+      "stars_now": 70136,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/vectorcraft": {
+      "stars_now": 10254,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "storytold/wordcraft": {
+      "stars_now": 15210,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "tangency-labs/solidcraft": {
+      "stars_now": 8572,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "TauricResearch/TradingAgents": {
+      "stars_now": 112455,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "ultraworkers/claw-code": {
+      "stars_now": 195075,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "wheresryan22/anatomy": {
+      "stars_now": 18022,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "yetone/magpie": {
+      "stars_now": 18556,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "yihui-dev/awesome-opus5-5-videos": {
+      "stars_now": 7708,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "zai-org/ZCode": {
+      "stars_now": 8065,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "zzyoxml/md3Music": {
+      "stars_now": 1076,
+      "last_seen": "2026-10-21",
+      "first_seen": "2026-10-21",
+      "days_on_radar": 1,
+      "gain_1d": null,
+      "gain_7d": null,
+      "gain_30d": null
+    }
+  }
+}
