@@ -126,6 +126,22 @@ test("[E] 下書きが公開中と違って直せない記事は、その回の�
   assert.deepEqual(Object.keys(r.live), [r.keys.anatomy]);
 });
 
+test("[E] の実行記録に入る値（steps・失敗の理由）に、本文の文字列を入れない（数・規則の id・URL・ボタンの文言だけ）", () => {
+  const src = fs.readFileSync("scripts/note_browser.mjs", "utf8");
+  const pushes = [...src.matchAll(/steps\.push\(\{[\s\S]*?\}\);/g)].map((m) => m[0]);
+  assert.ok(pushes.length >= 8);
+  for (const p of pushes) {
+    // 値として使う識別子（キー名と「.length」の数は除く）に、本文を持つ変数が無い
+    const values = p.replace(/"[^"]*"/g, '""').replace(/\b[\w.]+(\([^()]*\))?\.length\b/g, "0").replace(/\b\w+\s*:/g, "");
+    assert.doesNotMatch(values, /\b(body|text|after|fullAfter|draftBlocks|afterBlocks|blocks|want|got|live|free)\b/, `本文を記録に入れている: ${p}`);
+  }
+  // 例外の理由は 1 行目だけ（Playwright の例外は 2 行目以降に画面の要素の HTML と文字を含む）
+  for (const m of src.matchAll(/(failed|manual)\.push\(([^;]*)\);/g)) {
+    if (/e\.message/.test(m[2])) assert.match(m[2], /e\.message\.split\("\\n"\)\[0\]/, m[0]);
+  }
+  assert.doesNotMatch(src, /writeLog\(\{[^}]*e\.stack/, "例外の全文を記録に残さない");
+});
+
 // 専用プロファイルの Chrome の窓（[U] などで開いた note の画面）が開いたままだと、自動操作の Chrome はそのプロファイルで起動できない。
 // 画面のある Chrome が要る（画面なしの Chrome はプロファイルを占有しない）ので、仮想ディスプレイ（xvfb-run）がある環境だけで確かめる
 const xvfb = ["/usr/bin/xvfb-run"].find((p) => fs.existsSync(p));
