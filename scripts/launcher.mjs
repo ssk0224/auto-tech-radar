@@ -553,7 +553,8 @@ function runNoteUpdates() {
     console.log(`  1. 開いた note の記事一覧でこの記事を探し、編集画面を開く`);
     console.log(`  2. 本文をすべて選択して削除し、${c.cyan}[Ctrl + V]${c.reset} で貼り付け`);
     console.log(`  3. タイトルも原稿 1 行目（# の後ろ）に合わせる（「受託80万〜250万」等の旧タイトルを残さない）`);
-    console.log(`  4. 「有料エリア」の手前に有料ラインを入れ直し、価格・メンバーシップ設定を確認して更新`);
+    console.log(`  4. 「有料エリア」の手前に有料ラインを入れ直す`);
+    console.log(`  5. ${c.yellow}${c.bold}右上の「公開に進む」→「更新する」を押す${c.reset}（押さないと下書きのままで note の記事は変わりません。見出し画像もこのとき反映されます）`);
   }
   // CI が取得した記事 URL（scripts/note_urls.json）があればその記事を直接開く。無ければ記事一覧
   const noteUrl = item.url;

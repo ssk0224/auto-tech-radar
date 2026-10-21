@@ -64,15 +64,122 @@ async function openNote() {
   return { ctx, page };
 }
 
+// 1 回の API 呼び出しをページ内で実行する（note.com と同じオリジンで、ログイン状態の Cookie を使うため）。
+// 実行中にページが移動すると失敗するので、移動しない JSON のページを土台にし、失敗したら 1 回だけやり直す
+async function inPage(page, fn, arg) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await page.evaluate(fn, arg);
+    } catch (e) {
+      if (attempt >= 1 || !/Execution context was destroyed|navigation/i.test(e.message)) throw e;
+      await page.waitForLoadState("domcontentloaded").catch(() => {});
+    }
+  }
+}
+
+const noteInfo = (page, key) =>
+  inPage(page, async (k) => {
+    const r = await fetch(`/api/v3/notes/${k}`, { credentials: "include", headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!r.ok) return { error: `記事情報の取得に失敗 HTTP ${r.status}` };
+    const d = (await r.json()).data || {};
+    return { id: d.id, eyecatch: d.eyecatch || "", updatedAt: d.updated_at || d.updatedAt || "" };
+  }, key);
+
+const uploadEyecatch = (page, args) =>
+  inPage(page, async ({ id, width, height, b64, name }) => {
+    const xsrf = decodeURIComponent((document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/) || [])[1] || "");
+    const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const form = new FormData();
+    form.append("note_id", String(id));
+    form.append("width", String(width));
+    form.append("height", String(height));
+    // ファイル部分の Content-Type が無いと 500 になるため、型付きの File で送る
+    form.append("file", new File([bin], name, { type: "image/png" }));
+    const r = await fetch("/api/v1/image_upload/note_eyecatch", {
+      method: "POST",
+      credentials: "include",
+      headers: { "X-Requested-With": "XMLHttpRequest", ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}) },
+      body: form,
+    });
+    return { ok: r.ok, status: r.status, text: r.ok ? "" : (await r.text()).slice(0, 200) };
+  }, args);
+
+const buttonTexts = (p) => p.$$eval("button, a[role=button]", (els) => els.map((e) => e.textContent.trim()).filter(Boolean).slice(0, 40)).catch(() => []);
+
+// 公開中の記事は、見出し画像が下書きに付くだけなので、編集画面で「公開に進む」→「更新する」を押して反映する。
+// 押すのは文言が一致するボタンだけ。各段階の URL とボタンの文言を記録する（画面構成が違ったときに原因を確認するため）
+async function publishDraft(ctx, key, steps) {
+  const ed = await ctx.newPage();
+  try {
+    await ed.goto(`https://editor.note.com/notes/${key}/edit/`, { waitUntil: "domcontentloaded" });
+    await ed.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+    steps.push({ at: "editor", url: ed.url(), buttons: await buttonTexts(ed) });
+    const next = ed.getByRole("button", { name: /公開に進む/ });
+    if ((await next.count()) === 0) throw new Error("編集画面に「公開に進む」ボタンが見つかりません");
+    await next.first().click();
+    await ed.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+    await ed.waitForTimeout(1500);
+    steps.push({ at: "publish", url: ed.url(), buttons: await buttonTexts(ed) });
+    const update = ed.getByRole("button", { name: /^\s*更新する\s*$/ });
+    if ((await update.count()) === 0) throw new Error("公開設定画面に「更新する」ボタンが見つかりません");
+    await update.first().click();
+    await ed.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
+    await ed.waitForTimeout(2000);
+    steps.push({ at: "after-update", url: ed.url() });
+  } finally {
+    await ed.close().catch(() => {});
+  }
+}
+
 async function eyecatch() {
   let ctx;
+  const result = { set: [], skipped: [], failed: [], manual: [], steps: {} };
   try {
     const opened = await openNote();
     ctx = opened.ctx;
-    const script = fs.readFileSync(path.join(__dirname, "browser", "note_eyecatch.js"), "utf8");
-    const result = await opened.page.evaluate(script);
-    console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 失敗 ${result.failed.length}`);
-    result.failed.forEach((f) => console.log(`  ✕ ${f}`));
+    const page = opened.page;
+    const root = path.join(__dirname, "..");
+    const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
+    // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない
+    let flagged = new Set();
+    try {
+      const st = JSON.parse(fs.readFileSync(path.join(__dirname, "note_status.json"), "utf8"));
+      flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
+    } catch (e) {}
+    if (tasks.length) await page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
+    for (const t of tasks) {
+      try {
+        const info = await noteInfo(page, t.key);
+        if (info.error) throw new Error(info.error);
+        if (info.eyecatch) {
+          result.skipped.push(t.slug);
+          continue;
+        }
+        const b64 = (await eyecatchPng(t.slug, root)).toString("base64");
+        const up = await uploadEyecatch(page, { id: info.id, width: t.width, height: t.height, b64, name: `${t.slug}.png` });
+        if (!up.ok) throw new Error(`アップロード失敗 HTTP ${up.status} ${up.text}`);
+        let after = await noteInfo(page, t.key);
+        if (!after.eyecatch) {
+          if (flagged.has(t.slug)) {
+            result.manual.push(`${t.slug}: 見出し画像は下書きに設定済み。本文を修正版に差し替えてから note の編集画面で「更新する」を押すと反映されます`);
+            continue;
+          }
+          result.steps[t.slug] = [];
+          await publishDraft(ctx, t.key, result.steps[t.slug]);
+          after = await noteInfo(page, t.key);
+          if (!after.eyecatch) throw new Error("「更新する」の後も見出し画像が記事に反映されていません");
+        }
+        result.set.push(t.slug);
+        console.log(`  ✓ 見出し画像を設定: ${t.slug}`);
+      } catch (e) {
+        result.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
+        console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
+        break; // 画面構成の想定違いなどで同じ失敗を繰り返さないよう、最初の失敗で止める
+      }
+      await new Promise((r) => setTimeout(r, 1500)); // note への連続アクセスを避ける
+    }
+    console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 本文の差し替え待ち ${result.manual.length} / 失敗 ${result.failed.length}`);
+    result.manual.forEach((m) => console.log(`  … ${m}`));
     return result;
   } finally {
     await ctx?.close().catch(() => {});
