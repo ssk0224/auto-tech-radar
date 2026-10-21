@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-21T05:52:41.329Z",
+  "cmd": "eyecatch",
+  "ok": false,
+  "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at eyecatch (C:\\Users\\free1\\auto-tech-radar\\scripts\\note_browser.mjs:73:38)"
+}
