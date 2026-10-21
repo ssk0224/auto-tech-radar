@@ -1,6 +1,6 @@
 // note.com の代わり（note_browser.mjs のテスト用）。実際の挙動に合わせ、公開中の記事では見出し画像はまず下書きに付き、
 // 編集画面で「公開に進む」→「更新する」を押すと記事に反映される。対象は ATR_NOTE_MOCK_TARGET の記事だけ（他は設定済み）。
-// 編集画面は最初、実機と同じく note.com/login?redirectPath=編集画面 に飛ばされ、ログイン済みなので少しして自動で戻る。
+// 編集画面は最初、実機と同じくいったん表示されてから note.com/login?redirectPath=編集画面 に飛ばされ、ログイン済みなので少しして自動で戻る。
 // ATR_NOTE_MOCK_SESSION を指定すると自動では戻らず、そのファイルがある（＝普通の Chrome でログインした）ときだけ編集画面を開ける
 import fs from "fs";
 
@@ -31,7 +31,7 @@ export default async function install(ctx) {
   await ctx.addCookies([{ name: "XSRF-TOKEN", value: "tok", domain: "note.com", path: "/" }]);
   await ctx.route("https://editor.note.com/**", async (route) => {
     const u = new URL(route.request().url());
-    if (u.pathname.endsWith("/edit/") && !(sessionFile ? fs.existsSync(sessionFile) : state.editorSession)) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><script>location.replace(${JSON.stringify(`https://note.com/login?redirectPath=${encodeURIComponent(u.href)}`)})</script></body></html>` });
+    if (u.pathname.endsWith("/edit/") && !(sessionFile ? fs.existsSync(sessionFile) : state.editorSession)) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><script>setTimeout(()=>location.replace(${JSON.stringify(`https://note.com/login?redirectPath=${encodeURIComponent(u.href)}`)}),1000)</script></body></html>` });
     if (u.pathname.endsWith("/edit/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><button onclick="location.href='/notes/${target}/publish/'">公開に進む</button></body></html>` });
     if (u.pathname.endsWith("/publish/")) return route.fulfill({ contentType: "text/html; charset=utf-8", body: `<html><body><button onclick="fetch('/mock-publish',{method:'POST'}).then(()=>location.href='/notes/${target}/edit/')">更新する</button></body></html>` });
     if (u.pathname === "/mock-publish") {

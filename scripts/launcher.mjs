@@ -1068,9 +1068,24 @@ function runNoteApiSync() {
 
 // note の見出し画像（アイキャッチ）を、公開済みで未設定の記事に一括で設定する。
 // ローカルブリッジ（--eyecatch-only は秘密鍵不要）を起動し、ブラウザで実行するスクリプトをクリップボードへコピーする
+// 実行の直前に最新版を取り込む（ランチャーを開いたまま何度も実行すると、起動時の古い版のまま動くため）。
+// 実行するスクリプトは毎回ディスクから読み込まれるので、取り込めば次の実行から新しい版になる
+function pullBeforeRun() {
+  try {
+    configureMergeDrivers(rootDir);
+    execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'pipe', timeout: 30000 });
+    ensureDependencies();
+  } catch (e) {
+    const why = `${e.stderr || ''}${e.stdout || ''}`.toString().trim().split('\n').slice(-2).join(' / ') || e.message;
+    console.log(`${c.yellow}⚠ 最新版を取り込めませんでした（今の版で続けます）: ${why}${c.reset}\n`);
+    try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
+  }
+}
+
 function runNoteEyecatch() {
   console.clear();
   console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定（自動） ===${c.reset}\n`);
+  pullBeforeRun();
   console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。\n`);
   try {
     execSync('node scripts/note_browser.mjs eyecatch', { cwd: rootDir, stdio: 'inherit' });

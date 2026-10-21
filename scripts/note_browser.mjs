@@ -4,7 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { spawn } from "child_process";
+import { execFileSync, spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
@@ -140,13 +140,23 @@ const buttonTexts = (p) => p.$$eval("button, a[role=button]", (els) => els.map((
 // 押すのは文言が一致するボタンだけ。各段階の URL とボタンの文言を記録する（画面構成が違ったときに原因を確認するため）
 // 編集画面（editor.note.com）は note.com のログイン画面（?redirectPath=編集画面）を経由することがある。
 // ログイン済みなら自動で戻るのを待ち、戻らなければログインが必要（LoginRequired）として呼び出し元に知らせる
+// 実機では編集画面がいったん表示されてから、ログイン画面へ移動する。そのため「公開に進む」が出るか、編集画面から離れるかを待って判断する
+// （ログイン画面のまま待つと、自動操作中の窓でログインしようとして Google に拒否される）
 async function openEditor(ed, key, steps) {
   const editUrl = `https://editor.note.com/notes/${key}/edit/`;
   const onEditor = () => new URL(ed.url()).hostname === "editor.note.com" && ed.url().includes(`/notes/${key}/edit`);
   await ed.goto(editUrl, { waitUntil: "domcontentloaded" });
-  if (!onEditor()) await ed.waitForURL(() => onEditor(), { timeout: 20000 }).catch(() => {});
+  const next = ed.getByRole("button", { name: /公開に進む/ }).first();
+  await Promise.race([
+    next.waitFor({ state: "visible", timeout: 30000 }),
+    ed.waitForURL(() => !onEditor(), { timeout: 30000 }),
+  ]).catch(() => {});
+  if (onEditor()) return;
+  // ログイン済みなら自動で編集画面に戻ることがあるので、少しだけ待つ
+  await ed.waitForURL(() => onEditor(), { timeout: 4000 }).catch(() => {});
   if (onEditor()) return;
   steps.push({ at: "login", url: ed.url(), buttons: await buttonTexts(ed) });
+  await ed.goto("about:blank").catch(() => {}); // 自動操作中の窓ではログインさせない
   throw new LoginRequired("note の編集画面を開くにはログインが必要です");
 }
 
@@ -243,8 +253,13 @@ async function eyecatch() {
 // 実行結果を scripts/note_browser_log.json に残す（ランチャーが GitHub に送り、遠隔で原因を確認できるように）
 function writeLog(entry) {
   if (process.env.ATR_NOTE_MOCK) return; // テスト（模擬応答）の結果は残さない
+  // どの版のコードで動いたかを残す（古い版のまま実行されたことに気づけるように）
+  let version = "";
   try {
-    fs.writeFileSync(path.join(__dirname, "note_browser_log.json"), JSON.stringify({ at: new Date().toISOString(), ...entry }, null, 2) + "\n", "utf8");
+    version = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
+  } catch (e) {}
+  try {
+    fs.writeFileSync(path.join(__dirname, "note_browser_log.json"), JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
   } catch (e) {}
 }
 
