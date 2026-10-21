@@ -123,6 +123,11 @@ test("[E] の修正は直近 24 時間で 12 本まで（続けて [E] を押し
   assert.deepEqual(noteFixBudget(full, now), { left: 0, used: 12, nextAt: "2026-10-21T13:00:00.000Z" });
   assert.equal(noteFixBudget(full, Date.parse("2026-10-21T13:00:01Z")).left, 1);
   assert.equal(NOTE_FIX_WINDOW_MS, 24 * 3600 * 1000);
+  // 記録したときに時計が進んでいた（今より後の時刻の記録）も数える。数えないと時計を合わせ直しただけで上限を超えて直せる。
+  // 今に寄せて数えるので、次に直せる時刻は今から 24 時間以内
+  const ahead = Array.from({ length: 12 }, (_, i) => ({ at: new Date(now + (2 + i) * 3600 * 1000).toISOString(), slug: "s" }));
+  assert.deepEqual(noteFixBudget(ahead, now), { left: 0, used: 12, nextAt: "2026-10-22T12:00:00.000Z" });
+  assert.equal(noteFixBudget([{ at: "2099-01-01T00:00:00.000Z" }], now).left, 11);
   // ランチャーは「次の [E] ですぐ直す」とは案内しない
   const src = fs.readFileSync("scripts/launcher.mjs", "utf8");
   assert.doesNotMatch(src, /1回に\$\{NOTE_FIX_MAX\}本まで。残りは次の \[E\] で/);
@@ -132,12 +137,16 @@ test("[E] の修正は直近 24 時間で 12 本まで（続けて [E] を押し
 test("[E] は全文を読んでから直す記事を決め、記事の間を約 20 秒あけ、上限 NOTE_FIX_MAX を使う", () => {
   const src = fs.readFileSync("scripts/note_browser.mjs", "utf8");
   assert.match(src, /const live = await noteBody\(page, t\.key\);/);
-  // 本数の上限は直近 24 時間で数え（オーナー端末の記録）、直した記事はその場で記録する
-  assert.match(src, /const budget = noteFixBudget\(readFixHistory\(\), Date\.now\(\), max\);/);
-  assert.match(src, /planNoteFixes\(notes, budget\.left\)/);
-  assert.match(src, /result\.wording\.fixed\.push\(t\.slug\);\n\s*recordFix\(t\.slug\);/);
+  // 本数の上限は直近 24 時間で数え（オーナー端末の記録。読めなければ 0 本）、「更新する」を押す直前に記録する
+  assert.match(src, /const budget = history\.error \? \{ left: 0, used: null, nextAt: null \} : noteFixBudget\(history\.entries, Date\.now\(\), max\);/);
+  assert.match(src, /const max = Math\.min\(NOTE_FIX_MAX, /);
+  assert.match(src, /for \(let i = 0; i < plan\.fix\.length && published < budget\.left; i\+\+\)/);
+  assert.match(src, /const onUpdate = \(\) => \{\n\s*recordFix\(t\.slug\);\n\s*published\+\+;/);
+  assert.match(src, /if \(onUpdate\) onUpdate\(\);\n\s*steps\.push\(\{ at: "update-click" \}\);\n\s*await update\.click\(\);/);
   assert.match(src, /if \(i > 0\) await pause\(20000\);/);
-  // 有料ラインの位置を変えるボタンは押さない（押すのは「公開に進む」「有料エリア設定」「更新する／投稿する」だけ）
+  // 押す候補は「更新する」だけ（「投稿する」は公開されていない記事の新規出品になる）
+  assert.doesNotMatch(src, /hasText: \/\^\\s\*\(更新する\|投稿する\)/);
+  // 有料ラインの位置を変えるボタンは押さない（押すのは「公開に進む」「有料エリア設定」「更新する」だけ）
   assert.doesNotMatch(src, /ラインをこの場所に変更/);
 });
 
