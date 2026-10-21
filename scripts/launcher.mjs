@@ -196,19 +196,26 @@ function getDrafts() {
 // note に公開済みで、原稿の修正を note 側へ反映する必要がある記事（scripts/note_updates.json）。
 // 反映したら publish_history の noteUpdatedAt に記録し、一覧から消える
 function getPendingNoteUpdates() {
-  if (!fs.existsSync(noteUpdatesFile)) return [];
-  let spec;
+  let spec = { since: '9999', items: {} };
   try {
     spec = JSON.parse(fs.readFileSync(noteUpdatesFile, 'utf8'));
-  } catch (e) {
-    return [];
-  }
+  } catch (e) {}
   const history = loadHistory();
   const noteUrls = loadNoteUrls();
   const fileOf = (slug) => path.join(noteDir, slug === 'LEAD_MAGNET_CHEAT_SHEET' ? `${slug}.md` : `${slug}_note.md`);
   const items = Object.entries(spec.items || {})
     .filter(([slug]) => !(history[slug]?.noteUpdatedAt >= spec.since))
     .map(([slug, item]) => ({ slug, ...item }));
+  // CI が公開中の note 本文を検査して見つけた問題（scripts/note_status.json）。
+  // 差し替えたあと次に CI が確認するまでの間は、差し替え済みとして出さない
+  try {
+    const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
+    for (const [slug, v] of Object.entries(st.notes || {})) {
+      if (!v.issues?.length || items.some((i) => i.slug === slug)) continue;
+      if (history[slug]?.noteUpdatedAt && history[slug].noteUpdatedAt >= st.checkedAt.slice(0, 10)) continue;
+      items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
+    }
+  } catch (e) {}
   // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
   for (const [slug, v] of Object.entries(noteUrls)) {
     if (!v.duplicates?.length || history[slug]?.noteDedupedAt || items.some((i) => i.slug === slug)) continue;
@@ -323,8 +330,8 @@ function promptMenu() {
   console.log(`   ${c.blue}${c.bold}[5]${c.reset} ${c.bold}最新レポートを X でワンクリック拡散する${c.reset} ${c.dim}(URLなし高インプ設計)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
   console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[N]${c.reset} ${c.cyan}${c.bold}⚡ 【note API 全自動同期】未出品・修正版を一括全自動パブリッシュ${c.reset} ${c.dim}(0クリックAPI直結)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note の見出し画像を一括設定する${c.reset} ${c.dim}(未設定の記事だけ・1280x670)${c.reset}`);
+  console.log(`   ${c.dim}[N] (本文の一括自動更新: 現在は使えないため [U] に案内します)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note の見出し画像を一括設定する${c.reset} ${c.dim}(自動・未設定の記事だけ。初回のみ note にログイン)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -1023,78 +1030,29 @@ function runWeeklyThread() {
   waitBack();
 }
 
+// 本文の一括自動更新は、ブラウザで実行するスクリプトがリポジトリに無いため使えない（開くだけでは何も更新されない）。
+// CI が公開中の note を検査して見つけた要修正の記事を、[U] で 1 本ずつ差し替える流れに案内する
 function runNoteApiSync() {
   console.clear();
-  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}⚡ 【note API 全自動同期】ローカルAPIブリッジ ＆ ブラウザ自動パブリッシュ${c.reset}`);
-  console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
-
-  try {
-    loadPrivateKeys();
-  } catch (e) {
-    console.log(`  ${c.red}❌ 秘密鍵が見つかりません: ${e.message}${c.reset}\n`);
-    waitBack();
-    return;
-  }
-
-  console.log(`1. ローカルAPIサーバー (port 18921) を起動中...`);
-  const serverProc = exec(`node scripts/note_api_server.mjs`, { cwd: rootDir });
-  serverProc.stdout.on('data', (d) => process.stdout.write(d));
-  serverProc.stderr.on('data', (d) => process.stderr.write(d));
-
-  setTimeout(() => {
-    console.log(`\n2. note.com 記事管理画面を開きます...`);
-    openUrl('https://note.com/notes');
-
-    console.log(`\n${c.green}${c.bold}【自動実行の案内】${c.reset}`);
-    console.log(`  開いた Chrome の DevTools コンソール（F12 → Console）で全自動同期を実行できます。`);
-    console.log(`  ブラウザ内API処理が完了すると、サーバーが自動終了し、URL対応表が同期されます。\n`);
-
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.question(`\n${c.yellow}同期が完了したら Enter を押して note_urls を更新 (キャンセル: 0) > ${c.reset}`, (ans) => {
-      rl.close();
-      try {
-        serverProc.kill();
-      } catch (e) {}
-      if (ans.trim() !== '0') {
-        console.log(`\n${c.green}✓ note_urls.json を同期中...${c.reset}`);
-        try {
-          execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
-        } catch (e) {}
-        // 新しく出品した記事には見出し画像が無い。続けて見出し画像の設定に進む
-        runNoteEyecatch();
-        return;
-      }
-      waitBack();
-    });
-  }, 1200);
+  console.log(`${c.yellow}${c.bold}[N] の本文一括更新は現在使えません。${c.reset}`);
+  console.log(`  note 側で実行するスクリプトが保存されておらず、画面を開くだけでは記事は更新されません。`);
+  console.log(`  かわりに [U] で、GitHub が note の公開内容を検査して見つけた要修正の記事を 1 本ずつ開きます（全文はクリップボードに自動コピー）。\n`);
+  runNoteUpdates();
 }
 
 // note の見出し画像（アイキャッチ）を、公開済みで未設定の記事に一括で設定する。
 // ローカルブリッジ（--eyecatch-only は秘密鍵不要）を起動し、ブラウザで実行するスクリプトをクリップボードへコピーする
 function runNoteEyecatch() {
   console.clear();
-  console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定 ===${c.reset}\n`);
-  const serverProc = exec(`node scripts/note_api_server.mjs --eyecatch-only`, { cwd: rootDir });
-  serverProc.stdout.on('data', (d) => process.stdout.write(d));
-  serverProc.stderr.on('data', (d) => process.stderr.write(d));
-  const copied = copyFileToClipboard(path.join(__dirname, 'browser', 'note_eyecatch.js'));
-  setTimeout(() => {
-    openUrl('https://note.com/notes');
-    console.log(`\n${c.green}${c.bold}【手順】${c.reset}`);
-    console.log(`  1. 開いた note（ログイン済み）で F12 → Console を開く`);
-    console.log(`  2. ${copied ? 'クリップボードのスクリプトを' : 'scripts/browser/note_eyecatch.js の中身を'}貼り付けて Enter（初回は「allow pasting」と入力が必要）`);
-    console.log(`  3. Chrome が「ローカル ネットワーク上のデバイスへのアクセス」を求めたら「許可」（このPCのブリッジから画像を受け取るため）`);
-    console.log(`  4. 完了すると下に「見出し画像: 設定 N / 変更なし N / 失敗 N」が表示されます\n`);
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.question(`${c.yellow}終わったら Enter でメニューに戻る > ${c.reset}`, () => {
-      rl.close();
-      try {
-        serverProc.kill();
-      } catch (e) {}
-      promptMenu();
-    });
-  }, 1200);
+  console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定（自動） ===${c.reset}\n`);
+  console.log(`専用の Chrome が開きます。初回だけ、その窓で note にログインしてください（以後は不要）。\n`);
+  try {
+    execSync('node scripts/note_browser.mjs eyecatch', { cwd: rootDir, stdio: 'inherit' });
+    console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認し、ヘッダーの「見出し画像なし」の本数が更新されます。${c.reset}`);
+  } catch (e) {
+    console.log(`\n${c.red}見出し画像を設定できなかった記事があります（上の ✕ を確認）。${c.reset}`);
+  }
+  waitBack();
 }
 
 // 起動時と終了時に、24時間より古い出品用の完全版（平文の有料本文）を消す。終了時はすべて消す

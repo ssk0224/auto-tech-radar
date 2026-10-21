@@ -43,6 +43,9 @@
   - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
+- **note の公開内容の確認**（2026-10-21〜）: CI が毎回、公開中の note を API で取得して本文の禁止表現・タイトル・見出し画像の有無を検査し、`scripts/note_status.json` とランチャーのヘッダーに出す。要修正の記事は [U] に自動で並ぶ。
+- **[E] 見出し画像**は `scripts/note_browser.mjs` が専用プロファイルの Chrome（`~/.auto-tech-radar/chrome-note`、初回のみ note にログイン）を自動操作する。DevTools への貼り付けは不要。
+- **[N] 本文の一括自動更新は使えない**: ブラウザで実行する本体がリポジトリに無いため。[U] に案内する。自動化するなら `note_browser.mjs` に note の下書き保存・公開の処理を足す（note の非公開 API の実通信を確認してから）。
 - **note への再反映（2026-10-21）**: `effectcraft` / `gptqmodel` / `opensandbox` の無料部分にあった「ThoughtWorks成熟度リング判定」（第三者の評価のように見える表現）を原稿で修正した。note.com 側はランチャー **[N]**（全記事を原稿の内容で更新）を一度実行して反映する。
 - **note の見出し画像**（2026-10-21）: [N] の自動出品は見出し画像を付けていなかった。ランチャー **[E]**（[N] の後にも自動で続く）で、公開済みで未設定の記事に 1280x670 の画像（記事の OGP 画像から生成）を一括設定する。ブラウザ側は `scripts/browser/note_eyecatch.js`（note の非公開エンドポイント `/api/v1/image_upload/note_eyecatch` を使用。Chrome が「ローカル ネットワーク」へのアクセス許可を求めたら許可）。モック環境でのみ検証済みで、実際の note での動作は未確認。
 - **[N] の自動出品でブラウザ側に貼るスクリプトがリポジトリに無い**: `note_api_server.mjs` はタスクを配るだけで、note に出品・更新するコードは保存されていない。再現・修正できるよう `scripts/browser/` に保存すること。

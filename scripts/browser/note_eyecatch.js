@@ -12,7 +12,7 @@
   };
   if (location.hostname !== "note.com") {
     console.error("note.com のページ（例: https://note.com/notes）を開いてから実行してください");
-    return;
+    return { set: [], skipped: [], failed: ["note.com のページではありません"] };
   }
   const xsrf = decodeURIComponent((document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/) || [])[1] || "");
   const headers = { "X-Requested-With": "XMLHttpRequest", ...(xsrf ? { "X-XSRF-TOKEN": xsrf } : {}) };
@@ -55,4 +55,5 @@
   }
   await log(`見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 失敗 ${result.failed.length}`);
   await fetch(`${BRIDGE}/eyecatch-complete`, { method: "POST", body: JSON.stringify(result) });
+  return result;
 })();
