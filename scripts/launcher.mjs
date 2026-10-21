@@ -11,7 +11,8 @@ import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
-import { hiddenAfterOwnerFix, oldRingWordingSpot, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
+import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
+import { noteListingBlock } from './utils/note_listing.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -178,6 +179,16 @@ function syncHistory(message) {
   }
 }
 
+// note の新規出品の上限（1日1本・週3本）に達していれば、理由を表示して true を返す（出品画面を開かない）
+function noteListingRefused() {
+  const why = noteListingBlock(loadHistory());
+  if (!why) return false;
+  console.log(`\n  ${c.yellow}${c.bold}⏸ いまは note に新しく出品できません。${c.reset}`);
+  console.log(`  ${c.yellow}${why}${c.reset}`);
+  console.log(`  ${c.dim}（出品済みの記事の修正 [U]・自動メンテ [E]・X の投稿はこれまでどおり使えます）${c.reset}`);
+  return true;
+}
+
 // 記事原稿リスト取得（履歴と紐付け）
 function getDrafts() {
   if (!fs.existsSync(noteDir)) return [];
@@ -237,17 +248,12 @@ function getPendingNoteUpdates() {
     .filter(([slug]) => !(history[slug]?.noteUpdatedAt >= spec.since))
     .map(([slug, item]) => ({ slug, ...item }));
   // CI が公開中の note 本文を検査して見つけた問題（scripts/note_status.json）。
-  // 差し替えたあと次に CI が確認するまでの間は、差し替え済みとして出さない
+  // 差し替えたあと次に CI が確認するまでの間は、差し替え済みとして出さない。
+  // [E] で自動修正できる表現（インボイス対応領収書の案内など）だけが問題の記事は、本文の全差し替えに回さない（見出しに [E] の案内を出す）。
+  // 問題が「古い成熟度の表現」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、その語だけ直してもらう
   try {
     const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
-    for (const [slug, v] of Object.entries(st.notes || {})) {
-      if (!v.issues?.length || items.some((i) => i.slug === slug)) continue;
-      if (hiddenAfterOwnerFix(history[slug]?.noteUpdatedAt, st.checkedAt)) continue;
-      // 問題が「古い成熟度の表現」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、その語だけ直してもらう
-      const spot = oldRingWordingSpot(v);
-      if (spot) items.push({ slug, action: 'wording', spot: spot.excerpt, words: spot.words, reason: `無料部分に古い表現「${spot.words}」が残っています` });
-      else items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
-    }
+    items.push(...statusUpdateItems(st, history, { listed: new Set(items.map((i) => i.slug)), log: loadMaintainLog() }));
   } catch (e) {}
   // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
   for (const [slug, v] of Object.entries(noteUrls)) {
@@ -261,6 +267,15 @@ function getPendingNoteUpdates() {
       const rank = (i) => (i.action === 'unpublish' ? 0 : i.duplicates.length > 0 ? 1 : 2);
       return rank(a) - rank(b);
     });
+}
+
+// [E]（note 自動メンテ）の前回の実行記録。[E] で直した記事を、次に CI が確認するまで「直した」として扱うため
+function loadMaintainLog() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_browser_log.json'), 'utf8'));
+  } catch (e) {
+    return null;
+  }
 }
 
 function loadNoteUrls() {
@@ -319,12 +334,15 @@ function renderHeader() {
     version = execSync('git log -1 --format="%h %cd" --date=format:"%m/%d %H:%M"', { cwd: rootDir, encoding: 'utf8' }).trim();
   } catch (e) {}
   let noteStatusLine = '';
+  let autoFix = 0;
   try {
     const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
     const v = Object.values(st.notes || {});
     const noImg = v.filter((n) => n.eyecatch === false).length;
-    const bad = v.filter((n) => n.issues?.length).length;
-    noteStatusLine = `note 公開状態（${st.checkedAt.slice(5, 16).replace('T', ' ')} UTC 確認）: 見出し画像なし ${noImg} 本 / 要修正の表現 ${bad} 本`;
+    // [E] で自動修正できる表現の記事と、本文の差し替え（[U]）が必要な記事を分けて数える
+    const counts = noteIssueCounts(st, loadMaintainLog());
+    autoFix = counts.auto;
+    noteStatusLine = `note 公開状態（${st.checkedAt.slice(5, 16).replace('T', ' ')} UTC 確認）: 見出し画像なし ${noImg} 本 / 要修正の表現 ${counts.auto} 本（[E] で自動修正）${counts.other ? ` / 要差し替え ${counts.other} 本（[U]）` : ''}`;
   } catch (e) {}
   console.log(`  ${c.dim}ランチャーの版: ${version}${c.reset}`);
   if (noteStatusLine) console.log(`  ${c.dim}${noteStatusLine}${c.reset}`);
@@ -338,6 +356,11 @@ function renderHeader() {
     console.log(`${c.red}--------------------------------------------------------------------------------${c.reset}`);
     console.log(`  ${c.red}${c.bold}⚠ note に公開済みの記事 ${pendingUpdates.length} 本が古い内容のままです（購入者が読む有料部分を含む）${c.reset}`);
     console.log(`     👉 メニュー ${c.red}${c.bold}[U]${c.reset} で1本ずつ差し替えられます（全文のコピーと編集画面の表示は自動）`);
+  }
+  if (autoFix > 0) {
+    console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
+    console.log(`  ${c.cyan}${c.bold}✏ note の公開中の記事 ${autoFix} 本に直すべき表現があります（インボイス対応領収書の案内など）${c.reset}`);
+    console.log(`     👉 メニュー ${c.cyan}${c.bold}[E]${c.reset} で自動で直します（1回に${NOTE_FIX_MAX}本まで。残りは次の [E] で）`);
   }
 
   const unpostedDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
@@ -365,7 +388,7 @@ function promptMenu() {
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
   console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
   console.log(`   ${c.dim}[N] (本文の一括自動更新: 現在は使えないため [U] に案内します)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note 自動メンテ（見出し画像・古い表現の修正・閲覧数の取得）${c.reset} ${c.dim}(全自動。初回のみ note にログイン)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note 自動メンテ（見出し画像・要修正の表現の修正・閲覧数の取得）${c.reset} ${c.dim}(全自動。初回のみ note にログイン)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -489,6 +512,10 @@ function runLeadMagnetPublish() {
   if (loadHistory().LEAD_MAGNET_CHEAT_SHEET?.note || loadNoteUrls().LEAD_MAGNET_CHEAT_SHEET) {
     console.log(`  ${c.yellow}このチートシートは note に公開済みです。新しく投稿すると重複になります。${c.reset}`);
     console.log(`  内容を最新にするときは、メニュー ${c.red}${c.bold}[U]${c.reset} から既存の記事を差し替えてください。`);
+    waitBack();
+    return;
+  }
+  if (noteListingRefused()) {
     waitBack();
     return;
   }
@@ -633,6 +660,11 @@ function runPublishHelper(mode) {
 
   if (drafts.length === 0) {
     console.log(`  ${c.red}まだ生成された記事がありません。メニュー[3]で生成してください。${c.reset}\n`);
+    waitBack();
+    return;
+  }
+  // note の新規出品は 1日1本・週3本まで（出品画面を開く前に止める）
+  if (mode === 'note' && noteListingRefused()) {
     waitBack();
     return;
   }
@@ -972,15 +1004,19 @@ function runAllInOnePublish() {
   console.log(`${c.magenta}${c.bold}================================================================================${c.reset}\n`);
   console.log(`最短30秒で「note有料出品」→「𝕏拡散」のマネタイズパイプラインを連続実行します。\n`);
 
+  // note の新規出品の上限（1日1本・週3本）に達していれば、note は飛ばして X だけ進める
+  const noteBlocked = !target.isNotePosted && noteListingRefused();
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   // note に公開済みの記事を再び新規投稿すると重複出品になる（過去に 7 本が二重に公開された原因）。X だけ進める
   const step1 = target.isNotePosted
     ? `${c.dim}[Step 1/2] note は公開済みのためスキップします（修正版への差し替えはメニュー [U]）。Enter で次へ > ${c.reset}`
-    : `${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`;
+    : noteBlocked
+      ? `${c.dim}[Step 1/2] note の新規出品は上の理由でスキップします。Enter で次へ > ${c.reset}`
+      : `${c.green}${c.bold}[Step 1/2] note出品画面と原稿を開きますか？ (Enterで実行 / sでスキップ) > ${c.reset}`;
   rl.question(step1, (ans) => {
     rl.close();
     let noteOpenPath = null;
-    if (!target.isNotePosted && ans.trim().toLowerCase() !== 's') {
+    if (!target.isNotePosted && !noteBlocked && ans.trim().toLowerCase() !== 's') {
       try {
         noteOpenPath = openNoteForPublishing(target.noteFile);
       } catch (e) {
@@ -1145,8 +1181,9 @@ function pullBeforeRun(choice) {
 
 function runNoteEyecatch() {
   console.clear();
-  console.log(`${c.cyan}${c.bold}=== 🖼 note 自動メンテ（見出し画像・古い表現の修正・閲覧数） ===${c.reset}\n`);
-  console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。\n`);
+  console.log(`${c.cyan}${c.bold}=== 🖼 note 自動メンテ（見出し画像・要修正の表現の修正・閲覧数） ===${c.reset}\n`);
+  console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。`);
+  console.log(`表現の修正は記事の間を約20秒あけて1本ずつ行うため、数分かかることがあります（1回に${NOTE_FIX_MAX}本まで）。\n`);
   try {
     execSync('node scripts/note_browser.mjs maintain', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認します（結果は自動で GitHub に送られます。操作はこれで終わりです）。${c.reset}`);

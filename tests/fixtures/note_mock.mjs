@@ -3,17 +3,33 @@
 // 編集画面は最初、実機と同じくいったん表示されてから note.com/login?redirectPath=編集画面 に飛ばされ、ログイン済みなので少しして自動で戻る。
 // ATR_NOTE_MOCK_SESSION を指定すると自動では戻らず、そのファイルがある（＝普通の Chrome でログインした）ときだけ編集画面を開ける。
 // 本文: ATR_NOTE_MOCK_WORDING の記事は古い表現を含む。ATR_NOTE_MOCK_DRIFT の記事は、編集画面の下書きが公開中と違う。
-// 編集画面は本文を編集でき、「更新する」で編集後の本文が公開中の本文になる
+// ATR_NOTE_MOCK_INVOICE の記事はインボイス対応領収書の案内を（実機で起こりうる太字の区切りを含めて）、ATR_NOTE_MOCK_COPIPE の記事は「コピペで本番一発起動」を含む。
+// その案内について、ATR_NOTE_MOCK_RESUME の記事は下書きだけ直してある（前回の実行で公開に至らなかった）、ATR_NOTE_MOCK_OTHER の記事は下書きでは同じくらいの長さの別の文になっている。
+// 編集画面は本文を編集でき、「更新する」で編集後の本文が公開中の本文になる。ATR_NOTE_MOCK_DUMP を指定すると、更新のたびに更新した記事の本文（記事キー → 本文）をそのファイルに書く
 import fs from "fs";
+
+const INVOICE_HTML = "マイページより<strong>インボイス対応領収書</strong>が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。";
 
 export default async function install(ctx) {
   const sessionFile = process.env.ATR_NOTE_MOCK_SESSION;
-  const state = { draft: "", published: "", editorSession: false, live: {} };
+  const state = { draft: "", published: "", editorSession: false, live: {}, updated: {} };
   const target = process.env.ATR_NOTE_MOCK_TARGET;
   const keysOf = (v) => (v || "").split(",").filter(Boolean);
+  const has = (name, k) => keysOf(process.env[name]).includes(k);
   const live = (k) =>
-    (state.live[k] ??= `<h2>概要</h2><p>無料部分の本文です。</p>${keysOf(process.env.ATR_NOTE_MOCK_WORDING).includes(k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : ""}<p>有料部分の本文です。導入手順と見積表。</p>`);
-  const draft = (k) => (keysOf(process.env.ATR_NOTE_MOCK_DRIFT).includes(k) ? `${live(k)}<p>${"以前の手作業で貼り付けた別の本文。".repeat(20)}</p>` : live(k));
+    (state.live[k] ??= [
+      "<h2>概要</h2><p>無料部分の本文です。</p>",
+      has("ATR_NOTE_MOCK_WORDING", k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : "",
+      has("ATR_NOTE_MOCK_COPIPE", k) ? "<ul><li><p>コピペで本番一発起動できる「Docker Compose &amp; .env 設定キット」</p></li></ul>" : "",
+      has("ATR_NOTE_MOCK_INVOICE", k) ? `<blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote>` : "",
+      "<p>有料部分の本文です。導入手順と見積表。</p>",
+    ].join(""));
+  const draft = (k) => {
+    if (has("ATR_NOTE_MOCK_DRIFT", k)) return `${live(k)}<p>${"以前の手作業で貼り付けた別の本文。".repeat(20)}</p>`;
+    if (has("ATR_NOTE_MOCK_RESUME", k)) return live(k).replace(INVOICE_HTML, "「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。");
+    if (has("ATR_NOTE_MOCK_OTHER", k)) return live(k).replace(INVOICE_HTML, "購入後の手続きは note の設定画面からできます。詳しくは note のヘルプをご覧ください。");
+    return live(k);
+  };
   await ctx.route("https://note.com/**", async (route) => {
     const req = route.request();
     const u = new URL(req.url());
@@ -47,7 +63,8 @@ export default async function install(ctx) {
       const k = u.searchParams.get("key");
       if (k === target) state.published = state.draft;
       const body = route.request().postData();
-      if (body) state.live[k] = body;
+      if (body) state.live[k] = state.updated[k] = body;
+      if (process.env.ATR_NOTE_MOCK_DUMP) fs.writeFileSync(process.env.ATR_NOTE_MOCK_DUMP, JSON.stringify(state.updated));
       return route.fulfill({ body: "ok" });
     }
     return route.fulfill({ status: 404, body: "" });

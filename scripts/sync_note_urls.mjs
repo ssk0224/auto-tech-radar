@@ -8,6 +8,7 @@ import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { splitPaid } from './utils/note_vault.mjs';
+import { NOTE_TEXT_RULES, applyNoteRules, noteHtmlText, autoFixableByMaintain } from './utils/note_pending.mjs';
 
 const NOTE_URLNAME = new URL(siteConfig.noteProfileUrl).pathname.replace(/\//g, '');
 const OUT_FILE = path.resolve('scripts/note_urls.json');
@@ -93,7 +94,16 @@ async function fetchAllNotes() {
 export function publishedNoteIssues(d) {
   const text = `${d.name || ''}\n${String(d.body || '').replace(/<[^>]+>/g, ' ')}`;
   const issues = findForbiddenClaims(text);
-  if (/ThoughtWorks/.test(text)) issues.push('第三者（ThoughtWorks）の評価のような表現');
+  // [E] で自動修正する表現（ThoughtWorks・インボイス対応領収書・コピペで本番一発起動）。
+  // 文言は規則の issue と同じにする（ランチャーがこの文言で [E] の対象と見分け、本文の全差し替え [U] に回さない）。
+  // 規則を当てても残る書き方は [E] では直せないので、別の文言にして [U] に回す
+  const rulesText = `${d.name || ''}\n${noteHtmlText(d.body)}`;
+  const fixed = applyNoteRules(rulesText);
+  for (const r of NOTE_TEXT_RULES) {
+    if (!r.detect.test(rulesText)) continue;
+    const issue = r.detect.test(fixed) ? `${r.issue}（[E] では直せない書き方）` : r.issue;
+    if (!issues.includes(issue)) issues.push(issue);
+  }
   if (/^\s*#/.test(d.name || '')) issues.push('タイトルが # で始まる');
   return issues;
 }
@@ -172,7 +182,7 @@ async function checkPublishedNotes(map, unlinked = []) {
   const withIssues = Object.keys(status).filter((s) => status[s].issues?.length);
   console.log(`✓ 公開中の note を検査: ${Object.keys(status).length} 本（見出し画像なし ${noImage.length} 本 / 問題のある表現 ${withIssues.length} 本）`);
   if (noImage.length) console.log(`::warning title=note の見出し画像::未設定 ${noImage.length} 本: ${noImage.join(', ')}（ランチャー [E] で設定）`);
-  for (const s of withIssues) console.log(`::warning title=note の公開内容::${s}: ${status[s].issues.join(' / ')}（ランチャー [N] で原稿の内容に更新）`);
+  for (const s of withIssues) console.log(`::warning title=note の公開内容::${s}: ${status[s].issues.join(' / ')}（${autoFixableByMaintain(status[s]) ? 'ランチャー [E] で自動修正' : 'ランチャー [U] で原稿の内容に更新'}）`);
   // 原稿と対応づかない公開中の note（古い版の出品が残っているなど）も記録する。古い表現の検査もする
   const others = [];
   for (const n of unlinked) {
