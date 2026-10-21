@@ -36,8 +36,10 @@ function recordRunStatus(run) {
 // 記事のスラグ（ページ・原稿のファイル名と X 投稿文のリンク）は scripts/utils/blocklist.mjs の 1 つの規則で作る
 const slugOf = (repo) => slugForRepoName(repo.name) || `repo-${repo.id}`;
 
-// Gemini の 1 回の呼び出しを待つ上限（応答が返らないまま CI の実行が何時間も止まらないように）。テストでは短くする
-const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 3 * 60 * 1000;
+// Gemini の 1 回の呼び出しを待つ上限（応答が返らないまま CI の実行が何時間も止まらないように）。テストでは短くする。
+// 記事 3 点を一度に書く長い出力でも通常は数分以内に返るため、正常な応答を切らないよう余裕を持たせる
+// （全モデルが時間切れでも 4 モデル × 6 分で止まり、workflow の生成ステップの上限 60 分に収まる）
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 6 * 60 * 1000;
 function withTimeout(promise, ms, what) {
   let timer;
   const timeout = new Promise((_, reject) => {
