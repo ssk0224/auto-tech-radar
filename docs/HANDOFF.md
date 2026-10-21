@@ -43,6 +43,19 @@
   - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
+- **【2026-10-21 22:30 JST ローカルセッション（オーナー PC）の状態】**
+  - **Search Console**: `scripts/webmaster_setup.mjs gsc` で URL プレフィックス `https://ssk0224.github.io/auto-tech-radar/` を追加し、確認タグを `src/config/site.js` に設定 → push 済み（5bc4559、CI run 39610091171）。所有者の Google アカウントは heaven.field.farmers.place.ssk0801@gmail.com（オーナーがログインしたもの）。**次: デプロイ後に `node scripts/webmaster_setup.mjs gsc-verify`（「確認」とサイトマップ送信を自動で行う）**。
+  - **Cloudflare Web Analytics**: `node scripts/webmaster_setup.mjs cf` を実行中（オーナーのログイン待ち）。token が `site.js` に入ったら、テスト（`node --test tests/site_tags.test.mjs tests/webmaster.test.mjs`）・ビルド → commit・push。privacy.astro の外部送信一覧は同じ設定値で自動的に載る。
+  - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
+  - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
+  - **星履歴 API は第三者のリポジトリで使える**（`gh api repos/<owner>/<repo>/stargazers/history` が HTTP 200・日別の星数、2026-10-21 実測）。→「Radar Ledger は後から作れないデータ」という前提は誤り。差別化は「いつ何を選んだかの事前記録・検証ログ・日本語の判断」に置く。
+  - **Zenn**: `scripts/zenn_status.json` は 38 本とも 403（確認不能）。上の「34 本は 404」は現行データでは裏付けが無い（未確認として扱う）。
+  - **週次オーナー報告 issue**: 材料（run_status・ledger・velocity・note_status・note_browser_log の stats）はあるが、**note の売上・購入数はリポジトリのどこにも無い**。報告には「売上データ無し」と明記し、Zenn（403）は載せない。
+  - **戦略（世界の先行事例の調査＋3観点の反証、2026-10-21）の採用案**:
+    - Vol.1 = 「Radar Ledger Vol.1」。2026-10-21〜11-04 の実測を運営者が署名して出す無料号（固定 URL `/vol/1/`＋GitHub Release に CSV・集計スクリプト）。有料は note の「検証ノート」1 本だけ（価格は未検証の仮説として扱う）。14 日分を指数と呼ばない。不正を断定しない。
+    - 先にやること: 計測の開通（今日）→ 信頼の土台（`deepinfer.md` の「革新的・飛躍的・極限・最高峰」と根拠のない比較、`cleanyourtv.md` の「完全に除去」、`index.astro` L15 の「1日最大1本」と実態（10/09 に 9 本）の食い違い、`weekly.astro` の受託・見積 CTA と「Executive Whitepaper」を直す）→ Vol.1。
+    - やめること: per-repo ¥980 の新規出品（11/18 まで凍結）、計測前の価格・文面の調整、Hatena のブクマ依頼・自動投稿、Zenn 再開。
+    - オーナーの判断が要る: 特定商取引法の売主表示（note での扱いは未確認）、告知の方法（知人への購入・拡散依頼はしない＝ステマ規制）、main のブランチ保護。
 - **【2026-10-21 収益化 第1弾（push 済み 80b5dde）】**
   - Zenn 自動公開を停止（`articles/`・`zenn_drafts/`・生成スクリプト・ランチャー [Z]/[9] すべて `published: false`。`tests/zenn_frozen.test.mjs` が scripts/ と zenn_drafts/ 全体を検査）。新規記事は 1 日 1 本（`TARGET_NEW_COUNT=1`）。
   - 領収書の文言をインボイス非登録の事実に合わせて「※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。」に統一（原稿 42 本・生成テンプレ・`scripts/utils/receipt.mjs` で生成時に強制）。誇大表現（一発起動・コピペで本番・爆発的・即決・驚異的・怪物級など）を生成時に拒否（`scripts/utils/hype_check.mjs`）。
