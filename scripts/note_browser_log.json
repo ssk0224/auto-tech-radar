@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-21T05:58:10.283Z",
+  "at": "2026-10-21T06:07:00.554Z",
   "cmd": "eyecatch",
   "ok": false,
   "result": {
@@ -18,10 +18,8 @@
       "cadcraft": [
         {
           "at": "editor",
-          "url": "https://note.com/login?redirectPath=https%3A%2F%2Feditor.note.com%2Fnotes%2Fnbf94ef5bca83%2Fedit%2F",
-          "buttons": [
-            "ログイン"
-          ]
+          "url": "https://accounts.google.com/v3/signin/rejected?access_type=offline&app_domain=https%3A%2F%2Fnote.com&client_id=596544688894-felci3afa3eo4m6lfql6jej4f7iteekp.apps.googleusercontent.com&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Fv3%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hAMlIdFyOnog9diNyYyQnKdH0Vt0aGudWLpXyG0iDdqzXwhxrFZv40fD-t3w5IYdXnmYOkNvb0FVK8Ju7iDwcwwBVNWTkfZtXnl0UGRnoK0IeYLYttA5xRa7Zlos8udoMbYEJ7YiLJl6kOsA86HxyngGE6i8ig7LUs-5yVLfefoAUWkYSSV-DmK9fm-bRbn27zTuYLbsJpklOl7oMDFl_2XzxH3CfcV7ep3289n_Q2eDgGvIjweOLFyBGuF6IUqFG6ttJqCuuQxs6W6mRvlScaNgRs3O9ZwhaQ9XXrsObm57XhRSSviUDOgAHnha_j5mnbo4s3Jx_LFZxEGNISjnSEWPMreSNVICkuqxl87oBn7M7ETJczOJDbd6Cynn2aUuxBbdq3JHYEsizd6Enb_osm4nKa3hbsszkmNaoOFWqEQ81dmuBucp16UWhFVTD3OR5dhci0OqLVsno0eaKIMYYNBqViCLgg%26flowName%3DGeneralOAuthFlow%26as%3DS305890913%253A1792562809227113%26client_id%3D596544688894-felci3afa3eo4m6lfql6jej4f7iteekp.apps.googleusercontent.com%26requestPath%3D%252Fsignin%252Foauth%252Fv3%252Fconsent%23&dsh=S305890913%3A1792562809227113&epd=AZlvZiW0KWvCxdhH5gQEYKXUrSJBl2yVE7_fZG8PgG_wWNVAdbRvBwQe7g&flowName=GeneralOAuthFlow&o2v=1&opparams=%253F&rart=ANgoxceHIpqyWQy797tlGC5rqCbYgfkQc2rpmHGjMJCNKuKCwOn6OKd9YkEN5PU_u8DLYh8ySNEDhOG8jvW4oE8EuajnIDYlUy6pILnT1Jyfr_Thn8EcsPQ&redirect_uri=https%3A%2F%2Fnote.com%2Fauth%2Fgoogle_oauth2%2Fcallback&response_type=code&rhlk=le&rrk=46&scope=email%20profile&service=lso&state=1ba4d4008848c7cc0953bca844040238f2fa600a5bf8c73e",
+          "buttons": []
         }
       ]
     }
