@@ -26,9 +26,9 @@
 
 ## 完了（2026-10-19）
 - main に反映済み・GitHub Actions 全ステップ成功（run 120）。
-- **git 履歴の書き換え済み**（`git filter-repo`、main とブランチを force push、`d108153 → e31c676`）。生成コンテンツの過去版を最新版に置換し、有料キットを書き戻していた削除済みスクリプトを履歴から除去。元の履歴の有料本文 2,522 行を全オブジェクトで照合し、残存 0（コード内の見出しテンプレートのみ一致）。
+- **git 履歴の書き換え済み**（`git filter-repo`、main とブランチを force push、書き換え後の先頭 `e31c676`）。生成コンテンツの過去版を最新版に置換し、有料キットを書き戻していた削除済みスクリプトを履歴から除去。元の履歴の有料本文 2,522 行を全オブジェクトで照合し、残存 0（コード内の見出しテンプレートのみ一致）。
   - **オーナー端末の古いクローンは使わず、取り直すこと**（`git clone https://github.com/ssk0224/auto-tech-radar`）。古いクローンから push すると平文の履歴が戻る。
-  - GitHub は古いコミットを SHA 指定でしばらく表示できる。完全に消すには GitHub サポートに「Remove cached views」を依頼する（旧 main: `104d7ccf906fcbda30d8e55f6ab87d22515188fe`、旧ブランチ先頭: `d10815377edda16a0882d55cce32f5416939b960`）。
+  - GitHub は古いコミットを SHA 指定でしばらく表示できる。完全に消すには GitHub サポートに「Remove cached views」を依頼する（対象のコミットはオーナー PC の `~/.auto-tech-radar/handoff/purge_shas.md` にだけ記録。**公開リポに SHA を書かない**＝書くと有料本文の場所を公開することになる）。2026-10-21 時点で未依頼・匿名で読める状態を確認済み（最優先の未解決事項）。
 - 乱数で作っていた閲覧者数（「現在 N 名が閲覧・研究中」）を削除、「全記事読み放題」系の表現を修正、sponsor の根拠のない読者層の主張を修正。テストに禁止表現として追加。
 - **オーナーPC（Windows）の同期・秘密鍵の確立・全38本の再封印**（2026-10-19 20:15 JST）:
   - オーナー端末に残っていた履歴書き換え前のクローンを `C:\Users\free1\_quarantine_auto-tech-radar_prerewrite_20261019\old_history.bundle` に隔離退避し、作業ツリーを `origin/main` と完全一致化・旧オブジェクトを `git gc --prune=now` で物理パージ済み。
@@ -49,7 +49,9 @@
   - 時刻だけのコミット: CI が `note_status.json`・`zenn_status.json` の `checkedAt` だけを変えて「chore: auto-index new tech radar entry」というコミットを毎回作る（件名が実態と合わない・履歴と rebase の手間が増える）。直す候補。
   - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
   - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
-  - **バグ洗い出し wf_8baf0270-60c は PC 再起動（2026-10-21 23:30 頃）で最後の分類段階の途中で止まった**。発見と再現の結果 61 件は `~/.claude/projects/C--Users-free1-auto-tech-radar/e825306b-6af3-45a5-a40b-93e45ddf1217/subagents/workflows/wf_8baf0270-60c/journal.jsonl`（各行の `result` キー）に残っている。次のセッションはここを読んで分類から再開する（例: launcher のローカル実行と CI が同じ日の `data/run_status/D.json` に追記すると [S] 同期で衝突し push されない、が再現済み）。
+  - **バグ洗い出し wf_8baf0270-60c は 2026-10-21 23:27 に完了**（55 件発見 → 敵対的検証で 47 件確認: CRITICAL 2・HIGH 4・MEDIUM 18・LOW 23、系統別の対策案つき）。結果はオーナー PC の `~/.auto-tech-radar/handoff/`（`bughunt_summary.md`＝一覧、`bughunt_wf_8baf0270-60c_result.json`＝全文、`scratch/`＝再現用スクリプト）。公開リポに置かないのは有料本文の漏れ方の詳細を含むため。**次のセッションは `bughunt_summary.md` を読み、CRITICAL→HIGH の順に、バグごとに原因＋同じ種類を止める仕組みで直す**。
+    - CRITICAL（2 件は同じ事象）: 書き換え前の有料本文入りコミットが GitHub に SHA 指定で匿名で読める。HANDOFF の SHA は削除済み（このコミット）。残りは GitHub Support への削除依頼（オーナーのアカウントで送る）と、docs に SHA を書かせない検査。
+    - HIGH: git_sync が git の stderr（Windows の autocrlf 警告）をファイル名として扱い、衝突の修復がオーナー PC で効かない／有料ラインの漏れ検知が「位置不明」を合格扱い（23〜24 本が未計測なのに「34 本確認」と書いていた）／有料本文の検査がオーナー PC でだけ動き、cleanyourtv・deepinfer で赤。
   - **星履歴 API は第三者のリポジトリで使える**（`gh api repos/<owner>/<repo>/stargazers/history` が HTTP 200・日別の星数、2026-10-21 実測）。→「Radar Ledger は後から作れないデータ」という前提は誤り。差別化は「いつ何を選んだかの事前記録・検証ログ・日本語の判断」に置く。
   - **Zenn**: `scripts/zenn_status.json` は 38 本とも 403（確認不能）。上の「34 本は 404」は現行データでは裏付けが無い（未確認として扱う）。
   - **週次オーナー報告 issue**: 材料（run_status・ledger・velocity・note_status・note_browser_log の stats）はあるが、**note の売上・購入数はリポジトリのどこにも無い**。報告には「売上データ無し」と明記し、Zenn（403）は載せない。
