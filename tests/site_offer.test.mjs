@@ -1,5 +1,5 @@
 // 記事ページの購入導線を確かめる: note 有料版の案内は note 出品済みの記事だけに、導入部の直後へ 1 か所。
-// B2B（協賛 ¥100,000〜・導入支援 ¥800,000〜）の案内は記事ページに出さず、/contact/・/sponsor/ はフッターからだけ辿れる。
+// B2B（協賛・導入支援）の案内は記事ページに出さず、/contact/・/sponsor/ はフッターからだけ辿れる。スポンサー枠は価格を出さない（読者数の公開後に募集）。
 // テンプレートの文字列ではなく、実際に astro build した配信 HTML で確かめる（表示の崩れや出し漏れを見逃さないため）
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -156,6 +156,57 @@ test("記事ページの構造化データの dateModified は、その記事の
     const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1])).find((j) => j["@type"] === "TechArticle");
     assert.ok(ld, `${slug}: TechArticle の構造化データが無い`);
     assert.equal(ld.dateModified, fm("updatedDate") || fm("pubDate"), slug);
+  }
+});
+
+test("スポンサー枠は価格を出さず「読者数を公開した後に募集」と案内する（/sponsor/ とフッターのリンクは残す）", () => {
+  assertBuilt();
+  const sponsor = page("sponsor/index.html");
+  assert.match(sponsor, /スポンサー枠は読者数を公開した後に募集します。ご関心のある方は <a href="\/auto-tech-radar\/contact\/"[^>]*>お問い合わせ<\/a> からご連絡ください。/);
+  assert.doesNotMatch(sponsor, /¥\s?[\d,]+|[\d,]+\s?円|price=/);
+  for (const rel of ["index.html", "contact/index.html", "about/index.html"]) assert.doesNotMatch(page(rel), /¥100,000|¥300,000|10万円 〜 30万円|price=(?:100000|300000)/, rel);
+  const config = read(path.join(root, "src/config/site.js"));
+  assert.doesNotMatch((config.match(/b2bStartingPrice:\s*"([^"]*)"/) || [, ""])[1], /\d/);
+});
+
+test("運営方針ページ（/about/）に検査の範囲・スター数区分・訂正の窓口・訂正履歴があり、全ページのフッターから辿れる", () => {
+  assertBuilt();
+  const about = page("about/index.html");
+  for (const s of ["自動で検査していること", "検査していないこと", "スター数区分は推奨ではありません", "訂正・削除のご依頼", 'id="corrections"']) assert.ok(about.includes(s), s);
+  assert.match(about, /href="\/auto-tech-radar\/contact\/"/);
+  // 訂正履歴は記事の frontmatter の corrections から作る。訂正した記事はすべて一覧に載り、記事ページにも訂正の記録が出る
+  const corrected = slugs.filter((slug) => /^corrections:/m.test(read(path.join(root, "src/pages/radar", `${slug}.md`))));
+  assert.ok(corrected.includes("cleanyourtv") && corrected.includes("tokenspeed"));
+  for (const slug of corrected) {
+    assert.match(about, new RegExp(`href="/auto-tech-radar/radar/${slug}/?"`), `${slug}: 訂正履歴に無い`);
+    assert.ok(page(`radar/${slug}/index.html`).includes('class="article-corrections"'), `${slug}: 記事ページに訂正の記録が無い`);
+  }
+  for (const slug of slugs.filter((s) => !corrected.includes(s))) assert.ok(!page(`radar/${slug}/index.html`).includes('class="article-corrections"'), slug);
+  for (const rel of ["index.html", `radar/${slugs[0]}/index.html`]) {
+    const html = page(rel);
+    assert.match(html.slice(html.search(/<footer[\s>]/)), /href="\/auto-tech-radar\/about\/"/, rel);
+  }
+});
+
+test("スター数の区分は「スター数区分」と表示し、推奨ではないことを示す（リング・判定と呼ばない）", () => {
+  assertBuilt();
+  const layout = read(path.join(root, "src/layouts/Layout.astro"));
+  assert.match(layout, /<span>スター数区分 \$\{ringLabel\}<\/span>/);
+  assert.doesNotMatch(layout, /<span>GitHub \$\{ringLabel\}<\/span>/);
+  const map = page("radar-map/index.html");
+  assert.ok(map.includes("スター数区分は推奨ではありません"));
+  assert.doesNotMatch(map, /4リング|ステータス早見表|完全解剖/);
+  assert.ok(page("cheatsheet/index.html").includes("スター数区分は推奨ではありません"));
+  const api = JSON.parse(page("api/radar.json"));
+  assert.equal(api.rings_definition.name, "スター数区分");
+  assert.match(api.rings_definition.note, /推奨ではありません/);
+});
+
+test("サイトのページに計算していない最上級・お得の表現が無い", () => {
+  const files = [...fs.readdirSync(path.join(root, "src/pages")).filter((f) => f.endsWith(".astro")).map((f) => path.join(root, "src/pages", f)), path.join(root, "src/layouts/Layout.astro")];
+  for (const f of files) {
+    const visible = read(f).replace(/^\s*\/\/.*$/gm, ""); // コード中のコメント（「必ずエスケープする」等）は対象外
+    assert.doesNotMatch(visible, /圧倒的|最強|激安|お得|確実に|殿堂入り|誰よりも早く/, path.relative(root, f));
   }
 });
 

@@ -133,7 +133,6 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
               <option value="80万〜150万円">80万円 〜 150万円</option>
               <option value="150万〜250万円">150万円 〜 250万円</option>
               <option value="250万円以上">250万円以上</option>
-              <option value="スポンサー協賛（10万〜30万円）">スポンサー協賛（10万円 〜 30万円）</option>
               <option value="要相談・見積もり希望">要相談・見積もり希望</option>
             </select>
           </div>
@@ -196,14 +195,11 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       const numPrice = Number(price || 0);
 
       if (['sponsor', 'sponsor-tieup', 'sponsor-monthly'].includes(plan)) { // 記事スラッグ等が "sponsor" で始まっても誤判定しないよう完全一致で見る
-        // スポンサー・協賛経由
+        // スポンサー・協賛経由（スポンサー枠は読者数を公開した後に募集するため、価格・メニューは出さない）
         if (typeEl) typeEl.value = 'スポンサーシップ・広告掲載';
-        if (budgetEl) budgetEl.value = 'スポンサー協賛（10万〜30万円）';
+        if (budgetEl) budgetEl.value = '要相談・見積もり希望';
         if (msgEl) {
-          const sponsorPlanName = plan === 'sponsor-tieup' ? '① メイン・タイアップ協賛（¥300,000 / 1記事パッケージ）' :
-                                  plan === 'sponsor-monthly' ? '② 月間メディアスポンサー（¥100,000 / 月）' :
-                                  '公式メディアスポンサー掲載（¥100,000〜）';
-          msgEl.value = `【スポンサーシップ・広告掲載のご相談】\nご検討メニュー: ${sponsorPlanName}\n想定ご予算: ¥${(numPrice || 100000).toLocaleString()}\n\n掲載枠の空き状況、掲載スケジュール、メディアキット詳細についてご案内をお願いいたします。`;
+          msgEl.value = `【スポンサー掲載へのご関心】\nスポンサー枠は読者数を公開した後に募集すると伺いました。募集を始める際のご連絡を希望します。\n\n（貴社の製品・サービスの概要をご記入ください）`;
         }
       } else if (plan === 'corporate-license') {
         // 法人経費・チームライセンス経由

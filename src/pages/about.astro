@@ -1,0 +1,55 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCorrections, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+// 訂正履歴は記事の frontmatter の corrections から作る（新しい訂正から順）
+const corrections = getCorrections();
+const shortTitle = (t: string) => String(t || "").split(" - ")[0].trim();
+---
+
+<Layout title="運営方針・訂正履歴 | Auto Tech Radar" description="Auto Tech Radar の記事の作り方、自動で検査していること・していないこと、訂正・削除のご依頼方法と訂正履歴。">
+  <div style="max-width: 760px; margin: 2rem auto; line-height: 1.8; color: #cbd5e1;">
+    <h1 style="color: #fff;">運営方針・訂正履歴</h1>
+
+    <h2 style="color: #fff;">記事の作り方</h2>
+    <p>Auto Tech Radar の記事は、GitHub で注目されているリポジトリの公開情報（README と、スター数・言語・ライセンスなどのリポジトリ情報）をもとに、AI（Google Gemini）が日本語で下書きし、下記の自動検査を通ったものだけを公開しています。</p>
+    <p>記事は導入や採用を勧めるものではありません。性能・対応状況などの記述は README などの記載に基づくもので、当サイトで計測したものではありません。</p>
+
+    <h2 style="color: #fff;">自動で検査していること</h2>
+    <ul>
+      <li><strong>禁止表現</strong>: 根拠のない収益・成果の保証、誇張表現、導入・採用を勧める表現、README の引用が無い比較・最上級の表現、「禁止の記載が無いので利用できる」のようなライセンスの推測。該当する記事は公開しません。</li>
+      <li><strong>ライセンス</strong>: GitHub の表示ではなく、リポジトリの LICENSE ファイルの本文からライセンスを判定します。判定できない場合は「要確認」、LICENSE ファイルが無い場合は「ライセンス未指定（利用許諾なし）」とし、記事のライセンスの記述が判定結果と食い違う場合は公開しません。</li>
+      <li><strong>参照・リンク</strong>: 記事に書かれた Docker イメージやパッケージ名がレジストリに実在するか、構成図（Mermaid）が描画できるか、サイト内のリンクが実在するページを指しているかを確認します。</li>
+    </ul>
+
+    <h2 style="color: #fff;">検査していないこと</h2>
+    <ul>
+      <li>実際にソフトウェアを動かしての動作確認（記事中に明記した場合を除き、行っていません）。</li>
+      <li>README や GitHub 上の情報そのものが正しいかどうか。</li>
+      <li>記事を公開した後のリポジトリの変更（ライセンスの変更を含む）。導入前に、必ず公式リポジトリで最新の内容とライセンスをご確認ください。</li>
+      <li>法的な判断。ライセンスの記述は概要の紹介で、法的助言ではありません。</li>
+    </ul>
+
+    <h2 style="color: #fff;">{STAR_TIER_NAME}について</h2>
+    <p>記事やレーダーマップに表示している「★15,000+」などの{STAR_TIER_NAME}は、記事作成時点の GitHub スター数だけで機械的に分けたものです。<strong>スター数区分は推奨ではありません。</strong>{STAR_TIER_NOTE}</p>
+
+    <h2 style="color: #fff;">有料版・スポンサーについて</h2>
+    <p>一部の記事には、運営者が note で販売している有料版（提案書テンプレートなど）の案内があります。現在、広告・スポンサー掲載はありません（<a href={`${baseUrl}/sponsor/`}>広告・スポンサー掲載について</a>）。</p>
+
+    <h2 style="color: #fff;">訂正・削除のご依頼</h2>
+    <p>記事の誤りのご指摘、掲載の取り下げ（削除）のご依頼は、<a href={`${baseUrl}/contact/`}>お問い合わせフォーム</a>から、対象の記事の URL と内容を添えてご連絡ください（ご相談種別は「その他・技術相談」をお選びください）。確認のうえ記事を訂正し、下の訂正履歴に記載します。</p>
+
+    <h2 id="corrections" style="color: #fff;">訂正履歴</h2>
+    {corrections.length === 0 ? (
+      <p>訂正はまだありません。</p>
+    ) : (
+      <ul id="corrections-list">
+        {corrections.map((c) => (
+          <li><span style="font-family: 'JetBrains Mono', monospace; color: #94a3b8;">{c.date}</span> <a href={c.url}>{shortTitle(c.title)}</a>: {c.note}</li>
+        ))}
+      </ul>
+    )}
+
+    <p style="margin-top: 2rem; color: #94a3b8;">制定日: 2026年10月21日</p>
+  </div>
+</Layout>

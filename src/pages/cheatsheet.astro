@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
+import { getArticles, starTier, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 const sortedPosts = posts;
@@ -22,6 +22,9 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
       </h1>
       <p style="font-size: 1.02rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.5rem; line-height: 1.7;">
         GitHubで注目を集める世界の最新OSSを「技術領域」「GitHub Stars」「コア技術スタック」で横断比較。新規事業立案や社内DX検討の参考資料としてご活用ください。
+      </p>
+      <p style="font-size: 0.85rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.5rem; line-height: 1.6;">
+        OSS 名の横のバッジ（● ★…）は{STAR_TIER_NAME}です。{STAR_TIER_NOTE}
       </p>
 
       <!-- アクションボタン群 -->
@@ -96,7 +99,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
                 <td style="padding: 1rem; vertical-align: top;">
                   <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                     <a href={post.url} style="color: #60a5fa; text-decoration: none; font-weight: 700; font-size: 0.95rem;">{shortName}</a>
-                    <span style={`background: ${ringBadge.bg}; border: 1px solid ${ringBadge.border}; color: ${ringBadge.color}; font-size: 0.68rem; font-weight: 800; padding: 0.08rem 0.38rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;`}>
+                    <span title={`${STAR_TIER_NAME}: ${STAR_TIER_NOTE}`} style={`background: ${ringBadge.bg}; border: 1px solid ${ringBadge.border}; color: ${ringBadge.color}; font-size: 0.68rem; font-weight: 800; padding: 0.08rem 0.38rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;`}>
                       ● {ringBadge.label}
                     </span>
                   </div>

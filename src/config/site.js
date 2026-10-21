@@ -20,7 +20,8 @@ export const siteConfig = {
   
   // 🏢 協賛・受託開発案内
   contactEmail: "free17110224@gmail.com",
-  b2bStartingPrice: "¥100,000〜",
+  // スポンサー枠は価格を出さない（読者数などの実績データを公開していないため。2026-10-21）
+  b2bStartingPrice: "スポンサー枠は読者数を公開した後に募集します",
   singleArticlePrice: "¥980",
   membershipMonthlyPrice: "¥1,980"
 };
