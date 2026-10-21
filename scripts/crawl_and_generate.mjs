@@ -317,18 +317,21 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
   return { ...parsed, model };
 }
 
-// この実行で使えないと分かったモデル（404 等）は、以降の候補でも呼ばない
+// この実行で使えないと分かったモデル（404 等）と、利用枠を使い切ったモデル（429）は、以降の候補でも呼ばない
 let modelOrderPromise = null;
 const unavailableModels = new Set();
+const quotaModels = new Set();
 
 // Gemini を呼び出し、3 セクションがそろった出力とそのモデル名を返す。
 // - 404 / not found / is not supported / deprecated … 次のモデルへ
-// - 429 / RESOURCE_EXHAUSTED（利用枠切れ）… 待っても次のモデルでも通らないとみなし、実行全体を止める（GeminiStopError "quota"）
+// - 429 / RESOURCE_EXHAUSTED（利用枠切れ）… 利用枠はモデルごとなので、そのモデルだけ以降は使わず次のモデルへ。
+//   すべてのモデルが枠切れ（または使えない）なら実行全体を止める（GeminiStopError "quota"）
 // - 5xx 等の一時的な失敗 … 同じモデルで再試行してから次のモデルへ
 // - すべてのモデルが使えない … 実行全体を止める（GeminiStopError "model_unavailable"）
 async function callGemini(prompt, systemInstruction) {
   if (!modelOrderPromise) modelOrderPromise = resolveModelOrder(ai);
-  const models = (await modelOrderPromise).filter((m) => !unavailableModels.has(m));
+  const models = (await modelOrderPromise).filter((m) => !unavailableModels.has(m) && !quotaModels.has(m));
+  if (!models.length) throw new GeminiStopError(quotaModels.size ? "quota" : "model_unavailable", "利用できるモデルがありません");
   let lastError = null;
 
   for (const model of models) {
@@ -355,8 +358,11 @@ async function callGemini(prompt, systemInstruction) {
         lastError = err;
         const kind = classifyGeminiError(err);
         console.warn(`Model ${model} attempt ${attempt} failed (${kind}): ${err.message}`);
-        // 日次の無料枠・課金枠を使い切った 429 は、待っても次の候補でも通らない。再試行せずに実行全体を止める
-        if (kind === "quota") throw new GeminiStopError("quota", err);
+        // 枠を使い切った 429 は、同じモデルでは待っても次の候補でも通らない。再試行せず、このモデルを外して次のモデルへ
+        if (kind === "quota") {
+          quotaModels.add(model);
+          break;
+        }
         if (kind === "unavailable") {
           unavailableModels.add(model);
           break; // 再試行せず次のモデルへ
@@ -372,8 +378,8 @@ async function callGemini(prompt, systemInstruction) {
     }
   }
 
-  if (models.every((m) => unavailableModels.has(m))) {
-    throw new GeminiStopError("model_unavailable", lastError || "利用できるモデルがありません");
+  if (models.every((m) => unavailableModels.has(m) || quotaModels.has(m))) {
+    throw new GeminiStopError(models.some((m) => quotaModels.has(m)) ? "quota" : "model_unavailable", lastError || "利用できるモデルがありません");
   }
   throw lastError || new Error("All Gemini models failed");
 }
