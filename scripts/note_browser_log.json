@@ -1,6 +1,29 @@
 {
-  "at": "2026-10-21T05:52:41.329Z",
+  "at": "2026-10-21T05:57:15.651Z",
   "cmd": "eyecatch",
   "ok": false,
-  "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at eyecatch (C:\\Users\\free1\\auto-tech-radar\\scripts\\note_browser.mjs:73:38)"
+  "result": {
+    "set": [],
+    "skipped": [
+      "LEAD_MAGNET_CHEAT_SHEET",
+      "aihot",
+      "anatomy",
+      "answer-me-with-html"
+    ],
+    "failed": [
+      "cadcraft: 編集画面に「公開に進む」ボタンが見つかりません"
+    ],
+    "manual": [],
+    "steps": {
+      "cadcraft": [
+        {
+          "at": "editor",
+          "url": "https://note.com/login?redirectPath=https%3A%2F%2Feditor.note.com%2Fnotes%2Fnbf94ef5bca83%2Fedit%2F",
+          "buttons": [
+            "ログイン"
+          ]
+        }
+      ]
+    }
+  }
 }
