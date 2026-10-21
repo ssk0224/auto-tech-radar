@@ -106,3 +106,12 @@ test("公開中の note の検査: 禁止表現・ThoughtWorks・# 始まりの�
   assert.ok(bad.some((i) => /#/.test(i)));
   assert.ok(bad.some((i) => /単価/.test(i)));
 });
+
+test("note_status.json の衝突は検査時刻が新しい方を採る", async () => {
+  const { newerStatus } = await import("../scripts/merge_note_status.mjs");
+  const a = { checkedAt: "2026-10-21T05:20:00Z", notes: { x: 1 } };
+  const b = { checkedAt: "2026-10-21T05:23:00Z", notes: { x: 2 } };
+  assert.equal(newerStatus(a, b), b);
+  assert.equal(newerStatus(b, a), b);
+  assert.equal(newerStatus(null, a), a);
+});

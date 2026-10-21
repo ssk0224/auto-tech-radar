@@ -92,6 +92,7 @@ jobs:
             # publish_history.json および note_urls.json は和集合でマージする（.gitattributes 参照）
             git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"
             git config merge.note-urls.driver "node scripts/merge_note_urls.mjs %O %A %B"
+            git config merge.note-status.driver "node scripts/merge_note_status.mjs %O %A %B"
 
             # 最新の main に載せ直して push（最大3回）。衝突は自動で握りつぶさず失敗として扱う
             PUSH_SUCCESS=false

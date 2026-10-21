@@ -5,6 +5,7 @@ import { spawnSync } from "child_process";
 const MERGE_DRIVERS = {
   "merge.publish-history.driver": "node scripts/merge_publish_history.mjs %O %A %B",
   "merge.note-urls.driver": "node scripts/merge_note_urls.mjs %O %A %B",
+  "merge.note-status.driver": "node scripts/merge_note_status.mjs %O %A %B",
 };
 
 const git = (cwd, args) => {
