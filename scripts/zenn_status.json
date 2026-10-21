@@ -1,211 +1,276 @@
 {
-  "checkedAt": "2026-10-21T08:41:18.064Z",
+  "checkedAt": "2026-10-21T10:49:44.260Z",
   "summary": {
-    "total": 38,
-    "live": 4,
-    "likes": 1,
-    "users": [
-      "autotechradar"
-    ]
+    "total": 44,
+    "live": 0,
+    "likes": 0,
+    "users": [],
+    "stillLive": []
   },
   "articles": [
     {
       "slug": "aihot-tech-radar",
-      "live": true,
-      "user": "autotechradar",
-      "likes": 1,
-      "publishedAt": "2026-10-17T17:00:10.105+09:00"
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "anatomy-tech-radar",
-      "live": true,
-      "user": "autotechradar",
-      "likes": 0,
-      "publishedAt": "2026-10-19T07:30:57.042+09:00"
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "answer-me-with-html",
-      "live": true,
-      "user": "autotechradar",
-      "likes": 0,
-      "publishedAt": "2026-10-20T09:37:59.094+09:00"
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "cadcraft-tech-radar",
-      "live": true,
-      "user": "autotechradar",
-      "likes": 0,
-      "publishedAt": "2026-10-21T12:52:56.389+09:00"
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "cleanyourtv-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "compositor-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "crates-io-index",
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "deepinfer-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "diplay-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "droiddeck-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "dsh-our-free-model",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "dsh-tavern-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "effectcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "filmcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "gptqmodel-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "gridcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "homebrew-cask",
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "homebrew-core",
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "how-to-live-better",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "internships-2027",
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "jev-chat-jarvis",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "jev-ultrafast",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "jiuwenswarm-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "kev-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "laya-mlx-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "laya-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "lightcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "magpie-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "md3music-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "mediawiki-tech-radar",
+      "published": false,
+      "live": null,
+      "status": 403
+    },
+    {
+      "slug": "nixpkgs-tech-radar",
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "opendots-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "opensandbox-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "pdfcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "photocraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "pinvou-agent",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "potatotool-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "solidcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "strata-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "tokenspeed-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "universal-modder",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "vectorcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "wordcraft-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     },
     {
       "slug": "zcode-tech-radar",
-      "live": false,
-      "status": 404
+      "published": false,
+      "live": null,
+      "status": 403
     }
   ]
 }
