@@ -33,3 +33,11 @@ test("ブラウザ側スクリプトは型付き画像で送り、反映を読�
   assert.match(js, /const after = await noteInfo/);
   assert.match(js, /if \(info\.eyecatch\)/, "設定済みの見出し画像を上書きしない");
 });
+
+test("ローカルブリッジ（復号した有料本文を配る）は note.com 以外のページと Host 偽装を拒否する", async () => {
+  const { isAllowedRequest } = await import("../scripts/note_api_server.mjs");
+  assert.equal(isAllowedRequest({ host: "127.0.0.1:18921", origin: "https://note.com" }), true);
+  assert.equal(isAllowedRequest({ host: "127.0.0.1:18921" }), true, "同じ PC 上のプロセス（Origin 無し）");
+  assert.equal(isAllowedRequest({ host: "127.0.0.1:18921", origin: "https://evil.example" }), false);
+  assert.equal(isAllowedRequest({ host: "evil.example:18921", origin: "https://note.com" }), false);
+});

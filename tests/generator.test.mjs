@@ -19,7 +19,7 @@ description: "test"
 pubDate: "2000-01-01"
 tags: ["Go"]
 repoUrl: "https://github.com/acme/testtool"
-stars: 1234
+stars: 99999
 ---
 # testtool: 概要と革新性
 ## 解決する主要な課題とアーキテクチャ
@@ -71,6 +71,11 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
     assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
     assert.ok(fs.existsSync(path.join(dir, "note_drafts/testtool_note.paid.enc")), log);
     assert.deepEqual(grepRepo(dir, "SECRET_PAID_TEXT"), []);
+    // 公開日・スター数は生成モデルの出力（2000-01-01 / 99999）ではなく実データ
+    const web = fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8");
+    const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    assert.match(web, new RegExp(`^pubDate: "${jstToday}"$`, "m"));
+    assert.match(web, /^stars: 1234$/m);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

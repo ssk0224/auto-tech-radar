@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { findProLeaks } from './utils/pro_boundary.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
-import { splitPaid, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
+import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { mermaidProblems } from './utils/mermaid.mjs';
@@ -437,14 +437,13 @@ if (fs.existsSync(noteDraftsDir)) {
       noteErrors++;
       errorCount++;
     }
-    const placeholderIdx = content.indexOf('## 🔒 ここから先は有料エリアです');
-    if (placeholderIdx !== -1) {
-      const tailText = content.substring(placeholderIdx);
-      if (tailText.includes('mcpServers') || tailText.includes('docker-compose') || tailText.includes('■ 案件名:') || tailText.includes('【SaaS構成手順') || tailText.includes('自社SaaS構築手順')) {
-        console.error(`  ❌ [PRO LEAK IN NOTE TAIL PART] ${file}: 有料プレースホルダーより後の末尾フッターに有料本文が漏洩しています！`);
-        noteErrors++;
-        errorCount++;
-      }
+    // 暗号化プレースホルダより後（公開される末尾）は決まったフッター行だけ（判定は note_vault と共通）
+    const sealedLines = content.split('\n');
+    const sealIdx = sealedLines.findIndex((l) => /^<!-- PAID_SEALED: /.test(l));
+    if (sealIdx !== -1 && !isFooterOnly(sealedLines.slice(sealIdx + 1))) {
+      console.error(`  ❌ [PRO LEAK IN NOTE TAIL PART] ${file}: 暗号化部分より後の公開フッターにフッター以外の本文があります！`);
+      noteErrors++;
+      errorCount++;
     }
     if (!content.includes('経費') && !content.includes('領収書')) {
       console.error(`  ❌ [MISSING ROI/EXPENSE HOOK] ${file}: 経費精算/ROIフックが抜けています！`);

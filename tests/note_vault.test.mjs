@@ -19,7 +19,7 @@ const PAID = "## 有料の中身\n" + "SECRET_PAID_BODY ".repeat(120);
 const draft = (eol = "\n") => [
   "# タイトル", "無料の導入。経費精算にも使えます。", "---",
   "【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】", "---", PAID,
-  "---", "### 🎁 【メンバーシップのご案内】", "案内", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS",
+  "---", "### 🎁 【メンバーシップのご案内】", "メンバーシップの案内", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS",
 ].join(eol);
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "vault-"));
 
@@ -64,3 +64,13 @@ test("公開鍵が CRLF 改行（Windows git checkout）でも同じ keyId に�
   assert.equal(decryptText(sealed, [privateKey], "a_note.md"), "secret");
 });
 
+
+test("フッター見出しの後に本文が続く原稿は、その本文を公開側に残さず有料側に入れる", async () => {
+  const { splitPaid, withStandardFooter } = await import("../scripts/utils/note_vault.mjs");
+  const doc = "# t\n【有料ライン ここから先は有料会員限定】\n" + "有料本文\n".repeat(50) +
+    "---\n### 🎁 【メンバーシップのご案内】\n本来ここに無い文\n---\n**【note出品時用 推奨ハッシュタグ】**\n#AI #OSS\n\n## 想定問答\nQ: 秘密の回答\n";
+  const fixed = splitPaid(withStandardFooter(doc));
+  assert.ok(!fixed.tail.join("\n").includes("秘密の回答"));
+  assert.ok(fixed.paid.join("\n").includes("秘密の回答"));
+  assert.ok(fixed.hasTail, "標準の末尾を補う");
+});

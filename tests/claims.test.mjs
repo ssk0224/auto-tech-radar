@@ -30,3 +30,9 @@ test("OGP 画像・リードマグネット・README・サイトページとそ�
     for (const [re, why] of FORBIDDEN) assert.ok(!re.test(s), `${f}: ${why} (${s.match(re)?.[0]})`);
   }
 });
+
+test("収益の誇張の検査は、技術的な数量（リクエスト数・ダウンロード数）を誤検出しない", async () => {
+  const { findForbiddenClaims } = await import("../scripts/utils/claims_check.mjs");
+  for (const ok of ["月100万リクエストを処理", "毎月5万ダウンロード", "月間10万PV"]) assert.deepEqual(findForbiddenClaims(ok), [], ok);
+  for (const ng of ["月収100万", "月100万円稼げる", "月50万円の収入"]) assert.ok(findForbiddenClaims(ng).length > 0, ng);
+});

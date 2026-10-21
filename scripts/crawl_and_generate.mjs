@@ -354,6 +354,15 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
   throw lastError || new Error("All Gemini models failed");
 }
 
+// frontmatter（先頭の --- ～ ---）の key: を value に置き換える。無ければ末尾に足す
+function setFrontmatterField(content, key, value) {
+  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return content;
+  const re = new RegExp(`^${key}:.*$`, "m");
+  const fm = re.test(m[1]) ? m[1].replace(re, `${key}: ${value}`) : `${m[1]}\n${key}: ${value}`;
+  return content.replace(m[0], m[0].replace(m[1], fm));
+}
+
 // Gemini の利用枠切れ（429 RESOURCE_EXHAUSTED / "exceeded your current quota"）。一時的な混雑（503）とは区別する
 function isQuotaExhausted(err) {
   return /exceeded your current quota|quota exceeded|RESOURCE_EXHAUSTED/i.test(err?.message || '');
@@ -421,6 +430,12 @@ ${webContent}`;
   } else if (!webContent.includes("layout:")) {
     webContent = webContent.replace(/^---\r?\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
   }
+
+  // 公開日・リポジトリ URL・スター数は生成モデルの出力ではなく実データで上書きする
+  // （日付が違うと 1 日の生成本数の上限が効かず、スター数が違うと事実と異なる表示になる）
+  webContent = setFrontmatterField(webContent, "pubDate", `"${today}"`);
+  webContent = setFrontmatterField(webContent, "repoUrl", `"${repo.html_url}"`);
+  webContent = setFrontmatterField(webContent, "stars", String(repo.stargazers_count));
 
   // サニタイズ＆品質不変条件ガード
   webContent = sanitizeMarkdownContent(webContent);

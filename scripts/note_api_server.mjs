@@ -68,6 +68,15 @@ export function buildEyecatchTasks(noteUrls) {
     .map((t) => ({ ...t, width: EYECATCH_WIDTH, height: EYECATCH_HEIGHT }));
 }
 
+// ブリッジに来てよいリクエストか。Origin が無い（curl 等の同じ PC 上のプロセス）か note.com のページだけを許可し、
+// Host はループバックのみ（DNS リバインディング対策）
+export const ALLOWED_ORIGINS = new Set(['https://note.com', 'https://editor.note.com']);
+export function isAllowedRequest(headers) {
+  const host = String(headers.host || '');
+  if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) return false;
+  return !headers.origin || ALLOWED_ORIGINS.has(headers.origin);
+}
+
 if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
   // --eyecatch-only: 見出し画像の設定だけ行う（秘密鍵は不要）
   const eyecatchOnly = process.argv.includes('--eyecatch-only');
@@ -80,10 +89,20 @@ if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
   );
 
   const server = http.createServer((req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    // 復号した有料本文を配るため、note.com のページ以外からは読ませない。
+    // 他サイトのページからの fetch（Origin 付き）と、DNS リバインディング（Host 偽装）を拒否する
+    if (!isAllowedRequest(req.headers)) {
+      res.writeHead(403);
+      res.end('forbidden');
+      return;
+    }
+    if (req.headers.origin) {
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);

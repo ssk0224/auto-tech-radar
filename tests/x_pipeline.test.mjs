@@ -27,7 +27,11 @@ test("X の応答: 429 と 5xx だけ再試行し、他の 4xx は失敗とし�
   assert.equal(classifyXResponse(201), "posted");
   assert.equal(classifyXResponse(429), "retry");
   assert.equal(classifyXResponse(503), "retry");
-  for (const s of [400, 401, 403, 422]) assert.equal(classifyXResponse(s), "failed");
+  for (const s of [400, 422]) assert.equal(classifyXResponse(s), "failed");
+  assert.equal(classifyXResponse(403, '{"detail":"You are not allowed to create a Tweet with duplicate content."}'), "failed");
+  // 認証・権限エラーは記事のせいではないので記録しない（記録すると鍵を直しても二度と投稿されない）
+  assert.equal(classifyXResponse(401), "auth");
+  assert.equal(classifyXResponse(403, '{"title":"Forbidden","detail":"oauth1 app permissions"}'), "auth");
 });
 
 test("出品履歴のマージ: true は failed より優先、failed は true に化けない", () => {

@@ -41,9 +41,8 @@ export function matchNotesToSlugs(notes, drafts) {
     const t = normalizeTitle(d.title);
     const p = normalizeTitle(projectNameOf(d.title));
     let hit = notes.filter((n) => normalizeTitle(n.name) === t);
-    // 次にプロジェクト名の完全一致（「laya」と「laya-mlx」を取り違えない）、最後に部分一致
+    // 次にプロジェクト名の完全一致。部分一致は使わない（未出品の「laya」が「laya-mlx」の記事に、「ray」が「array-utils」にリンクされる）
     if (hit.length !== 1 && p.length >= 3) hit = notes.filter((n) => normalizeTitle(projectNameOf(n.name)) === p);
-    if (hit.length !== 1 && p.length >= 3) hit = notes.filter((n) => normalizeTitle(n.name).includes(p));
     // タイトルを付け替えた記事は、別名（タイトルに必ず含まれる語）で探す
     if (hit.length !== 1 && d.alias) hit = notes.filter((n) => normalizeTitle(n.name).includes(normalizeTitle(d.alias)));
     if (hit.length === 1) {

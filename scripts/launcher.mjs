@@ -5,9 +5,10 @@ import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
-import { openNoteForPublishing, loadPrivateKeys } from './utils/note_vault.mjs';
+import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './utils/note_vault.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -20,6 +21,7 @@ const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 // 起動時にリモート（GitHub Actionsが朝自動巡回生成した最新レポート）を自動同期
 try {
   process.stdout.write('🔄 最新のリモート原稿・レポートを自動同期中 (Git Pull)... ');
+  configureMergeDrivers(rootDir);
   execSync('git pull --autostash origin main', { cwd: rootDir, stdio: 'ignore', timeout: 8000 });
   console.log('✓ 完了\n');
 } catch (e) {
@@ -115,10 +117,16 @@ function recordPublish(slug, type) {
   }
   saveHistory(history);
 
-  // バックグラウンドで即座にクラウド同期（ユーザーの追加操作不要・完全自動）
-  try {
-    exec('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B" && git add scripts/publish_history.json && git commit -m "chore(history): record published articles" && git pull --rebase origin main && git push origin main', { cwd: rootDir });
-  } catch (e) {}
+  syncHistory('chore(history): record published articles');
+}
+
+// 出品履歴を GitHub に同期する。失敗は握りつぶさずに表示する（CI が同じ記事を X に二重投稿するのを防ぐため）
+function syncHistory(message) {
+  const r = commitAndSync(rootDir, ['scripts/publish_history.json'], message);
+  if (!r.ok) {
+    console.log(`\n${c.red}${c.bold}⚠ 出品履歴を GitHub に同期できませんでした（${r.step}）。メニュー [S] で同期し直してください。${c.reset}`);
+    console.log(`${c.dim}${r.message.slice(0, 400)}${c.reset}`);
+  }
 }
 
 // 記事原稿リスト取得（履歴と紐付け）
@@ -215,9 +223,7 @@ function recordNoteUpdated(slug, deduped) {
   const today = new Date().toISOString().split('T')[0];
   history[slug] = { ...(history[slug] || {}), noteUpdatedAt: today, ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
-  try {
-    exec('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B" && git add scripts/publish_history.json && git commit -m "chore(history): record note updates" && git pull --rebase origin main && git push origin main', { cwd: rootDir });
-  } catch (e) {}
+  syncHistory('chore(history): record note updates');
 }
 
 // 長い本文は PowerShell の引数に渡せない（コマンドライン長の上限）ため、ファイルから読み込んでコピーする
@@ -939,9 +945,15 @@ function runCloudSync() {
       console.log('コミット対象の新規変更はありませんでした。');
     }
     console.log('\n4. 最新のクラウド側の変更を取り込み中 (git pull --rebase)...');
-    // 出品履歴は CI 側と自分の記録の和集合でマージする（.gitattributes 参照）
-    execSync('git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"', { cwd: rootDir, stdio: 'inherit' });
-    execSync('git pull --rebase origin main', { cwd: rootDir, stdio: 'inherit' });
+    // 出品履歴・note の URL 対応表は CI と同じマージドライバで統合する（.gitattributes 参照）
+    configureMergeDrivers(rootDir);
+    try {
+      execSync('git pull --rebase --autostash origin main', { cwd: rootDir, stdio: 'inherit' });
+    } catch (e) {
+      // 取り込みに失敗したら rebase を中止して元の状態に戻す（途中の状態で放置しない）
+      try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
+      throw e;
+    }
     console.log('\n5. リモートへプッシュ中 (git push)...');
     execSync('git push origin main', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ クラウド同期（GitHub Pages自動デプロイ開始）が完了しました！${c.reset}\n`);
@@ -1050,6 +1062,10 @@ function runNoteEyecatch() {
     });
   }, 1200);
 }
+
+// 起動時と終了時に、24時間より古い出品用の完全版（平文の有料本文）を消す。終了時はすべて消す
+purgeOpenedNotes();
+process.on('exit', () => purgeOpenedNotes(0));
 
 // 起動
 promptMenu();

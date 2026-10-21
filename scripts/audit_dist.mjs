@@ -48,11 +48,10 @@ for (const filePath of htmlFiles) {
 
   // 2. undefined / null / NaN / [object Object] の混入チェック
   const badPatterns = [
-    /href="[^"]*undefined[^"]*"/,
-    /href="[^"]*null[^"]*"/,
-    /href="[^"]*\[object%20Object\][^"]*"/,
-    /src="[^"]*undefined[^"]*"/,
-    /src="[^"]*null[^"]*"/
+    // 値の埋め込み漏れはパスの区切り（/ ? # = 引用符）に挟まれた単独の語として現れる。
+    // 部分一致だと「nullclaw」のような実在のリポジトリ名で誤検出し、毎日のビルドが止まる
+    /(?:href|src)="(?:[^"]*[\/=?#])?(?:undefined|null|NaN)(?:[\/?#&][^"]*)?"/,
+    /href="[^"]*\[object%20Object\][^"]*"/
   ];
   for (const bp of badPatterns) {
     const match = html.match(bp);

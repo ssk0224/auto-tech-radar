@@ -20,6 +20,11 @@ const ALG = "RSA-OAEP-256+A256GCM";
 const PAYWALL_MARKERS = ["【有料ライン", "有料会員限定", "ここから先は有料"];
 // 有料ライン以降でも、出品時に必要な案内・ハッシュタグは有料コンテンツではないので公開側に残す
 const TAIL_RE = /^(### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*)/;
+// 末尾フッター（公開されたまま暗号化されない部分）に置いてよい行。これ以外の行があれば有料本文が混ざっている
+const FOOTER_LINE_RE = /^(\s*|-{3,}|### 🎁 【メンバーシップのご案内】|[^#|`<>\n]{0,300}メンバーシップ[^#|`<>\n]{0,300}|\*\*【note出品時用 推奨ハッシュタグ】\*\*.*|(#\S+\s*)+)$/;
+export function isFooterOnly(lines) {
+  return lines.every((l) => FOOTER_LINE_RE.test(l.replace(/\r$/, "")));
+}
 export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->\r?$/m;
 export const MIN_PAID_CHARS = 1500;
 const OPENED_TTL_MS = 24 * 60 * 60 * 1000;
@@ -53,10 +58,12 @@ export function splitPaid(content) {
   if (m === -1) return null;
   // フッターは原稿の末尾（通常最後の35行以内）に配置されるため末尾領域から探索
   // これにより有料本文内の途中見出しをフッターと誤認せず、かつフッター冒頭（メンバーシップ案内等）を正確に捉える
+  // 末尾のフッター: 末尾35行の中で、そこから最後までがフッター行だけになる最初の見出し位置。
+  // フッター見出しの後に有料本文が続いている（フッター以外の行がある）ものは公開せず有料側に入れる
   let t = -1;
   const searchStart = Math.max(m + 1, lines.length - 35);
   for (let i = searchStart; i < lines.length; i++) {
-    if (TAIL_RE.test(lines[i])) {
+    if (TAIL_RE.test(lines[i]) && isFooterOnly(lines.slice(i))) {
       t = i;
       break;
     }
@@ -213,18 +220,30 @@ export function assembleNote(noteFile, privateKeyPems = loadPrivateKeys()) {
 
 // 出品用の完全版をリポジトリ外 (~/.auto-tech-radar/note_full/) に書き出し、そのパスを返す。
 // 平文を端末に残し続けないよう、24時間より古い完全版はここで削除する。
-export function openNoteForPublishing(noteFile) {
-  const publicText = fs.readFileSync(noteFile, "utf8");
-  if (!isSealed(publicText)) return noteFile;
-  fs.mkdirSync(openedDir, { recursive: true });
+// 出品用に書き出した完全版（平文の有料本文）のうち古いものを削除する。maxAgeMs=0 なら全部消す
+export function purgeOpenedNotes(maxAgeMs = OPENED_TTL_MS) {
+  if (!fs.existsSync(openedDir)) return 0;
   const now = Date.now();
+  let n = 0;
   for (const f of fs.readdirSync(openedDir)) {
     const p = path.join(openedDir, f);
     try {
-      if (now - fs.statSync(p).mtimeMs > OPENED_TTL_MS) fs.unlinkSync(p);
+      if (now - fs.statSync(p).mtimeMs >= maxAgeMs) {
+        fs.unlinkSync(p);
+        n++;
+      }
     } catch (e) {}
   }
+  return n;
+}
+
+export function openNoteForPublishing(noteFile) {
+  const publicText = fs.readFileSync(noteFile, "utf8");
+  if (!isSealed(publicText)) return noteFile;
+  fs.mkdirSync(openedDir, { recursive: true, mode: 0o700 });
+  purgeOpenedNotes();
   const out = path.join(openedDir, path.basename(noteFile));
-  fs.writeFileSync(out, assembleNote(noteFile), "utf8");
+  // 本人以外が読めない権限で書く（Windows では無視される）
+  fs.writeFileSync(out, assembleNote(noteFile), { encoding: "utf8", mode: 0o600 });
   return out;
 }

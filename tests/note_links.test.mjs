@@ -79,3 +79,21 @@ test("同じタイトルの重複出品は最も古い記事にリンクし、�
   assert.equal(m.LEAD_MAGNET_CHEAT_SHEET.url, "https://note.com/x/n/l2", "publishAt が無いときは API の並び（新しい順）で最後のものを最古とする");
   assert.deepEqual(m.LEAD_MAGNET_CHEAT_SHEET.duplicates, ["https://note.com/x/n/l1"]);
 });
+
+test("未出品の記事を、名前を含むだけの別記事の note にリンクしない", () => {
+  const m = matchNotesToSlugs(
+    [{ name: "# 海外急上昇OSS「laya-mlx」商用化マニュアル", noteUrl: "https://note.com/x/n/b", price: 980 },
+     { name: "海外急上昇OSS「array-utils」解説", noteUrl: "https://note.com/x/n/c", price: 980 }],
+    [{ slug: "laya", title: "海外急上昇OSS「laya」商用化マニュアル" }, { slug: "ray", title: "海外急上昇OSS「ray」解説" }],
+  );
+  assert.equal(m.laya, undefined);
+  assert.equal(m.ray, undefined);
+});
+
+test("note_urls.json のマージ: 削除は復活させず、片側の更新は失わない", async () => {
+  const { mergeNoteUrls } = await import("../scripts/merge_note_urls.mjs");
+  const base = { a: { url: "u1" }, b: { url: "u2" }, c: { url: "n3" } };
+  const ours = { b: { url: "u2" }, c: { url: "n3" } }; // 取り込み先で a を削除
+  const theirs = { a: { url: "u1" }, b: { url: "u2" }, c: { url: "n3-ci" }, d: { url: "u4" } }; // CI が c を更新、d を追加
+  assert.deepEqual(mergeNoteUrls(base, ours, theirs), { b: { url: "u2" }, c: { url: "n3-ci" }, d: { url: "u4" } });
+});

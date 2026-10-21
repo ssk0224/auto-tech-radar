@@ -5,11 +5,15 @@ import { pathToFileURL } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 
-// X API の応答をどう扱うか。429（レート制限）と 5xx は次回に再試行する。
-// それ以外の 4xx（重複投稿・文字数超過・権限など）は再試行しても通らないため、失敗として記録して次の記事へ進む
-export function classifyXResponse(status) {
+// X API の応答をどう扱うか。
+// - 429（レート制限）と 5xx: 次回に再試行（記録しない）
+// - 401 と、重複投稿以外の 403: 認証・アプリ権限の問題で記事のせいではない。記録せずに実行を失敗させて気づけるようにする
+//   （記録すると、鍵を直した後もその記事が二度と投稿されない）
+// - それ以外の 4xx（重複投稿・文字数超過など記事ごとの問題）: 失敗として記録して次の記事へ進む
+export function classifyXResponse(status, body = '') {
   if (status >= 200 && status < 300) return 'posted';
   if (status === 429 || status >= 500) return 'retry';
+  if (status === 401 || (status === 403 && !/duplicate/i.test(body))) return 'auth';
   return 'failed';
 }
 
@@ -135,12 +139,15 @@ async function postLatestTweet() {
       body: JSON.stringify({ text: tweetText }),
       signal: AbortSignal.timeout(15000),
     });
-    const outcome = classifyXResponse(res.status);
+    const err = res.ok ? '' : await res.text();
+    const outcome = classifyXResponse(res.status, err);
     if (outcome === 'posted') {
       console.log(`✓ X (Twitter) への最新レポート自動投稿に成功しました: ${slug}`);
       recordHistory({ x: true, xAt: today }, 'x: true');
+    } else if (outcome === 'auth') {
+      console.log(`::error title=X 認証エラー::X API が ${res.status} を返しました（APIキー・アクセストークン・アプリの書き込み権限を確認してください）。記事の投稿状態は変更していません: ${err.slice(0, 300)}`);
+      process.exitCode = 1;
     } else {
-      const err = await res.text();
       console.warn(`- X投稿スキップ (${res.status}): ${err}`);
       if (outcome === 'failed') {
         recordHistory({ x: 'failed', xAt: today, xError: `HTTP ${res.status}` }, 'x: failed');
