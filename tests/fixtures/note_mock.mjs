@@ -24,7 +24,8 @@ export default async function install(ctx) {
       "<h2>概要</h2><p>無料部分の本文です。</p>",
       has("ATR_NOTE_MOCK_WORDING", k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : "",
       has("ATR_NOTE_MOCK_COPIPE", k) ? "<ul><li><p>コピペで本番一発起動できる「Docker Compose &amp; .env 設定キット」</p></li></ul>" : "",
-      has("ATR_NOTE_MOCK_INVOICE", k) ? `<blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote>` : "",
+      // 引用は実機と同じく figure で包む（この形で出品している: scripts/utils/note_html.mjs の引用の変換）
+      has("ATR_NOTE_MOCK_INVOICE", k) ? `<figure name="q1" id="q1"><blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote><figcaption></figcaption></figure>` : "",
       PAID_HTML,
     ].join(""));
   const draft = (k) => {

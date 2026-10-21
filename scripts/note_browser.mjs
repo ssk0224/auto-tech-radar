@@ -169,7 +169,9 @@ const noteBlocks = ({ html } = {}) => {
     if (el.querySelector(BLOCK)) continue; // 内側の段落で数える（li > p、blockquote > p）
     const fixed = el.closest('[contenteditable="false"]');
     if (fixed && root.contains(fixed)) continue;
-    if (el.closest("figure") && !el.closest("figcaption")) continue;
+    // 画像・埋め込みの figure は数えない。引用は note では figure > blockquote なので本文として数える
+    // （2026-10-21 実機: 引用の中の領収書の案内を読み飛ばし、直さないまま「一致」と判断していた）
+    if (el.closest("figure") && !el.closest("figcaption") && !el.closest("blockquote")) continue;
     const t = textOf(el);
     if (t.trim()) out.push(t);
   }
@@ -375,8 +377,12 @@ async function fixNoteText(ctx, page, t, steps) {
     const afterBlocks = (await ed.evaluate(noteBlocks, {})) || [];
     const after = afterBlocks.join("\n");
     const mismatch = blockDiff(want, normBlocks(afterBlocks));
-    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length, ...(mismatch ? { diff: mismatch } : {}) });
-    if (hasNoteTextIssue(after)) throw new Error("編集画面で表現を置き換えられませんでした（公開はしていません）");
+    // 段落の取り出し方に漏れがあっても見逃さないよう、編集画面の全文（段落に分けない innerText）でも、
+    // 公開中の記事で見つけた直す表現がすべて消え、置き換え後の語が入っていることを確かめてから公開する
+    const fullAfter = await ed.evaluate(() => [...document.querySelectorAll('[contenteditable="true"]')].map((e) => e.innerText).join("\n"));
+    const missing = liveRules.filter((r) => !fullAfter.includes(r.to)).map((r) => r.id);
+    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length, ...(mismatch ? { diff: mismatch } : {}), ...(missing.length ? { missing } : {}) });
+    if (hasNoteTextIssue(after) || hasNoteTextIssue(fullAfter) || missing.length) throw new Error("編集画面で表現を置き換えられませんでした（公開はしていません）");
     if (mismatch) throw new Error(`置き換えた後の下書きが、公開中の記事に規則を当てた文と一致しません（${mismatch.index + 1} 段落目。公開はしていません）`);
     await pressPublish(ed, steps);
   } finally {
