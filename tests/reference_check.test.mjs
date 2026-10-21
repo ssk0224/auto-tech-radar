@@ -20,3 +20,11 @@ test("scratch と ${VAR} 入りの ARG イメージは対象外", () => {
 test("Python の `from x import y` をイメージとして抽出しない", () => {
   assert.deepEqual(extractReferences("```python\nfrom fastapi import FastAPI\nfrom os import path\n```\n").images, []);
 });
+
+test("pip / npx の VCS・URL 指定（git+https://…、https://…whl）は、パッケージ名として実在確認しない", () => {
+  // PyPI に "git" というパッケージは無いため、以前は README どおりの `pip install git+https://…` を含む原稿が「実在しない参照」で不採用になっていた
+  const text = "pip install git+https://github.com/acme/tool.git\nuv pip install git+ssh://git@github.com/acme/x\npipx install https://example.com/x-1.0-py3-none-any.whl\npip install requests==2.32.0\npip install -U uv\nnpx github:acme/tool\n";
+  const refs = extractReferences(text);
+  assert.deepEqual(refs.pypi.sort(), ["requests", "uv"]);
+  assert.deepEqual(refs.npm, []);
+});

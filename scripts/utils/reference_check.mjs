@@ -69,9 +69,10 @@ export function extractReferences(text) {
   }
   for (const m of text.matchAll(/--from=([A-Za-z0-9][\w.\/:@-]*\/[\w.\/:@-]+)/g)) if (!stages.has(m[1].toLowerCase())) images.add(m[1]);
   // パッケージ名の後ろの @version は文字クラスに含めないので自然に落ちる
-  for (const m of text.matchAll(/\bnpx\s+(?:-y\s+|--yes\s+)?(@?[a-z0-9][\w.\-]*(?:\/[\w.\-]+)?)/g)) npm.add(m[1]);
+  // パッケージ名の直後が + や : のもの（git+https://…・https://…・github:owner/repo）は VCS・URL の指定なので対象外
+  for (const m of text.matchAll(/\bnpx\s+(?:-y\s+|--yes\s+)?(@?[a-z0-9][\w.\-]*(?:\/[\w.\-]+)?)(?![\w.\-\/]*[+:])/g)) npm.add(m[1]);
   for (const m of text.matchAll(/"args"\s*:\s*\[\s*"(?:-y|--yes)"\s*,\s*"(@?[a-z0-9][\w.\-]*(?:\/[\w.\-]+)?)/g)) npm.add(m[1]);
-  for (const m of text.matchAll(/\b(?:pip3?|uv pip|pipx)\s+install\s+(?:-U\s+|--upgrade\s+)?([A-Za-z0-9][\w.\-]*)/g)) if (!/^(-|\.)/.test(m[1])) pypi.add(m[1]);
+  for (const m of text.matchAll(/\b(?:pip3?|uv pip|pipx)\s+install\s+(?:-U\s+|--upgrade\s+)?([A-Za-z0-9][\w.\-]*)(?![\w.\-]*[+:])/g)) if (!/^(-|\.)/.test(m[1])) pypi.add(m[1]);
   return { images: [...images], npm: [...npm], pypi: [...pypi] };
 }
 
