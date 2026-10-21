@@ -18,6 +18,20 @@ const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
 const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 
+// package.json の依存がすべて入っているかを確かめ、足りなければ npm ci で入れる（取り込み済みの更新で増えた依存を含む）
+function ensureDependencies() {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+    const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
+    const missing = deps.filter((d) => !fs.existsSync(path.join(rootDir, 'node_modules', ...d.split('/'), 'package.json')));
+    if (missing.length === 0) return;
+    console.log(`📦 足りないパッケージを入れています (${missing.join(', ')})...`);
+    execSync('npm ci --no-audit --no-fund', { cwd: rootDir, stdio: 'inherit' });
+  } catch (e) {
+    console.log(`⚠ パッケージを入れられませんでした（npm ci を手動で実行してください）: ${e.message}`);
+  }
+}
+
 // 起動時に最新の main（CI が生成した記事・修正されたスクリプト）を取り込む。
 // 取り込みでこのランチャー自身が更新されたら、新しいコードで起動し直す（読み込み済みの古いコードのまま動かさない）
 if (!process.env.ATR_LAUNCHER_UPDATED) {
@@ -41,11 +55,22 @@ if (!process.env.ATR_LAUNCHER_UPDATED) {
     try { execSync('git rebase --abort', { cwd: rootDir, stdio: 'ignore' }); } catch (e2) {}
   }
   if (before && head() !== before) {
+    // 依存パッケージが変わっていれば入れ直す（新しい機能が「パッケージが見つからない」で動かないのを防ぐ）
+    try {
+      const changed = execSync(`git diff --name-only ${before} HEAD -- package.json package-lock.json`, { cwd: rootDir, encoding: 'utf8' }).trim();
+      if (changed) {
+        console.log('📦 必要なパッケージを更新中 (npm ci)...');
+        execSync('npm ci --no-audit --no-fund', { cwd: rootDir, stdio: 'inherit' });
+      }
+    } catch (e) {
+      console.log(`⚠ パッケージを更新できませんでした: ${e.message}`);
+    }
     console.log('🔁 更新を取り込んだため、新しいランチャーで起動し直します...\n');
     const r = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: { ...process.env, ATR_LAUNCHER_UPDATED: '1' } });
     process.exit(r.status ?? 0);
   }
 }
+ensureDependencies();
 
 // ANSIカラー定数（高級感あるダークターミナルUI）
 const c = {
