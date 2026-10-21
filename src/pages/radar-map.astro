@@ -117,7 +117,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
         📊 象限別・スター数区分の一覧
       </h3>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 1.2rem;">
         <!-- Q1: AI Agents -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #38bdf8; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">

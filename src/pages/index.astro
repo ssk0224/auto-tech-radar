@@ -240,7 +240,7 @@ const posts = getArticles() as any[];
 
   <!-- 🏢 法人・企業様向け受託開発 ＆ AIエージェント導入バナー -->
   <section style="margin-top: 3rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.9) 100%); border: 1px solid #3b82f6; border-radius: 14px; padding: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 280px;">
+    <div style="flex: 1 1 280px; min-width: 0;">
       <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem;">
         🏢 法人・開発責任者・新規事業担当者様へ
       </div>
@@ -251,7 +251,7 @@ const posts = getArticles() as any[];
         「紹介されたAIエージェントを自社クラウドに構築したい」「商用SaaSをセルフホスト化して月額コストを削減したい」等、環境構築やAPI連携、NDA締結についても、導入支援のご相談を受け付けています。
       </p>
     </div>
-    <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
+    <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; max-width: 100%; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
       📩 受託・導入の無料相談・見積もり →
     </a>
   </section>
