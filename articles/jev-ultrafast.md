@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「jev-ultrafast」のアーキテ�
 emoji: "⚡"
 type: "tech"
 topics: ["python", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # jev-ultrafast: 概要と革新性

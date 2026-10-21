@@ -104,7 +104,7 @@ export function generateLeadMagnetNote() {
 
   md += `--- \n`;
   md += `**【推奨ハッシュタグ】**\n`;
-  md += `#AI #OSS #オープンソース #プログラミング #エンジニア #受託開発 #社内DX #副業 #GitHub #最新技術\n`;
+  md += `#AI #OSS #オープンソース #プログラミング #エンジニア #社内DX #GitHub #最新技術\n`;
 
   const outputPath = path.join(noteDir, 'LEAD_MAGNET_CHEAT_SHEET.md');
   fs.writeFileSync(outputPath, md, 'utf8');

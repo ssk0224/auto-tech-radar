@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「magpie」のアーキテクチャ
 emoji: "⚡"
 type: "tech"
 topics: ["go", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # magpie: 概要と革新性

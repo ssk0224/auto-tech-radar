@@ -29,7 +29,8 @@ export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->\r?$/m;
 export const MIN_PAID_CHARS = 1500;
 const OPENED_TTL_MS = 24 * 60 * 60 * 1000;
 
-// 生成物の末尾が崩れていた場合に補う標準の末尾（有料コンテンツではない）
+// 生成物の末尾が崩れていた場合に補う標準の末尾（有料コンテンツではない）。
+// 生成スクリプトはハッシュタグ行を記事ごとのタグ（utils/note_hashtags.mjs）に置き換える
 export const STANDARD_FOOTER = `
 ---
 ### 🎁 【メンバーシップのご案内】
@@ -37,7 +38,7 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #副業 #受託開発 #スタートアップ #最新技術 #GitHub`;
+#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub`;
 
 export function sealedFileFor(noteFile) {
   return noteFile.replace(/\.md$/, ".paid.enc");

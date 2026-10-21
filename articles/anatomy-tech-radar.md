@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「anatomy」のアーキテクチ�
 emoji: "⚡"
 type: "tech"
 topics: ["javascript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # anatomy: 概要と革新性

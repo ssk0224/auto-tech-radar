@@ -11,7 +11,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
-const output = ({ mermaid = true, footer = true, image = "" } = {}) => `=== WEB ARTICLE ===
+const output = ({ mermaid = true, footer = true, image = "", hype = "", paidExtra = "" } = {}) => `=== WEB ARTICLE ===
 ---
 layout: "../../layouts/Layout.astro"
 title: "testtool - test"
@@ -26,13 +26,14 @@ stars: 99999
 ${mermaid ? '```mermaid\ngraph TD\n  A["CLI"] --> B["Core"]\n```' : "図なし"}
 === NOTE ARTICLE ===
 # testtool note
-無料部分の導入。経費精算にも使えます。
+無料部分の導入。${hype}経費精算にも使えます。
 --------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 --------------------------------------------------
 ${PAID}
+${paidExtra}
 ${image ? `\`\`\`yaml\nservices:\n  app:\n    image: ${image}\n\`\`\`` : ""}
-${footer ? "---\n**【note出品時用 推奨ハッシュタグ】**\n#AI #OSS" : ""}
+${footer ? "---\n**【note出品時用 推奨ハッシュタグ】**\n#AI #OSS #副業 #受託開発" : ""}
 === X THREAD ===
 [TWEET 1]
 hello
@@ -76,20 +77,46 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
     const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     assert.match(web, new RegExp(`^pubDate: "${jstToday}"$`, "m"));
     assert.match(web, /^stars: 1234$/m);
+    // 推奨ハッシュタグは生成モデルの固定タグ（#副業 #受託開発 を含む）ではなく、言語・トピックから作ったもの
+    const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
+    assert.match(pub, /^#OSS #Go #cli #devops$/m);
+    assert.doesNotMatch(pub, /#副業|#受託開発/);
+    // Zenn への自動公開は停止中: articles/ には下書き（published: false）として書く
+    const zenn = fs.readFileSync(path.join(dir, "articles/testtool-tech-radar.md"), "utf8");
+    assert.match(zenn, /^published: false$/m);
+    assert.doesNotMatch(zenn, /^published: true$/m);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("1 回の実行で生成する新規記事は 1 本まで（候補が複数あっても 2 本目は生成しない）", () => {
+  const calls = path.join(os.tmpdir(), `atr-calls-count-${process.pid}`);
+  fs.rmSync(calls, { force: true });
+  const { dir, log } = run(output(), { MOCK_SECOND_REPO: "1", MOCK_CALLS: calls });
+  try {
+    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/othertool.md")), log);
+    assert.equal(fs.readFileSync(calls, "utf8").length, 1, log);
+    assert.match(log, /Reached target count \(1\)/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(calls, { force: true });
+  }
 });
 
 test("末尾の案内・ハッシュタグが欠けた生成物は標準の末尾で補って採用する", () => {
   const { dir, log } = run(output({ footer: false }));
   try {
     const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
-    assert.match(pub, /#AI #OSS/, log);
+    assert.match(pub, /^#OSS #Go #cli #devops$/m, log);
+    assert.doesNotMatch(pub, /#副業|#受託開発/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 for (const [name, opts, why] of [
   ["構成図が無い", { mermaid: false }, /Mermaid/],
   ["実在しないイメージを含む", { image: "ghcr.io/acme/does-not-exist:latest" }, /実在を確認できない参照/],
+  ["無料部分に誇張表現（一発起動）を含む", { hype: "コピペで本番一発起動できます。" }, /誇張・結果保証の表現/],
+  ["有料部分に収入の金額を含む", { paidExtra: "このSaaSでMRR 50万円を見込めます。" }, /誇張・結果保証の表現/],
 ]) {
   test(`不採用になる: ${name}`, () => {
     const { dir, log } = run(output(opts));

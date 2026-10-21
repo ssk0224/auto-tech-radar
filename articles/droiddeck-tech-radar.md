@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「DroidDeck」のアーキテクチ
 emoji: "⚡"
 type: "tech"
 topics: ["kotlin", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # DroidDeck: AndroidでSteamOS体験を実現する革新的なOSS

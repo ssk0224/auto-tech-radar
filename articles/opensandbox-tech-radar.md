@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「OpenSandbox」のアーキテク�
 emoji: "⚡"
 type: "tech"
 topics: ["python", "oss", "github", "architecture", "ai"]
-published: true
+published: false
 ---
 
 # OpenSandbox: 概要と革新性

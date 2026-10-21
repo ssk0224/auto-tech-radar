@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「universal-modder」のアーキ�
 emoji: "⚡"
 type: "tech"
 topics: ["python", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # universal-modder: 概要と革新性

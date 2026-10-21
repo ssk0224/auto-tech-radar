@@ -9,8 +9,10 @@ import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, seal
 
 import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
-import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
+import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims } from "./utils/claims_check.mjs";
+import { findHype, HYPE_PROMPT_RULE } from "./utils/hype_check.mjs";
+import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
 import { normalizeHeadings } from "./utils/headings.mjs";
@@ -23,8 +25,8 @@ if (!apiKey) {
 
 const ai = new GoogleGenAI({ apiKey });
 
-// 1回の実行で生成する新規記事数（API制限を完全に回避する安全設計）
-const TARGET_NEW_COUNT = 2;
+// 1回の実行（1日）で生成する新規記事数。Google の大量生成コンテンツに関する方針と Gemini の利用枠を踏まえて 1 本にする（2026-10-21、以前は 2 本）
+const TARGET_NEW_COUNT = 1;
 // 不採用が続いた場合に Gemini 呼び出しが際限なく増えないよう、1回の実行で試す候補数の上限
 const MAX_ATTEMPTS_PER_RUN = 6;
 
@@ -176,6 +178,9 @@ async function generateAllContent(repo, readme) {
 - 金額・削減率・ROI・性能値は、見積表の工数×単価など計算の前提を示せるものだけを書くこと。前提が示せない数値は書かないこと。
 - Docker / docker-compose の構成は、READMEの動作要件（対応OS・GPU・デスクトップアプリか等）と矛盾しない場合だけ書くこと。READMEにDockerの記載がない場合は「公式未提供・自作のコンテナ化例（動作未検証）」と明記すること。macOS専用・Apple Silicon専用などコンテナで動かせないものはDocker構成を書かず、READMEの導入手順を示すこと。
 - 導入実績・連携実績・顧客数・受賞歴など、READMEで確認できない実績は書かないこと。
+
+【誇張・結果保証の禁止】
+${HYPE_PROMPT_RULE}
 `;
 
   const prompt = `
@@ -220,7 +225,7 @@ stars: ${repo.stargazers_count}
 === NOTE ARTICLE ===
 # 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
 
-## はじめに：なぜ今、世界中で爆発的に注目されているのか？
+## はじめに：なぜ今、注目されているのか？
 （無料公開エリア：魅力的な導入、解決する課題、革新性の概要）
 ※重要：冒頭で「この記事で、クライアントへの導入提案に必要な材料（提案書・工数見積・導入手順）がそろう理由」を明確に提示してください。
 
@@ -243,7 +248,7 @@ stars: ${repo.stargazers_count}
 
 > 💡 **【投資対効果（ROI）と会社経費精算について】**
 > 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
-> ※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。
+> ※領収書は購入後、note の「購入・チップ履歴」から発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
@@ -284,7 +289,7 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #副業 #受託開発 #スタートアップ #最新技術 #GitHub
+${noteHashtags(repo).join(" ")}
 
 === X THREAD ===
 ※重要規則：
@@ -620,7 +625,8 @@ async function run() {
       if (!splitPaid(result.note)) {
         throw new Error("note原稿に有料ラインがありません（有料部分を暗号化できないため不採用）");
       }
-      const noteText = withStandardFooter(result.note);
+      // 推奨ハッシュタグは生成モデルの出力ではなく、記事の対象（言語・トピック）から作ったもので揃える
+      const noteText = applyNoteHashtags(withStandardFooter(result.note), noteHashtags(repo));
       const problems = noteDraftProblems(noteText);
       if (problems.length) {
         throw new Error(`note原稿が要件を満たしません（${problems.join(" / ")}）`);
@@ -641,6 +647,11 @@ async function run() {
       ];
       if (forbiddenHits.length) {
         throw new Error(`生成文面に禁止・誇張表現が含まれています（${forbiddenHits.join(" / ")}）`);
+      }
+      // プロンプトで禁止した誇張・結果保証の表現（一発起動・爆発的・収入の金額など）が残っていれば採用しない（新規生成物だけの検査）
+      const hypeHits = [...findHype(noteText), ...findHype(result.web), ...findHype(result.x)];
+      if (hypeHits.length) {
+        throw new Error(`生成文面に誇張・結果保証の表現が含まれています（${hypeHits.join(" / ")}）`);
       }
 
       // X投稿スレッドの完全性検証（途中で切れた不完全なスレッドの書き込み防止）
@@ -701,12 +712,14 @@ async function run() {
       const topicCandidates = [langTopic, ...repoTopics, "oss", "github", "architecture", "programming"];
       const zennTopics = Array.from(new Set(topicCandidates.filter((t) => /^[a-z0-9_-]+$/.test(t)))).slice(0, 5);
 
+      // Zenn への自動公開は停止（2026-10-21）。Zenn の規約（機械生成の文章・宣伝目的のコンテンツの禁止）に沿わないため、
+      // 原稿は残すが published: false（下書き）で書き、articles/ に置いても Zenn の GitHub 連携で公開されないようにする
       const zennDraft = `---
 title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
 topics: ${JSON.stringify(zennTopics)}
-published: ${!isNoise(slug)}
+published: false
 ---
 
 ${teaserBody}
@@ -718,7 +731,7 @@ ${zennCta(slug)}
       fs.writeFileSync(zennFile, zennDraft, "utf8");
       console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
 
-      // 📘 Zenn公式GitHub連携用 (articles/*.md) 完全自動デプロイ対応（文字数12〜50文字厳格保証）
+      // 📘 Zenn公式GitHub連携の形式 (articles/*.md) で保存（文字数12〜50文字厳格保証）。published: false のため公開はされない
       let zennSlug = slug;
       if (zennSlug.length < 12) zennSlug = `${zennSlug}-tech-radar`;
       if (zennSlug.length > 50) zennSlug = zennSlug.slice(0, 50).replace(/[-_]+$/, "");
@@ -732,7 +745,7 @@ ${zennCta(slug)}
       }
       const zennArticleFile = path.join(articlesDir, `${finalZennSlug}.md`);
       fs.writeFileSync(zennArticleFile, zennDraft, "utf8");
-      console.log(`✓ Zenn公式GitHub自動連携保存 (articles/): ${zennArticleFile}`);
+      console.log(`✓ Zenn原稿を下書き（published: false）で保存 (articles/): ${zennArticleFile}`);
 
       try {
         const topics = Array.isArray(repo.topics) ? repo.topics : [];
