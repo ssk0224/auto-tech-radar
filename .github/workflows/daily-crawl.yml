@@ -38,6 +38,13 @@ jobs:
           cache: "npm"
 
       - run: npm ci
+      # コミットする人の名前と、publish_history.json などのマージドライバ（.gitattributes）を、どの git pull よりも前に設定する。
+      # （以前はコミットする変更がある回だけ設定していたため、X 投稿の記録を push する git pull --rebase がドライバ無しで衝突することがあった）
+      - name: Configure git
+        run: |
+          git config --global user.name "ssk0224"
+          git config --global user.email "ssk0224@users.noreply.github.com"
+          node scripts/utils/git_sync.mjs configure
       # 品質ゲートが不具合を本当に止めるかの検証を含むテスト（失敗したら生成・公開しない）
       - run: npm test
       - name: Install Japanese CJK fonts
@@ -57,6 +64,8 @@ jobs:
         id: crawler
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
+        # 通信が止まったままでも、後続の便を何時間も待たせずに既存の記事で公開を続ける
+        timeout-minutes: 60
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
@@ -72,21 +81,35 @@ jobs:
       # 記事ごとの note 有料版 URL を取得（失敗しても前回の対応表で続行）
       - name: Sync note article URLs
         continue-on-error: true
+        timeout-minutes: 20
         run: |
           node scripts/sync_note_urls.mjs
           node scripts/check_zenn.mjs || true
 
       # 新規生成物も含めた品質テスト（禁止表現・暗号化境界・送客リンク整合性）
-      # 不合格なら、この回に生成した記事だけを取り除いて既存の記事で公開を続ける（1本の不備でサイト更新・X 投稿まで止めない）。
-      # 取り除いた場合は最後の「Fail if generated content was rejected」でこの実行を失敗にして気づけるようにする
+      # 不合格なら、まず note / Zenn の同期結果（この回に取り直した対応表）を前回のものに戻して確かめ、
+      # それでも不合格なら、この回に生成した記事も取り除いて既存の記事で公開を続ける（1本の不備・同期の食い違いでサイト更新・X 投稿まで止めない）。
+      # どちらの場合も最後の「Fail if generated content was rejected」でこの実行を失敗にして気づけるようにする。
+      # ここで戻す・取り除くファイルは、この実行が commit するもの（data/ の実行記録を除く）をすべて含む（tests/workflow.test.mjs が確かめる）
       - name: Post-Crawl Quality Test Gate
         id: gate
+        env:
+          RUN_SCHEDULE: ${{ github.event.schedule }}
         run: |
           if npm test; then
             exit 0
           fi
+          # note の公開状況の変化（非公開にした・タイトルを変えた記事）で対応表が変わり、テストに通らなくなることがある
+          git checkout -- scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
+          if npm test; then
+            echo "::error title=note sync rejected::note / Zenn の同期結果がテストに通らなかったため、前回の対応表のまま公開します（公開中の note と原稿の対応を確認してください）"
+            echo "sync_rejected=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           echo "::error title=Generated content rejected::生成した記事がテストに通らなかったため、この回の生成物を取り除いて既存の記事で公開します"
           echo "rejected=true" >> "$GITHUB_OUTPUT"
+          # 実行結果の記録（data/run_status）に、生成した記事を取り除いたことを残す（アラートに「ok」だけが載らないように）
+          if [ "${{ github.event_name }}" != "push" ]; then node scripts/utils/run_status.mjs rejected || true; fi
           git checkout -- src/pages/radar note_drafts x_posts zenn_drafts articles public scripts/publish_history.json
           git clean -fdq -- src/pages/radar note_drafts x_posts zenn_drafts articles public
           npm test
@@ -96,8 +119,6 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --global user.name "ssk0224"
-          git config --global user.email "ssk0224@users.noreply.github.com"
           # data/（実行結果の記録 run_status・日次スナップショット ledger）はサイトのビルド対象外。まだ無い回でも git add が失敗しないように作っておく
           mkdir -p data
           git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/ data/ scripts/publish_history.json scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
@@ -108,11 +129,7 @@ jobs:
 
             # 認証は actions/checkout が token（GH_PAT または GITHUB_TOKEN）で設定済み。
             # 別途 extraheader を足すと認証ヘッダーが二重になり push が拒否されるため設定しない
-
-            # publish_history.json および note_urls.json は和集合でマージする（.gitattributes 参照）
-            git config merge.publish-history.driver "node scripts/merge_publish_history.mjs %O %A %B"
-            git config merge.note-urls.driver "node scripts/merge_note_urls.mjs %O %A %B"
-            git config merge.note-status.driver "node scripts/merge_note_status.mjs %O %A %B"
+            # publish_history.json などのマージドライバは最初の「Configure git」で設定済み（.gitattributes 参照）
 
             # 最新の main に載せ直して push（最大3回）。衝突は自動で握りつぶさず失敗として扱う
             PUSH_SUCCESS=false
@@ -160,6 +177,7 @@ jobs:
       - name: Auto Tweet to X
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
@@ -172,20 +190,30 @@ jobs:
           else
             git add scripts/publish_history.json
             git commit -m "chore: record published tweet history [skip ci]" || true
-            git pull --rebase origin main || true
-            git push origin main || true
+            # 失敗しても公開は止めないが、黙って記録を失わない（失敗したら rebase を中止して警告を出す）
+            if git pull --rebase origin main && git push origin main; then
+              echo "Pushed tweet history."
+            else
+              git rebase --abort 2>/dev/null || true
+              echo "::warning title=Tweet history not saved::X 投稿の記録（scripts/publish_history.json）を push できませんでした。次回の実行で同じ記事の投稿を試み、X 側の重複判定で failed として記録されます"
+            fi
           fi
 
       # 新しい記事が出るのは定期実行だけ。コード修正の push ごとに同じ URL を再送しない
       - name: Notify Search Engines (IndexNow)
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         run: node scripts/ping_search_engines.mjs
 
       - name: Fail if generated content was rejected
-        if: steps.gate.outputs.rejected == 'true'
+        if: steps.gate.outputs.rejected == 'true' || steps.gate.outputs.sync_rejected == 'true'
         run: |
-          echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
+          if [ "${{ steps.gate.outputs.rejected }}" = "true" ]; then
+            echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
+          else
+            echo "::error::note / Zenn の同期結果はテスト不合格のため反映していません（記事の公開は続けています）。上の Post-Crawl Quality Test Gate のログを確認してください"
+          fi
           exit 1
 
       # 第3便（12:17 JST）の最後に、日本時間の今日の記事が 1 本も無ければ Issue（ラベル pipeline-alert）でアラートする。

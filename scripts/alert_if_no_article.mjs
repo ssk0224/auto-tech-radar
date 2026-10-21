@@ -1,6 +1,7 @@
 // 日本時間の今日の記事（pubDate が今日）が 1 本も無ければ、このリポジトリの Issue でアラートを出す。
 // GitHub Actions の第3便（12:17 JST）のデプロイ後に実行する（.github/workflows/daily-crawl.yml）。
 // - 判定は記事ファイルの有無で行う（生成後に品質ゲートで取り除かれた記事は「無い」として扱う）。
+//   CI では作業ツリーではなく push 済みの origin/main を見る（生成したが commit・push に失敗した記事を「ある」と数えない）。
 //   理由は data/run_status/YYYY-MM-DD.json（scripts/utils/run_status.mjs）の記録を載せる
 // - ラベル pipeline-alert の open な Issue があればそこにコメントし、無ければ 1 件だけ作る
 // - 呼び出すのは GITHUB_REPOSITORY（このリポジトリ）の API だけ。GITHUB_TOKEN / GITHUB_REPOSITORY が無い（ローカル実行）ときは何もしない
@@ -8,26 +9,18 @@ import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
 import { jstDate, readRunStatus } from "./utils/run_status.mjs";
+import { RADAR_DIR, articlesPublishedOn, articlesPublishedOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
 
 export const ALERT_LABEL = "pipeline-alert";
 export const ALERT_TITLE = "パイプライン停止アラート";
 
-// pubDate が date（YYYY-MM-DD）の記事のスラッグ一覧
-export function articlesPublishedOn(radarDir, date) {
-  if (!fs.existsSync(radarDir)) return [];
-  const re = new RegExp(`^pubDate:\\s*["']?${date}["']?\\s*$`, "m");
-  return fs.readdirSync(radarDir)
-    .filter((f) => f.endsWith(".md"))
-    .filter((f) => {
-      const fm = fs.readFileSync(path.join(radarDir, f), "utf8").match(/^---\r?\n([\s\S]*?)\r?\n---/);
-      return !!fm && re.test(fm[1]);
-    })
-    .map((f) => f.replace(/\.md$/, ""));
-}
+// 「その日の記事」の判定は生成スクリプトの 1 日の上限と共通（scripts/utils/published_articles.mjs）
+export { articlesPublishedOn, articlesPublishedOnRef };
 
-export function decideAlert({ rootDir = process.cwd(), now = Date.now() } = {}) {
+// ref を渡すと、その ref（push 済みの内容）で判定する。省くと作業ツリーで判定する
+export function decideAlert({ rootDir = process.cwd(), now = Date.now(), ref = null } = {}) {
   const date = jstDate(now);
-  const slugs = articlesPublishedOn(path.join(rootDir, "src", "pages", "radar"), date);
+  const slugs = ref ? articlesPublishedOnRef(rootDir, ref, date) : articlesPublishedOn(path.join(rootDir, ...RADAR_DIR.split("/")), date);
   const status = readRunStatus(rootDir, date);
   const runs = Array.isArray(status?.runs) ? status.runs : [];
   return { date, alert: slugs.length === 0, slugs, runs };
@@ -91,8 +84,20 @@ export async function sendAlert({ repo, token, body, fetchImpl = globalThis.fetc
   return { action: "created", number: created.number };
 }
 
+// CI では最新の origin/main を取り込み、push 済みの記事で判定する（取り込めなければ作業ツリーで判定し、警告を出す）
+function decideInCi() {
+  if (!process.env.GITHUB_ACTIONS) return decideAlert();
+  try {
+    fetchOriginMain(process.cwd());
+    return decideAlert({ ref: "origin/main" });
+  } catch (e) {
+    console.log(`::warning title=No article check::push 済みの記事（origin/main）を読めないため、作業ツリーで判定します: ${e.message}`);
+    return decideAlert();
+  }
+}
+
 async function main() {
-  const decision = decideAlert();
+  const decision = decideInCi();
   if (!decision.alert) {
     console.log(`✓ ${decision.date}（JST）の記事があります（${decision.slugs.join(", ")}）。アラートは不要です。`);
     return;

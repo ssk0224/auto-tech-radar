@@ -76,3 +76,18 @@ test("Zenn の確認: 非公開にした記事が公開中のままなら警告�
   // 公開するはずの記事が 1 本も公開されていない場合は、従来どおり連携の未設定を疑う警告
   assert.match(zennWarnings([{ slug: "ddd-tech-radar", published: true, live: false }]).join(), /GitHub 連携が未設定/);
 });
+
+test("Zenn の確認: 1 本も確認できない（API が 403 を返すなど）ときは黙らず、「確認できない」と警告する", () => {
+  // 2026-10-21 時点の scripts/zenn_status.json は全記事 HTTP 403（CI からは公開状態を確かめられていない）
+  const blocked = [
+    { slug: "aaa-tech-radar", published: false, live: null, status: 403 },
+    { slug: "bbb-tech-radar", published: false, live: null, error: "fetch failed" },
+  ];
+  const w = zennWarnings(blocked);
+  assert.equal(w.length, 1, w.join("\n"));
+  assert.match(w[0], /1 本も確認できませんでした（2 本すべて HTTP 403, fetch failed）/);
+  // 確認できないことを「公開されていない（連携が未設定）」とは言わない
+  assert.doesNotMatch(zennWarnings([{ slug: "ddd-tech-radar", published: true, live: null, status: 403 }]).join(), /GitHub 連携が未設定/);
+  // 一部でも確認できていれば、この警告は出さない
+  assert.deepEqual(zennWarnings([...blocked, { slug: "ccc-tech-radar", published: false, live: false }]), []);
+});

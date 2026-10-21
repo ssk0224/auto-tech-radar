@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { findProLeaks } from './utils/pro_boundary.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
-import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
+import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, MIN_PUBLIC_NOTE_CHARS, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { REMOVED_SLUGS } from './utils/blocklist.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
@@ -398,7 +398,7 @@ if (fs.existsSync(noteDraftsDir)) {
   noteFiles.forEach(file => {
     if (file.includes('LEAD_MAGNET') || file.includes('cheat_sheet')) return;
     const content = fs.readFileSync(path.join(noteDraftsDir, file), 'utf8');
-    if (content.length < 500) {
+    if (content.length < MIN_PUBLIC_NOTE_CHARS) {
       console.error(`  ❌ [EMPTY/CORRUPTED NOTE DRAFT] ${file}: コンテンツサイズが不足しています（${content.length} bytes）！`);
       noteErrors++;
       errorCount++;

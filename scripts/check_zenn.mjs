@@ -25,7 +25,14 @@ export function zennSummary(results) {
 export function zennWarnings(results, summary = zennSummary(results)) {
   const warnings = [];
   if (summary.stillLive.length) warnings.push(`published: false にした記事が Zenn でまだ公開中です（${summary.stillLive.length} 本: ${summary.stillLive.join(', ')}）。数日たっても残る場合は Zenn のダッシュボードで非公開にしてください`);
-  if (results.some((r) => r.published) && summary.live === 0) warnings.push('articles/ の記事が Zenn に 1 本も公開されていません（Zenn の GitHub 連携が未設定の可能性）');
+  if (results.some((r) => r.published) && summary.live === 0 && results.some((r) => r.live === false)) warnings.push('articles/ の記事が Zenn に 1 本も公開されていません（Zenn の GitHub 連携が未設定の可能性）');
+  // 1 本も確認できなかった（Zenn の API が 403 を返す等）ときは、「公開中の記事が無い」と区別して知らせる。
+  // 確認できないまま黙っていると、非公開にした記事が Zenn に残っていても気づけない
+  const unknown = results.filter((r) => r.live === null);
+  if (results.length > 0 && unknown.length === results.length) {
+    const why = [...new Set(unknown.map((r) => (r.status ? `HTTP ${r.status}` : r.error || "不明")))].slice(0, 3).join(", ");
+    warnings.push(`Zenn の公開状態を 1 本も確認できませんでした（${results.length} 本すべて ${why}）。非公開にした記事が Zenn に残っていないかは Zenn のダッシュボードで確認してください`);
+  }
   return warnings;
 }
 

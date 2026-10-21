@@ -67,10 +67,15 @@ export function readDrafts(dir = NOTE_DIR) {
     }));
 }
 
-async function fetchAllNotes() {
+// 記事一覧を読むページ数の上限（ページングが終わらない場合の歯止め）。
+// 上限に達しても最後のページに届かなければ、一覧は不完全なので失敗として扱う（以前は 20 ページで黙って打ち切り、
+// 不完全な一覧を「公開中の全記事」として対応表を作り直していたため、古い記事の購入リンクが消えるところだった）
+export const MAX_NOTE_PAGES = 200;
+export async function fetchAllNotes({ fetchImpl = globalThis.fetch, delayMs = 1000, maxPages = MAX_NOTE_PAGES } = {}) {
   const notes = [];
-  for (let page = 1; page <= 20; page++) {
-    const res = await fetch(`https://note.com/api/v2/creators/${NOTE_URLNAME}/contents?kind=note&page=${page}`, {
+  for (let page = 1; ; page++) {
+    if (page > maxPages) throw new Error(`記事一覧が ${maxPages} ページを超えました（一覧が不完全なため対応表を更新しません）`);
+    const res = await fetchImpl(`https://note.com/api/v2/creators/${NOTE_URLNAME}/contents?kind=note&page=${page}`, {
       headers: { 'User-Agent': 'auto-tech-radar (+https://github.com/ssk0224/auto-tech-radar)' },
       signal: AbortSignal.timeout(15000),
     });
@@ -84,7 +89,7 @@ async function fetchAllNotes() {
       notes.push({ name: n.name, noteUrl: n.noteUrl, price: typeof n.price === 'number' ? n.price : null, publishAt: typeof n.publishAt === 'string' ? n.publishAt : '' });
     }
     if (data.isLastPage !== false) break;
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, delayMs));
   }
   return notes;
 }

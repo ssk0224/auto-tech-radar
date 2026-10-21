@@ -4,6 +4,7 @@
 // MOCK_MODELS_LOG のファイルには呼び出されたモデル名を 1 行ずつ追記する。
 // MOCK_MODELS（カンマ区切り）があれば models.list() がその一覧を返す。無ければ一覧の取得は失敗する（静的リストで動く）
 // MOCK_PROMPT があれば、そのファイルに渡されたプロンプト（システム指示を含む）を書き出す
+// MOCK_HANG があれば generateContent は応答を返さない
 import fs from "fs";
 export class GoogleGenAI {
   constructor() {
@@ -13,6 +14,8 @@ export class GoogleGenAI {
         if (process.env.MOCK_MODELS_LOG) fs.appendFileSync(process.env.MOCK_MODELS_LOG, `${model}\n`);
         if (process.env.MOCK_PROMPT) fs.writeFileSync(process.env.MOCK_PROMPT, `${config?.systemInstruction || ""}\n${contents || ""}`);
         if (process.env.MOCK_ERROR) throw new Error(process.env.MOCK_ERROR);
+        // MOCK_HANG があれば応答を返さない（通信が止まったまま戻らない状態の再現）
+        if (process.env.MOCK_HANG) return new Promise(() => {});
         const perModel = process.env.MOCK_MODEL_ERRORS ? JSON.parse(process.env.MOCK_MODEL_ERRORS) : {};
         if (perModel[model]) throw new Error(perModel[model]);
         return { text: process.env.MOCK_OUT };

@@ -133,3 +133,16 @@ test("公開中の note の有料ラインの位置: 原稿どおり / 上 / 下
   assert.equal(lower.pastDraft, true);
   assert.equal(paidLineReport(free, "有料ラインの無い原稿"), null);
 });
+
+test("note の記事一覧はページの上限で黙って打ち切らない（不完全な一覧で購入リンクの対応表を作り直さない）", async () => {
+  const { fetchAllNotes } = await import("../scripts/sync_note_urls.mjs");
+  // note の公開 API の代わり（1 ページ 1 本、25 ページ）。実際の note.com には接続しない
+  const pages = 25;
+  const fetchImpl = async (url) => {
+    const page = Number(new URL(url).searchParams.get("page"));
+    return new Response(JSON.stringify({ data: { contents: [{ name: `n${page}`, noteUrl: `https://note.com/u/n/n${page}`, price: 980 }], isLastPage: page >= pages } }), { status: 200 });
+  };
+  assert.equal((await fetchAllNotes({ fetchImpl, delayMs: 0 })).length, pages);
+  // 以前は 20 ページで打ち切り、20 本だけの一覧を「公開中の全記事」として扱っていた
+  await assert.rejects(fetchAllNotes({ fetchImpl, delayMs: 0, maxPages: 20 }), /ページを超えました/);
+});

@@ -5,7 +5,7 @@ import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 import { stripProSection } from "./utils/pro_boundary.mjs";
-import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, sealedFileFor } from "./utils/note_vault.mjs";
+import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, publicNoteProblems, sealedFileFor } from "./utils/note_vault.mjs";
 import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 
 import { findMissingReferences } from "./utils/reference_check.mjs";
@@ -20,8 +20,33 @@ import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
 import { normalizeHeadings } from "./utils/headings.mjs";
 import { trendingSearchQueries, searchReposUrl } from "./utils/github_queries.mjs";
 import { resolveModelOrder, classifyGeminiError, GeminiStopError } from "./utils/gemini_models.mjs";
-import { recordRunStatus } from "./utils/run_status.mjs";
+import { recordRunStatus as writeRunStatus, jstDate as jstToday } from "./utils/run_status.mjs";
 import { rankCandidates, watchlistDocument, pubDateProblem, jstDate, SELECTION_CONFIG, REJECTION_REASONS } from "./utils/selection.mjs";
+import { slugForRepoName } from "./utils/blocklist.mjs";
+import { isPublishedOn, radarArticlesOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
+import { setFrontmatterField, quoteFrontmatterStrings, unwrapMarkdownFence, closeOpenFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
+
+// 実行結果（data/run_status）は、どの終わり方でも必ず 1 回記録する（記録の無い日は、アラートが理由を示せない）
+let runStatusRecorded = false;
+function recordRunStatus(run) {
+  runStatusRecorded = true;
+  return writeRunStatus(run);
+}
+
+// 記事のスラグ（ページ・原稿のファイル名と X 投稿文のリンク）は scripts/utils/blocklist.mjs の 1 つの規則で作る
+const slugOf = (repo) => slugForRepoName(repo.name) || `repo-${repo.id}`;
+
+// Gemini の 1 回の呼び出しを待つ上限（応答が返らないまま CI の実行が何時間も止まらないように）。テストでは短くする。
+// 記事 3 点を一度に書く長い出力でも通常は数分以内に返るため、正常な応答を切らないよう余裕を持たせる
+// （全モデルが時間切れでも 4 モデル × 6 分で止まり、workflow の生成ステップの上限 60 分に収まる）
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 6 * 60 * 1000;
+function withTimeout(promise, ms, what) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(Object.assign(new Error(`${what} timed out after ${ms}ms（時間切れ）`), { timedOut: true })), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -122,8 +147,7 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
     if (existingUrls.has(normUrl)) {
       return false;
     }
-    const slug = r.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
-    if (existingSlugs.has(slug)) {
+    if (existingSlugs.has(slugOf(r))) {
       return false;
     }
 
@@ -166,8 +190,8 @@ function licenseFor(repo) {
 }
 
 // 1回のAI呼び出しで「Web記事」「note有料記事ドラフト」「Xスレッド」を3点一括生成
-async function generateAllContent(repo, readme) {
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
+// today: 実行開始時に決めた日本時間の日付（本日分の上限の判定と同じ日付を公開日にする）
+async function generateAllContent(repo, readme, today, slug) {
   const licenseName = licensePromptText(await licenseFor(repo));
 
   const systemInstruction = `
@@ -330,7 +354,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 `;
 
   const { text, model } = await callGemini(prompt, systemInstruction);
-  const parsed = await parseGeneratedOutput(text, repo, today, model);
+  const parsed = await parseGeneratedOutput(text, repo, today, model, slug);
   return { ...parsed, model };
 }
 
@@ -338,17 +362,24 @@ https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
 let modelOrderPromise = null;
 const unavailableModels = new Set();
 const quotaModels = new Set();
+// 応答が時間切れになったモデル。この実行では以降呼ばない（待ち続けて実行が何時間も延びないように）
+const timedOutModels = new Set();
+const skipModel = (m) => unavailableModels.has(m) || quotaModels.has(m) || timedOutModels.has(m);
+// 全モデルが使えないときに実行を止める理由（run_status の reason）
+const stopReasonOf = (models) => (models.some((m) => quotaModels.has(m)) ? "quota" : models.some((m) => unavailableModels.has(m)) ? "model_unavailable" : "error");
 
 // Gemini を呼び出し、3 セクションがそろった出力とそのモデル名を返す。
 // - 404 / not found / is not supported / deprecated … 次のモデルへ
 // - 429 / RESOURCE_EXHAUSTED（利用枠切れ）… 利用枠はモデルごとなので、そのモデルだけ以降は使わず次のモデルへ。
 //   すべてのモデルが枠切れ（または使えない）なら実行全体を止める（GeminiStopError "quota"）
 // - 5xx 等の一時的な失敗 … 同じモデルで再試行してから次のモデルへ
-// - すべてのモデルが使えない … 実行全体を止める（GeminiStopError "model_unavailable"）
+// - 応答が GEMINI_TIMEOUT_MS 以内に返らない … そのモデルは以降呼ばず次のモデルへ
+// - すべてのモデルが使えない … 実行全体を止める（GeminiStopError "model_unavailable"、時間切れだけなら "error"）
 async function callGemini(prompt, systemInstruction) {
-  if (!modelOrderPromise) modelOrderPromise = resolveModelOrder(ai);
-  const models = (await modelOrderPromise).filter((m) => !unavailableModels.has(m) && !quotaModels.has(m));
-  if (!models.length) throw new GeminiStopError(quotaModels.size ? "quota" : "model_unavailable", "利用できるモデルがありません");
+  if (!modelOrderPromise) modelOrderPromise = resolveModelOrder({ models: { list: (o) => withTimeout(ai.models.list(o), GEMINI_TIMEOUT_MS, "Gemini models.list") } });
+  const order = await modelOrderPromise;
+  const models = order.filter((m) => !skipModel(m));
+  if (!models.length) throw new GeminiStopError(stopReasonOf(order), "利用できるモデルがありません");
   let lastError = null;
 
   for (const model of models) {
@@ -356,14 +387,14 @@ async function callGemini(prompt, systemInstruction) {
     for (let attempt = 1; attempt <= maxRetriesPerModel; attempt++) {
       try {
         console.log(`Generating with model: ${model} (attempt ${attempt}/${maxRetriesPerModel})`);
-        const response = await ai.models.generateContent({
+        const response = await withTimeout(ai.models.generateContent({
           model,
           contents: prompt,
           config: {
             systemInstruction,
             temperature: 0.2,
           },
-        });
+        }), GEMINI_TIMEOUT_MS, `Gemini ${model}`);
 
         const text = response.text || "";
         if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===") && text.includes("=== X THREAD ===")) {
@@ -373,6 +404,11 @@ async function callGemini(prompt, systemInstruction) {
         lastError = new Error(`Model ${model} の出力に必要なセクション（WEB / NOTE / X THREAD）がありません`);
       } catch (err) {
         lastError = err;
+        if (err?.timedOut) {
+          console.warn(`Model ${model} attempt ${attempt} failed (timeout): ${err.message}`);
+          timedOutModels.add(model);
+          break;
+        }
         const kind = classifyGeminiError(err);
         console.warn(`Model ${model} attempt ${attempt} failed (${kind}): ${err.message}`);
         // 枠を使い切った 429 は、同じモデルでは待っても次の候補でも通らない。再試行せず、このモデルを外して次のモデルへ
@@ -395,36 +431,11 @@ async function callGemini(prompt, systemInstruction) {
     }
   }
 
-  if (models.every((m) => unavailableModels.has(m) || quotaModels.has(m))) {
-    throw new GeminiStopError(models.some((m) => quotaModels.has(m)) ? "quota" : "model_unavailable", lastError || "利用できるモデルがありません");
+  if (models.every(skipModel)) {
+    throw new GeminiStopError(stopReasonOf(models), lastError || "利用できるモデルがありません");
   }
   throw lastError || new Error("All Gemini models failed");
 }
-
-// frontmatter（先頭の --- ～ ---）の key: を value に置き換える。無ければ末尾に足す
-function setFrontmatterField(content, key, value) {
-  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return content;
-  const re = new RegExp(`^${key}:.*$`, "m");
-  const fm = re.test(m[1]) ? m[1].replace(re, `${key}: ${value}`) : `${m[1]}\n${key}: ${value}`;
-  return content.replace(m[0], m[0].replace(m[1], fm));
-}
-
-// マークダウン構文・テーブル・異常空白サニタイズ
-function sanitizeMarkdownContent(raw) {
-  return raw.split('\n').map(line => {
-    let l = line;
-    // マークダウンテーブルの区切り行で20文字以上の連続ハイフンを正規化（35k〜770k文字の破綻を完全抑止）
-    if (l.includes('|')) {
-      l = l.replace(/ {2,}/g, ' ');
-      l = l.replace(/:?-{20,}:?/g, ':---');
-    }
-    // 50文字以上の暴走連続空白のクレンジング
-    l = l.replace(/ {50,}/g, ' ');
-    return l;
-  }).join('\n');
-}
-
 
 // Zennトピック規格（半角英数字・ハイフン・アンダースコアのみ）サニタイザー
 function sanitizeZennTopic(topic) {
@@ -437,7 +448,7 @@ function sanitizeZennTopic(topic) {
 }
 
 // 出力テキストを各ファイル用にパース
-async function parseGeneratedOutput(rawText, repo, today, model = null) {
+async function parseGeneratedOutput(rawText, repo, today, model = null, slug = slugOf(repo)) {
   let webContent = "";
   let noteContent = "";
   let xContent = "";
@@ -448,7 +459,7 @@ async function parseGeneratedOutput(rawText, repo, today, model = null) {
     const body = (parts[i + 1] || "").trim();
 
     if (section === "WEB ARTICLE") {
-      webContent = body.replace(/^```markdown\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      webContent = unwrapMarkdownFence(body);
     } else if (section === "NOTE ARTICLE") {
       noteContent = body;
     } else if (section === "X THREAD") {
@@ -480,9 +491,11 @@ ${webContent}`;
   webContent = setFrontmatterField(webContent, "stars", String(repo.stargazers_count));
   // 実際に生成に使ったモデル（フォールバックが起きた日を後から追えるように）
   if (model) webContent = setFrontmatterField(webContent, "generator_model", `"${model}"`);
+  // タイトル・説明文は YAML として正しい文字列に書き直す（説明文の " や \ でビルドが止まる・文字が化けるのを防ぐ）
+  webContent = quoteFrontmatterStrings(webContent);
 
-  // サニタイズ＆品質不変条件ガード
-  webContent = sanitizeMarkdownContent(webContent);
+  // サニタイズ＆品質不変条件ガード（閉じていないコードブロックは、Mermaid の補正・検査の前に閉じる）
+  webContent = closeOpenFence(sanitizeMarkdownContent(webContent));
   webContent = fixMermaidInContent(webContent);
   webContent = stripProSection(webContent);
   // ページの h1 は 1 つだけ（生成モデルが本文の章見出しにも # を使うことがある）
@@ -499,17 +512,10 @@ ${webContent}`;
   if (parseErrors.length > 0) throw new Error(`Mermaid図を描画できません: ${parseErrors.join(" / ")}`);
 
   // バッククォートの不整合があれば補正
-  const backtickCount = (webContent.match(/```/g) || []).length;
-  if (backtickCount % 2 !== 0) {
-    webContent += "\n```\n";
-  }
+  webContent = closeOpenFence(webContent);
 
   noteContent = sanitizeMarkdownContent(noteContent);
 
-  let slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-").replace(/^-+|-+$/g, "");
-  if (!slug || slug.length === 0) {
-    slug = `repo-${repo.id || Math.floor(Math.random() * 100000)}`;
-  }
   xContent = xContent.replace(/REPO_SLUG/g, slug);
 
   // X投稿文にワンクリック投稿リンクを付加（厳密な140文字制限・リンク保証）
@@ -618,22 +624,33 @@ async function run() {
   console.log(`インデックス済み既存記事: ${existingSlugs.size} 件 (重複防止テーブルを有効化)`);
 
   // 多重スケジュール（遅延救済バックアップ便）実行時の安全ガード：本日分が既に生成済みならスキップ
-  const jstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
-  let todayCount = 0;
+  // 日本時間の今日（この実行の間は固定。本日分の上限の判定と、生成する記事の公開日に同じ日付を使う）
+  const today = jstToday(Date.now());
+  // 手元の作業ツリーが古い（オーナー端末のランチャーから手動で実行した等）と、CI が今日すでに公開した記事を数えられず
+  // 1 日に 2 本目を作ってしまうため、push 済みの記事（origin/main）も数える。取り込めない（オフライン・git でない）ときは手元だけで判定する
+  const todaySlugs = new Set();
+  try {
+    fetchOriginMain(process.cwd());
+    for (const a of radarArticlesOnRef(process.cwd(), "origin/main")) {
+      existingSlugs.add(a.slug.toLowerCase());
+      const url = (a.content.match(/repoUrl:\s*["']([^"']+)["']/i) || [])[1];
+      if (url) existingUrls.add(url.trim().toLowerCase().replace(/\/$/, ""));
+      if (isPublishedOn(a.content, today)) todaySlugs.add(a.slug);
+    }
+  } catch (e) {
+    console.warn(`push 済みの記事（origin/main）を確認できないため、手元の記事だけで本日分を数えます: ${String(e.message).split("\n")[0]}`);
+  }
   if (fs.existsSync(webDir)) {
-    const existing = fs.readdirSync(webDir).filter((f) => f.endsWith(".md"));
-    for (const f of existing) {
+    for (const f of fs.readdirSync(webDir).filter((x) => x.endsWith(".md"))) {
       try {
-        const c = fs.readFileSync(path.join(webDir, f), "utf8");
-        if (new RegExp(`pubDate:\\s*["']?${jstToday}["']?`).test(c)) {
-          todayCount++;
-        }
+        if (isPublishedOn(fs.readFileSync(path.join(webDir, f), "utf8"), today)) todaySlugs.add(f.replace(/\.md$/, ""));
       } catch (e) {}
     }
   }
+  const todayCount = todaySlugs.size;
 
   if (todayCount >= TARGET_NEW_COUNT) {
-    console.log(`✓ 本日（${jstToday} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);
+    console.log(`✓ 本日（${today} JST）の目標記事（${todayCount}本）はすでに生成完了しています。冗長便のため安全に終了します。`);
     recordRunStatus({ generated: 0, reason: "cap_reached" });
     return;
   }
@@ -661,6 +678,7 @@ async function run() {
   const repos = selection.ranked.map((r) => r.item);
   if (repos.length === 0) {
     console.log("ℹ️ 選定条件を満たす候補がありませんでした。安全に終了します。");
+    recordRunStatus({ generated: 0, reason: "no_candidates" });
     return;
   }
 
@@ -681,7 +699,7 @@ async function run() {
       break;
     }
 
-    const slug = repo.name.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+    const slug = slugOf(repo);
     const webFile = path.join(webDir, `${slug}.md`);
     const noteFile = path.join(noteDir, `${slug}_note.md`);
     const xFile = path.join(xDir, `${slug}_x.txt`);
@@ -704,7 +722,7 @@ async function run() {
     }
 
     try {
-      const result = await generateAllContent(repo, readme);
+      const result = await generateAllContent(repo, readme, today, slug);
 
       // 有料部分は公開リポジトリに平文で置かない。有料ラインが無い原稿は有料部分を切り分けられないので採用しない
       if (!splitPaid(result.note)) {
@@ -713,7 +731,7 @@ async function run() {
       // 推奨ハッシュタグは生成モデルの出力ではなく、記事の対象（言語・トピック）から作ったもので揃える。
       // 領収書の案内は定型文にそろえ、そろえられない（案内が無い・事実と異なる古い断定がある）原稿は採用しない（次の候補を試す）
       const noteText = normalizeReceiptLine(applyNoteHashtags(withStandardFooter(result.note), noteHashtags(repo)));
-      const problems = [...noteDraftProblems(noteText), ...receiptProblems(noteText)];
+      const problems = [...noteDraftProblems(noteText), ...publicNoteProblems(noteFile, noteText), ...receiptProblems(noteText)];
       if (problems.length) {
         throw new Error(`note原稿が要件を満たしません（${problems.join(" / ")}）`);
       }
@@ -761,6 +779,9 @@ async function run() {
       if (repo.created_at) result.web = setFrontmatterField(result.web, "repoCreatedAt", `"${jstDate(repo.created_at)}"`);
       const dateProblem = pubDateProblem((result.web.match(/^pubDate:\s*["']?([^"'\n]*)["']?/m) || [])[1], repo.created_at);
       if (dateProblem) throw new Error(dateProblem);
+      // 保存するそのままの本文を、CI の品質ゲート・ビルドと同じ方法で最終検査する（途中の段階だけ検査して、ゲートで落ちる記事を保存しない）
+      const finalProblems = await finalWebArticleProblems(result.web);
+      if (finalProblems.length) throw new Error(`Web記事が品質ゲートを満たしません（${finalProblems.join(" / ")}）`);
 
       writeSealedNote(noteFile, noteText);
 
@@ -906,6 +927,11 @@ ${zennCta(slug)}
         stopReason = "model_unavailable";
         break;
       }
+      if (err instanceof GeminiStopError) {
+        console.log(`::warning title=Gemini not responding::Gemini の応答が時間切れになったため、残りの候補の生成を中止しました（${err.message.slice(0, 200)}）。`);
+        stopReason = err.reason;
+        break;
+      }
 
     }
   }
@@ -919,7 +945,10 @@ ${zennCta(slug)}
   recordRunStatus({ generated: generatedCount, reason, model: usedModel });
 }
 
-run().catch((err) => {
+run().then(() => {
+  // 記録せずに終わる道筋を作ってしまっても、記録の無い日を作らない
+  if (!runStatusRecorded) recordRunStatus({ generated: 0, reason: "error" });
+}).catch((err) => {
   console.error("Fatal error:", err);
   recordRunStatus({ generated: 0, reason: "error" });
   process.exit(1);

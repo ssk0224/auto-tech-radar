@@ -16,6 +16,14 @@ const DEFAULT_DELAY_MS = 400;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// 403 / 429 がレート制限によるものか。403 は利用規約違反などでアクセスが止められたリポジトリ（"Repository access blocked"）でも返るため、
+// それをレート制限と取り違えて毎日そこで止まり、以降のリポジトリが記録されなくならないよう、ヘッダーと本文で見分ける
+export function isRateLimited(status, headers, body = "") {
+  if (status === 429) return true;
+  if (status !== 403) return false;
+  return headers?.get?.("x-ratelimit-remaining") === "0" || !!headers?.get?.("retry-after") || /rate limit/i.test(body);
+}
+
 function githubHeaders(token) {
   const headers = { "User-Agent": "Auto-Tech-Radar/2.0", "Accept": "application/vnd.github+json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -56,8 +64,12 @@ export async function snapshotLedger({
     try {
       const res = await fetchImpl(url, { headers: githubHeaders(token), signal: AbortSignal.timeout(15000) });
       if (res.status === 403 || res.status === 429) {
-        console.warn(`ledger: GitHub API のレート制限（HTTP ${res.status}, remaining: ${res.headers?.get?.("x-ratelimit-remaining")}）。ここで止めます。`);
-        return { stop: "rate_limit" };
+        const body = await res.text().catch(() => "");
+        if (isRateLimited(res.status, res.headers, body)) {
+          console.warn(`ledger: GitHub API のレート制限（HTTP ${res.status}, remaining: ${res.headers?.get?.("x-ratelimit-remaining")}）。ここで止めます。`);
+          return { stop: "rate_limit" };
+        }
+        return { ok: false, status: res.status, message: body.slice(0, 120) };
       }
       if (!res.ok) return { ok: false, status: res.status };
       return { ok: true, status: res.status, data: await res.json() };
@@ -88,7 +100,8 @@ export async function snapshotLedger({
       if (!row) {
         const r = await getJson(`https://api.github.com/repos/${name}`);
         if (r.stop) { stopped = r.stop; break; }
-        if (r.status === 404) { console.warn(`ledger: ${name} が見つかりません（削除・非公開化の可能性）。この日は記録しません。`); continue; }
+        // 404（削除・非公開化）・451（DMCA）・403（利用規約違反などでアクセス停止）は、この日は記録しない（取り直しても取れない）
+        if ([403, 404, 451].includes(r.status)) { console.warn(`ledger: ${name} を取得できません（HTTP ${r.status}: 削除・非公開化・アクセス停止の可能性）。この日は記録しません。`); continue; }
         if (!r.ok) { console.warn(`ledger: ${name} の取得に失敗しました (HTTP ${r.status})`); incomplete = true; continue; }
         row = toLedgerRow(date, r.data, null);
       }

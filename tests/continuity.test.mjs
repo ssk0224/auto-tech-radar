@@ -2,7 +2,7 @@
 // Gemini の失敗の分類・モデル順の決定・実行結果の記録（data/run_status）・記事が無い日のアラート（Issue）
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "child_process";
+import { spawnSync, execFileSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -123,12 +123,40 @@ test("open なアラート Issue があれば、新しく作らずにコメン�
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("生成したが push できなかった記事（作業ツリーにだけある）は「今日の記事」に数えず、アラートを出す", () => {
+  const dir = fixture({ todayArticle: false, runs: [{ at: "t", event: "schedule", generated: 1, reason: "ok", model: "m" }] });
+  const g = (...a) => execFileSync("git", a, { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  try {
+    const remote = path.join(dir, "..", `${path.basename(dir)}-remote.git`);
+    execFileSync("git", ["init", "-q", "--bare", "-b", "main", remote]);
+    g("init", "-q", "-b", "main");
+    g("remote", "add", "origin", remote);
+    g("add", "-A");
+    g("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "old");
+    g("push", "-q", "origin", "main");
+    // 第3便が記事を生成したが、commit / push の手順が失敗した（作業ツリーには記事が残っている）
+    fs.writeFileSync(path.join(dir, "src/pages/radar/fresh.md"), '---\ntitle: "fresh"\npubDate: "2026-10-21"\nstars: 1\n---\n# fresh\n');
+    assert.equal(decideAlert({ rootDir: dir, now: NOW }).alert, false, "作業ツリーだけを見ると気づけない");
+    const d = decideAlert({ rootDir: dir, now: NOW, ref: "origin/main" });
+    assert.equal(d.alert, true);
+    assert.deepEqual(d.slugs, []);
+    // push できていればアラートは出さない
+    g("add", "-A");
+    g("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "fresh");
+    g("push", "-q", "origin", "main");
+    assert.deepEqual(decideAlert({ rootDir: dir, now: NOW, ref: "origin/main" }), { ...d, alert: false, slugs: ["fresh"] });
+    assert.throws(() => decideAlert({ rootDir: dir, now: NOW, ref: "origin/no-such-branch" }));
+    fs.rmSync(remote, { recursive: true, force: true });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("GITHUB_TOKEN / GITHUB_REPOSITORY が無いローカル実行では何も送らず正常終了する", () => {
   const dir = fixture({ todayArticle: false, runs: null });
   try {
     const env = { ...process.env };
     delete env.GITHUB_TOKEN;
     delete env.GITHUB_REPOSITORY;
+    delete env.GITHUB_ACTIONS; // CI の npm test でも「ローカル実行」として動かす（origin/main を取り込まない）
     const r = spawnSync(process.execPath, [path.join(root, "scripts/alert_if_no_article.mjs")], { cwd: dir, encoding: "utf8", env });
     assert.equal(r.status, 0, r.stderr);
     assert.match(r.stdout, /Issue は作成しません/);

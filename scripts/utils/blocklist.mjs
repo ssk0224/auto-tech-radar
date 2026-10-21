@@ -19,9 +19,11 @@ export const KEPT_BUT_BLOCKED_SLUGS = Object.freeze(["how-to-live-better"]);
 
 export const BLOCKED_SLUGS = Object.freeze([...REMOVED_SLUGS, ...KEPT_BUT_BLOCKED_SLUGS]);
 
-// リポジトリ名から記事のスラグを作る（crawl_and_generate と同じ規則）
+// リポジトリ名から記事のスラグを作る。記事ページ・note / X / Zenn の原稿のファイル名と、X 投稿文の記事リンクは
+// すべてこの 1 つの関数で作る（以前は生成スクリプトの中に先頭・末尾の - を落とす版と落とさない版があり、
+// 「.claude」のように . で始まる名前では X 投稿文のリンク先 /radar/claude/ と記事ページ /radar/-claude/ が食い違っていた）
 export function slugForRepoName(name) {
-  return String(name || "").toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+  return String(name || "").toLowerCase().replace(/[^a-z0-9_-]/g, "-").replace(/^-+|-+$/g, "");
 }
 
 export function isBlockedSlug(slug) {

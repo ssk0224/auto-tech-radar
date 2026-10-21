@@ -2,8 +2,10 @@
 // 「今日は記事が出なかった」ときに理由を後から確認でき、scripts/alert_if_no_article.mjs がアラートに載せる
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 
-export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "error", "cap_reached"];
+// rejected: 生成した記事が CI の品質ゲート（npm test）に通らず、取り除いた（workflow の Post-Crawl Quality Test Gate が記録する）
+export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "error", "cap_reached", "rejected"];
 
 export function jstDate(now = Date.now()) {
   return new Date(new Date(now).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -53,4 +55,14 @@ export function recordRunStatus({ rootDir = process.cwd(), now = Date.now(), gen
     console.warn(`run_status の記録に失敗しました: ${e.message}`);
     return null;
   }
+}
+
+// CLI: node scripts/utils/run_status.mjs <reason>（生成スクリプトの外で決まった結果を記録する。例: 品質ゲートで取り除いた rejected）
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  const reason = process.argv[2];
+  if (!RUN_REASONS.includes(reason)) {
+    console.error(`reason は ${RUN_REASONS.join(" / ")} のどれかです: ${reason}`);
+    process.exit(1);
+  }
+  recordRunStatus({ generated: 0, reason });
 }
