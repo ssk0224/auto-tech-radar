@@ -5,9 +5,10 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import readline from "readline";
-import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 import { chromium } from "playwright-core";
+import { buildEyecatchTasks } from "./note_api_server.mjs";
+import { eyecatchPng } from "./utils/eyecatch.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = path.join(os.homedir(), ".auto-tech-radar", "chrome-note");
@@ -16,16 +17,27 @@ const ask = (q) => new Promise((r) => {
   rl.question(q, (a) => (rl.close(), r(a)));
 });
 
-async function startBridge() {
-  const proc = spawn(process.execPath, [path.join(__dirname, "note_api_server.mjs"), "--eyecatch-only"], { cwd: path.join(__dirname, ".."), stdio: ["ignore", "pipe", "inherit"] });
-  await new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error("ローカルブリッジが起動しません")), 15000);
-    proc.stdout.on("data", (d) => {
-      process.stdout.write(d);
-      if (String(d).includes("待機中")) (clearTimeout(t), resolve());
-    });
+// ブラウザ内のスクリプトが「ローカルブリッジ」に出す要求を、この Node プロセスが直接返す。
+// ページから localhost への通信をしないので、Chrome のローカルネットワーク許可（版により付与できない）に左右されない
+const BRIDGE = "http://127.0.0.1:18921";
+async function serveBridge(ctx) {
+  const root = path.join(__dirname, "..");
+  const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
+  await ctx.route(`${BRIDGE}/**`, async (route) => {
+    const u = new URL(route.request().url());
+    if (u.pathname === "/eyecatch-tasks") return route.fulfill({ json: tasks, headers: { "Access-Control-Allow-Origin": "https://note.com" } });
+    const img = u.pathname.match(/^\/eyecatch\/([A-Za-z0-9_.-]+)\.png$/);
+    if (img && tasks.some((t) => t.slug === img[1])) {
+      return route.fulfill({ body: await eyecatchPng(img[1], root), contentType: "image/png", headers: { "Access-Control-Allow-Origin": "https://note.com" } });
+    }
+    if (u.pathname === "/log") {
+      try {
+        console.log(`  ${JSON.parse(route.request().postData() || "{}").text}`);
+      } catch (e) {}
+    }
+    return route.fulfill({ body: "ok", headers: { "Access-Control-Allow-Origin": "https://note.com" } });
   });
-  return proc;
+  return tasks;
 }
 
 async function openNote() {
@@ -39,8 +51,7 @@ async function openNote() {
     if (!process.env.CHROME_PATH) throw new Error(`Chrome を起動できません（Chrome をインストールするか CHROME_PATH を指定）: ${e.message.split("\n")[0]}`);
     ctx = await chromium.launchPersistentContext(PROFILE, { ...opts, executablePath: process.env.CHROME_PATH });
   }
-  // このPCのブリッジから画像を受け取るためのローカルネットワーク許可（未対応の版では無視）
-  await ctx.grantPermissions(["local-network-access"], { origin: "https://note.com" }).catch(() => {});
+  await serveBridge(ctx);
   if (process.env.ATR_NOTE_MOCK) await (await import(process.env.ATR_NOTE_MOCK)).default(ctx);
   const page = ctx.pages()[0] || (await ctx.newPage());
   await page.goto("https://note.com/notes", { waitUntil: "domcontentloaded" });
@@ -54,7 +65,6 @@ async function openNote() {
 }
 
 async function eyecatch() {
-  const bridge = await startBridge();
   let ctx;
   try {
     const opened = await openNote();
@@ -66,7 +76,6 @@ async function eyecatch() {
     return result.failed.length === 0;
   } finally {
     await ctx?.close().catch(() => {});
-    bridge.kill();
   }
 }
 
