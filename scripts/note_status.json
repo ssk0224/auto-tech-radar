@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-21T11:11:40.711Z",
+  "checkedAt": "2026-10-21T11:22:53.893Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
@@ -67,15 +67,13 @@
     },
     "answer-me-with-html": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1493,
+        "freeChars": 1482,
         "draftFreeChars": 1481,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -101,16 +99,13 @@
     },
     "cadcraft": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1732,
+        "freeChars": 1710,
         "draftFreeChars": 1389,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -136,17 +131,13 @@
     },
     "compositor": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1537,
+        "freeChars": 1513,
         "draftFreeChars": 1568,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -172,17 +163,13 @@
     },
     "diplay": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1329,
+        "freeChars": 1305,
         "draftFreeChars": 1355,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -208,17 +195,13 @@
     },
     "droiddeck": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1643,
+        "freeChars": 1619,
         "draftFreeChars": 1674,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -244,17 +227,13 @@
     },
     "dsh-our-free-model": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 2227,
+        "freeChars": 2198,
         "draftFreeChars": 2261,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -280,16 +259,13 @@
     },
     "dsh-tavern": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1581,
+        "freeChars": 1562,
         "draftFreeChars": 1623,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -315,15 +291,13 @@
     },
     "effectcraft": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 7485,
+        "freeChars": 7474,
         "draftFreeChars": 6999,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,
@@ -349,17 +323,13 @@
     },
     "filmcraft": {
       "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
+      "issues": [],
       "paidLine": {
-        "freeChars": 1649,
+        "freeChars": 1624,
         "draftFreeChars": 1678,
-        "endPct": null,
+        "endPct": 100,
         "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
+        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
       },
       "sale": {
         "can_member_edit": false,

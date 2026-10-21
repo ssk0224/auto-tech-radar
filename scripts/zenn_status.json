@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-10-21T11:12:11.174Z",
+  "checkedAt": "2026-10-21T11:23:20.447Z",
   "summary": {
-    "total": 44,
+    "total": 38,
     "live": 0,
     "likes": 0,
     "users": [],
@@ -40,12 +40,6 @@
     },
     {
       "slug": "compositor-tech-radar",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
-      "slug": "crates-io-index",
       "published": false,
       "live": null,
       "status": 403
@@ -105,25 +99,7 @@
       "status": 403
     },
     {
-      "slug": "homebrew-cask",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
-      "slug": "homebrew-core",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
       "slug": "how-to-live-better",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
-      "slug": "internships-2027",
       "published": false,
       "live": null,
       "status": 403
@@ -178,18 +154,6 @@
     },
     {
       "slug": "md3music-tech-radar",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
-      "slug": "mediawiki-tech-radar",
-      "published": false,
-      "live": null,
-      "status": 403
-    },
-    {
-      "slug": "nixpkgs-tech-radar",
       "published": false,
       "live": null,
       "status": 403
