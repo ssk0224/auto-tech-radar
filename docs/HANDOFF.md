@@ -44,8 +44,9 @@
 
 ## 未完了（今後の自動運用・任意設定）
 - **【2026-10-21 22:30 JST ローカルセッション（オーナー PC）の状態】**
-  - **Search Console**: `scripts/webmaster_setup.mjs gsc` で URL プレフィックス `https://ssk0224.github.io/auto-tech-radar/` を追加し、確認タグを `src/config/site.js` に設定 → push 済み（5bc4559、CI run 39610091171）。所有者の Google アカウントは heaven.field.farmers.place.ssk0801@gmail.com（オーナーがログインしたもの）。**次: デプロイ後に `node scripts/webmaster_setup.mjs gsc-verify`（「確認」とサイトマップ送信を自動で行う）**。
-  - **Cloudflare Web Analytics**: `node scripts/webmaster_setup.mjs cf` を実行中（オーナーのログイン待ち）。token が `site.js` に入ったら、テスト（`node --test tests/site_tags.test.mjs tests/webmaster.test.mjs`）・ビルド → commit・push。privacy.astro の外部送信一覧は同じ設定値で自動的に載る。
+  - **Search Console（所有権確認済み・2026-10-21 23:10 JST）**: URL プレフィックス `https://ssk0224.github.io/auto-tech-radar/`、所有者の Google アカウントは heaven.field.farmers.place.ssk0801@gmail.com（オーナーがログインしたもの）。確認タグは `site.js`（5bc4559）。サイトマップ `sitemap-index.xml` を送信済みだが、送信直後の状態は「取得できませんでした」（公開中のサイトマップは正常: index→sitemap-0.xml、49 URL、すべてサイト配下）。**10/22 以降に再確認**（専用プロファイルでサイトマップ画面を開いて状態を読む）。それでも取得できなければ原因を調べる。
+  - **Cloudflare Web Analytics（有効化・58e36b1）**: `webmaster_setup.mjs cf` で token を取得。beacon と privacy.astro の外部送信の記載は同じ設定値で出る（ビルドと audit_dist で確認済み）。計測値は Cloudflare のダッシュボード（同じ専用プロファイルでログイン済み）。
+  - 時刻だけのコミット: CI が `note_status.json`・`zenn_status.json` の `checkedAt` だけを変えて「chore: auto-index new tech radar entry」というコミットを毎回作る（件名が実態と合わない・履歴と rebase の手間が増える）。直す候補。
   - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
   - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
   - **星履歴 API は第三者のリポジトリで使える**（`gh api repos/<owner>/<repo>/stargazers/history` が HTTP 200・日別の星数、2026-10-21 実測）。→「Radar Ledger は後から作れないデータ」という前提は誤り。差別化は「いつ何を選んだかの事前記録・検証ログ・日本語の判断」に置く。
