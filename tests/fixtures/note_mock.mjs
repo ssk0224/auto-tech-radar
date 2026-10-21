@@ -6,9 +6,12 @@
 // ATR_NOTE_MOCK_INVOICE の記事はインボイス対応領収書の案内を（実機で起こりうる太字の区切りを含めて）、ATR_NOTE_MOCK_COPIPE の記事は「コピペで本番一発起動」を含む。
 // その案内について、ATR_NOTE_MOCK_RESUME の記事は下書きだけ直してある（前回の実行で公開に至らなかった）、ATR_NOTE_MOCK_OTHER の記事は下書きでは同じくらいの長さの別の文になっている。
 // 編集画面は本文を編集でき、「更新する」で編集後の本文が公開中の本文になる。ATR_NOTE_MOCK_DUMP を指定すると、更新のたびに更新した記事の本文（記事キー → 本文）をそのファイルに書く
+// 記事 API はログイン（Cookie）ありならオーナーとして全文を、なしなら無料部分（最後の有料部分の段落より前）だけを返す。
+// ATR_NOTE_MOCK_PAIDMOVE の記事は、「更新する」の後に有料ラインが外れて、ログインなしでも全文が読める（有料ラインの位置が変わった事故の再現）
 import fs from "fs";
 
 const INVOICE_HTML = "マイページより<strong>インボイス対応領収書</strong>が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。";
+const PAID_HTML = "<p>有料部分の本文です。導入手順と見積表。</p>";
 
 export default async function install(ctx) {
   const sessionFile = process.env.ATR_NOTE_MOCK_SESSION;
@@ -22,7 +25,7 @@ export default async function install(ctx) {
       has("ATR_NOTE_MOCK_WORDING", k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : "",
       has("ATR_NOTE_MOCK_COPIPE", k) ? "<ul><li><p>コピペで本番一発起動できる「Docker Compose &amp; .env 設定キット」</p></li></ul>" : "",
       has("ATR_NOTE_MOCK_INVOICE", k) ? `<blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote>` : "",
-      "<p>有料部分の本文です。導入手順と見積表。</p>",
+      PAID_HTML,
     ].join(""));
   const draft = (k) => {
     if (has("ATR_NOTE_MOCK_DRIFT", k)) return `${live(k)}<p>${"以前の手作業で貼り付けた別の本文。".repeat(20)}</p>`;
@@ -41,7 +44,13 @@ export default async function install(ctx) {
     }
     if (u.pathname === "/notes") return route.fulfill({ body: "<html><body>notes</body></html>", contentType: "text/html" });
     const m = u.pathname.match(/^\/api\/v3\/notes\/(n\w+)$/);
-    if (m) return route.fulfill({ json: { data: { id: 42, eyecatch: m[1] === target ? state.published : "https://x/img.png", updated_at: "x", body: live(m[1]) } } });
+    if (m) {
+      const owner = /XSRF-TOKEN=/.test((await req.allHeaders()).cookie || "");
+      const full = live(m[1]);
+      const moved = has("ATR_NOTE_MOCK_PAIDMOVE", m[1]) && state.updated[m[1]];
+      const body = owner || moved ? full : full.slice(0, full.lastIndexOf(PAID_HTML));
+      return route.fulfill({ json: { data: { id: 42, eyecatch: m[1] === target ? state.published : "https://x/img.png", updated_at: "x", body } } });
+    }
     if (u.pathname === "/api/v1/stats/pv") return route.fulfill({ json: { data: { note_stats: [{ name: "記事A", read_count: 12, like_count: 1, comment_count: 0 }], total_pv: 12, total_like: 1, last_page: true } } });
     if (u.pathname === "/api/v1/image_upload/note_eyecatch") {
       const body = req.postDataBuffer().toString("latin1");

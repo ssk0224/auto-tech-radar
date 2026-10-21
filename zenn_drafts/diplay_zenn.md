@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「DiPlay」のアーキテクチャ
 emoji: "⚡"
 type: "tech"
 topics: ["kotlin", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # DiPlay: 概要と革新性
@@ -12,7 +12,7 @@ published: true
 
 従来の車載Android端末におけるCarPlay利用は、Carlinkitなどの「外付けUSBハードウェアドングル（プロトコル変換アダプター）」を物理接続することが事実上の業界標準でした。しかしDiPlayは、追加ハードウェアを一切介さず、Android車載機のAPKレイヤー単体でCarPlayプロトコルのハンドシェイク、Wi-Fi Direct / 車載ホットスポット経由のワイヤレスリンク確立、映像デコード、オーディオバッファリング、HID入力を完結させます。
 
-GitHubスター数は1万を超え、車載組み込み・車載Android（AOSP/AAOS）ハッキングコミュニティを中心に爆発的な注目を集めています。
+GitHubスター数は1万を超え、車載組み込み・車載Android（AOSP/AAOS）ハッキングコミュニティを中心に注目を集めています。
 
 ---
 

@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import { NOTE_TEXT_RULES, applyNoteRules } from "../scripts/utils/note_pending.mjs";
 import { paidLineReport } from "../scripts/sync_note_urls.mjs";
+import { RECEIPT_LINE, OLD_RECEIPT_CLAIM, normalizeReceiptLine, receiptProblems } from "../scripts/utils/receipt.mjs";
 
 const RECEIPT = "> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。";
 const OLD_CLAIM = /インボイス|即時発行可能|経費精算いただけます/;
@@ -41,4 +42,29 @@ test("[E] が公開中の note で直した後の案内は原稿の案内と同�
   assert.ok(at > 0);
   const liveAfterFix = applyNoteRules([...lines.slice(0, at), oldLine].join("\n"));
   assert.equal(paidLineReport(liveAfterFix, draft).endPct, 100);
+});
+
+test("生成した原稿の領収書の案内は定型文にそろえ、そろえられない原稿は生成スクリプトが採用しない（CI のテストで落とさない）", () => {
+  assert.equal(RECEIPT_LINE, RECEIPT);
+  assert.equal(String(OLD_RECEIPT_CLAIM), String(OLD_CLAIM));
+  const doc = (receipt, extra = "") =>
+    ["# t", `無料の導入。${extra}`, "> 💡 **【経費精算について】**", receipt, "", "【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】", "## 有料", "本文", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS"].join("\n");
+  // 生成モデルが言い回しを少し変えた案内（「> 」が無い・語尾が違う・古い案内のまま）は定型文に直す
+  for (const variant of ["> ※noteは購入後、マイページから領収書を発行できます。", "※ noteでは購入後に領収書を発行できます", "> ※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」として経費精算いただけます。"]) {
+    const out = normalizeReceiptLine(doc(variant));
+    assert.ok(out.split("\n").includes(RECEIPT), variant);
+    assert.deepEqual(receiptProblems(out), [], variant);
+  }
+  // 定型文があればそのまま
+  assert.equal(normalizeReceiptLine(doc(RECEIPT)), doc(RECEIPT));
+  // 案内が無い・無料部分の別の箇所でインボイス対応をうたう原稿は採用しない
+  assert.match(receiptProblems(normalizeReceiptLine(doc("経費精算にも使えます。"))).join(), /定型文/);
+  assert.match(receiptProblems(normalizeReceiptLine(doc("> ※領収書は発行できます", "インボイス制度対応の請求書も作れます。"))).join(), /断定/);
+  // 有料ラインより後の行は書き換えない
+  const paidOnly = ["# t", "無料", "【有料ライン ここから先は有料会員限定】", "※購入者向けの領収書の注意"].join("\n");
+  assert.equal(normalizeReceiptLine(paidOnly), paidOnly);
+  // 生成スクリプトは保存前に、そろえてから検査する
+  const src = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
+  assert.match(src, /const noteText = normalizeReceiptLine\(/);
+  assert.match(src, /\.\.\.receiptProblems\(noteText\)/);
 });

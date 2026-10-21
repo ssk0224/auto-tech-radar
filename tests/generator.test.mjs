@@ -11,7 +11,8 @@ const root = path.resolve(import.meta.dirname, "..");
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
-const output = ({ mermaid = true, footer = true, image = "", hype = "", paidExtra = "" } = {}) => `=== WEB ARTICLE ===
+// receipt: 無料部分の領収書の案内（生成モデルが雛形の定型文を少し言い換えた形。保存時に定型文にそろえる）
+const output = ({ mermaid = true, footer = true, image = "", hype = "", paidExtra = "", receipt = "> ※noteは購入後、マイページから領収書を発行できます。" } = {}) => `=== WEB ARTICLE ===
 ---
 layout: "../../layouts/Layout.astro"
 title: "testtool - test"
@@ -27,6 +28,7 @@ ${mermaid ? '```mermaid\ngraph TD\n  A["CLI"] --> B["Core"]\n```' : "図なし"}
 === NOTE ARTICLE ===
 # testtool note
 無料部分の導入。${hype}経費精算にも使えます。
+${receipt}
 --------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 --------------------------------------------------
@@ -81,6 +83,8 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
     const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
     assert.match(pub, /^#OSS #Go #cli #devops$/m);
     assert.doesNotMatch(pub, /#副業|#受託開発/);
+    // 領収書の案内は定型文にそろえて保存する（tests/receipt_wording.test.mjs が全原稿で確かめる文）
+    assert.ok(pub.split("\n").includes("> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"), pub);
     // Zenn への自動公開は停止中: articles/ には下書き（published: false）として書く
     const zenn = fs.readFileSync(path.join(dir, "articles/testtool-tech-radar.md"), "utf8");
     assert.match(zenn, /^published: false$/m);
@@ -117,6 +121,8 @@ for (const [name, opts, why] of [
   ["実在しないイメージを含む", { image: "ghcr.io/acme/does-not-exist:latest" }, /実在を確認できない参照/],
   ["無料部分に誇張表現（一発起動）を含む", { hype: "コピペで本番一発起動できます。" }, /誇張・結果保証の表現/],
   ["有料部分に収入の金額を含む", { paidExtra: "このSaaSでMRR 50万円を見込めます。" }, /誇張・結果保証の表現/],
+  ["無料部分に領収書の案内が無い", { receipt: "" }, /領収書の案内（定型文）が無料部分にありません/],
+  ["無料部分でインボイス対応をうたう", { hype: "インボイス制度にも対応しています。" }, /インボイス対応・即時発行・経費精算できるという断定/],
 ]) {
   test(`不採用になる: ${name}`, () => {
     const { dir, log } = run(output(opts));

@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「PotatoTool」のアーキテク�
 emoji: "⚡"
 type: "tech"
 topics: ["java", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # PotatoTool: 概要と革新性

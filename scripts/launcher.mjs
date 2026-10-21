@@ -12,7 +12,7 @@ import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
-import { noteListingBlock } from './utils/note_listing.mjs';
+import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -151,7 +151,8 @@ function saveHistory(history) {
 function recordPublish(slug, type) {
   const history = loadHistory();
   if (!history[slug]) history[slug] = {};
-  const todayStr = new Date().toISOString().split('T')[0];
+  // 日本時間の日付で記録する（note の出品上限 noteListingBlock は日本時間の日付で数える）
+  const todayStr = jstDay();
   if (type === 'note') {
     history[slug].note = true;
     history[slug].noteAt = todayStr;
@@ -360,7 +361,7 @@ function renderHeader() {
   if (autoFix > 0) {
     console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
     console.log(`  ${c.cyan}${c.bold}✏ note の公開中の記事 ${autoFix} 本に直すべき表現があります（インボイス対応領収書の案内など）${c.reset}`);
-    console.log(`     👉 メニュー ${c.cyan}${c.bold}[E]${c.reset} で自動で直します（1回に${NOTE_FIX_MAX}本まで。残りは次の [E] で）`);
+    console.log(`     👉 メニュー ${c.cyan}${c.bold}[E]${c.reset} で自動で直します（note への更新を短時間に繰り返さないよう、24時間に${NOTE_FIX_MAX}本まで。残りは翌日以降の [E] で）`);
   }
 
   const unpostedDraft = drafts.find(d => !d.isNotePosted || !d.isXPosted);
@@ -392,7 +393,7 @@ function promptMenu() {
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
-  console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.cyan}${c.bold}⚡ 【Zenn自動デプロイ】GitHub公式連携コンソール（全36記事・完全全自動化）${c.reset} ${c.dim}(0クリック自動公開)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.bold}Zenn（自動公開は停止中）: 公開中の記事の確認・非公開化${c.reset} ${c.dim}(Zenn の規約に合わせて投稿しません)${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「今週の急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[Q]${c.reset} ${c.green}${c.bold}⚡ 【Qiitaマルチポスト】技術記事をQiitaに出品${c.reset} ${c.dim}(国内2大巨頭完全制覇)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
@@ -459,7 +460,7 @@ function handleChoice(choice, pulled = false) {
       runWeeklyThread();
       break;
     case '9':
-      runPublishHelper('zenn');
+      zennFrozenNotice();
       break;
     case '1':
       console.log(`\n${c.cyan}note を開きます（右上メニューの「売上管理」から入金を確認できます）...${c.reset}`);
@@ -646,13 +647,13 @@ function runNoteUpdates() {
 }
 
 function runPublishHelper(mode) {
+  // Zenn への投稿（送客ドラフトのコピー・投稿画面を開く）は停止中（zennFrozenNotice）
+  if (mode === 'zenn') return zennFrozenNotice();
   const drafts = getDrafts();
   console.clear();
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   if (mode === 'note') {
     console.log(`   ${c.green}${c.bold}📗 【note 有料記事出品セレクター】 出品したいレポートを選んでください${c.reset}`);
-  } else if (mode === 'zenn') {
-    console.log(`   ${c.cyan}${c.bold}🚀 【Zenn / Qiita 送客セレクター】 送客ドラフトを出力したいレポートを選んでください${c.reset}`);
   } else {
     console.log(`   ${c.blue}${c.bold}📱 【𝕏 ワンクリック拡散セレクター】 ポストしたいレポートを選んでください${c.reset}`);
   }
@@ -815,61 +816,6 @@ function runPublishHelper(mode) {
         }
         waitBack();
       });
-    } else if (mode === 'zenn') {
-      const zennDir = path.join(rootDir, 'zenn_drafts');
-      if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });
-      const zennFile = path.join(zennDir, `${selected.slug}_zenn.md`);
-
-      // Zennドラフトが存在しない場合はオンデマンド生成
-      if (!fs.existsSync(zennFile)) {
-        const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${selected.slug}.md`);
-        let articleContent = '';
-        if (fs.existsSync(radarMd)) {
-          articleContent = fs.readFileSync(radarMd, 'utf8');
-          articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
-        } else {
-          // note 原稿は有料部分が暗号化済みのため Zenn には流用しない
-          console.log(`\n${c.red}❌ Web記事（src/pages/radar/${selected.slug}.md）が無いため Zenn 原稿を作れません。${c.reset}`);
-          waitBack();
-          return;
-        }
-        const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
-        const zennDraft = `---
-title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
-emoji: "⚡"
-type: "tech"
-topics: ["ai", "oss", "github", "architecture", "programming"]
-published: true
----
-
-${articleContent}
-
----
-
-${zennCta(selected.slug)}`;
-        fs.writeFileSync(zennFile, zennDraft, 'utf8');
-      }
-
-      // クリップボードに原稿をUTF-8で自動コピー
-      try {
-        execSync(`powershell -NoProfile -Command "Get-Content -LiteralPath '${zennFile.replace(/'/g, "''")}' -Raw -Encoding UTF8 | Set-Clipboard"`, { stdio: 'ignore' });
-      } catch (e) {}
-
-      openFile(zennFile);
-      openUrl("https://zenn.dev/");
-
-      console.log(`\n${c.cyan}${c.bold}================================================================================${c.reset}`);
-      console.log(`  ${c.cyan}✓ Zennホーム画面 と 送客ドラフト（${selected.slug}_zenn.md）を開きました！${c.reset}`);
-      console.log(`  ${c.green}📋 【神機能】記事全文をクリップボードに自動コピーしました！${c.reset}`);
-      console.log(`  ${c.dim}※ この記事は「Zenn送客済み [✓]」としてステータスを自動記録しました。${c.reset}`);
-      console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
-      console.log(`  ${c.bold}【投稿手順 (最短20秒)】${c.reset}`);
-      console.log(`  1. ブラウザ右上の青い ${c.cyan}「投稿する」${c.reset} ボタンをクリック`);
-      console.log(`  2. エディタが開いたら ${c.cyan}[Ctrl + V]${c.reset} を押して貼り付け（クリップボードから即貼付け）`);
-      console.log(`  3. 「公開」を押すだけで、Auto Tech Radarへの恒久的SEO被リンクが完成！`);
-      console.log(`  ※ Qiitaにも同じ文面を https://qiita.com/drafts/new でそのまま貼り付け可能です。`);
-      console.log(`${c.cyan}${c.bold}================================================================================${c.reset}\n`);
-      waitBack();
     } else if (mode === 'qiita') {
       const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${selected.slug}.md`);
       let articleContent = '';
@@ -933,34 +879,29 @@ ${zennCta(selected.slug)}`;
   });
 }
 
-// ⚡ Zenn 公式GitHub自動連携コンソール
+// Zenn への自動公開・投稿の補助は停止中（2026-10-21）。Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿を認めない）に沿わないため、
+// articles/*.md と zenn_drafts/*.md はすべて published: false（下書き）にしてあり、ランチャーからも Zenn に投稿する流れは開かない
+function zennFrozenNotice() {
+  console.clear();
+  console.log(`${c.yellow}${c.bold}Zenn への投稿は停止しています（2026-10-21）。${c.reset}`);
+  console.log(`  自動生成した記事を Zenn に公開すると、Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないためです。`);
+  console.log(`  articles/ と zenn_drafts/ の原稿はすべて published: false（下書き）です。Zenn に投稿・公開はしないでください。`);
+  console.log(`  以前に公開した記事が Zenn に残っていれば、メニュー [Z] からダッシュボードを開いて非公開にしてください（GitHub の確認でも警告します）。\n`);
+  waitBack();
+}
+
+// Zenn: 自動公開は停止中。公開中の記事が残っていないかの確認と、連携の解除だけを案内する
 function runZennConsole() {
   console.clear();
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-  console.log(`   ${c.yellow}⚡ Zenn 公式GitHub自動連携コンソール${c.reset}  ${c.white}${c.bold}|  完全自動デプロイ管理${c.reset}`);
+  console.log(`   ${c.yellow}Zenn（自動公開は停止中）${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
-
-  const articlesDir = path.join(rootDir, 'articles');
-  const count = fs.existsSync(articlesDir) ? fs.readdirSync(articlesDir).filter(f => f.endsWith('.md')).length : 0;
-
-  console.log(`  ${c.dim}連携ステータス:${c.reset} ${c.green}${c.bold}● 完全全自動化対応済み (GitHub Actions連動)${c.reset}`);
-  console.log(`  ${c.dim}対象リポジトリ:${c.reset} ${c.cyan}ssk0224/auto-tech-radar${c.reset}  |  ${c.dim}ブランチ:${c.reset} ${c.white}main${c.reset}`);
-  console.log(`  ${c.dim}連携ディレクトリ:${c.reset} ${c.yellow}articles/*.md${c.reset}  (${c.white}${c.bold}全 ${count} 本のレポート待機中${c.reset})`);
+  console.log(`  自動生成した記事は Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないため、Zenn には公開しません。`);
+  console.log(`  articles/*.md はすべて published: false（下書き）です。GitHub に push しても Zenn では公開されません。`);
+  console.log(`  以前に公開した記事が Zenn に残っている場合は、ダッシュボードで非公開にしてください。`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
-  console.log(`  ${c.bold}【完全自動化の仕組み】${c.reset}`);
-  console.log(`  1. 毎朝6:17 JSTにGitHub Actionsが急上昇OSSを自動巡回・日本語記事化。`);
-  console.log(`  2. 自動的に ${c.yellow}articles/xxx.md${c.reset} を生成し、GitHubに自動プッシュ。`);
-  console.log(`  3. Zenn公式GitHub連携が検知し、${c.green}${c.bold}ユーザーの操作不要で自動公開${c.reset}されます！`);
-  console.log(`${c.yellow}--------------------------------------------------------------------------------${c.reset}`);
-  console.log(`  ${c.yellow}${c.bold}💡 【完全自動同期（完全放置）の重要設定】:${c.reset}`);
-  console.log(`     GitHubのセキュリティ仕様上、標準GITHUB_TOKENのPushはZennの自動検知が抑制される場合があります。`);
-  console.log(`     リポジトリの Secrets に ${c.cyan}${c.bold}GH_PAT${c.reset} (Personal Access Token) を登録すると、100%完全放置でZennへ自動同期されます。`);
-  console.log(`     ※未登録の場合でも、Zennデプロイ画面で「同期」を押すだけでいつでも最新記事が一括反映されます！`);
-  console.log(`${c.cyan}================================================================================${c.reset}`);
-
-  console.log(`\n  ${c.white}${c.bold}[1]${c.reset} ${c.cyan}${c.bold}Zenn公式 GitHub連携設定画面を開く${c.reset} ${c.dim}(https://zenn.dev/dashboard/deploys - 初回1回のみ)${c.reset}`);
-  console.log(`  ${c.white}${c.bold}[2]${c.reset} ${c.white}Zenn ダッシュボードを開く${c.reset} ${c.dim}(https://zenn.dev/dashboard - 公開状況・閲覧数チェック)${c.reset}`);
-  console.log(`  ${c.white}${c.bold}[3]${c.reset} ${c.white}Qiitaや他媒体に手動でマルチポストする${c.reset} ${c.dim}(個別記事をクリップボードコピー)${c.reset}`);
+  console.log(`\n  ${c.white}${c.bold}[1]${c.reset} ${c.white}Zenn の GitHub 連携の設定画面を開く${c.reset} ${c.dim}(https://zenn.dev/dashboard/deploys - 連携の確認・解除)${c.reset}`);
+  console.log(`  ${c.white}${c.bold}[2]${c.reset} ${c.white}Zenn ダッシュボードを開く${c.reset} ${c.dim}(https://zenn.dev/dashboard - 公開中の記事の確認・非公開化)${c.reset}`);
   console.log(`  ${c.dim}[0] メインメニューに戻る${c.reset}`);
 
   const rl = readline.createInterface({
@@ -979,8 +920,6 @@ function runZennConsole() {
       console.log(`\n${c.cyan}Zennのダッシュボードを開きます...${c.reset}`);
       openUrl("https://zenn.dev/dashboard");
       waitBack();
-    } else if (a === '3') {
-      runPublishHelper('zenn');
     } else {
       promptMenu();
     }
@@ -1183,7 +1122,7 @@ function runNoteEyecatch() {
   console.clear();
   console.log(`${c.cyan}${c.bold}=== 🖼 note 自動メンテ（見出し画像・要修正の表現の修正・閲覧数） ===${c.reset}\n`);
   console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。`);
-  console.log(`表現の修正は記事の間を約20秒あけて1本ずつ行うため、数分かかることがあります（1回に${NOTE_FIX_MAX}本まで）。\n`);
+  console.log(`表現の修正は記事の間を約20秒あけて1本ずつ行うため、数分かかることがあります（24時間に${NOTE_FIX_MAX}本まで。上限に達していれば、次に直せる時刻を表示して表現の修正は行いません）。\n`);
   try {
     execSync('node scripts/note_browser.mjs maintain', { cwd: rootDir, stdio: 'inherit' });
     console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認します（結果は自動で GitHub に送られます。操作はこれで終わりです）。${c.reset}`);

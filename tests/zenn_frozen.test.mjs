@@ -27,6 +27,41 @@ test("生成スクリプトは Zenn 原稿を published: false でしか書か�
   assert.match(src, /^published: false$/m);
 });
 
+test("どのスクリプトも Zenn 原稿を published: true で書かず、zenn_drafts/ もすべて下書き", () => {
+  const scripts = [];
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) walk(p);
+    else if (/\.(mjs|js|cjs)$/.test(e.name)) scripts.push(p);
+  });
+  walk("scripts");
+  assert.ok(scripts.includes(path.join("scripts", "launcher.mjs")));
+  for (const f of scripts) {
+    const s = fs.readFileSync(f, "utf8");
+    assert.doesNotMatch(s, /^published:\s*true\b/m, f);
+    assert.doesNotMatch(s, /^published:\s*\$\{/m, f);
+  }
+  const drafts = fs.readdirSync("zenn_drafts").filter((f) => f.endsWith(".md"));
+  assert.ok(drafts.length > 0);
+  for (const f of drafts) {
+    const s = fs.readFileSync(path.join("zenn_drafts", f), "utf8");
+    assert.doesNotMatch(s, /^published:\s*true\b/m, f);
+    assert.match(frontmatter(s), /^published:\s*false\s*$/m, `${f}: front matter に published: false が無い`);
+  }
+});
+
+test("ランチャー・投稿補助は Zenn に投稿する流れを開かず、自動公開をうたわない", () => {
+  const launcher = fs.readFileSync("scripts/launcher.mjs", "utf8");
+  // [9]・[Z]→[3] は投稿の補助（runPublishHelper('zenn')）ではなく停止の案内
+  assert.doesNotMatch(launcher, /runPublishHelper\('zenn'\)/);
+  assert.match(launcher, /case '9':\n\s*zennFrozenNotice\(\);/);
+  assert.match(launcher, /if \(mode === 'zenn'\) return zennFrozenNotice\(\);/);
+  assert.doesNotMatch(launcher, /zenn\.dev\/articles\/new|0クリック自動公開|自動公開されます|ユーザーの操作不要で自動公開|「公開」を押すだけ/);
+  const helper = fs.readFileSync("scripts/publish_helper.mjs", "utf8");
+  assert.doesNotMatch(helper, /zenn\.dev\/articles\/new|「公開」を押すだけ/);
+  assert.match(helper, /Zenn への投稿は停止しています/);
+});
+
 test("Zenn の確認: 非公開にした記事が公開中のままなら警告し、自動公開の停止中は「連携が未設定」と言わない", () => {
   const frozen = [
     { slug: "aaa-tech-radar", published: false, live: false },

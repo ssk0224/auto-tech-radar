@@ -108,7 +108,7 @@ test("公開中の note の検査: 禁止表現・ThoughtWorks・# 始まりの�
   // インボイス発行事業者に未登録なので「インボイス対応領収書」の案内は事実と異なる。「コピペで本番一発起動」も動作未検証の手順には使えない
   const claims = publishedNoteIssues({ name: "x", body: "<p>コピペで本番一発起動できる「キット」</p><blockquote><p>※noteは購入後、マイページよりインボイス対応領収書が即時発行可能です。</p></blockquote>" });
   assert.ok(claims.some((i) => /インボイス/.test(i)));
-  assert.ok(claims.some((i) => /コピペで本番一発起動/.test(i)));
+  assert.ok(claims.some((i) => /コピペで本番/.test(i)));
 });
 
 test("note_status.json の衝突は検査時刻が新しい方を採る", async () => {

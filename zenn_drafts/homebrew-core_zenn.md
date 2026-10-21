@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「homebrew-core」のアーキテ�
 emoji: "⚡"
 type: "tech"
 topics: ["ruby", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # homebrew-core: 概要と革新性

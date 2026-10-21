@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「AIHOT」のアーキテクチャ�
 emoji: "⚡"
 type: "tech"
 topics: ["typescript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # AIHOT: 概要と革新性

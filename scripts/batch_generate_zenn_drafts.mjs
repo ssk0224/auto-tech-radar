@@ -34,12 +34,13 @@ for (const file of files) {
     }
   }
 
+  // Zenn への公開は停止中（2026-10-21、Zenn の規約に沿わないため）。原稿は下書き（published: false）でしか作らない
   const zennDraft = `---
 title: "【徹底解剖】海外急上昇OSS「${title}」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
 topics: ["${tag}", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 ${cleanBody}

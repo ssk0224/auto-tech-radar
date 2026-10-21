@@ -13,7 +13,7 @@ https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
 【従来の単一エージェントとの決定的な差】
 ・Swarmflowによる決定論的ワークフロー制御
 ・失敗やユーザーFBからスキル定義を自動最適化
-・外部クラウド依存ゼロでエンタープライズDX提案に即決採用
+・外部クラウドに依存せず社内環境で動かせる
 
 [TWEET 3]
 【💡 実務キットは note で】

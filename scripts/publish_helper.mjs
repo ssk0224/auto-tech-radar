@@ -5,7 +5,6 @@ import { exec, execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { openNoteForPublishing } from './utils/note_vault.mjs';
-import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -173,53 +172,10 @@ rl.question('番号を入力して Enter > ', (answer) => {
     }
     console.log('===============================================================================\n');
   } else if (mode === 'zenn') {
-    // Zenn / Qiita 送客モード
-    const radarMd = path.join(rootDir, 'src', 'pages', 'radar', `${selected.slug}.md`);
-    let articleContent = '';
-    if (fs.existsSync(radarMd)) {
-      articleContent = fs.readFileSync(radarMd, 'utf8');
-      articleContent = articleContent.replace(/^---[\s\S]*?---\n*/, '');
-    } else {
-      // note 原稿は有料部分が暗号化済みのため Zenn には流用しない
-      console.error(`❌ Web記事（src/pages/radar/${selected.slug}.md）が無いため Zenn 原稿を作れません。`);
-      process.exit(1);
-    }
-
-    const cleanTitle = selected.title.replace(/^#\s*/, '').split(' - ')[0].trim();
-    const zennDraft = `---
-title: "【徹底解剖】海外急上昇OSS「${cleanTitle}」のアーキテクチャと商用展開"
-emoji: "⚡"
-type: "tech"
-topics: ["ai", "oss", "github", "architecture", "programming"]
-published: true
----
-
-${articleContent}
-
----
-
-${zennCta(selected.slug)}`;
-
-    const zennDir = path.join(rootDir, 'zenn_drafts');
-    if (!fs.existsSync(zennDir)) fs.mkdirSync(zennDir, { recursive: true });
-    const zennFile = path.join(zennDir, `${selected.slug}_zenn.md`);
-    fs.writeFileSync(zennFile, zennDraft, 'utf8');
-
-    try {
-      execSync(`powershell -command "Get-Content -LiteralPath '${zennFile}' -Raw -Encoding UTF8 | Set-Clipboard"`);
-    } catch (e) {}
-
-    openFile(zennFile);
-    openUrl("https://zenn.dev/articles/new");
-
-    console.log('===============================================================================');
-    console.log('✓ Zenn/Qiita送客用ドラフトを生成し、クリップボードに自動コピーしました！');
-    console.log('-------------------------------------------------------------------------------');
-    console.log('【投稿手順（30秒）】');
-    console.log('  1. ブラウザで開いたZennの新規投稿画面で [Ctrl + V] を押して貼り付け');
-    console.log('  2. 「公開」を押すだけで、ZennからAuto Tech Radarへの恒久的SEO送客リンクが完成！');
-    console.log('  ※ Qiitaにも同じ文面を https://qiita.com/drafts/new でそのまま併用可能です');
-    console.log('===============================================================================\n');
+    // Zenn への投稿は停止中（2026-10-21）。自動生成した記事は Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないため、
+    // 原稿は published: false の下書きのままにし、クリップボードへのコピーや投稿画面を開くことはしない
+    console.error('Zenn への投稿は停止しています（自動生成した記事は Zenn の規約に沿わないため）。articles/ と zenn_drafts/ の原稿は published: false のままにしてください。');
+    process.exit(1);
   } else {
     // X拡散モード
     if (selected.xFile) {

@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「ZCode」のアーキテクチャ�
 emoji: "⚡"
 type: "tech"
 topics: ["typescript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # ZCode: 概要と革新性

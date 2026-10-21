@@ -35,6 +35,9 @@ test("有料版の案内は note の URL がある記事だけに出し、見出
   assert.deepEqual(b.features, []);
   assert.equal(b.charsLabel, "");
   assert.equal(noteOfferFor("c", urls, { chars: 1000, features: ["x"] }), null);
+  // 無料にした記事（価格 0）・価格が数値でない記事も、価格を出さない見出しにする
+  assert.equal(noteOfferFor("z", { z: { url: "https://note.com/x/n/n3", price: 0 } }, undefined).heading, "有料版（note）に含まれるもの");
+  assert.equal(noteOfferFor("z", { z: { url: "https://note.com/x/n/n3" } }, undefined).priceLabel, "");
   assert.equal(approxCharsLabel(30), "約30字");
 });
 
@@ -61,6 +64,8 @@ test("経費精算ガイドは適格請求書（インボイス）の発行を�
   assert.doesNotMatch(src, /適格(簡易)?請求書[^。]{0,20}発行され/);
   assert.match(src, /購入・チップ履歴/);
   assert.match(src, /適格請求書発行事業者ではない/);
+  // 経費精算できるかは所属先しだいなので「自己負担ゼロ」と約束しない。申請文テンプレートに確かめられない主張（国内に先行事例がない・即座に）を入れない
+  assert.doesNotMatch(src, /自己負担ゼロ|先行事例がない|即座に/);
 });
 
 // ---- 実際のビルド結果での確認（astro build を一時ディレクトリに出力する） ----
@@ -98,8 +103,11 @@ test("有料版の案内は note の URL がある記事にだけ 1 つあり、
     }
     assert.equal(boxes.length, 1, `${slug}: 有料版の案内がちょうど 1 つではない`);
     const box = boxes[0][0];
-    assert.match(box, new RegExp(`>有料版（note ¥${item.price.toLocaleString("ja-JP")}）に含まれるもの</p>`), `${slug}: 見出しが違う`);
     const summary = paidSummaryOf(slug);
+    // 見出しは記事ページと同じ noteOfferFor で作る（CI が更新した note_urls.json の価格が null・0 でも、価格を出さない見出しとして確かめる）
+    const heading = noteOfferFor(slug, noteUrls, summary).heading;
+    assert.ok(box.includes(`>${heading}</p>`), `${slug}: 見出しが違う（${heading}）`);
+    if (typeof item.price === "number" && item.price > 0) assert.ok(heading.includes(`¥${item.price.toLocaleString("ja-JP")}`), `${slug}: 見出しに価格が無い`);
     assert.ok(summary, `${slug}: note_drafts/${slug}_note.paid.json が無い`);
     const items = [...box.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)].map((m) => unescapeHtml(m[1]));
     assert.deepEqual(items, summary.features, `${slug}: 項目が paid.json の features と一致しない`);

@@ -6,7 +6,7 @@
 【ツイート 1】
 【海外OSS解説】
 GitHubで★22,480のWebエージェント「jev-ultrafast」が凄い。
-画面キャプチャを排除し驚異の7.1秒で自動操作完了。
+画面キャプチャを排除し7.1秒で自動操作完了。
 仕組みを日本語で解説👇
 https://ssk0224.github.io/auto-tech-radar/radar/jev-ultrafast/
 

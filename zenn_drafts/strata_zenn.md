@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「Strata」のアーキテクチャ
 emoji: "⚡"
 type: "tech"
 topics: ["cpp", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # Strata: 概要と革新性

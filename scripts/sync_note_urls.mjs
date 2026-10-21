@@ -94,7 +94,7 @@ async function fetchAllNotes() {
 export function publishedNoteIssues(d) {
   const text = `${d.name || ''}\n${String(d.body || '').replace(/<[^>]+>/g, ' ')}`;
   const issues = findForbiddenClaims(text);
-  // [E] で自動修正する表現（ThoughtWorks・インボイス対応領収書・コピペで本番一発起動）。
+  // [E] で自動修正する表現（ThoughtWorks・インボイス対応領収書・コピペで本番〜・決まった言い回しの誇張）。
   // 文言は規則の issue と同じにする（ランチャーがこの文言で [E] の対象と見分け、本文の全差し替え [U] に回さない）。
   // 規則を当てても残る書き方は [E] では直せないので、別の文言にして [U] に回す
   const rulesText = `${d.name || ''}\n${noteHtmlText(d.body)}`;

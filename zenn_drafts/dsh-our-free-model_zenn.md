@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「dsh-our-free-model」のアーキ
 emoji: "⚡"
 type: "tech"
 topics: ["javascript", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # dsh-our-free-model: 最先端AIモデルを無料で無制限に利用！DeepSeek Harnessプラグインの革新性

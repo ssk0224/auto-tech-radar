@@ -3,7 +3,7 @@ title: "【徹底解剖】海外急上昇OSS「crates.io-index」のアーキテ
 emoji: "⚡"
 type: "tech"
 topics: ["tcl", "oss", "github", "architecture", "programming"]
-published: true
+published: false
 ---
 
 # crates.io-index: 概要と革新性

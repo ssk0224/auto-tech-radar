@@ -9,7 +9,7 @@ import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
-import { NOTE_TEXT_RULES, NOTE_FIX_MAX, applicableNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes } from "./utils/note_pending.mjs";
+import { NOTE_FIX_MAX, applicableNoteRules, applyNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes, noteFixBudget } from "./utils/note_pending.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = NOTE_PROFILE;
@@ -19,6 +19,26 @@ const PROFILE = NOTE_PROFILE;
 class LoginRequired extends Error {}
 // その記事だけの事情で直さなかった（編集画面の下書きが公開中と違うなど。何も公開していない）。次の記事へ進む
 class NotFixed extends Error {}
+
+// [E] で表現を直した記録（直近 24 時間の本数の上限 noteFixBudget に使う）。オーナー端末の ~/.auto-tech-radar に置く
+const FIX_HISTORY = path.join(path.dirname(NOTE_PROFILE), "note_fix_history.json");
+function readFixHistory() {
+  try {
+    const h = JSON.parse(fs.readFileSync(FIX_HISTORY, "utf8"));
+    return Array.isArray(h) ? h : [];
+  } catch (e) {
+    return [];
+  }
+}
+// 直した直後に 1 本ずつ書く（途中で止まっても、直した分は数える）。7 日より古い記録は消す
+function recordFix(slug) {
+  const keep = readFixHistory().filter((h) => Date.parse(h?.at) > Date.now() - 7 * 24 * 60 * 60 * 1000);
+  keep.push({ at: new Date().toISOString(), slug });
+  fs.mkdirSync(path.dirname(FIX_HISTORY), { recursive: true });
+  fs.writeFileSync(FIX_HISTORY, JSON.stringify(keep, null, 2) + "\n", "utf8");
+}
+// ISO 時刻を日本時間の「MM-DD HH:MM」で見せる
+const jstLabel = (iso) => `${new Date(Date.parse(iso) + 9 * 60 * 60 * 1000).toISOString().slice(5, 16).replace("T", " ")}（日本時間）`;
 
 // 記事の間などに意図して置く待ち時間（テスト用: ATR_NOTE_WAIT_SCALE で縮める）
 const pause = (ms) => new Promise((r) => setTimeout(r, ms * Number(process.env.ATR_NOTE_WAIT_SCALE || 1)));
@@ -115,6 +135,57 @@ const noteBody = (page, key) =>
     if (!r.ok) return { error: `記事情報の取得に失敗 HTTP ${r.status}` };
     return { body: ((await r.json()).data || {}).body || "" };
   }, key);
+
+// ログインしていない読者が読める本文（有料記事なら無料部分だけ）。有料ラインの位置が変わっていないかを確かめるため。
+// ブラウザのキャッシュは使わない（更新前に読んだ応答が返ると、変わっていないように見える）
+const publicBody = (page, key) =>
+  inPage(page, async (k) => {
+    const r = await fetch(`/api/v3/notes/${k}`, { credentials: "omit", cache: "no-store", headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!r.ok) return { error: `公開中の記事（ログインなし）の取得に失敗 HTTP ${r.status}` };
+    return { body: ((await r.json()).data || {}).body || "" };
+  }, key);
+
+// 本文を段落ごとの文字列にする（ブラウザ内で実行）。html を渡せばその HTML（API の本文）を、渡さなければ編集画面の本文を読む。
+// 段落・見出し・箇条書き・引用・コードの文字だけを比べ、埋め込みや画像（figure。キャプションは除く）と、
+// 編集画面の編集できない部品（contenteditable="false"。埋め込み・有料ラインの印など）の文字は数えない。改行（<br>）は \n
+const noteBlocks = ({ html } = {}) => {
+  const BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, pre, figcaption, td, th";
+  const root =
+    html !== undefined
+      ? new DOMParser().parseFromString(`<!doctype html><html><body>${html}</body></html>`, "text/html").body
+      : [...document.querySelectorAll('[contenteditable="true"]')].sort((a, b) => b.innerText.length - a.innerText.length)[0];
+  if (!root) return null;
+  const textOf = (el) => {
+    let s = "";
+    const w = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (n.nodeType === Node.TEXT_NODE) s += n.data;
+      else if (n.tagName === "BR") s += "\n";
+    }
+    return s;
+  };
+  const out = [];
+  for (const el of root.querySelectorAll(BLOCK)) {
+    if (el.querySelector(BLOCK)) continue; // 内側の段落で数える（li > p、blockquote > p）
+    const fixed = el.closest('[contenteditable="false"]');
+    if (fixed && root.contains(fixed)) continue;
+    if (el.closest("figure") && !el.closest("figcaption")) continue;
+    const t = textOf(el);
+    if (t.trim()) out.push(t);
+  }
+  return out;
+};
+
+// 段落の比較用の正規化（全角・半角の揺れ、空白・改行・ゼロ幅文字は違いとして扱わない）。空の段落は除く
+const normBlocks = (blocks) => (blocks || []).map((b) => String(b).normalize("NFKC").replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, "")).filter(Boolean);
+// want と got（normBlocks 済み）が同じなら null、違えば最初に違う段落の位置と長さ（本文は記録に残さない。記録は公開リポジトリに送られ、有料部分を含みうるため）
+function blockDiff(want, got) {
+  const n = Math.max(want.length, got.length);
+  for (let i = 0; i < n; i++) {
+    if (want[i] !== got[i]) return { index: i, wantBlocks: want.length, gotBlocks: got.length, wantChars: (want[i] || "").length, gotChars: (got[i] || "").length };
+  }
+  return null;
+}
 
 // 比較用に、記号・空白・HTML の書式を除く
 const plain = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
@@ -220,10 +291,6 @@ async function pressPublish(ed, steps) {
   }
 }
 
-// 編集画面の本文（編集できる領域のうち、いちばん長いもの）
-const editorText = (ed) =>
-  ed.evaluate(() => [...document.querySelectorAll('[contenteditable="true"]')].map((e) => e.innerText).sort((a, b) => b.length - a.length)[0] || "");
-
 // 編集画面の本文から文字列 text を探して選択する（見つからなければ false）。
 // 太字などで複数のテキストノードに分かれていても選べるよう、段落ごとにテキストをつないで探す。段落・改行をまたいでは選ばない
 const selectText = (ed, text) =>
@@ -265,28 +332,39 @@ const selectText = (ed, text) =>
   }, text);
 
 // 公開中の記事に残った直すべき表現（NOTE_TEXT_RULES の from）だけを to に置き換えて「更新する」まで行い、置き換えた規則の id を返す。
-// 編集画面の下書きが公開中の記事と違う（以前の手作業の変更が残っている）記事は、意図しない内容を公開しないよう置き換えずに止める
+// 公開するのは、編集画面の本文が「公開中の記事に規則を当てた文」と段落ごとに一致したときだけ。
+// 編集画面の下書きに公開していない変更（以前の手作業・貼りかけの原稿・価格の書き換えなど）が残っている記事は、
+// 置き換える前に見分けて、何も打ち込まず公開もせずに止める（NotFixed）。
+// 「更新する」の後は、ログインしていない読者が読める無料部分を更新前と比べ、有料ラインの位置が変わっていないことを確かめる
 async function fixNoteText(ctx, page, t, steps) {
   const live = await noteBody(page, t.key);
   if (live.error) throw new Error(live.error);
   const liveRules = applicableNoteRules(noteHtmlText(live.body));
+  if (!liveRules.length) throw new NotFixed("公開中の記事に直す表現が見つからないため、自動では直しません（公開はしていません）");
+  // 直した後にあるべき本文（公開中の本文に規則を当てたもの）と、無料部分
+  const want = normBlocks((await inPage(page, noteBlocks, { html: live.body })).map(applyNoteRules));
+  const freeBefore = await publicBody(page, t.key);
+  if (freeBefore.error) throw new Error(freeBefore.error);
+  const freeBlocks = (await inPage(page, noteBlocks, { html: freeBefore.body })) || [];
+  const freeOld = normBlocks(freeBlocks);
+  const freeWant = normBlocks(freeBlocks.map(applyNoteRules));
   const ed = await ctx.newPage();
-  let expected = [];
   try {
     await openEditor(ed, t.key, steps);
     await ed.getByRole("button", { name: /公開に進む/ }).first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
     await ed.waitForTimeout(1500);
-    const draft = await editorText(ed);
+    const draftBlocks = (await ed.evaluate(noteBlocks, {})) || [];
     const liveChars = plain(live.body).length;
-    const draftChars = plain(draft).length;
-    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars, rules: liveRules.map((r) => r.id) });
-    if (!draftChars || Math.abs(draftChars - liveChars) > Math.max(40, liveChars * 0.03)) {
-      throw new NotFixed(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません`);
+    const draftChars = plain(draftBlocks.join("\n")).length;
+    // 下書きに規則を当てた本文が、公開中の本文に規則を当てたものと同じか（前回の実行で置き換えたまま公開に至らなかった下書きも、ここで同じになる）
+    const before = blockDiff(want, normBlocks(draftBlocks.map(applyNoteRules)));
+    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars, rules: liveRules.map((r) => r.id), ...(before ? { diff: before } : {}) });
+    if (before) {
+      throw new NotFixed(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません（${before.index + 1} 段落目が違います。公開はしていません）`);
     }
-    // 長い from から順に、その文字列だけを選んで to を打ち込む（前後の文字・有料ライン・公開設定は触らない）。
-    // 前回の実行で置き換えたまま公開に至らなかった下書き（直す表現が無く、置き換え後の語がある）は、そのまま公開に進む
+    // 長い from から順に、その文字列だけを選んで to を打ち込む（前後の文字・有料ライン・公開設定は触らない）
     const replaced = {};
-    for (const r of applicableNoteRules(draft)) {
+    for (const r of applicableNoteRules(draftBlocks.join("\n"))) {
       replaced[r.id] = 0;
       while (replaced[r.id] < 5 && (await selectText(ed, r.from))) {
         await ed.keyboard.insertText(r.to);
@@ -294,12 +372,12 @@ async function fixNoteText(ctx, page, t, steps) {
         replaced[r.id]++;
       }
     }
-    const after = await editorText(ed);
-    expected = [...new Set([...liveRules, ...NOTE_TEXT_RULES.filter((r) => replaced[r.id] > 0)])].filter((r) => after.includes(r.to));
-    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length });
+    const afterBlocks = (await ed.evaluate(noteBlocks, {})) || [];
+    const after = afterBlocks.join("\n");
+    const mismatch = blockDiff(want, normBlocks(afterBlocks));
+    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length, ...(mismatch ? { diff: mismatch } : {}) });
     if (hasNoteTextIssue(after)) throw new Error("編集画面で表現を置き換えられませんでした（公開はしていません）");
-    // 下書きに直す表現も直した後の語も無い（公開中の記事と中身が違う）ときは、この記事だけ飛ばす
-    if (!expected.length) throw new NotFixed("編集画面の下書きに直す表現が見つからないため、自動では直しません（公開はしていません）");
+    if (mismatch) throw new Error(`置き換えた後の下書きが、公開中の記事に規則を当てた文と一致しません（${mismatch.index + 1} 段落目。公開はしていません）`);
     await pressPublish(ed, steps);
   } finally {
     await ed.close().catch(() => {});
@@ -308,8 +386,31 @@ async function fixNoteText(ctx, page, t, steps) {
   const updated = await noteBody(page, t.key);
   if (updated.error) throw new Error(updated.error);
   const text = noteHtmlText(updated.body);
-  if (hasNoteTextIssue(text) || expected.some((r) => !text.includes(r.to))) throw new Error("「更新する」の後も記事に反映されていません");
-  return expected.map((r) => r.id);
+  if (hasNoteTextIssue(text) || liveRules.some((r) => !text.includes(r.to))) throw new Error("「更新する」の後も記事に反映されていません");
+  // 有料ラインの位置: ログインしていない読者が読める無料部分が「更新前の無料部分に規則を当てたもの」と同じであること。
+  // 反映待ち（更新前のまま）なら少し待って読み直す。違う形（有料部分が見える・無料部分が短くなった）なら、その場で全体を止める
+  let freeDiff = null;
+  let stale = false;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt > 0) await pause(3000);
+    const freeAfter = await publicBody(page, t.key);
+    if (freeAfter.error) throw new Error(freeAfter.error);
+    const got = normBlocks(await inPage(page, noteBlocks, { html: freeAfter.body }));
+    freeDiff = blockDiff(freeWant, got);
+    stale = Boolean(freeDiff) && !blockDiff(freeOld, got);
+    if (!stale) break; // 一致した、または更新前とも違う（待っても変わらない）
+  }
+  steps.push({ at: "paid-line", freeBlocks: freeWant.length, ...(freeDiff ? { diff: freeDiff, stale } : {}) });
+  if (freeDiff && stale) {
+    throw new Error("「更新する」の後も、無料部分（ログインなしで読める部分）に反映されていません。note で記事を開いて確かめてください。残りの記事は直さずに止めます");
+  }
+  if (freeDiff) {
+    throw new Error(
+      `「更新する」の後、無料部分（ログインなしで読める部分）が更新前と違います（${freeDiff.index + 1} 段落目、更新前 ${freeDiff.wantBlocks} 段落 / 更新後 ${freeDiff.gotBlocks} 段落）。` +
+        "有料ラインの位置が変わった可能性があります。note の編集画面で有料ラインの位置を確かめてください。残りの記事は直さずに止めます",
+    );
+  }
+  return liveRules.map((r) => r.id);
 }
 
 // 自分の記事の閲覧数・スキ数（note の統計。収益ゼロの原因を数字で見るため。非公開の API なので形式が変わりうる → 生の応答も残す）
@@ -347,10 +448,11 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     let loggedIn = false;
     const root = path.join(__dirname, "..");
     const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
-    // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない
+    // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない。
+    // テスト用: ATR_NOTE_STATUS に CI の検査結果の代わりのファイル（実データの note_status.json は CI が毎回書き換えるため）
     let flagged = new Set();
     try {
-      const st = JSON.parse(fs.readFileSync(path.join(__dirname, "note_status.json"), "utf8"));
+      const st = JSON.parse(fs.readFileSync(process.env.ATR_NOTE_STATUS || path.join(__dirname, "note_status.json"), "utf8"));
       flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
     } catch (e) {}
     const base = async () => tasks.length && page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
@@ -402,48 +504,61 @@ async function eyecatch({ wording = false, stats = false } = {}) {
 
     // 要修正の表現の自動修正（scripts/utils/note_pending.mjs の NOTE_TEXT_RULES）。
     // オーナーとしてログインしているので有料部分を含む全文を読み、当てはまる記事だけ語を置き換えて「更新する」まで行う。
-    // 1 回に直すのは NOTE_FIX_MAX 本まで（残りは次回の [E]）、記事の間は約 20 秒あける（短時間に更新を繰り返す機械的な動きにしない）
+    // 直すのは直近 24 時間で NOTE_FIX_MAX 本まで（続けて [E] を押しても増えない。直した時刻はオーナー端末に記録）、
+    // 記事の間は約 20 秒あける（短時間に更新を繰り返す機械的な動きにしない）
     if (wording && !result.failed.length) {
-      const notes = [];
-      for (const t of tasks) {
-        const live = await noteBody(page, t.key);
-        if (live.error) result.wording.failed.push(`${t.slug}: 本文を読めませんでした（${live.error}）`);
-        else notes.push({ ...t, body: live.body });
-        await pause(500);
-      }
-      const plan = planNoteFixes(notes, Number(process.env.ATR_NOTE_FIX_MAX) || NOTE_FIX_MAX);
-      result.wording.manual = plan.manual;
-      let tried = 0;
-      for (let i = 0; i < plan.fix.length; i++) {
-        const t = plan.fix[i];
-        if (i > 0) await pause(20000);
-        result.steps[`wording:${t.slug}`] = [];
-        tried = i + 1;
-        try {
-          const ids = await fixNoteText(ctx, page, t, result.steps[`wording:${t.slug}`]);
-          result.wording.fixed.push(t.slug);
-          console.log(`  ✓ 要修正の表現を直して更新: ${t.slug}（${ids.join(", ")}）`);
-        } catch (e) {
-          if (e instanceof LoginRequired && !loggedIn) {
-            loggedIn = true;
-            await ctx.close().catch(() => {});
-            await manualLogin();
-            ({ ctx, page } = await openNote(true));
-            await base();
-            i--;
-            continue;
-          }
-          result.wording.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
-          console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
-          // 下書きの食い違いなど、その記事だけの理由なら次の記事へ。画面構成の想定違いなどは同じ失敗を繰り返さないよう止める
-          if (!(e instanceof NotFixed)) break;
+      const max = Number(process.env.ATR_NOTE_FIX_MAX) || NOTE_FIX_MAX;
+      const budget = noteFixBudget(readFixHistory(), Date.now(), max);
+      result.wording.budget = budget;
+      if (!budget.left) {
+        console.log(`\n✏ 要修正の表現の修正: 直近24時間で ${budget.used} 本直したため、今回は行いません（上限 ${max} 本。次は ${jstLabel(budget.nextAt)} 以降の [E] で直します）`);
+      } else {
+        const notes = [];
+        for (const t of tasks) {
+          const live = await noteBody(page, t.key);
+          if (live.error) result.wording.failed.push(`${t.slug}: 本文を読めませんでした（${live.error}）`);
+          else notes.push({ ...t, body: live.body });
+          await pause(500);
         }
-      }
-      result.wording.remaining = plan.remaining + plan.fix.length - tried;
-      plan.manual.forEach((s) => console.log(`  … ${s}: 自動では直せない書き方の表現があります（note の編集画面で手作業）`));
-      if (plan.fix.length || plan.manual.length || result.wording.failed.length) {
-        const rest = result.wording.remaining ? ` / 残り ${result.wording.remaining} 本は次回の [E] で直します` : "";
-        console.log(`✏ 要修正の表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}${rest}`);
+        const plan = planNoteFixes(notes, budget.left);
+        result.wording.manual = plan.manual;
+        let tried = 0;
+        for (let i = 0; i < plan.fix.length; i++) {
+          const t = plan.fix[i];
+          if (i > 0) await pause(20000);
+          result.steps[`wording:${t.slug}`] = [];
+          tried = i + 1;
+          try {
+            const ids = await fixNoteText(ctx, page, t, result.steps[`wording:${t.slug}`]);
+            result.wording.fixed.push(t.slug);
+            recordFix(t.slug);
+            console.log(`  ✓ 要修正の表現を直して更新: ${t.slug}（${ids.join(", ")}）`);
+          } catch (e) {
+            if (e instanceof LoginRequired && !loggedIn) {
+              loggedIn = true;
+              await ctx.close().catch(() => {});
+              await manualLogin();
+              ({ ctx, page } = await openNote(true));
+              await base();
+              i--;
+              continue;
+            }
+            // 「更新する」まで押した後の確認で止まった記事も、更新した本数に数える
+            if (result.steps[`wording:${t.slug}`].some((s) => s.at === "after-update")) recordFix(t.slug);
+            result.wording.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
+            console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
+            // 下書きの食い違いなど、その記事だけの理由なら次の記事へ。画面構成の想定違い・有料ラインの位置の変化などは同じ失敗を繰り返さないよう止める
+            if (!(e instanceof NotFixed)) break;
+          }
+        }
+        result.wording.remaining = plan.remaining + plan.fix.length - tried;
+        plan.manual.forEach((s) => console.log(`  … ${s}: 自動では直せない書き方の表現があります（note の編集画面で手作業）`));
+        if (plan.fix.length || plan.manual.length || result.wording.failed.length) {
+          const next = noteFixBudget(readFixHistory(), Date.now(), max);
+          const when = next.left ? "次回の [E]" : `${jstLabel(next.nextAt)} 以降の [E]`;
+          const rest = result.wording.remaining ? ` / 残り ${result.wording.remaining} 本は${when}で直します（24時間に ${max} 本まで）` : "";
+          console.log(`✏ 要修正の表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}${rest}`);
+        }
       }
     }
 

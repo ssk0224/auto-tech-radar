@@ -6,6 +6,7 @@ import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
 import { stripProSection } from "./utils/pro_boundary.mjs";
 import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, sealedFileFor } from "./utils/note_vault.mjs";
+import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 
 import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
@@ -223,7 +224,7 @@ stars: ${repo.stargazers_count}
 
 
 === NOTE ARTICLE ===
-# 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
+# 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS化のアイデア付き
 
 ## はじめに：なぜ今、注目されているのか？
 （無料公開エリア：魅力的な導入、解決する課題、革新性の概要）
@@ -258,9 +259,9 @@ stars: ${repo.stargazers_count}
 ※極めて重要：有料ライン以降は購入者が「980円以上の価値があった」と絶賛する超高密度な実用情報（最低2,000文字以上）を執筆してください。絶対に数行で要約を終わらせたり途中で切らないこと。
 1. クライアントへの提案シナリオと受託開発モデル（想定規模は下記の工数見積表から算出、提案先ターゲット、ペイン、受注構成案を具体的に深掘り）
 2. 自社マイクロSaaS / 有料ツールとしての構築アイデア（具体的なプロダクト名、機能要件、ターゲット価格設定を2つ以上提示）
-3. 競合ツール（商用SaaS）に対する圧倒的なコスト削減提案の作り方（価格差比較テーブル、意思決定者を説得する営業キラーフレーズ）
+3. 競合ツール（商用SaaS）とのコスト比較に基づく提案の作り方（価格差比較テーブルと、比較の前提・注意点）
 
-## 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版
+## 📋 【提案書テンプレート】社内DX・AI導入提案書 Markdown版
 ※重要：以下の骨子を満たす、クライアントへそのまま提出できる完全な提案書Markdownを具体的に出力してください：
 - 【案件名】
 - 【導入目的と解決する課題】
@@ -277,11 +278,11 @@ stars: ${repo.stargazers_count}
 ## ⚡ 【2026年最新規格】Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 完全定義
 ※READMEにMCPサーバーとしての起動方法が記載されている場合のみ、その手順に基づくMCPサーバーJSON（\`\`\`json { "mcpServers": ... } \`\`\`）を出力してください。記載がない場合はJSONを作らず「公式のMCPサーバー手段は案内されていない」と明記してください。あわせて、AIコーディング用の \`\`\`.cursorrules\`\`\` 定義を出力してください。
 
-## 🗣️ 【成約率を最大化する】クライアントへの営業キラーフレーズ＆想定問答
+## 🗣️ クライアントからの懸念への想定問答
 - 経営層・CTOから出る典型的な懸念（セキュリティ、保守性、障害対応）に対する説得回答テンプレートを提示。
 
 ## まとめと今後の展望
-- 先行者利益を獲得するための即座のアクションプラン
+- 導入を検討する際の次のステップ（READMEで確認すべき点・小さく試す手順）
 
 ---
 ### 🎁 【メンバーシップのご案内】
@@ -625,9 +626,10 @@ async function run() {
       if (!splitPaid(result.note)) {
         throw new Error("note原稿に有料ラインがありません（有料部分を暗号化できないため不採用）");
       }
-      // 推奨ハッシュタグは生成モデルの出力ではなく、記事の対象（言語・トピック）から作ったもので揃える
-      const noteText = applyNoteHashtags(withStandardFooter(result.note), noteHashtags(repo));
-      const problems = noteDraftProblems(noteText);
+      // 推奨ハッシュタグは生成モデルの出力ではなく、記事の対象（言語・トピック）から作ったもので揃える。
+      // 領収書の案内は定型文にそろえ、そろえられない（案内が無い・事実と異なる古い断定がある）原稿は採用しない（次の候補を試す）
+      const noteText = normalizeReceiptLine(applyNoteHashtags(withStandardFooter(result.note), noteHashtags(repo)));
+      const problems = [...noteDraftProblems(noteText), ...receiptProblems(noteText)];
       if (problems.length) {
         throw new Error(`note原稿が要件を満たしません（${problems.join(" / ")}）`);
       }

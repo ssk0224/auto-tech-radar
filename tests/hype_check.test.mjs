@@ -62,15 +62,22 @@ test("生成スクリプトのプロンプトの雛形そのものに禁止表�
   for (const t of templates) {
     // 禁止指示そのもの（${HYPE_PROMPT_RULE}）は差し込み前の文字列なので、ここには禁止語が現れない
     assert.deepEqual(findHype(t), []);
+    // 有料部分に無い内容（SaaS の構築手順）や成約・効果を約束する見出しも、雛形に書かない（生成物の見出しにそのまま写る）
+    for (const ng of ["自社SaaS構築手順", "成約率を最大化", "圧倒的", "コピペで即提案", "先行者利益", "キラーフレーズ"]) assert.ok(!t.includes(ng), ng);
   }
 });
 
-test("既存の note 原稿の無料部分に「一発起動」が無い（有料部分は動作未検証の例を含むため）", () => {
-  for (const f of fs.readdirSync("note_drafts").filter((x) => x.endsWith("_note.md"))) {
-    const s = fs.readFileSync(path.join("note_drafts", f), "utf8");
-    assert.doesNotMatch(s, /一発起動/, f);
-  }
+test("公開している原稿（note の無料部分・Web 記事・Zenn 原稿・X 投稿文）にも、生成時に禁止した誇張・結果保証の表現が無い", () => {
+  // 公開中の note に残っていた決まった言い回しは [E] の規則（note_pending.mjs の NOTE_TEXT_RULES）で直し、原稿も同じ文にそろえてある
+  const files = ["note_drafts", "src/pages/radar", "articles", "zenn_drafts", "x_posts"].flatMap((d) =>
+    fs.readdirSync(d).filter((f) => /\.(md|txt)$/.test(f)).map((f) => path.join(d, f)),
+  );
+  assert.ok(files.length > 100);
+  for (const f of files) assert.deepEqual(findHype(fs.readFileSync(f, "utf8")), [], f);
+  // aihot・opendots の箇条書きは、公開中の文に [E] の規則を当てた結果と同じ（「実稼働」を「動作未検証」と並べない）
   for (const slug of ["aihot", "opendots"]) {
-    assert.match(fs.readFileSync(`note_drafts/${slug}_note.md`, "utf8"), /公式READMEに基づく導入手順と「Docker Compose & \.env 設定例」（動作未検証の例を含む）/, slug);
+    const s = fs.readFileSync(`note_drafts/${slug}_note.md`, "utf8");
+    assert.ok(s.split(/\r?\n/).includes("- 公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & .env 設定キット」"), slug);
+    assert.doesNotMatch(s, /実稼働/, slug);
   }
 });
