@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-21T06:19:13.051Z",
+  "checkedAt": "2026-10-21T06:21:50.012Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
@@ -20,7 +20,7 @@
       "updatedAt": "2026-10-09T15:36:19.000+09:00"
     },
     "cadcraft": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [],
       "name": "海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:18.000+09:00"
@@ -56,7 +56,7 @@
       "updatedAt": "2026-10-09T20:28:33.000+09:00"
     },
     "effectcraft": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
       ],
@@ -71,7 +71,7 @@
       "updatedAt": "2026-10-12T21:47:08.000+09:00"
     },
     "gptqmodel": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
       ],
@@ -80,7 +80,7 @@
       "excerpt": "9f-92cf8ae8682e\">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI"
     },
     "gridcraft": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [],
       "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:19.000+09:00"
@@ -104,7 +104,7 @@
       "updatedAt": "2026-10-10T10:27:28.000+09:00"
     },
     "jiuwenswarm": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [],
       "name": "海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:23.000+09:00"
@@ -146,13 +146,13 @@
       "updatedAt": "2026-10-09T20:21:18.000+09:00"
     },
     "opendots": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [],
       "name": "海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:20.000+09:00"
     },
     "opensandbox": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [
         "第三者（ThoughtWorks）の評価のような表現"
       ],
@@ -185,7 +185,7 @@
       "updatedAt": "2026-10-09T20:18:19.000+09:00"
     },
     "solidcraft": {
-      "eyecatch": false,
+      "eyecatch": true,
       "issues": [],
       "name": "海外急上昇OSS「solidcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:21.000+09:00"
