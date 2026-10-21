@@ -1,6 +1,6 @@
 // note.com の操作をオーナーの Chrome で自動実行する（DevTools にスクリプトを貼る手作業をなくす）。
 // 専用プロファイル（~/.auto-tech-radar/chrome-note）を使うので、初回だけ開いた窓で note にログインする。以後はログイン状態が残る。
-// 使い方: node scripts/note_browser.mjs maintain（見出し画像の設定 → 古い表現の修正 → 閲覧数の取得。eyecatch は見出し画像だけ）
+// 使い方: node scripts/note_browser.mjs maintain（見出し画像の設定 → 要修正の表現の修正 → 閲覧数の取得。eyecatch は見出し画像だけ）
 import fs from "fs";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
@@ -9,7 +9,7 @@ import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
-import { oldRingWordingSpot, NEW_RING_WORDS } from "./utils/note_pending.mjs";
+import { NOTE_TEXT_RULES, NOTE_FIX_MAX, applicableNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes } from "./utils/note_pending.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = NOTE_PROFILE;
@@ -17,6 +17,11 @@ const PROFILE = NOTE_PROFILE;
 // Google などのログインは、自動操作中のブラウザを「安全でない」として拒否する。
 // そのためログインだけは、自動操作なしの普通の Chrome を同じ専用プロファイルで開いて行い、窓が閉じられたら自動操作に戻る
 class LoginRequired extends Error {}
+// その記事だけの事情で直さなかった（編集画面の下書きが公開中と違うなど。何も公開していない）。次の記事へ進む
+class NotFixed extends Error {}
+
+// 記事の間などに意図して置く待ち時間（テスト用: ATR_NOTE_WAIT_SCALE で縮める）
+const pause = (ms) => new Promise((r) => setTimeout(r, ms * Number(process.env.ATR_NOTE_WAIT_SCALE || 1)));
 
 
 async function manualLogin() {
@@ -219,34 +224,54 @@ async function pressPublish(ed, steps) {
 const editorText = (ed) =>
   ed.evaluate(() => [...document.querySelectorAll('[contenteditable="true"]')].map((e) => e.innerText).sort((a, b) => b.length - a.length)[0] || "");
 
-// 編集画面の本文から語 words を探して選択する（見つからなければ false）
-const selectWords = (ed, words) =>
+// 編集画面の本文から文字列 text を探して選択する（見つからなければ false）。
+// 太字などで複数のテキストノードに分かれていても選べるよう、段落ごとにテキストをつないで探す。段落・改行をまたいでは選ばない
+const selectText = (ed, text) =>
   ed.evaluate((w) => {
     const roots = [...document.querySelectorAll('[contenteditable="true"]')].sort((a, b) => b.innerText.length - a.innerText.length);
     const root = roots[0];
     if (!root) return false;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, pre, figcaption, td, th, div";
+    const blocks = new Map();
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const i = n.data.indexOf(w);
+      if (n.nodeType === Node.ELEMENT_NODE && n.tagName !== "BR") continue;
+      const b = n.parentElement?.closest(BLOCK);
+      const key = b && root.contains(b) ? b : root;
+      if (!blocks.has(key)) blocks.set(key, { text: "", parts: [] });
+      const g = blocks.get(key);
+      if (n.nodeType === Node.TEXT_NODE) {
+        g.parts.push({ node: n, at: g.text.length });
+        g.text += n.data;
+      } else g.text += "\n";
+    }
+    for (const g of blocks.values()) {
+      const i = g.text.indexOf(w);
       if (i === -1) continue;
+      const end = i + w.length;
+      const s = g.parts.find((p) => i >= p.at && i < p.at + p.node.data.length);
+      const e = g.parts.find((p) => end > p.at && end <= p.at + p.node.data.length);
+      if (!s || !e) continue;
       root.focus();
       const r = document.createRange();
-      r.setStart(n, i);
-      r.setEnd(n, i + w.length);
+      r.setStart(s.node, i - s.at);
+      r.setEnd(e.node, end - e.at);
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(r);
       return true;
     }
     return false;
-  }, words);
+  }, text);
 
-// 公開中の記事に残った古い表現（CI が見つけた語）だけを置き換えて「更新する」まで行う。
+// 公開中の記事に残った直すべき表現（NOTE_TEXT_RULES の from）だけを to に置き換えて「更新する」まで行い、置き換えた規則の id を返す。
 // 編集画面の下書きが公開中の記事と違う（以前の手作業の変更が残っている）記事は、意図しない内容を公開しないよう置き換えずに止める
-async function fixWording(ctx, page, t, steps) {
+async function fixNoteText(ctx, page, t, steps) {
   const live = await noteBody(page, t.key);
   if (live.error) throw new Error(live.error);
+  const liveRules = applicableNoteRules(noteHtmlText(live.body));
   const ed = await ctx.newPage();
+  let expected = [];
   try {
     await openEditor(ed, t.key, steps);
     await ed.getByRole("button", { name: /公開に進む/ }).first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {});
@@ -254,27 +279,37 @@ async function fixWording(ctx, page, t, steps) {
     const draft = await editorText(ed);
     const liveChars = plain(live.body).length;
     const draftChars = plain(draft).length;
-    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars });
+    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars, rules: liveRules.map((r) => r.id) });
     if (!draftChars || Math.abs(draftChars - liveChars) > Math.max(40, liveChars * 0.03)) {
-      throw new Error(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません`);
+      throw new NotFixed(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません`);
     }
-    // 前回の実行で置き換えたまま公開に至らなかった下書き（古い語が無く、新しい語がある）は、そのまま公開に進む
-    let replaced = !draft.includes(t.words) && draft.includes(NEW_RING_WORDS) ? -1 : 0;
-    while (replaced >= 0 && replaced < 5 && (await selectWords(ed, t.words))) {
-      await ed.keyboard.insertText(NEW_RING_WORDS);
-      await ed.waitForTimeout(500);
-      replaced++;
+    // 長い from から順に、その文字列だけを選んで to を打ち込む（前後の文字・有料ライン・公開設定は触らない）。
+    // 前回の実行で置き換えたまま公開に至らなかった下書き（直す表現が無く、置き換え後の語がある）は、そのまま公開に進む
+    const replaced = {};
+    for (const r of applicableNoteRules(draft)) {
+      replaced[r.id] = 0;
+      while (replaced[r.id] < 5 && (await selectText(ed, r.from))) {
+        await ed.keyboard.insertText(r.to);
+        await ed.waitForTimeout(500);
+        replaced[r.id]++;
+      }
     }
     const after = await editorText(ed);
+    expected = [...new Set([...liveRules, ...NOTE_TEXT_RULES.filter((r) => replaced[r.id] > 0)])].filter((r) => after.includes(r.to));
     steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length });
-    if (replaced === 0 || /ThoughtWorks/.test(after) || !after.includes(NEW_RING_WORDS)) throw new Error("編集画面で語を置き換えられませんでした（公開はしていません）");
+    if (hasNoteTextIssue(after)) throw new Error("編集画面で表現を置き換えられませんでした（公開はしていません）");
+    // 下書きに直す表現も直した後の語も無い（公開中の記事と中身が違う）ときは、この記事だけ飛ばす
+    if (!expected.length) throw new NotFixed("編集画面の下書きに直す表現が見つからないため、自動では直しません（公開はしていません）");
     await pressPublish(ed, steps);
   } finally {
     await ed.close().catch(() => {});
   }
+  // 「更新する」の後、公開中の記事（API）で、直す表現が無く置き換え後の語があることを確かめる
   const updated = await noteBody(page, t.key);
   if (updated.error) throw new Error(updated.error);
-  if (/ThoughtWorks/.test(updated.body) || !updated.body.includes(NEW_RING_WORDS)) throw new Error("「更新する」の後も記事に反映されていません");
+  const text = noteHtmlText(updated.body);
+  if (hasNoteTextIssue(text) || expected.some((r) => !text.includes(r.to))) throw new Error("「更新する」の後も記事に反映されていません");
+  return expected.map((r) => r.id);
 }
 
 // 自分の記事の閲覧数・スキ数（note の統計。収益ゼロの原因を数字で見るため。非公開の API なので形式が変わりうる → 生の応答も残す）
@@ -305,7 +340,7 @@ function summarizeStats(s) {
 
 async function eyecatch({ wording = false, stats = false } = {}) {
   let ctx;
-  const result = { set: [], skipped: [], failed: [], manual: [], steps: {}, wording: { fixed: [], failed: [] } };
+  const result = { set: [], skipped: [], failed: [], manual: [], steps: {}, wording: { fixed: [], failed: [], manual: [], remaining: 0 } };
   try {
     let { ctx: c, page } = await openNote();
     ctx = c;
@@ -365,24 +400,29 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 本文の差し替え待ち ${result.manual.length} / 失敗 ${result.failed.length}`);
     result.manual.forEach((m) => console.log(`  … ${m}`));
 
-    // 古い表現の自動修正（CI の検査で「古い表現だけ」が問題の記事。語だけ置き換えて「更新する」）
+    // 要修正の表現の自動修正（scripts/utils/note_pending.mjs の NOTE_TEXT_RULES）。
+    // オーナーとしてログインしているので有料部分を含む全文を読み、当てはまる記事だけ語を置き換えて「更新する」まで行う。
+    // 1 回に直すのは NOTE_FIX_MAX 本まで（残りは次回の [E]）、記事の間は約 20 秒あける（短時間に更新を繰り返す機械的な動きにしない）
     if (wording && !result.failed.length) {
-      let status = {};
-      try {
-        status = JSON.parse(fs.readFileSync(process.env.ATR_NOTE_STATUS || path.join(__dirname, "note_status.json"), "utf8")).notes || {};
-      } catch (e) {}
-      const urls = JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8"));
-      const fixes = Object.entries(status)
-        .map(([slug, v]) => ({ slug, spot: oldRingWordingSpot(v), key: urls[slug]?.url?.match(/\/n\/(n\w+)/)?.[1] }))
-        .filter((f) => f.spot && f.key)
-        .map((f) => ({ slug: f.slug, key: f.key, words: f.spot.words }));
-      for (let i = 0; i < fixes.length; i++) {
-        const t = fixes[i];
+      const notes = [];
+      for (const t of tasks) {
+        const live = await noteBody(page, t.key);
+        if (live.error) result.wording.failed.push(`${t.slug}: 本文を読めませんでした（${live.error}）`);
+        else notes.push({ ...t, body: live.body });
+        await pause(500);
+      }
+      const plan = planNoteFixes(notes, Number(process.env.ATR_NOTE_FIX_MAX) || NOTE_FIX_MAX);
+      result.wording.manual = plan.manual;
+      let tried = 0;
+      for (let i = 0; i < plan.fix.length; i++) {
+        const t = plan.fix[i];
+        if (i > 0) await pause(20000);
         result.steps[`wording:${t.slug}`] = [];
+        tried = i + 1;
         try {
-          await fixWording(ctx, page, t, result.steps[`wording:${t.slug}`]);
+          const ids = await fixNoteText(ctx, page, t, result.steps[`wording:${t.slug}`]);
           result.wording.fixed.push(t.slug);
-          console.log(`  ✓ 古い表現を修正して更新: ${t.slug}`);
+          console.log(`  ✓ 要修正の表現を直して更新: ${t.slug}（${ids.join(", ")}）`);
         } catch (e) {
           if (e instanceof LoginRequired && !loggedIn) {
             loggedIn = true;
@@ -395,10 +435,16 @@ async function eyecatch({ wording = false, stats = false } = {}) {
           }
           result.wording.failed.push(`${t.slug}: ${e.message.split("\n")[0]}`);
           console.log(`  ✕ ${t.slug}: ${e.message.split("\n")[0]}`);
-          break;
+          // 下書きの食い違いなど、その記事だけの理由なら次の記事へ。画面構成の想定違いなどは同じ失敗を繰り返さないよう止める
+          if (!(e instanceof NotFixed)) break;
         }
       }
-      if (fixes.length) console.log(`✏ 古い表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}`);
+      result.wording.remaining = plan.remaining + plan.fix.length - tried;
+      plan.manual.forEach((s) => console.log(`  … ${s}: 自動では直せない書き方の表現があります（note の編集画面で手作業）`));
+      if (plan.fix.length || plan.manual.length || result.wording.failed.length) {
+        const rest = result.wording.remaining ? ` / 残り ${result.wording.remaining} 本は次回の [E] で直します` : "";
+        console.log(`✏ 要修正の表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}${rest}`);
+      }
     }
 
     // 閲覧数・スキ数（収益につながっているかを数字で見る）

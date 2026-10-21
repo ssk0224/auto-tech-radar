@@ -96,36 +96,71 @@ test("note のページは出品用アカウントの専用プロファイルで
   assert.match(src, /function openUrl\(url\) \{\n[^\n]*\n  if \(isNoteUrl\(url\) && openInNoteChrome\(url\)\) return;/);
 });
 
-// [E]（maintain）: 古い表現の自動修正。CI の検査結果は fixture で与える（実際の note_status.json の中身に左右されないように）
+// [E]（maintain）: 要修正の表現の自動修正。どの記事に何が残っているかは、模擬の note の本文（オーナーが読める全文）で与える。
+// extraEnv(keys) には note_urls.json の記事キー（slug → key）が渡る。待ち時間は縮める（記事の間の約 20 秒 → 0.2 秒）
 function runMaintain(extraEnv) {
   const urls = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
-  const key = urls.zcode.url.split("/n/")[1];
+  const keys = Object.fromEntries(Object.entries(urls).map(([slug, v]) => [slug, v.url.split("/n/")[1]]));
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
-  const status = path.join(home, "status.json");
-  fs.writeFileSync(status, JSON.stringify({ checkedAt: "x", notes: { zcode: { eyecatch: true, issues: ["第三者（ThoughtWorks）の評価のような表現"], excerpt: '1a">これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。' } } }));
+  const dump = path.join(home, "live.json");
   try {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "maintain"], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_WORDING: key, ATR_NOTE_STATUS: status, ...extraEnv(key) },
+      env: { ...process.env, HOME: home, USERPROFILE: home, CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump, ATR_NOTE_WAIT_SCALE: "0.01", ...extraEnv(keys) },
     });
-    return { status: r.status, out: r.stdout + r.stderr };
+    const live = fs.existsSync(dump) ? JSON.parse(fs.readFileSync(dump, "utf8")) : {};
+    return { status: r.status, out: r.stdout + r.stderr, live, keys };
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }
 }
 
 test("[E] 古い表現だけ置き換えて「更新する」まで行い、公開中の本文で反映を確かめる。閲覧数も取得する", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const r = runMaintain(() => ({}));
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_WORDING: k.zcode }));
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /✓ 古い表現を修正して更新: zcode/);
-  assert.match(r.out, /古い表現の修正: 修正 1 \/ 失敗 0/);
+  assert.match(r.out, /✓ 要修正の表現を直して更新: zcode（ring-leftover）/);
+  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 0\n/);
   assert.match(r.out, /note の閲覧数: 合計 12 \/ スキ 1/);
 });
 
 test("[E] 編集画面の下書きが公開中と違う記事は、置き換えも公開もしない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const r = runMaintain((key) => ({ ATR_NOTE_MOCK_DRIFT: key }));
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_WORDING: k.zcode, ATR_NOTE_MOCK_DRIFT: k.zcode }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
-  assert.doesNotMatch(r.out, /✓ 古い表現を修正/);
+  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して/);
+  assert.deepEqual(r.live, {}, "何も公開していない");
+});
+
+test("[E] インボイス対応領収書の案内と「コピペで本番一発起動」を、太字で分かれていても置き換えて公開し、1 回の上限を超えた分は次回に回す", { skip: !chrome && "Chrome が無い環境では未実施" }, async () => {
+  // aihot と anatomy の 2 本に残っているが、上限を 1 本にして実行する（note_urls.json の順で aihot が先）
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_COPIPE: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice, copipe-kit）/);
+  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 0 \/ 残り 1 本は次回の \[E\] で直します/);
+  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して更新: anatomy/);
+  const { noteHtmlText } = await import("../scripts/utils/note_pending.mjs");
+  const aihot = noteHtmlText(r.live[r.keys.aihot]);
+  assert.match(aihot, /※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。/);
+  assert.match(aihot, /公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & \.env 設定キット」/);
+  assert.doesNotMatch(aihot, /インボイス|コピペで本番一発起動|技術調査費/);
+  assert.deepEqual(Object.keys(r.live), [r.keys.aihot], "上限を超えた anatomy は更新しない");
+});
+
+test("[E] 前回の実行で下書きだけ直してある記事はそのまま公開し、下書きに直す表現が見つからない記事は公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_RESUME: k.aihot, ATR_NOTE_MOCK_OTHER: k.anatomy }));
+  assert.notEqual(r.status, 0, r.out);
+  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice）/);
+  assert.match(r.out, /✕ anatomy: 編集画面の下書きに直す表現が見つからないため、自動では直しません（公開はしていません）/);
+  assert.deepEqual(Object.keys(r.live), [r.keys.aihot]);
+  assert.match(r.live[r.keys.aihot], /「購入・チップ履歴」から領収書を発行できます。/);
+});
+
+test("[E] 下書きが公開中と違う記事は飛ばし、次の記事は直す", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_DRIFT: k.aihot }));
+  assert.notEqual(r.status, 0, r.out);
+  assert.match(r.out, /✕ aihot: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
+  assert.match(r.out, /✓ 要修正の表現を直して更新: anatomy（invoice）/);
+  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 1\n/);
+  assert.deepEqual(Object.keys(r.live), [r.keys.anatomy], "anatomy だけ更新する");
 });
