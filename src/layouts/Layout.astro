@@ -5,6 +5,7 @@ import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
 // note 有料版の案内・構造化データの更新日（updatedDate が無ければ公開日。固定の日付は入れない）を決める関数
 import { noteOfferFor, splitAfterIntro, dateModifiedOf } from "../utils/article_page.js";
 import noteUrls from "../../scripts/note_urls.json";
+import TrackRecord from "../components/TrackRecord.astro"; // 掲載時→現在のスター数（Radar Ledger）
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
 const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
@@ -502,6 +503,7 @@ const ringBadgeBorder = tier.border;
           <Fragment set:html={restHtml} />
         </article>
       ) : <slot />}
+      {isArticle && <TrackRecord frontmatter={frontmatter} />}
 
       <!-- AI 生成であることの表示（読者が一次情報を確認できるように） -->
       {isArticle && (

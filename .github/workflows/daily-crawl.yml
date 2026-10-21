@@ -9,11 +9,17 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      alert_check:
+        description: "最後に「本日の記事が無ければ Issue でアラート」の確認も行う"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
   pages: write
   id-token: write
+  issues: write # 記事が出なかった日のアラート（scripts/alert_if_no_article.mjs）
 
 concurrency:
   group: "pages"
@@ -39,6 +45,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
 
+      # Radar Ledger: 候補・掲載済みリポジトリの公開指標を UTC 日付ごとに 1 回記録する（data/ledger/、data/derived/velocity.json）。
+      # 過去の日の値は後から取り直せないため生成より先に行う。スクリプト自体が通信失敗でも終了コード 0 で終わる（デプロイを止めない）
+      - name: Snapshot ledger
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: node scripts/snapshot_ledger.mjs
+
       - name: Run Crawler & Gemini
         id: crawler
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -46,6 +60,8 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          # 実行結果の記録（data/run_status/）にどの便かを残す
+          RUN_SCHEDULE: ${{ github.event.schedule }}
         run: node scripts/crawl_and_generate.mjs
 
       - name: Verify Crawler Outcome
@@ -82,7 +98,9 @@ jobs:
         run: |
           git config --global user.name "ssk0224"
           git config --global user.email "ssk0224@users.noreply.github.com"
-          git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/ scripts/publish_history.json scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
+          # data/（実行結果の記録 run_status・日次スナップショット ledger）はサイトのビルド対象外。まだ無い回でも git add が失敗しないように作っておく
+          mkdir -p data
+          git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/ data/ scripts/publish_history.json scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
           if git diff --staged --quiet; then
             echo "No new radar entries to commit."
           else
@@ -169,3 +187,11 @@ jobs:
         run: |
           echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
           exit 1
+
+      # 第3便（12:17 JST）の最後に、日本時間の今日の記事が 1 本も無ければ Issue（ラベル pipeline-alert）でアラートする。
+      # 途中のステップが失敗していても確認する（!cancelled()）。手動実行では alert_check にチェックを入れたときだけ
+      - name: Alert if no article today
+        if: ${{ !cancelled() && ((github.event_name == 'schedule' && github.event.schedule == '17 3 * * *') || (github.event_name == 'workflow_dispatch' && inputs.alert_check)) }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/alert_if_no_article.mjs
