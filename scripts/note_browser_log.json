@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-21T07:24:01.347Z",
-  "version": "1858612",
+  "at": "2026-10-21T07:29:44.142Z",
+  "version": "b8fd94b",
   "cmd": "maintain",
   "ok": false,
   "result": {
@@ -52,11 +52,11 @@
           "at": "wording-editor",
           "url": "https://editor.note.com/notes/n6d872b00a5d6/edit/",
           "liveChars": 10839,
-          "draftChars": 10682
+          "draftChars": 10684
         },
         {
           "at": "wording-replaced",
-          "replaced": 1,
+          "replaced": -1,
           "draftChars": 10684
         },
         {
@@ -110,14 +110,24 @@
             "#Lottie",
             "#無料版",
             "#SaaS",
-            "4,827件4,827件11月1日まで",
             "3,128件3,128件10月25日まで",
-            "#おいしいは元気のはじまりwith 明治ホールディングス株式会社4,247件4,247件",
+            "4,827件4,827件11月1日まで",
             "#チームだからできたことwith 日本経済新聞2,064件2,064件",
+            "#おいしいは元気のはじまりwith 明治ホールディングス株式会社4,247件4,247件",
             "もっと見る",
             "マガジン",
             "メンバーシップ",
             "追加"
+          ],
+          "candidates": [
+            {
+              "tag": "h1",
+              "role": null,
+              "aria": null,
+              "disabled": null,
+              "text": "公開設定",
+              "parent": "div"
+            }
           ]
         }
       ]
@@ -346,6 +356,90 @@
         {
           "name": "海外急上昇OSS「photocraft」商用化マニュアル｜社内DX提案書 ＆ 自",
           "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「Strata」商用化マニュアル｜社内DX提案書 ＆ 自社Saa",
+          "pv": 3,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「lightcraft」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「dsh-our-free-model」商用化マニュアル｜社内D",
+          "pv": 3,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "# 【完全保存版】2026年最新・現場で即戦力になる「海外急上昇オープンソース1",
+          "pv": 3,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「ZCode」商用化マニュアル｜社内",
+          "pv": 3,
+          "like": 3,
+          "comment": 0
+        },
+        {
+          "name": "# 【受託80万〜250万】海外急上昇OSS「DiPlay」商用化マニュアル｜社",
+          "pv": 3,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「GPTQModel」商用化マニュアル｜社内DX提案書 ＆ 自社",
+          "pv": 3,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「md3Music」商用化マニュアル｜社内DX提案書 ＆ 自社S",
+          "pv": 2,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「laya」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構",
+          "pv": 2,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「jev-ultrafast」商用化マニュアル｜社内DX提案書 ",
+          "pv": 2,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「Compositor」商用化マニュアル｜社内DX提案書 ＆ 自",
+          "pv": 2,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「how-to-live-better」商用化マニュアル｜社内D",
+          "pv": 2,
+          "like": 0,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社Saa",
+          "pv": 2,
+          "like": 1,
+          "comment": 0
+        },
+        {
+          "name": "海外急上昇OSS「ZCode」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS",
+          "pv": 1,
           "like": 0,
           "comment": 0
         }
