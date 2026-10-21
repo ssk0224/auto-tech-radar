@@ -13,6 +13,7 @@ import { NOISE_FILTER_REGEX, isNoise } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims } from "./utils/claims_check.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
+import { normalizeHeadings } from "./utils/headings.mjs";
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -442,6 +443,8 @@ ${webContent}`;
   webContent = sanitizeMarkdownContent(webContent);
   webContent = fixMermaidInContent(webContent);
   webContent = stripProSection(webContent);
+  // ページの h1 は 1 つだけ（生成モデルが本文の章見出しにも # を使うことがある）
+  webContent = normalizeHeadings(webContent, repo.name);
   if (!webContent.includes("```mermaid")) {
     // 汎用の架空構成図で埋めず、この生成結果は採用しない
     throw new Error("Web記事にMermaid構成図が含まれていません");

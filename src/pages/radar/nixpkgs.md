@@ -7,6 +7,8 @@ stars: 26000
 tags: ["Nix", "Nixpkgs", "NixOS", "パッケージマネージャー", "Linuxディストリビューション", "純粋関数型", "DevOps", "再現性"]
 repoUrl: "https://github.com/NixOS/nixpkgs"
 ---
+# Nixpkgs
+
 
 ## 概要
 

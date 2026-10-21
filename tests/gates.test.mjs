@@ -63,7 +63,7 @@ test("配信物の監査が有料本文の混入を止める", () => {
   try {
     fs.cpSync(path.join(root, "scripts"), path.join(dir, "scripts"), { recursive: true });
     fs.cpSync(path.join(root, "src/config"), path.join(dir, "src/config"), { recursive: true });
-    const page = (body) => `<html><head><meta property="og:url" content="x"></head><body>${body}</body></html>`;
+    const page = (body) => `<html><head><meta property="og:url" content="x"></head><body><h1>t</h1><p class="ai-disclosure">AI</p>${body}</body></html>`;
     fs.mkdirSync(path.join(dir, "dist/radar/a"), { recursive: true });
     fs.writeFileSync(path.join(dir, "dist/radar/a/index.html"), page("無料の解説"));
     assert.equal(audit(dir, "audit_dist.mjs").status, 0);

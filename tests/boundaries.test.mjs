@@ -37,7 +37,10 @@ test("Zenn 記事の送客文は共通の文面（funnel_copy）と一致する"
   for (const f of [...list("articles", /\.md$/), ...list("zenn_drafts", /\.md$/)]) {
     const c = read(f);
     // zenn_drafts は <slug>_zenn.md、articles は <slug>.md または <slug>-tech-radar.md
+    // 記事の slug はファイル名ではなく本文中の記事 URL から取る（ファイル名の読み違いに合わせて中身を壊した前例があるため、両方が一致することも確かめる）
+    const linked = [...c.matchAll(/auto-tech-radar\/radar\/([a-z0-9_.-]+)\//g)].map((m) => m[1]);
     const slug = path.basename(f).replace(/_zenn\.md$|-tech-radar\.md$|\.md$/, "");
+    assert.ok(linked.length > 0 && linked.every((x) => x === slug), `${f}: 記事 URL の slug (${[...new Set(linked)].join(",")}) がファイル名 (${slug}) と一致しない`);
     assert.ok(c.includes(zennCta(slug)), `${f}: 送客文が古い`);
   }
 });
@@ -133,12 +136,13 @@ test("公開文面に「100%経費精算可能」「専任エンジニアチー�
   assert.deepEqual(hits, []);
 });
 
-test("復号可能な環境では有料本文に禁止表現・根拠なき固定単価が無く、無料部分の予告と一致する", () => {
+test("復号可能な環境では有料本文に禁止表現・根拠なき固定単価が無く、無料部分の予告と一致する", (t) => {
   let keys = [];
   try {
     keys = loadPrivateKeys();
   } catch {}
-  if (keys.length === 0) return;
+  // 秘密鍵の無い環境（CI）では「合格」ではなく「未実施」と表示する（黙って通ったように見せない）
+  if (keys.length === 0) return t.skip("秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）");
 
   const hits = [];
   for (const f of list("note_drafts", /_note\.md$/)) {
@@ -296,4 +300,36 @@ test("X 投稿文・note 無料部分に共通の禁止表現（claims_check）�
     for (const h of findForbiddenClaims(text)) hits.push(`${f}: ${h}`);
   }
   assert.deepEqual(hits, []);
+});
+
+test("note_urls.json の各リンクは、その記事のプロジェクト名の note を指し、URL が重複しない", async () => {
+  const { projectNameOf, normalizeTitle } = await import("../scripts/sync_note_urls.mjs");
+  const urls = JSON.parse(read("scripts/note_urls.json"));
+  const seen = new Set();
+  for (const [slug, v] of Object.entries(urls)) {
+    assert.ok(!seen.has(v.url), `${slug}: URL が他の記事と重複`);
+    seen.add(v.url);
+    if (slug === "LEAD_MAGNET_CHEAT_SHEET") continue;
+    assert.ok(fs.existsSync(`src/pages/radar/${slug}.md`), `${slug}: 対応する Web 記事が無い`);
+    const draftTitle = (read(`note_drafts/${slug}_note.md`).match(/^#\s+(.+)$/m) || [, ""])[1];
+    assert.equal(normalizeTitle(projectNameOf(v.title)), normalizeTitle(projectNameOf(draftTitle)), `${slug}: note のタイトル「${v.title}」が原稿と別のプロジェクト`);
+  }
+});
+
+test("Zenn 用の 2 つの原稿（zenn_drafts と articles）のトピックが一致し、Zenn の形式に合う", () => {
+  for (const f of list("zenn_drafts", /_zenn\.md$/)) {
+    const slug = path.basename(f).replace(/_zenn\.md$/, "");
+    const a = [`articles/${slug}.md`, `articles/${slug}-tech-radar.md`].find((p) => fs.existsSync(p));
+    if (!a) continue;
+    const topics = (p) => JSON.parse((read(p).match(/^topics:\s*(\[.*\])$/m) || [, "[]"])[1]);
+    assert.deepEqual(topics(f), topics(a), slug);
+    for (const t of topics(a)) assert.match(t, /^[a-z0-9_-]+$/, `${a}: ${t}`);
+  }
+});
+
+test("記事の h1 は 1 つだけになる（2 つ目以降の # は ## に下げ、コードブロックは触らない）", async () => {
+  const { normalizeHeadings } = await import("../scripts/utils/headings.mjs");
+  const md = '---\ntitle: "t"\n---\n# A\n# B\n```toml\n# comment\n```\n';
+  assert.equal(normalizeHeadings(md, "t"), '---\ntitle: "t"\n---\n# A\n## B\n```toml\n# comment\n```\n');
+  assert.match(normalizeHeadings('---\nx: 1\n---\n## only\n', "Name"), /^---\nx: 1\n---\n# Name\n\n## only/);
 });

@@ -2,7 +2,7 @@
 title: "【徹底解剖】海外急上昇OSS「Strata」のアーキテクチャと商用展開"
 emoji: "⚡"
 type: "tech"
-topics: ["c++", "oss", "github", "architecture", "programming"]
+topics: ["cpp", "oss", "github", "architecture", "programming"]
 published: true
 ---
 

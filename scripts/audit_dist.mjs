@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { findProLeaks } from './utils/pro_boundary.mjs';
+import { isNoise } from './utils/noise_filter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '..', 'dist');
@@ -53,6 +54,29 @@ for (const filePath of htmlFiles) {
     /(?:href|src)="(?:[^"]*[\/=?#])?(?:undefined|null|NaN)(?:[\/?#&][^"]*)?"/,
     /href="[^"]*\[object%20Object\][^"]*"/
   ];
+  // 記事ページの h1 はちょうど 1 つ（0 や複数は見出し構造の崩れ）
+  if (/^radar\/[^/]+\/index\.html$/.test(relPath)) {
+    const h1 = (html.match(/<h1[\s>]/g) || []).length;
+    if (h1 !== 1) {
+      console.error(`  ❌ [H1 COUNT] ${relPath}: h1 が ${h1} 個あります（1 個にしてください）`);
+      errorCount++;
+    }
+    // AI 生成の表示、ノイズ記事の noindex、note 未出品の記事に購入カードを出さないこと
+    const slug = relPath.split('/')[1];
+    if (!html.includes('class="ai-disclosure"')) {
+      console.error(`  ❌ [AI DISCLOSURE] ${relPath}: AI が下書きした旨の表示がありません`);
+      errorCount++;
+    }
+    if (isNoise(slug) !== /<meta name="robots" content="noindex/.test(html)) {
+      console.error(`  ❌ [NOINDEX] ${relPath}: ノイズ記事の判定と noindex が一致しません`);
+      errorCount++;
+    }
+    const noteUrls = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'note_urls.json'), 'utf8'));
+    if (html.includes('id="note-buy-btn"') !== Boolean(noteUrls[slug])) {
+      console.error(`  ❌ [BUY CARD] ${relPath}: note の販売有無（note_urls.json）と購入カードの表示が一致しません`);
+      errorCount++;
+    }
+  }
   for (const bp of badPatterns) {
     const match = html.match(bp);
     if (match) {
