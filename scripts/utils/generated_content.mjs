@@ -5,6 +5,7 @@
 import { parseFrontmatter } from "astro/markdown";
 import { mermaidProblems } from "./mermaid.mjs";
 import { mermaidParseErrors } from "./mermaid_parse.mjs";
+import { findProLeaks } from "./pro_boundary.mjs";
 
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
 const FENCE_LINE_RE = /^\s*```/;
@@ -54,7 +55,7 @@ export function closeOpenFence(md) {
   return (md.match(/```/g) || []).length % 2 === 0 ? md : `${md.trimEnd()}\n\`\`\`\n`;
 }
 
-// マークダウンのテーブル・異常空白のサニタイズ。コードブロックの中（YAML のインデント、Python の型 `str | None` など）は触らない
+// マークダウンのテーブル・異常空白のサニタイズ。テーブルの整形はコードブロックの中（YAML のインデント、Python の型 `str | None` など）には行わない
 export function sanitizeMarkdownContent(raw) {
   let inFence = false;
   return String(raw || "").split("\n").map((line) => {
@@ -62,7 +63,8 @@ export function sanitizeMarkdownContent(raw) {
       inFence = !inFence;
       return line;
     }
-    if (inFence) return line;
+    // 50文字以上の暴走連続空白はコードブロックの中でも詰める（品質ゲートの「異常な長大空白」に当たらないように）
+    if (inFence) return line.replace(/ {50,}/g, " ");
     let l = line;
     // マークダウンテーブルの区切り行で20文字以上の連続ハイフンを正規化（35k〜770k文字の破綻を抑止）
     if (l.includes("|")) {
@@ -91,12 +93,16 @@ export function frontmatterProblems(md) {
   return problems;
 }
 
-// 保存する直前の Web 記事の最終検査（CI の品質ゲートの Mermaid 検査・ビルドの frontmatter 解析と同じもの）
+// 保存する直前の Web 記事の最終検査（CI の品質ゲートの Mermaid・有料キット・空白の検査、ビルドの frontmatter 解析と同じもの）
 export async function finalWebArticleProblems(md) {
   const problems = [...frontmatterProblems(md)];
   if (!/```mermaid/.test(md)) problems.push("Mermaid 構成図がありません");
   problems.push(...mermaidProblems(md));
   problems.push(...(await mermaidParseErrors(md)).map((e) => `Mermaid図を描画できません: ${e}`));
   if ((md.match(/```/g) || []).length % 2 !== 0) problems.push("閉じていないコードブロックがあります");
+  // 品質ゲート（scripts/audit_quality.mjs）の Web 記事の検査: 有料キットの見出し・異常な長大空白
+  const leaks = findProLeaks(md);
+  if (leaks.length) problems.push(`有料キットの内容が含まれています（${leaks.join(", ")}）`);
+  if (/\s{500,}/.test(md)) problems.push("異常な長大空白があります");
   return problems;
 }

@@ -49,6 +49,8 @@ test("```markdown の包みだけを外し、記事の最後のコードブロ�
 test("テーブルの整形はコードブロックの中（YAML のインデント・Python の型の |）を崩さない", () => {
   const code = "```yaml\nservices:\n  app:\n    command: |\n      echo a || echo b\n```\n```python\ndef f(x: int | None):\n        return x\n```";
   assert.equal(sanitizeMarkdownContent(code), code);
+  // 暴走した連続空白は、コードブロックの中でも詰める
+  assert.equal(sanitizeMarkdownContent("```\na" + " ".repeat(80) + "b\n```"), "```\na b\n```");
   // コードブロックの外のテーブルは従来どおり整える
   assert.equal(sanitizeMarkdownContent("| a  |  b |\n|" + "-".repeat(40) + "|"), "| a | b |\n|:---|");
 });
@@ -61,6 +63,9 @@ test("保存前の最終検査: frontmatter をビルドと同じ方法で読め
   assert.ok((await finalWebArticleProblems(ok.replace('A["a"]', "A[a (b)]"))).length > 0);
   assert.ok((await finalWebArticleProblems(ok + "```js\nx\n")).some((p) => /閉じていない/.test(p)));
   assert.ok((await finalWebArticleProblems(ok.replace(/```mermaid[\s\S]*```\n/, ""))).some((p) => /Mermaid/.test(p)));
+  // 品質ゲート（audit_quality）の Web 記事の検査と同じ: 有料キットの見出し・異常な長大空白
+  assert.ok((await finalWebArticleProblems(ok + "## 見積シミュレーション表\n")).some((p) => /有料キット/.test(p)));
+  assert.ok((await finalWebArticleProblems(ok + "\n".repeat(600))).some((p) => /長大空白/.test(p)));
 });
 
 // クラス単位の再発防止: 掲載中の全記事の frontmatter が、サイトのビルド（Astro）と同じ方法で読め、必要な項目がそろっている
