@@ -6,6 +6,10 @@ import os from "os";
 import path from "path";
 import { execFileSync } from "child_process";
 import { commitAndSync } from "../scripts/utils/git_sync.mjs";
+import { isolateGitConfig } from "./helpers/git_env.mjs";
+
+// マシンの git 設定（owner PC の core.autocrlf=true）に結果が左右されないようにする。autocrlf を見たいテストは、その中で明示する
+isolateGitConfig();
 
 const g = (cwd, ...a) => execFileSync("git", a, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 
@@ -15,7 +19,7 @@ test("未コミットの別ファイルがあり、リモートでも出品履�
     const remote = path.join(root, "remote.git");
     g(root, "init", "-q", "--bare", "-b", "main", remote);
     const seed = path.join(root, "seed");
-    g(root, "clone", "-q", remote, seed);
+    g(root, "clone", "-q", "-c", "core.autocrlf=false", remote, seed);
     for (const d of [seed]) { g(d, "config", "user.email", "t@t"); g(d, "config", "user.name", "t"); }
     fs.mkdirSync(path.join(seed, "scripts"));
     for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs"]) fs.copyFileSync(path.join("scripts", f), path.join(seed, "scripts", f));
@@ -25,7 +29,7 @@ test("未コミットの別ファイルがあり、リモートでも出品履�
     g(seed, "add", "-A"); g(seed, "commit", "-qm", "init"); g(seed, "push", "-q", "origin", "main");
 
     const owner = path.join(root, "owner");
-    g(root, "clone", "-q", remote, owner);
+    g(root, "clone", "-q", "-c", "core.autocrlf=false", remote, owner);
     for (const d of [owner]) { g(d, "config", "user.email", "o@o"); g(d, "config", "user.name", "o"); }
 
     // CI 側: 別の記事を記録して push
@@ -48,19 +52,20 @@ test("未コミットの別ファイルがあり、リモートでも出品履�
 });
 
 // 共通: GitHub（remote）・CI 側の clone（seed）・オーナーの clone（owner）を作る。files は最初のコミットの中身
-function repos(root, files) {
+// opts.autocrlf: clone に設定する core.autocrlf。opts.attributes: .gitattributes の中身（既定はこのリポのもの）
+function repos(root, files, { autocrlf = "false", attributes = fs.readFileSync(".gitattributes", "utf8") } = {}) {
   const remote = path.join(root, "remote.git");
   g(root, "init", "-q", "--bare", "-b", "main", remote);
   const seed = path.join(root, "seed");
-  g(root, "clone", "-q", remote, seed);
+  g(root, "clone", "-q", "-c", `core.autocrlf=${autocrlf}`, remote, seed);
   g(seed, "config", "user.email", "t@t"); g(seed, "config", "user.name", "t");
   fs.mkdirSync(path.join(seed, "scripts"));
   for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs"]) fs.copyFileSync(path.join("scripts", f), path.join(seed, "scripts", f));
-  fs.writeFileSync(path.join(seed, ".gitattributes"), fs.readFileSync(".gitattributes"));
+  fs.writeFileSync(path.join(seed, ".gitattributes"), attributes);
   for (const [f, s] of Object.entries(files)) fs.writeFileSync(path.join(seed, f), s);
   g(seed, "add", "-A"); g(seed, "commit", "-qm", "init"); g(seed, "push", "-q", "origin", "main");
   const owner = path.join(root, "owner");
-  g(root, "clone", "-q", remote, owner);
+  g(root, "clone", "-q", "-c", `core.autocrlf=${autocrlf}`, remote, owner);
   g(owner, "config", "user.email", "o@o"); g(owner, "config", "user.name", "o");
   return { remote, seed, owner };
 }
@@ -124,6 +129,31 @@ test("同期のときも、手元の変更と GitHub の更新がぶつかった
     assert.ok(r2.ok, `${r2.step}: ${r2.message}`);
     assert.equal(fs.readFileSync(path.join(owner, "x.txt"), "utf8"), "a\nCI2\nc\n");
     assert.deepEqual(Object.keys(JSON.parse(g(remote, "show", "main:scripts/publish_history.json"))).sort(), ["c", "d"]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Windows の owner PC（core.autocrlf=true）では、LF のファイルを扱うたびに git が stderr へ
+// "warning: in the working copy of '...', LF will be replaced by CRLF ..." を出す。その警告を衝突したファイル名として読むと、
+// 衝突の印が残ったファイルを直せないまま「直した」ことになる。リポ側の改行の宣言（.gitattributes の eol=lf）が無い古いリポでも、
+// ファイル名は stdout だけから取る
+test("core.autocrlf=true で git が警告を出しても、警告をファイル名として扱わず、衝突の印を残さない", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "atr-sync-"));
+  try {
+    const noEol = fs.readFileSync(".gitattributes", "utf8").split("\n").filter((l) => !/\beol=|\btext\b/.test(l)).join("\n");
+    const { seed, owner } = repos(root, { "scripts/publish_history.json": "{}\n", "x.txt": "a\nb\nc\n" }, { autocrlf: "true", attributes: noEol });
+    fs.writeFileSync(path.join(seed, "x.txt"), "a\nCI\nc\n");
+    g(seed, "commit", "-qam", "ci"); g(seed, "push", "-q", "origin", "main");
+    fs.writeFileSync(path.join(owner, "x.txt"), "a\nOWNER\nc\n");
+    // 衝突の印が残った状態（以前の版の取り込み方の結果）を作る
+    g(owner, "pull", "--rebase", "--autostash", "origin", "main");
+    assert.match(fs.readFileSync(path.join(owner, "x.txt"), "utf8"), /<<<<<<</, "前提: 衝突の印が残っている");
+    fs.writeFileSync(path.join(owner, "scripts/publish_history.json"), JSON.stringify({ c: { note: true } }) + "\n");
+    const r = commitAndSync(owner, ["scripts/publish_history.json"], "chore(history): record");
+    assert.ok(r.ok, `${r.step}: ${r.message}`);
+    assert.deepEqual(r.restored, ["x.txt"], "戻したファイルは実在するパスだけ（git の警告文を含めない）");
+    assert.doesNotMatch(fs.readFileSync(path.join(owner, "x.txt"), "utf8"), /<<<<<<<|>>>>>>>/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

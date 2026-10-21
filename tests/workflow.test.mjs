@@ -9,8 +9,12 @@ import { execFileSync, spawnSync } from "child_process";
 import { parseFrontmatter } from "astro/markdown";
 import { MERGE_DRIVERS } from "../scripts/utils/git_sync.mjs";
 import { RUN_REASONS } from "../scripts/utils/run_status.mjs";
+import { isolateGitConfig } from "./helpers/git_env.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
+
+// このテストが作る git リポジトリを、マシンの git 設定（owner PC の core.autocrlf=true など）から切り離す
+isolateGitConfig();
 const WORKFLOW = fs.readFileSync(path.join(root, ".github/workflows/daily-crawl.yml"), "utf8");
 // YAML の解析は、サイトのビルドと同じ Astro の frontmatter 用の解析器を使う（依存パッケージを増やさない）
 const wf = parseFrontmatter(`---\n${WORKFLOW}\n---\n`).frontmatter;

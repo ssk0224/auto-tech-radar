@@ -5,12 +5,17 @@ import { spawnSync, execFileSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { linkDir } from "./helpers/links.mjs";
 import { pathToFileURL } from "url";
 import { parseFrontmatter } from "astro/markdown";
 import { mermaidProblems } from "../scripts/utils/mermaid.mjs";
 import { mermaidParseErrors } from "../scripts/utils/mermaid_parse.mjs";
+import { isolateGitConfig } from "./helpers/git_env.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
+
+// このテストが作る git リポジトリを、マシンの git 設定（owner PC の core.autocrlf=true など）から切り離す
+isolateGitConfig();
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro", ".claude"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
@@ -48,7 +53,7 @@ hello
 function run(mockOut, extraEnv = {}, { keepDates = false, timeout, prepare } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gen-"));
   fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
-  fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"), "junction"); // Windows ではディレクトリの symlink に権限が要るため junction を使う
+  linkDir(path.join(root, "node_modules"), path.join(dir, "node_modules")); // Windows ではディレクトリの symlink に権限が要るため、linkDir は junction を使う
   // 「本日分は生成済み」で即終了しないよう、複製側の記事の公開日を過去にずらす
   const radar = path.join(dir, "src/pages/radar");
   if (!keepDates) {

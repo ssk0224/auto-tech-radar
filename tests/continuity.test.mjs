@@ -9,8 +9,12 @@ import path from "path";
 import { classifyGeminiError, resolveModelOrder, MODEL_PREFERENCE } from "../scripts/utils/gemini_models.mjs";
 import { appendRun, jstDate, recordRunStatus } from "../scripts/utils/run_status.mjs";
 import { decideAlert, sendAlert, alertBody, ALERT_LABEL, ALERT_TITLE } from "../scripts/alert_if_no_article.mjs";
+import { isolateGitConfig } from "./helpers/git_env.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
+
+// このテストが作る git リポジトリを、マシンの git 設定（owner PC の core.autocrlf=true など）から切り離す
+isolateGitConfig();
 
 test("Gemini の失敗を quota / unavailable / transient / other に分ける", () => {
   assert.equal(classifyGeminiError(new Error('{"error":{"code":429,"message":"You exceeded your current quota","status":"RESOURCE_EXHAUSTED"}}')), "quota");

@@ -13,9 +13,13 @@ export const MERGE_DRIVERS = {
   "merge.note-status.driver": "node scripts/merge_note_status.mjs %O %A %B",
 };
 
+// stdout と stderr は別に持つ。ファイル名・パスなど「値」として使うのは stdout だけ（stderr には、Windows の core.autocrlf=true が出す
+// "warning: in the working copy of ..., LF will be replaced by CRLF" のような警告が混ざる）。out は人に見せる文面用（両方をつないだもの）
 const git = (cwd, args, timeout) => {
   const r = spawnSync("git", args, { cwd, encoding: "utf8", ...(timeout ? { timeout } : {}) });
-  return { ok: r.status === 0, out: `${r.stdout || ""}${r.stderr || ""}`.trim() || (r.error ? r.error.message : "") };
+  const stdout = r.stdout || "";
+  const stderr = r.stderr || "";
+  return { ok: r.status === 0, stdout, stderr, out: `${stdout}${stderr}`.trim() || (r.error ? r.error.message : "") };
 };
 
 // 設定に失敗した項目の説明を返す（空なら全部設定できた）
@@ -35,13 +39,14 @@ export function configureMergeDrivers(cwd) {
 export function repairWorkingTree(cwd) {
   for (const p of ["rebase-merge", "rebase-apply"]) {
     const dir = git(cwd, ["rev-parse", "--git-path", p]);
-    if (dir.ok && fs.existsSync(path.resolve(cwd, dir.out))) {
+    if (dir.ok && fs.existsSync(path.resolve(cwd, dir.stdout.trim()))) {
       git(cwd, ["rebase", "--abort"]);
       break;
     }
   }
-  const u = git(cwd, ["diff", "--name-only", "--diff-filter=U"]);
-  const files = u.ok ? u.out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  // -z: ファイル名を NUL 区切りで受け取る（改行・日本語・空白を含む名前でも崩れない）。読むのは stdout だけ
+  const u = git(cwd, ["diff", "--name-only", "-z", "--diff-filter=U"]);
+  const files = u.ok ? u.stdout.split("\0").filter(Boolean) : [];
   if (files.length) git(cwd, ["checkout", "HEAD", "--", ...files]);
   return files;
 }

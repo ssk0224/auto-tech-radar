@@ -5,6 +5,7 @@ import { spawnSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { linkDir } from "./helpers/links.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro"]);
@@ -13,7 +14,7 @@ function cloneRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gate-"));
   fs.cpSync(root, dir, { recursive: true, filter: (src) => !SKIP.has(path.basename(src)) });
   // 監査は依存パッケージ（Mermaid の構文解析）を使うので node_modules を参照させる
-  fs.symlinkSync(path.join(root, "node_modules"), path.join(dir, "node_modules"), "junction");
+  linkDir(path.join(root, "node_modules"), path.join(dir, "node_modules"));
   return dir;
 }
 const audit = (dir, script) => spawnSync(process.execPath, [path.join(dir, "scripts", script)], { cwd: dir, encoding: "utf8" });
