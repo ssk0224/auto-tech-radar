@@ -11,7 +11,8 @@ import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 import { findMissingReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
-import { findForbiddenClaims } from "./utils/claims_check.mjs";
+import { findForbiddenClaims, findWebArticleClaims, WEB_CLAIMS_PROMPT_RULE } from "./utils/claims_check.mjs";
+import { resolveLicense, licensePromptText, licenseStatementProblems, LICENSE_PROMPT_RULE } from "./utils/license_resolver.mjs";
 import { findHype, HYPE_PROMPT_RULE } from "./utils/hype_check.mjs";
 import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
@@ -154,10 +155,20 @@ async function getReadme(owner, repo) {
   }
 }
 
+// ライセンスは GitHub の検索結果の表示（"Other" 等）ではなく LICENSE ファイルの本文から判定する（2026-10-21）。
+// 生成プロンプトと生成後の検査で同じ判定結果を使うため、リポジトリごとに 1 回だけ取得する
+const licenseCache = new Map();
+function licenseFor(repo) {
+  if (!licenseCache.has(repo.full_name)) {
+    licenseCache.set(repo.full_name, resolveLicense(repo.owner.login, repo.name, { headers: getGithubHeaders() }));
+  }
+  return licenseCache.get(repo.full_name);
+}
+
 // 1回のAI呼び出しで「Web記事」「note有料記事ドラフト」「Xスレッド」を3点一括生成
 async function generateAllContent(repo, readme) {
   const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
-  const licenseName = repo.license?.name || repo.license?.spdx_id || "オープンソース (要確認)";
+  const licenseName = licensePromptText(await licenseFor(repo));
 
   const systemInstruction = `
 あなたはシリコンバレーのシニアソリューションアーキテクト兼トップテックライターです。
@@ -178,6 +189,10 @@ async function generateAllContent(repo, readme) {
 
 【誇張・結果保証の禁止】
 ${HYPE_PROMPT_RULE}
+${WEB_CLAIMS_PROMPT_RULE}
+
+【ライセンスの書き方】
+${LICENSE_PROMPT_RULE}
 `;
 
   const prompt = `
@@ -210,13 +225,14 @@ stars: ${repo.stargazers_count}
 
 # ${repo.name}: 概要と革新性
 ## 🎯 成熟度の目安（AI による見立て）
-※README とリポジトリ情報（スター数・更新状況）から読み取れる範囲で、成熟度の目安と根拠を簡潔に書いてください。第三者機関（ThoughtWorks 等）の評価であるかのような表現や、確認できない本番利用実績は書かないでください。
+※README とリポジトリ情報（スター数・更新状況）から読み取れる範囲で、成熟度の目安と根拠を簡潔に書いてください。第三者機関（ThoughtWorks 等）の評価であるかのような表現や、確認できない本番利用実績は書かないでください。ADOPT / TRIAL などの採用判定や導入の勧めは書かず、検証候補になる用途として書いてください。
 
 ## 解決する主要な課題とアーキテクチャ
 ※必須：このセクション内に、コンポーネント構成やデータフローを示すMermaidダイアグラム（\`\`\`mermaid ... \`\`\` / graph TD 等）を必ず1つ以上含めて視覚的に図解してください。
 
 ## 競合ツール/商用SaaSとの徹底比較
 ## 商用利用可否 & ライセンス考察
+※[リポジトリ情報]のライセンス欄の表記を使い、ライセンスの確認先の URL をリンクで示してください。
 
 
 === NOTE ARTICLE ===
@@ -717,6 +733,11 @@ async function run() {
       ];
       if (forbiddenHits.length) {
         throw new Error(`生成文面に禁止・誇張表現が含まれています（${forbiddenHits.join(" / ")}）`);
+      }
+      // Web 記事だけの検査: 導入の勧め・引用の無い比較・ライセンスの推測と、LICENSE ファイルの判定と食い違うライセンス表記（既存の Web 記事にもテストで同じ検査をかける）
+      const webHits = [...findWebArticleClaims(result.web), ...licenseStatementProblems(result.web, await licenseFor(repo))];
+      if (webHits.length) {
+        throw new Error(`Web記事に根拠のない推奨・比較・ライセンス表記があります（${webHits.join(" / ")}）`);
       }
       // プロンプトで禁止した誇張・結果保証の表現（一発起動・爆発的・収入の金額など）が残っていれば採用しない（新規生成物だけの検査）
       const hypeHits = [...findHype(noteText), ...findHype(result.web), ...findHype(result.x)];

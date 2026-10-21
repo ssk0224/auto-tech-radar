@@ -511,6 +511,16 @@ const ringBadgeBorder = tier.border;
           この記事は、GitHub の公開情報（README・リポジトリ情報）をもとに AI（Google Gemini）が下書きし、自動検査を通して公開しています。導入前に、公式リポジトリで最新の内容・ライセンスをご確認ください。
         </p>
       )}
+      {/* 訂正の記録（記事の frontmatter の corrections）。一覧は /about/ の訂正履歴 */}
+      {isArticle && Array.isArray(frontmatter?.corrections) && frontmatter.corrections.length > 0 && (
+        <div class="article-corrections" style="margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid #78350f; border-radius: 8px; font-size: 0.82rem; color: #fcd34d; line-height: 1.6;">
+          <strong>訂正</strong>
+          <ul style="margin: 0.3rem 0 0; padding-left: 1.2rem;">
+            {frontmatter.corrections.map((c: any) => <li>{c.date}: {c.note}</li>)}
+          </ul>
+          <a href={`${baseUrl}/about/#corrections`} style="color: #fcd34d; text-decoration: underline;">訂正履歴の一覧</a>
+        </div>
+      )}
 
       {/* 有料版の案内は本文の導入部の直後（上の .note-offer）の 1 か所だけ。
           記事末尾の購入カード・追従バーや、B2B（協賛・導入支援）の案内は置かない（/sponsor/・/contact/ はフッターから案内する） */}
@@ -617,6 +627,7 @@ const ringBadgeBorder = tier.border;
         <a href={`${baseUrl}/contact/`} style="margin: 0 0.6rem; color: #60a5fa; font-weight: 700;">📩 受託・導入相談窓口</a> |
         <a href={`${baseUrl}/api/radar.json`} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem; color: #c084fc; font-weight: 700;">🤖 AI Agent API (JSON)</a> |
         <a href={`${baseUrl}/sponsor/`} style="margin: 0 0.6rem;">📢 広告・協賛</a> |
+        <a href={`${baseUrl}/about/`} style="margin: 0 0.6rem;">運営方針・訂正履歴</a> |
         <a href={`${baseUrl}/privacy/`} style="margin: 0 0.6rem;">プライバシーポリシー</a> |
         <a href={`${baseUrl}/criteria/`} style="margin: 0 0.6rem;">選定基準</a> |
         <a href={siteConfig.xAccountUrl} target="_blank" rel="noopener noreferrer" style="margin: 0 0.6rem;">公式 𝕏 ({siteConfig.xHandle})</a> |
@@ -734,7 +745,7 @@ const ringBadgeBorder = tier.border;
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
               <a href="${esc(baseUrl)}/radar-map/" title="${esc(ringNote)}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
                 <span>●</span>
-                <span>GitHub ${ringLabel}</span>
+                <span>スター数区分 ${ringLabel}</span>
               </a>
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>

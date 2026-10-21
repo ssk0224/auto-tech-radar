@@ -1,12 +1,16 @@
 ---
 layout: "../../layouts/Layout.astro"
 title: "jev-ultrafast - Fastest and cheapest web agent"
-description: "投機的意思決定とDOM最適化により最速・最安を実現する次世代Webブラウザ自律エージェント"
+description: "投機的な意思決定とDOMの扱いを工夫したWebブラウザ自律エージェント"
 pubDate: "2026-10-10"
 tags: ["Python", "OSS", "GitHub", "AI-Agents", "Automation"]
 repoUrl: "https://github.com/browser-use/jev-ultrafast"
 repoCreatedAt: "2026-09-17"
 stars: 22480
+updatedDate: "2026-10-21"
+corrections:
+  - date: "2026-10-21"
+    note: "説明文の最上級の表現を削除し、機能の説明に訂正"
 ---
 
 # jev-ultrafast: 概要と革新性
@@ -55,7 +59,7 @@ graph TD
 
 ### 3. 超高速化を支える主要技術
 1. **投機的ファンアウト（Speculative Fan-out）**: 
-   「次がCLICKならどの要素か」「TYPE_TEXTならどの要素か」を1回の推論パスで並列予測。確定したOperationに応じたTargetを即座に採用するため、ネットワークRTTを半減。
+   「次がCLICKならどの要素か」「TYPE_TEXTならどの要素か」を1回の推論パスで並列予測。確定したOperationに応じたTargetをそのまま使うため、ネットワークRTTを半減。
 2. **Atomic DOM Snapshot**: 
    JavaScriptフックを用いて、ビューポート内の操作可能ノード（ボタン、入力欄、コンボボックス）のみをインデックス化し、ノード参照を保持したままテーブル化。
 3. **小型LLMによるテキスト補完の分離**: 

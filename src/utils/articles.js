@@ -37,9 +37,25 @@ export const STAR_TIERS = [
   { min: 1000, label: "★1,000+", color: "#fbbf24", bg: "rgba(245, 158, 11, 0.18)", border: "rgba(245, 158, 11, 0.4)" },
   { min: 0, label: "★1,000未満", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.18)", border: "rgba(148, 163, 184, 0.4)" },
 ];
-export const STAR_TIER_NOTE = "区分は記事作成時点の GitHub スター数のみで機械的に決めたもので、採用の推奨や品質の評価ではありません。";
+// 画面での呼び名（「リング」「判定」とは呼ばない。レーダー図の同心円もこの区分を表す）
+export const STAR_TIER_NAME = "スター数区分";
+export const STAR_TIER_NOTE = "スター数区分は推奨ではありません。記事作成時点の GitHub スター数だけで機械的に分けたもので、採用の推奨や品質の評価ではありません。";
 export function starTier(stars) {
   const n = Number(stars) || 0;
   const ring = STAR_TIERS.findIndex((t) => n >= t.min);
   return { ring, ...STAR_TIERS[ring] };
+}
+
+// 訂正履歴（記事の frontmatter の corrections: [{ date, note }]）。ノイズ記事も公開しているので含める。新しい訂正から順に並べる
+export function getCorrections() {
+  const rows = [];
+  for (const post of Object.values(modules)) {
+    const list = post.frontmatter?.corrections;
+    if (!Array.isArray(list)) continue;
+    for (const c of list) {
+      if (!c?.date || !c?.note) continue;
+      rows.push({ date: String(c.date), note: String(c.note), url: post.url, slug: slugOf(post), title: post.frontmatter?.title || slugOf(post) });
+    }
+  }
+  return rows.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
 }
