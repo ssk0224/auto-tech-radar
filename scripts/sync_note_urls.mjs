@@ -113,7 +113,15 @@ async function checkPublishedNotes(map) {
     if (!key) continue;
     try {
       const d = await fetchNoteDetail(key);
-      status[slug] = { eyecatch: Boolean(d.eyecatch), issues: publishedNoteIssues(d) };
+      // 更新日時とタイトルも残す（オーナーの差し替えが note に届いたかを、日時で確かめられるように）
+      const tw = String(d.body || '').match(/.{0,20}ThoughtWorks.{0,20}/);
+      status[slug] = {
+        eyecatch: Boolean(d.eyecatch),
+        issues: publishedNoteIssues(d),
+        name: d.name || '',
+        updatedAt: d.updated_at || d.updatedAt || d.publish_at || d.publishAt || '',
+        ...(tw ? { excerpt: tw[0].replace(/<[^>]+>/g, '') } : {}),
+      };
     } catch (e) {
       status[slug] = { error: e.message };
     }
