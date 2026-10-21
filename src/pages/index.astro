@@ -31,8 +31,8 @@ const posts = getArticles() as any[];
         <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">GitHub 公式 API で取得</div>
       </div>
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
-        <div style="font-size: 1.5rem; font-weight: 900; color: #a855f7;">商用SaaS手順</div>
-        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">受託・マネタイズ分析付</div>
+        <div style="font-size: 1.5rem; font-weight: 900; color: #a855f7;">ライセンス確認</div>
+        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">LICENSE ファイルから判定</div>
       </div>
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
         <div style="font-size: 1.5rem; font-weight: 900; color: #f59e0b;">{posts.length}+ 本</div>
@@ -209,7 +209,7 @@ const posts = getArticles() as any[];
 
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.88rem; border-top: 1px solid rgba(31, 41, 55, 0.6); padding-top: 0.6rem;">
                     <a href={hrefOf(post)} style="font-weight: 700; color: #60a5fa; display: inline-flex; align-items: center; gap: 0.2rem; text-decoration: none;">
-                      日本語解剖レポート ＆ 商用手順書 →
+                      日本語の解説を読む →
                     </a>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                       <button 
@@ -266,7 +266,7 @@ const posts = getArticles() as any[];
       <div>
         <h4 style="margin: 0 0 0.3rem; color: #93c5fd; font-size: 1rem;">Q. 一般のテックニュースやまとめ記事と何が違うのですか？</h4>
         <p style="margin: 0; color: #9ca3af; font-size: 0.92rem; line-height: 1.7;">
-          単なる機能紹介にとどまらず、「受託開発でクライアントにどう提案するか」や「自社SaaSとしてどう収益化するか」という実用的なビジネス・マネタイズ設計まで深掘りしている点です。一次情報の英語コードをAIが直接解析して解説します。
+          GitHub でスター数が伸びている OSS を選定基準に沿って毎日選び、README などの公開情報をもとに、構成図（Mermaid）・競合との比較・ライセンス（LICENSE ファイルから判定）を日本語でまとめている点です。ソースコードの解析や実機での動作検証は行っていません。受託提案・自社SaaS化の検討に使う提案書テンプレートや工数見積表は、note の有料版で提供しています。
         </p>
       </div>
 

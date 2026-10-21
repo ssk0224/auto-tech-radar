@@ -100,6 +100,73 @@ test("実際のビルド: RSS の日付は日本時間の公開日の 0 時、�
   }
 });
 
+// ---- 表示している主張が記事の中身と合っている ----
+// 記事に無い節を「付き」と書かない・README しか読んでいないのに「コードを解析」と書かない・誇張しない
+const UNSUPPORTED = [
+  [/英語コードをAIが直接解析|コードをAIが直接解析/, "記事は README などの公開情報から作っており、コードは解析していない"],
+  [/商用手順書/, "Web 記事に商用の手順書は無い（実務キットは note の有料版）"],
+  [/完全解剖/, "README をもとにした解説を「完全解剖」と呼ばない"],
+  [/急増中/, "スター数の推移を確かめずに「急増中」と書かない"],
+  [/Media Kit|メディアキット/, "スポンサーの媒体資料（読者数など）は公開していない"],
+];
+
+test("配信物（HTML・llms.txt）に、記事の中身で裏付けられない表示が無い", () => {
+  assertSiteBuilt();
+  const hits = [];
+  for (const f of [...htmlFiles(siteOut), path.join(siteOut, "llms.txt")]) {
+    const text = read(f);
+    for (const [re, why] of UNSUPPORTED) if (re.test(text)) hits.push(`${path.relative(siteOut, f)}: ${why}（${text.match(re)[0]}）`);
+  }
+  assert.deepEqual(hits, []);
+});
+
+test("llms.txt が「各技術レポートにある」と書く節は、すべての記事に見出しとしてある", () => {
+  const llms = read(path.join(root, "public/llms.txt"));
+  const section = llms.split(/^## /m).find((s) => s.startsWith("主な提供コンテンツと構造")) || "";
+  const names = [...section.matchAll(/^\d+\.\s+\*\*(.+?)\*\*/gm)].map((m) => m[1]);
+  assert.ok(names.length >= 3, "llms.txt の節の一覧が読めない");
+  const radarDir = path.join(root, "src/pages/radar");
+  const missing = [];
+  for (const f of fs.readdirSync(radarDir).filter((x) => x.endsWith(".md"))) {
+    const heads = [...read(path.join(radarDir, f)).matchAll(/^##\s+(.+)$/gm)].map((m) => m[1].trim());
+    for (const n of names) if (!heads.some((h) => h.includes(n))) missing.push(`${f}: ${n}`);
+  }
+  assert.deepEqual(missing, []);
+});
+
+// 記事ページのスクリプト（目次・メタバー・要約）を jsdom で実行し、バッジの表示を確かめる
+async function runArticleScripts(html) {
+  const { JSDOM } = await import("jsdom");
+  const dom = new JSDOM(html, {
+    url: "https://ssk0224.github.io/auto-tech-radar/radar/x/",
+    runScripts: "dangerously",
+    beforeParse(window) {
+      Object.defineProperty(window.HTMLElement.prototype, "innerText", { get() { return this.textContent; }, configurable: true });
+      window.scrollTo = () => {};
+    },
+  });
+  return dom.window.document;
+}
+
+test("「商用・マネタイズ分析付き」「活用領域」の表示は、本文にマネタイズの節がある記事だけ", async () => {
+  assertSiteBuilt();
+  const radarDir = path.join(root, "src/pages/radar");
+  const slugs = fs.readdirSync(radarDir).filter((f) => f.endsWith(".md")).map((f) => f.replace(/\.md$/, ""));
+  const hasSection = (slug) => /^##\s+.*マネタイズ/m.test(read(path.join(radarDir, `${slug}.md`)));
+  const withSection = slugs.filter(hasSection);
+  const without = slugs.filter((s) => !hasSection(s));
+  assert.ok(withSection.length > 0 && without.length > 0, "節のある記事と無い記事の両方で確かめる");
+  for (const slug of [withSection[0], ...without]) {
+    const doc = await runArticleScripts(read(path.join(siteOut, "radar", slug, "index.html")));
+    const bar = doc.querySelector(".reading-meta-bar");
+    assert.ok(bar, `${slug}: メタバーが作られていない`);
+    const text = doc.getElementById("article-body").textContent;
+    assert.equal(text.includes("商用・マネタイズ分析付き"), hasSection(slug), `${slug}: 「商用・マネタイズ分析付き」の表示が本文と合わない`);
+    assert.equal(text.includes("活用領域: 受託開発"), hasSection(slug), `${slug}: 「活用領域」の表示が本文と合わない`);
+    assert.ok(text.includes("スター数区分"), `${slug}: スター数区分のバッジが無い`);
+  }
+});
+
 // ---- わざと崩した記事（GitHub の説明そのままのタイトル・引用符なしの日付・スター 0・OGP 画像なし・tags が文字列）でビルドする ----
 const PROBE_SLUG = "zz-probe-oddities";
 const PROBE_TITLE = 'zz-probe - Render </script><script>window.__pwned=1</script> & "quotes" <!-- x';

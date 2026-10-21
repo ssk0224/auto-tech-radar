@@ -742,6 +742,11 @@ const ringBadgeBorder = tier.border;
           const ringColor = esc(mainEl ? (mainEl.getAttribute('data-ring-color') || '#60a5fa') : '#60a5fa');
           const ringBg = esc(mainEl ? (mainEl.getAttribute('data-ring-bg') || 'rgba(59, 130, 246, 0.18)') : 'rgba(59, 130, 246, 0.18)');
           const ringBorder = esc(mainEl ? (mainEl.getAttribute('data-ring-border') || 'rgba(59, 130, 246, 0.4)') : 'rgba(59, 130, 246, 0.4)');
+          // 「商用・マネタイズ分析付き」「活用領域」「ライセンス考察を参照」は、本文にその見出しがある記事だけに出す
+          // （2026-10-21 以降の記事にはマネタイズの節が無い。無い節を「付き」と書かない）
+          const hasHeading = (word) => Array.from(headings).some((h) => h.tagName === 'H2' && (h.textContent || '').includes(word));
+          const hasMonetization = hasHeading('マネタイズ');
+          const hasLicenseSection = hasHeading('ライセンス考察');
 
           // はてなブックマークの https ページ用 URL 形式: /entry/s/<host+path>
           const hatenaUrl = 'https://b.hatena.ne.jp/entry/' + (window.location.protocol === 'https:' ? 's/' : '') + window.location.host + window.location.pathname;
@@ -756,7 +761,7 @@ const ringBadgeBorder = tier.border;
               </a>
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>
-              <span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>
+              ${hasMonetization ? '<span style="color: #10b981; font-weight: 600;">✓ 商用・マネタイズ分析付き</span>' : ''}
             </div>
             <div style="margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
               <button id="print-article-btn" onclick="window.print()" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.76rem; cursor: pointer; font-weight: 700;">
@@ -803,7 +808,7 @@ const ringBadgeBorder = tier.border;
                 `  1. 既存商用SaaSのライセンス費用の削減\n` +
                 `  2. ベンダーロックインの低減とオンプレミス/プライベートクラウド運用\n` +
                 `  3. AI/エージェント技術の内製化による業務工数の削減\n\n` +
-                `■ 詳細技術仕様・商用手順書:\n` +
+                `■ 参考（README などの公開情報をもとにした日本語解説）:\n` +
                 `  ${pageUrl}\n`;
               navigator.clipboard.writeText(proposalText).then(() => {
                 copyPropBtn.textContent = '✓ 提案書コピー完了！';
@@ -835,8 +840,8 @@ const ringBadgeBorder = tier.border;
               ${summaryText}
             </p>
             <div style="display: flex; gap: 1rem; margin-top: 0.8rem; font-size: 0.8rem; color: #94a3b8; flex-wrap: wrap;">
-              <span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>
-              <span>💡 ライセンス: 本文の「商用利用可否 & ライセンス考察」参照</span>
+              ${hasMonetization ? '<span>🎯 活用領域: 受託開発 / 自社SaaS基盤</span>' : ''}
+              ${hasLicenseSection ? '<span>💡 ライセンス: 本文の「商用利用可否 &amp; ライセンス考察」参照</span>' : ''}
             </div>
             <div style="margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;">
               <div style="padding: 0.55rem 0.8rem; background: #030712; border: 1px solid #1e293b; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; flex-wrap: wrap;">
