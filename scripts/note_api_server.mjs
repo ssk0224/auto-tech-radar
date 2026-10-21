@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { parseDraftToNotePayload } from './utils/note_html.mjs';
 import { assembleNote, loadPrivateKeys, noteDir } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { eyecatchPng, EYECATCH_WIDTH, EYECATCH_HEIGHT } from './utils/eyecatch.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..');
@@ -58,8 +59,22 @@ export function buildFullSyncTasks() {
   return { updates, creates, unpublishKeys: [] };
 }
 
+// 見出し画像の設定対象: note に公開済みで URL が分かっている記事（ノイズ記事は除く）
+export function buildEyecatchTasks(noteUrls) {
+  return Object.entries(noteUrls)
+    .filter(([slug]) => !isNoise(slug))
+    .map(([slug, info]) => ({ slug, key: info.url?.match(/\/n\/(n[a-z0-9]+)/i)?.[1] }))
+    .filter((t) => t.key)
+    .map((t) => ({ ...t, width: EYECATCH_WIDTH, height: EYECATCH_HEIGHT }));
+}
+
 if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
-  const tasksData = buildFullSyncTasks();
+  // --eyecatch-only: 見出し画像の設定だけ行う（秘密鍵は不要）
+  const eyecatchOnly = process.argv.includes('--eyecatch-only');
+  const tasksData = eyecatchOnly ? { updates: [], creates: [], unpublishKeys: [] } : buildFullSyncTasks();
+  const noteUrlsPath = path.join(REPO, 'scripts/note_urls.json');
+  const eyecatchTasks = buildEyecatchTasks(fs.existsSync(noteUrlsPath) ? JSON.parse(fs.readFileSync(noteUrlsPath, 'utf8')) : {});
+  console.log(`✓ 見出し画像の対象: ${eyecatchTasks.length} 本（ブラウザで scripts/browser/note_eyecatch.js を実行）`);
   console.log(
     `✓ 全自動同期タスク準備完了: 更新=${tasksData.updates.length}件 (無料チートシート含む), 新規出品=${tasksData.creates.length}件`,
   );
@@ -79,6 +94,55 @@ if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
     if (req.url === '/tasks' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify(tasksData));
+      return;
+    }
+
+    if (req.url === '/eyecatch-tasks' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(eyecatchTasks));
+      return;
+    }
+
+    if (req.url === '/eyecatch.js' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+      res.end(fs.readFileSync(path.join(__dirname, 'browser', 'note_eyecatch.js'), 'utf8'));
+      return;
+    }
+
+    const img = req.method === 'GET' && req.url.match(/^\/eyecatch\/([A-Za-z0-9_.-]+)\.png$/);
+    if (img) {
+      const slug = decodeURIComponent(img[1]);
+      if (!eyecatchTasks.some((t) => t.slug === slug)) {
+        res.writeHead(404);
+        res.end('not found');
+        return;
+      }
+      eyecatchPng(slug, REPO).then(
+        (buf) => {
+          res.writeHead(200, { 'Content-Type': 'image/png' });
+          res.end(buf);
+        },
+        (e) => {
+          res.writeHead(500);
+          res.end(e.message);
+        },
+      );
+      return;
+    }
+
+    if (req.url === '/eyecatch-complete' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => (body += c));
+      req.on('end', () => {
+        try {
+          const r = JSON.parse(body);
+          console.log(`\n🖼 見出し画像: 設定 ${r.set.length} / 変更なし ${r.skipped.length} / 失敗 ${r.failed.length}`);
+          r.failed.forEach((f) => console.log(`  ✕ ${f}`));
+        } catch {}
+        res.writeHead(200);
+        res.end('ok');
+        if (eyecatchOnly) setTimeout(() => process.exit(0), 500);
+      });
       return;
     }
 

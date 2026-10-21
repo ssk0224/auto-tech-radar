@@ -284,6 +284,7 @@ function promptMenu() {
   console.log(`   ${c.cyan}${c.bold}[6]${c.reset} ${c.bold}全世界公開サイト（自社HP）を確認する${c.reset} ${c.dim}(GitHub Pages)${c.reset}`);
   console.log(`   ${c.red}${c.bold}[U]${c.reset} ${c.bold}note 公開済み記事を修正版に差し替える${c.reset} ${c.dim}(残り ${getPendingNoteUpdates().length} 本)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[N]${c.reset} ${c.cyan}${c.bold}⚡ 【note API 全自動同期】未出品・修正版を一括全自動パブリッシュ${c.reset} ${c.dim}(0クリックAPI直結)${c.reset}`);
+  console.log(`   ${c.cyan}${c.bold}[E]${c.reset} ${c.bold}🖼 note の見出し画像を一括設定する${c.reset} ${c.dim}(未設定の記事だけ・1280x670)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
@@ -305,7 +306,7 @@ function promptMenu() {
     output: process.stdout
   });
 
-  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q / U / N) > ${c.reset}`, (choice) => {
+  rl.question(`\n${c.yellow}${c.bold}番号を選んで Enter を押してください (0-9 / M / A / S / Z / Q / U / N / E) > ${c.reset}`, (choice) => {
     rl.close();
     handleChoice(choice.trim());
   });
@@ -316,6 +317,9 @@ function handleChoice(choice) {
   switch (norm) {
     case 'a':
       runAllInOnePublish();
+      break;
+    case 'e':
+      runNoteEyecatch();
       break;
     case 'n':
       runNoteApiSync();
@@ -1011,8 +1015,38 @@ function runNoteApiSync() {
         try {
           execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
         } catch (e) {}
+        // 新しく出品した記事には見出し画像が無い。続けて見出し画像の設定に進む
+        runNoteEyecatch();
+        return;
       }
       waitBack();
+    });
+  }, 1200);
+}
+
+// note の見出し画像（アイキャッチ）を、公開済みで未設定の記事に一括で設定する。
+// ローカルブリッジ（--eyecatch-only は秘密鍵不要）を起動し、ブラウザで実行するスクリプトをクリップボードへコピーする
+function runNoteEyecatch() {
+  console.clear();
+  console.log(`${c.cyan}${c.bold}=== 🖼 note 見出し画像の一括設定 ===${c.reset}\n`);
+  const serverProc = exec(`node scripts/note_api_server.mjs --eyecatch-only`, { cwd: rootDir });
+  serverProc.stdout.on('data', (d) => process.stdout.write(d));
+  serverProc.stderr.on('data', (d) => process.stderr.write(d));
+  const copied = copyFileToClipboard(path.join(__dirname, 'browser', 'note_eyecatch.js'));
+  setTimeout(() => {
+    openUrl('https://note.com/notes');
+    console.log(`\n${c.green}${c.bold}【手順】${c.reset}`);
+    console.log(`  1. 開いた note（ログイン済み）で F12 → Console を開く`);
+    console.log(`  2. ${copied ? 'クリップボードのスクリプトを' : 'scripts/browser/note_eyecatch.js の中身を'}貼り付けて Enter（初回は「allow pasting」と入力が必要）`);
+    console.log(`  3. Chrome が「ローカル ネットワーク上のデバイスへのアクセス」を求めたら「許可」（このPCのブリッジから画像を受け取るため）`);
+    console.log(`  4. 完了すると下に「見出し画像: 設定 N / 変更なし N / 失敗 N」が表示されます\n`);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(`${c.yellow}終わったら Enter でメニューに戻る > ${c.reset}`, () => {
+      rl.close();
+      try {
+        serverProc.kill();
+      } catch (e) {}
+      promptMenu();
     });
   }, 1200);
 }

@@ -43,6 +43,8 @@
   - **テスト・監査ゲートのバグ修正＆防壁強化**: `tests/boundaries.test.mjs` で積算根拠表の検査条件が反転していた不具合を是正し、`tests/claims.test.mjs` に `note_urls.json`, `launcher.mjs`, `publish_helper.mjs`, `weekly_summary_*.txt` を追加。Zenn 記事の topics 規格・送客文・静的リンク 1473 件すべてにおいて `npm test`（48/48件合格）および `npm run build`（ALL PASS）を検証完了。
 
 ## 未完了（今後の自動運用・任意設定）
+- **note の見出し画像**（2026-10-21）: [N] の自動出品は見出し画像を付けていなかった。ランチャー **[E]**（[N] の後にも自動で続く）で、公開済みで未設定の記事に 1280x670 の画像（記事の OGP 画像から生成）を一括設定する。ブラウザ側は `scripts/browser/note_eyecatch.js`（note の非公開エンドポイント `/api/v1/image_upload/note_eyecatch` を使用。Chrome が「ローカル ネットワーク」へのアクセス許可を求めたら許可）。モック環境でのみ検証済みで、実際の note での動作は未確認。
+- **[N] の自動出品でブラウザ側に貼るスクリプトがリポジトリに無い**: `note_api_server.mjs` はタスクを配るだけで、note に出品・更新するコードは保存されていない。再現・修正できるよう `scripts/browser/` に保存すること。
 - **X の自動投稿は一度も動いていない**（2026-10-20 確認）: GitHub Actions のシークレット `X_API_KEY` / `X_API_SECRET` / `X_ACCESS_TOKEN` / `X_ACCESS_TOKEN_SECRET` が未設定で、毎回「X APIキーが未設定のため…スキップ」になる。自動投稿するならリポジトリの Settings → Secrets and variables → Actions に登録する（X 開発者アカウントの API キーが必要）。
 - **Gemini の利用枠**: 2026-10-20 は 503（混雑）のあと 429「exceeded your current quota」で生成 0 本。1 日の上限に当たっていると見られる（同日に定期実行 1 回と手動実行 2 回）。枠切れの 429 では再試行・次候補を試さずに止めるよう修正済み。安定して毎日生成するなら Google AI Studio で課金を有効にする。
 1. **修正後の生成スクリプトの本番初回**: 2026-10-19 の定時実行は、同日手動コミットされた 2 記事（`opendots`, `solidcraft`）が `pubDate: "2026-10-19"` だったため日次上限ガード（1日2本）により正常スキップ済み。次の定期実行は **2026-10-20 06:17 JST**。
