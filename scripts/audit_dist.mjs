@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { findProLeaks } from './utils/pro_boundary.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { REMOVED_SLUGS } from './utils/blocklist.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 既定は dist/。テストでは別の出力先（astro build --outDir）を引数で渡して同じ監査を通す
@@ -60,6 +61,170 @@ function b2bOfferProblems(html) {
   return problems;
 }
 
+const SITE = 'https://ssk0224.github.io';
+const BASE = '/auto-tech-radar/';
+
+// /auto-tech-radar/… のパスを dist 内のファイルに変換する
+function localFileFor(linkPath) {
+  let localPath = decodeURIComponent(linkPath).replace(/^\/auto-tech-radar\/?/, '');
+  if (localPath === '' || localPath.endsWith('/')) localPath += 'index.html';
+  else if (!path.extname(localPath)) localPath += '/index.html';
+  return localPath;
+}
+
+// dist 内の index.html の相対パス → そのページの正しい URL（canonical）
+function pageUrlFor(relPath) {
+  const dir = path.posix.dirname(relPath);
+  return `${SITE}${BASE}${dir === '.' ? '' : dir + '/'}`;
+}
+
+const attrOf = (html, re) => (html.match(re) || [])[1];
+const unescapeAttr = (s) => String(s ?? '').replace(/&(amp|lt|gt|quot|#39|#x27);/g, (m, e) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", '#x27': "'" }[e]));
+
+// ページごとの構造の検査: 構造化データ（JSON-LD）・canonical/og:url・id の重複・ページ内リンク・日付の書式
+function pageStructureProblems(html, relPath) {
+  const problems = [];
+  const isArticle = /^radar\/[^/]+\/index\.html$/.test(relPath);
+
+  // JSON-LD は JSON として読め、script 要素の中に生の < を含まない（タイトルの </script> で本文にスクリプトが入らない）
+  const blocks = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const lds = [];
+  for (const b of blocks) {
+    if (b.includes('<')) problems.push('JSON-LD の中に生の < があります（</script> で script 要素が閉じる。< は \\u003c にする）');
+    try { lds.push(JSON.parse(b)); } catch (e) { problems.push(`JSON-LD が JSON として読めません: ${e.message}`); }
+  }
+  // 1 つの JSON-LD の後ろに script 要素の外へ漏れた内容が無いこと（ld+json の開始タグと閉じタグの数が一致）
+  const ldOpen = (html.match(/<script\b[^>]*type="application\/ld\+json"/g) || []).length;
+  if (ldOpen !== blocks.length) problems.push('JSON-LD の script 要素が正しく閉じていません');
+
+  const canonical = attrOf(html, /<link rel="canonical" href="([^"]*)"/);
+  const ogUrl = attrOf(html, /<meta property="og:url" content="([^"]*)"/);
+  if (fullSite) {
+    const expected = pageUrlFor(relPath);
+    if (canonical !== expected) problems.push(`canonical が ${canonical} です（期待 ${expected}）`);
+    if (ogUrl !== expected) problems.push(`og:url が ${ogUrl} です（期待 ${expected}）`);
+    if (isArticle) {
+      const art = lds.find((j) => j?.['@type'] === 'TechArticle');
+      if (!art) problems.push('記事ページに TechArticle の構造化データがありません');
+      else {
+        if (art.url !== expected) problems.push(`構造化データの url が ${art.url} です（期待 ${expected}）`);
+        for (const k of ['datePublished', 'dateModified']) {
+          if (art[k] !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(art[k]))) problems.push(`構造化データの ${k} が YYYY-MM-DD ではありません: ${art[k]}`);
+        }
+        if (art.datePublished && art.dateModified && art.dateModified < art.datePublished) problems.push(`構造化データの dateModified（${art.dateModified}）が datePublished（${art.datePublished}）より前です`);
+        const ogImage = unescapeAttr(attrOf(html, /<meta property="og:image" content="([^"]*)"/));
+        if (art.image !== ogImage) problems.push(`構造化データの image（${art.image}）が og:image（${ogImage}）と違います`);
+        if (typeof art.headline !== 'string' || !art.headline) problems.push('構造化データの headline が空です');
+      }
+    }
+  }
+
+  // id の重複（ページ内リンク・ラベルの関連付けが壊れる）。スクリプト内の文字列（innerHTML のひな形）は対象外
+  const markup = html.replace(/<script\b[\s\S]*?<\/script>/g, '');
+  const ids = [...markup.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+  const dup = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
+  if (dup.length) problems.push(`id が重複しています: ${dup.join(', ')}`);
+  // ページ内リンク（#…）の行き先がある
+  const idSet = new Set(ids.map((id) => unescapeAttr(id)));
+  for (const m of markup.matchAll(/href="#([^"]+)"/g)) {
+    const target = unescapeAttr(decodeURIComponent(m[1]));
+    if (!idSet.has(target)) problems.push(`ページ内リンク #${target} の行き先（id）がありません`);
+  }
+  // 他ページの #… の行き先がある
+  for (const m of markup.matchAll(/href="(?:https:\/\/ssk0224\.github\.io)?(\/auto-tech-radar\/[^"#?]*)#([^"]+)"/g)) {
+    const file = path.join(distDir, localFileFor(m[1]));
+    if (!fs.existsSync(file)) continue; // 404 は別の検査で出す
+    const target = unescapeAttr(decodeURIComponent(m[2]));
+    if (!new RegExp(`\\sid="${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`).test(fs.readFileSync(file, 'utf8'))) problems.push(`リンク ${m[1]}#${target} の行き先（id）がありません`);
+  }
+
+  // 日付が Date のまま文字列化された跡（YAML で引用符の無い日付を、そのまま表示した場合に出る）
+  const leaked = markup.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z|GMT[+-]\d{4} \(|(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2} \d{4}/);
+  if (leaked) problems.push(`日付が YYYY-MM-DD ではなく Date の文字列のまま表示されています: ${leaked[0]}`);
+  return problems;
+}
+
+// サイトマップ・RSS・API・llms.txt・robots.txt が、実際の記事ページと一致すること（消したページへのリンクが残らない）
+function feedProblems() {
+  const problems = [];
+  const readDist = (rel) => fs.readFileSync(path.join(distDir, rel), 'utf8');
+  const exists = (rel) => fs.existsSync(path.join(distDir, rel));
+  const urlExists = (u) => u.startsWith(SITE + BASE) && exists(localFileFor(u.slice(SITE.length)));
+  const articleSlugs = fs.existsSync(path.join(distDir, 'radar'))
+    ? fs.readdirSync(path.join(distDir, 'radar')).filter((s) => exists(`radar/${s}/index.html`))
+    : [];
+  const listed = articleSlugs.filter((s) => !isNoise(s));
+  const articleUrl = (s) => `${SITE}${BASE}radar/${s}/`;
+  const sameSet = (name, urls, expected) => {
+    const a = new Set(urls);
+    const missing = expected.filter((u) => !a.has(u));
+    const extra = [...a].filter((u) => !expected.includes(u));
+    if (missing.length) problems.push(`${name} に載っていない記事: ${missing.join(' ')}`);
+    if (extra.length) problems.push(`${name} に記事一覧に無い URL: ${extra.join(' ')}`);
+  };
+
+  // サイトマップ: 載っている URL はすべて実在し、ノイズ以外の記事はすべて載っている（ノイズ記事は noindex なので載せない）
+  const sitemaps = fs.readdirSync(distDir).filter((f) => /^sitemap-\d+\.xml$/.test(f));
+  if (!exists('sitemap-index.xml') || sitemaps.length === 0) problems.push('サイトマップ（sitemap-index.xml / sitemap-0.xml）がありません');
+  const locs = sitemaps.flatMap((f) => [...readDist(f).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+  for (const u of locs) if (!urlExists(u)) problems.push(`サイトマップの URL が実在しません: ${u}`);
+  sameSet('サイトマップ', locs.filter((u) => u.startsWith(`${SITE}${BASE}radar/`)), listed.map(articleUrl));
+
+  // RSS: 項目のリンクは実在し、ノイズ以外の記事（公開日のあるもの）と一致する
+  if (!exists('rss.xml')) problems.push('rss.xml がありません');
+  else {
+    const rssXml = readDist('rss.xml');
+    const items = [...rssXml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => m[1]);
+    const links = items.map((it) => (it.match(/<link>([^<]+)<\/link>/) || [])[1] || '');
+    for (const u of links) if (!urlExists(u)) problems.push(`RSS の項目のリンクが実在しません: ${u}`);
+    const dated = listed.filter((s) => /"datePublished":"\d{4}-\d{2}-\d{2}"/.test(readDist(`radar/${s}/index.html`)));
+    sameSet('RSS', links, dated.map(articleUrl));
+    for (const it of items) if (!/<pubDate>[^<]+<\/pubDate>/.test(it)) problems.push(`RSS の項目に pubDate がありません: ${(it.match(/<link>([^<]+)/) || [])[1]}`);
+  }
+
+  // API（api/radar.json）: 件数と URL が記事ページと一致する
+  if (!exists('api/radar.json')) problems.push('api/radar.json がありません');
+  else {
+    let api = null;
+    try { api = JSON.parse(readDist('api/radar.json')); } catch (e) { problems.push(`api/radar.json が JSON として読めません: ${e.message}`); }
+    if (api) {
+      const data = Array.isArray(api.data) ? api.data : [];
+      if (api.total_tracked_oss !== data.length) problems.push(`api/radar.json の total_tracked_oss（${api.total_tracked_oss}）が data の件数（${data.length}）と違います`);
+      sameSet('api/radar.json', data.map((d) => d.url), listed.map(articleUrl));
+      for (const d of data) if (d.pubDate !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(d.pubDate))) problems.push(`api/radar.json の ${d.slug} の pubDate が YYYY-MM-DD ではありません: ${d.pubDate}`);
+    }
+  }
+
+  // llms.txt・robots.txt の URL は実在する
+  for (const f of ['llms.txt', 'robots.txt']) {
+    if (!exists(f)) { problems.push(`${f} がありません`); continue; }
+    for (const m of readDist(f).matchAll(/https:\/\/ssk0224\.github\.io\/auto-tech-radar\/[^\s)>"'」）]*/g)) {
+      if (!urlExists(m[0])) problems.push(`${f} の URL が実在しません: ${m[0]}`);
+    }
+  }
+
+  // 一覧ページに出す記事数は、実際の記事ページの数と一致する
+  if (exists('index.html')) {
+    const n = Number((readDist('index.html').match(/id="post-count"[^>]*>全 (\d+) 本/) || [])[1]);
+    if (n !== listed.length) problems.push(`トップページの記事数の表示（${n}）が記事ページの数（${listed.length}）と違います`);
+  }
+
+  // 取り下げた記事（scripts/utils/blocklist.mjs）へのリンク・ページが配信物のどこにも無い
+  const textFiles = [];
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) walk(p);
+    else if (/\.(html|xml|json|txt)$/.test(e.name)) textFiles.push(p);
+  });
+  walk(distDir);
+  for (const slug of REMOVED_SLUGS) {
+    if (exists(`radar/${slug}/index.html`)) problems.push(`取り下げた記事のページが残っています: radar/${slug}/`);
+    const re = new RegExp(`/radar/${slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:/|"|$)`);
+    for (const f of textFiles) if (re.test(fs.readFileSync(f, 'utf8'))) problems.push(`取り下げた記事 ${slug} へのリンクがあります: ${path.relative(distDir, f)}`);
+  }
+  return problems;
+}
+
 console.log('===============================================================================');
 console.log('🔍 E2E レンダリング後 HTML・リンク完全性 総合監査 (Post-Build Dist Audit Gate)');
 console.log('===============================================================================\n');
@@ -85,10 +250,17 @@ function getAllHtmlFiles(dir) {
 }
 
 const htmlFiles = getAllHtmlFiles(distDir);
+// サイト全体のビルド（トップページがある）では、canonical・構造化データ・サイトマップ・RSS・API まで確かめる
+// （テストの一部のページだけの配信物では、その部分は見ない）
+const fullSite = fs.existsSync(path.join(distDir, 'index.html'));
 console.log(`▶ 全 ${htmlFiles.length} 件の静的生成HTMLをディープスキャン中...\n`);
 
 let errorCount = 0;
 let checkedLinksCount = 0;
+if (htmlFiles.length === 0) {
+  console.error('  ❌ [EMPTY DIST] 配信物に HTML がありません（astro build が途中で失敗した可能性）');
+  errorCount++;
+}
 
 for (const filePath of htmlFiles) {
   const relPath = path.relative(distDir, filePath).replace(/\\/g, '/');
@@ -154,24 +326,33 @@ for (const filePath of htmlFiles) {
     errorCount++;
   }
 
-  // 4. 内部リンク実在性チェック (404リンク切れの完全撲滅)
-  const hrefMatches = html.matchAll(/href="(\/auto-tech-radar\/[^"#?]+)"/g);
-  for (const match of hrefMatches) {
+  // 4. 内部リンク・画像・OGP の実在性チェック (404リンク切れの完全撲滅)
+  // href・src・meta の content に入ったこのサイトの URL（/auto-tech-radar/… と https://ssk0224.github.io/auto-tech-radar/…）をすべて見る
+  for (const match of html.matchAll(/\b(href|src|content)="(?:https:\/\/ssk0224\.github\.io)?(\/auto-tech-radar\/[^"#?]*)(?:[?#][^"]*)?"/g)) {
     checkedLinksCount++;
-    const linkPath = match[1];
-    // '/auto-tech-radar/' を取り除いて dist からの相対パスに変換
-    let localPath = linkPath.replace(/^\/auto-tech-radar\//, '');
-    if (localPath.endsWith('/')) {
-      localPath += 'index.html';
-    } else if (!path.extname(localPath)) {
-      localPath += '/index.html';
-    }
-
-    const expectedDiskFile = path.join(distDir, localPath);
-    if (!fs.existsSync(expectedDiskFile)) {
-      console.error(`  ❌ [404 DEAD LINK] ${relPath} 内のリンク ${linkPath} に対応するファイルが存在しません (${localPath})`);
+    const [, attr, linkPath] = match;
+    const localPath = localFileFor(linkPath);
+    if (!fs.existsSync(path.join(distDir, localPath))) {
+      console.error(`  ❌ [404 DEAD LINK] ${relPath} 内の ${attr} ${linkPath} に対応するファイルが存在しません (${localPath})`);
       errorCount++;
     }
+    // ページへのリンクは末尾スラッシュ付き（canonical と同じ形。無いと GitHub Pages のリダイレクトを 1 回はさむ）
+    if (attr === 'href' && !linkPath.endsWith('/') && !path.extname(linkPath)) {
+      console.error(`  ❌ [NO TRAILING SLASH] ${relPath} 内のリンク ${linkPath} の末尾に / がありません（canonical は ${linkPath}/）`);
+      errorCount++;
+    }
+  }
+
+  for (const p of pageStructureProblems(html, relPath)) {
+    console.error(`  ❌ [STRUCTURE] ${relPath}: ${p}`);
+    errorCount++;
+  }
+}
+
+if (fullSite) {
+  for (const p of feedProblems()) {
+    console.error(`  ❌ [FEEDS] ${p}`);
+    errorCount++;
   }
 }
 

@@ -3,6 +3,8 @@ import { getArticles, slugOf, starTier, STAR_TIERS, STAR_TIER_NAME, STAR_TIER_NO
 // 掲載時と現在のスター数（Radar Ledger: data/derived/velocity.json。記録が無ければ null）
 import { trackRecordFor } from '../../utils/track_record.js';
 import { velocity } from '../../utils/velocity_data.js';
+import { dateLabel } from '../../utils/dates.js';
+import { tagsOf } from '../../utils/article_page.js';
 
 export const GET: APIRoute = async () => {
   // ノイズ記事は getArticles 側で除外済み
@@ -20,8 +22,8 @@ export const GET: APIRoute = async () => {
       description: fm.description || "",
       stars,
       ring,
-      tags: fm.tags || [],
-      pubDate: fm.pubDate || null, // 欠落時に仮の日付を入れない
+      tags: tagsOf(fm),
+      pubDate: dateLabel(fm.pubDate), // YYYY-MM-DD。欠落時に仮の日付を入れない（null）
       stars_at_publish: track.stars_at_publish,
       stars_now: track.stars_now,
       growth_pct: track.growth_pct,

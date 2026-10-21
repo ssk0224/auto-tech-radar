@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
-import { getArticles, starTier, STAR_TIERS, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+import { getArticles, hrefOf, starTier, STAR_TIERS, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
 const posts = getArticles() as any[];
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -39,7 +39,7 @@ const radarItems = posts.map(p => {
     quadrant,
     ring,
     slug,
-    url: p.url,
+    url: hrefOf(p),
     tags: front.tags || []
   };
 });

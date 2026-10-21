@@ -1,4 +1,5 @@
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
+import { dateLabel, jstDayStart } from "./dates.js";
 
 // 記事の一覧を読み込む共通ヘルパー。
 // ノイズ記事（解説対象外のリポジトリ）を除外し、pubDate の新しい順に並べる。
@@ -9,12 +10,15 @@ export function slugOf(post) {
   return String(post.url || "").replace(/\/$/, "").split("/").pop() || "";
 }
 
-// pubDate を数値化。欠落・不正なら null（現在時刻で代用しない）
+// 記事ページへのリンク（base 込み・末尾スラッシュ付き）。post.url は末尾スラッシュが無く、
+// GitHub Pages ではリダイレクトを 1 回はさみ canonical（…/radar/<slug>/）とも食い違うため、リンクには必ずこれを使う
+export function hrefOf(post) {
+  return String(post.url || "").replace(/\/?$/, "/");
+}
+
+// pubDate を数値化（日本時間のその日の 0 時）。欠落・不正なら null（現在時刻で代用しない）
 export function pubTime(post) {
-  const raw = post.frontmatter?.pubDate;
-  if (!raw) return null;
-  const t = new Date(raw).getTime();
-  return Number.isNaN(t) ? null : t;
+  return jstDayStart(post.frontmatter?.pubDate);
 }
 
 export function getArticles() {
@@ -54,7 +58,7 @@ export function getCorrections() {
     if (!Array.isArray(list)) continue;
     for (const c of list) {
       if (!c?.date || !c?.note) continue;
-      rows.push({ date: String(c.date), note: String(c.note), url: post.url, slug: slugOf(post), title: post.frontmatter?.title || slugOf(post) });
+      rows.push({ date: dateLabel(c.date) || String(c.date), note: String(c.note), url: hrefOf(post), slug: slugOf(post), title: post.frontmatter?.title || slugOf(post) });
     }
   }
   return rows.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));

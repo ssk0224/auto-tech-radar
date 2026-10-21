@@ -1,9 +1,11 @@
 ---
 import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
-import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
+import { getArticles, hrefOf, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
 // note 有料版の案内・構造化データの更新日（updatedDate が無ければ公開日。固定の日付は入れない）を決める関数
-import { noteOfferFor, splitAfterIntro, dateModifiedOf } from "../utils/article_page.js";
+import { noteOfferFor, splitAfterIntro, dateModifiedOf, datePublishedOf, tagsOf, jsonLdText } from "../utils/article_page.js";
+import { dateLabel } from "../utils/dates.js";
+import { ogpPathFor } from "../utils/ogp.js";
 import noteUrls from "../../scripts/note_urls.json";
 import TrackRecord from "../components/TrackRecord.astro"; // 掲載時→現在のスター数（Radar Ledger）
 const { title, description, frontmatter } = Astro.props;
@@ -17,14 +19,14 @@ const isArticle = !!frontmatter;
 let relatedPosts: any[] = [];
 if (isArticle) {
   const allPosts = getArticles() as any[];
-  const currentTags = Array.isArray(frontmatter.tags) ? frontmatter.tags.map((t: string) => t.toLowerCase()) : [];
+  const currentTags = tagsOf(frontmatter).map((t: string) => t.toLowerCase());
   const currentTitle = (frontmatter.title || "").toLowerCase();
 
   // 自記事を除外し、タグ一致スコアまたは最新順でスコアリング
   relatedPosts = allPosts
     .filter(p => p.frontmatter && (p.frontmatter.title || "") !== frontmatter.title)
     .map(p => {
-      const pTags = Array.isArray(p.frontmatter?.tags) ? p.frontmatter.tags.map((t: string) => t.toLowerCase()) : [];
+      const pTags = tagsOf(p.frontmatter).map((t: string) => t.toLowerCase());
       let score = 0;
       currentTags.forEach(ct => {
         if (pTags.includes(ct)) score += 2;
@@ -36,11 +38,9 @@ if (isArticle) {
     .map(item => item.post);
 }
 
-// 動的OGP画像（Twitter/SNSクローラーの100%描画のためPNGを完全指定）
+// 動的OGP画像（Twitter/SNSクローラーの100%描画のためPNGを完全指定）。記事の PNG がまだ無ければサイト共通のカード
 const currentSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || '';
-const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar') 
-  ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.png` 
-  : "https://ssk0224.github.io/auto-tech-radar/og-card.png";
+const ogImage = `https://ssk0224.github.io/auto-tech-radar${isArticle && currentSlug !== 'auto-tech-radar' ? ogpPathFor(currentSlug) : "/og-card.png"}`;
 
 const starsCount = Number(frontmatter?.stars) || 0;
 // 有料版に実際に含まれる項目（暗号化時に有料部分の見出しから作る。本文は含まない）
@@ -83,14 +83,14 @@ const ringBadgeBorder = tier.border;
     <meta name="theme-color" content="#030712" />
     {isArticle && isNoise(currentSlug) && <meta name="robots" content="noindex" />}
     {isArticle ? (
-      <script type="application/ld+json" set:html={JSON.stringify({
+      <script type="application/ld+json" set:html={jsonLdText({
         "@context": "https://schema.org",
         "@type": "TechArticle",
         "headline": pageTitle,
         "description": pageDesc,
         "image": ogImage,
         "url": `https://ssk0224.github.io${Astro.url.pathname}`,
-        "datePublished": frontmatter?.pubDate || "2026-10-09",
+        "datePublished": datePublishedOf(frontmatter),
         "dateModified": dateModifiedOf(frontmatter),
         "isAccessibleForFree": true,
         "author": {
@@ -106,10 +106,10 @@ const ringBadgeBorder = tier.border;
             "url": "https://ssk0224.github.io/auto-tech-radar/og-card.png"
           }
         },
-        "keywords": (frontmatter?.tags || ["OSS", "Tech"]).join(", ")
+        "keywords": (tagsOf(frontmatter).length ? tagsOf(frontmatter) : ["OSS", "Tech"]).join(", ")
       })} />
     ) : (
-      <script type="application/ld+json" set:html={JSON.stringify({
+      <script type="application/ld+json" set:html={jsonLdText({
         "@context": "https://schema.org",
         "@type": "NewsMediaOrganization",
         "name": "Auto Tech Radar",
@@ -523,7 +523,7 @@ const ringBadgeBorder = tier.border;
         <div class="article-corrections" style="margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid #78350f; border-radius: 8px; font-size: 0.82rem; color: #fcd34d; line-height: 1.6;">
           <strong>訂正</strong>
           <ul style="margin: 0.3rem 0 0; padding-left: 1.2rem;">
-            {frontmatter.corrections.map((c: any) => <li>{c.date}: {c.note}</li>)}
+            {frontmatter.corrections.map((c: any) => <li>{dateLabel(c?.date) || String(c?.date ?? "")}: {c?.note}</li>)}
           </ul>
           <a href={`${baseUrl}/about/#corrections`} style="color: #fcd34d; text-decoration: underline;">訂正履歴の一覧</a>
         </div>
@@ -607,19 +607,19 @@ const ringBadgeBorder = tier.border;
               <div style="background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 10px; padding: 1.2rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor='#3b82f6'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--color-card-border)'; this.style.transform='none';">
                 <div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.72rem; color: #64748b; font-family: 'JetBrains Mono', monospace;">{rp.frontmatter?.pubDate || "速報"}</span>
-                    {rp.frontmatter?.tags && (
-                      <span style="font-size: 0.7rem; background: #1f2937; color: #93c5fd; padding: 0.1rem 0.4rem; border-radius: 4px;">{rp.frontmatter.tags[0]}</span>
+                    <span style="font-size: 0.72rem; color: #64748b; font-family: 'JetBrains Mono', monospace;">{dateLabel(rp.frontmatter?.pubDate) || ""}</span>
+                    {tagsOf(rp.frontmatter).length > 0 && (
+                      <span style="font-size: 0.7rem; background: #1f2937; color: #93c5fd; padding: 0.1rem 0.4rem; border-radius: 4px;">{tagsOf(rp.frontmatter)[0]}</span>
                     )}
                   </div>
                   <h4 style="margin: 0 0 0.5rem; font-size: 0.98rem; font-weight: 700; line-height: 1.4;">
-                    <a href={rp.url} style="color: #f1f5f9; text-decoration: none;">{rp.frontmatter?.title?.slice(0, 50) || rp.file}...</a>
+                    <a href={hrefOf(rp)} style="color: #f1f5f9; text-decoration: none;">{rp.frontmatter?.title?.slice(0, 50) || rp.file}...</a>
                   </h4>
                   <p style="margin: 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                     {rp.frontmatter?.description}
                   </p>
                 </div>
-                <a href={rp.url} style="margin-top: 0.8rem; font-size: 0.82rem; font-weight: 600; color: #38bdf8; display: inline-flex; align-items: center; gap: 0.2rem;">
+                <a href={hrefOf(rp)} style="margin-top: 0.8rem; font-size: 0.82rem; font-weight: 600; color: #38bdf8; display: inline-flex; align-items: center; gap: 0.2rem;">
                   レポートを読む →
                 </a>
               </div>

@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getArticles, starTier, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+import { getArticles, hrefOf, starTier, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 const sortedPosts = posts;
@@ -79,7 +79,9 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
             const title = post.frontmatter?.title || 'OSS Entry';
             const shortName = title.split(' - ')[0].split(':')[0].trim();
             const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
-            const stars = post.frontmatter?.stars ? post.frontmatter.stars.toLocaleString() : '急増中';
+            // スター数が無い・0 の記事は「—」（「急増中」など確かめていない表示をしない）
+            const starsNum = Number(post.frontmatter?.stars) || 0;
+            const stars = starsNum > 0 ? starsNum.toLocaleString("en-US") : '—';
             const desc = post.frontmatter?.description || '';
 
             // 活用領域の簡易分類（タイトル・タグに基づく。単価は根拠が無いため表示しない）
@@ -98,7 +100,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
               <tr class="matrix-row" data-search={`${title} ${desc} ${tags.join(' ')} ${ringBadge.label}`.toLowerCase()} style="border-bottom: 1px solid #1f2937; transition: background 0.15s;">
                 <td style="padding: 1rem; vertical-align: top;">
                   <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
-                    <a href={post.url} style="color: #60a5fa; text-decoration: none; font-weight: 700; font-size: 0.95rem;">{shortName}</a>
+                    <a href={hrefOf(post)} style="color: #60a5fa; text-decoration: none; font-weight: 700; font-size: 0.95rem;">{shortName}</a>
                     <span title={`${STAR_TIER_NAME}: ${STAR_TIER_NOTE}`} style={`background: ${ringBadge.bg}; border: 1px solid ${ringBadge.border}; color: ${ringBadge.color}; font-size: 0.68rem; font-weight: 800; padding: 0.08rem 0.38rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace;`}>
                       ● {ringBadge.label}
                     </span>
@@ -125,7 +127,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
                   </span>
                 </td>
                 <td style="padding: 1rem; vertical-align: top; text-align: right; white-space: nowrap;">
-                  <a href={post.url} style="background: #2563eb; color: #fff; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-block;">
+                  <a href={hrefOf(post)} style="background: #2563eb; color: #fff; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-block;">
                     詳細解析 ➔
                   </a>
                 </td>

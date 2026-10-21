@@ -4,6 +4,7 @@
 // note 有料版の案内は、記事の導入部の直後に 1 か所だけ出す。
 // 対象は scripts/note_urls.json に note の URL がある記事だけ。
 // 含まれる項目と分量は、暗号化時に有料部分の見出しから作る公開メタデータ（note_drafts/<slug>_note.paid.json）から取る（本文は含まない）
+import { dateLabel } from "./dates.js";
 
 // 有料部分の文字数は 100 字単位に丸めて「約N字」と出す（暗号化のたびに数字が細かく揺れないように）
 export function approxCharsLabel(chars) {
@@ -38,7 +39,27 @@ export function splitAfterIntro(html) {
   return [s, ""];
 }
 
-// JSON-LD の dateModified（更新日が無い記事は公開日）。どちらも無ければ出さない
+// JSON-LD の dateModified（更新日が無い記事は公開日）。どちらも無ければ出さない。
+// 引用符なしの日付（YAML の Date）でも YYYY-MM-DD にそろえる
 export function dateModifiedOf(frontmatter) {
-  return frontmatter?.updatedDate || frontmatter?.pubDate || undefined;
+  return dateLabel(frontmatter?.updatedDate) || dateLabel(frontmatter?.pubDate) || undefined;
+}
+
+// JSON-LD の datePublished。無ければ出さない（固定の日付で代用しない）
+export function datePublishedOf(frontmatter) {
+  return dateLabel(frontmatter?.pubDate) || undefined;
+}
+
+// frontmatter の tags を文字列の配列にする（配列でない書き方でもビルドを止めない）
+export function tagsOf(frontmatter) {
+  const t = frontmatter?.tags;
+  if (Array.isArray(t)) return t.map(String).filter(Boolean);
+  if (typeof t === "string") return t.split(",").map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+
+// <script type="application/ld+json"> の中身。タイトル・説明は GitHub のリポジトリ説明から来るため、
+// 「</script>」や「<!--」で script 要素が閉じて任意の HTML・スクリプトが入らないよう < > & を \uXXXX にする（JSON としては同じ値）
+export function jsonLdText(data) {
+  return JSON.stringify(data).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
 }

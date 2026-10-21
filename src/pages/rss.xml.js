@@ -1,5 +1,5 @@
 import rss from '@astrojs/rss';
-import { getArticles, slugOf, pubTime } from '../utils/articles.js';
+import { getArticles, hrefOf, slugOf, pubTime } from '../utils/articles.js';
 
 export async function GET(context) {
   // ノイズ除外・新しい順は getArticles 側。pubDate が無い記事は日付を偽らず除外する
@@ -15,7 +15,7 @@ export async function GET(context) {
         title: post.frontmatter?.title || slug,
         pubDate: new Date(pubTime(post)),
         description: post.frontmatter?.description || '',
-        link: post.url,
+        link: hrefOf(post),
         // enclosure は実ファイルサイズを取得できないため付けない（length の偽装を避ける）
       };
     }),

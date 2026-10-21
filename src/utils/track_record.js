@@ -2,13 +2,8 @@
 // import.meta.glob を使わないので、テスト（node:test）からもそのまま読み込める（データの読み込みは src/utils/velocity_data.js）。
 // スター数の推移を示すだけで、掲載との因果関係（掲載で伸びた等）は表現しない
 import { repoFullNameFromUrl, velocityFor } from "../../scripts/utils/ledger.mjs";
+import { dateLabel } from "./dates.js";
 
-function dateLabel(d) {
-  if (!d) return null;
-  if (d instanceof Date) return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
-  const s = String(d);
-  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null;
-}
 
 // 掲載時から現在までのスター増加率（%、小数 1 桁）。比べられなければ null
 export function growthPct(starsAtPublish, starsNow) {
