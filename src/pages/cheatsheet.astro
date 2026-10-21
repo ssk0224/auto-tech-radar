@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { getArticles } from "../utils/articles.js";
+import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 const sortedPosts = posts;
@@ -87,18 +87,9 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
               modelTier = "高速バックエンド基盤";
             }
 
-            // 🎯 ThoughtWorks 成熟度リング判定
-            const starsRaw = Number(post.frontmatter?.stars) || 0;
-            let ringBadge = { label: "TRIAL", color: "#60a5fa", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)" };
-            if (starsRaw >= 15000) {
-              ringBadge = { label: "ADOPT", color: "#34d399", bg: "rgba(16, 185, 129, 0.15)", border: "rgba(16, 185, 129, 0.3)" };
-            } else if (starsRaw >= 5000) {
-              ringBadge = { label: "TRIAL", color: "#60a5fa", bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)" };
-            } else if (starsRaw >= 1000) {
-              ringBadge = { label: "ASSESS", color: "#fbbf24", bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.3)" };
-            } else {
-              ringBadge = { label: "HOLD", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", border: "rgba(148, 163, 184, 0.3)" };
-            }
+            // GitHub スター数の区分（共通定義: src/utils/articles.js）
+            const tierInfo = starTier(post.frontmatter?.stars);
+            const ringBadge = { label: tierInfo.label, color: tierInfo.color, bg: tierInfo.bg, border: tierInfo.border };
 
             return (
               <tr class="matrix-row" data-search={`${title} ${desc} ${tags.join(' ')} ${ringBadge.label}`.toLowerCase()} style="border-bottom: 1px solid #1f2937; transition: background 0.15s;">
@@ -210,7 +201,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
       const origMdText = copyMdBtn.innerHTML;
       let mdTimer = null;
       copyMdBtn.addEventListener('click', () => {
-        let md = '| OSS | 成熟度 (ThoughtWorks) | 技術領域 | Stars | 商用ポテンシャル | 記事URL |\n';
+        let md = '| OSS | スター数区分 | 技術領域 | Stars | 商用ポテンシャル | 記事URL |\n';
         md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
@@ -244,7 +235,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     const exportCsvBtn = document.getElementById('export-cheatsheet-csv');
     if (exportCsvBtn) {
       exportCsvBtn.addEventListener('click', () => {
-        let csv = 'OSS,成熟度(ThoughtWorks),技術領域,Stars,商用ポテンシャル,記事URL\n';
+        let csv = 'OSS,スター数区分,技術領域,Stars,商用ポテンシャル,記事URL\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
             const tds = row.querySelectorAll('td');

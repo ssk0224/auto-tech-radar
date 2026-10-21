@@ -15,7 +15,7 @@ CADCraftは、クリーンルーム設計でPure Rustを用いて開発された
 
 さらに最大の革新性は、**「AIエージェントによる自律設計（Agent-drivable over MCP）」** を設計思想の中核に据えている点です。コマンドライン、JSONコントロールチャネル、そして業界標準のMCP（Model Context Protocol）サーバーがネイティブ統合されており、LLM（ClaudeやGPTなど）が図面生成・編集・視覚的検証を完全自動で実行可能です。
 
-## 🎯 ThoughtWorks成熟度リング判定（TRIAL）
+## 🎯 成熟度の目安（AI による見立て）
 
 **判定：TRIAL（試験的導入を強く推奨）**
 

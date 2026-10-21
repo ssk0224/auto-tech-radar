@@ -14,7 +14,7 @@ stars: 5717
 
 特筆すべき最大のエッジは、**「Model Context Protocol（MCP）サーバー」をコアCLIに内蔵している点**です。LLMエージェント（Claude DesktopやCursor等）がMCPツール経由で3Dパーツを直接生成・計測・操作できる「AIネイティブCAD」として、製造業DXおよび自動設計パイプラインにパラダイムシフトをもたらしています。
 
-## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
+## 🎯 成熟度の目安（AI による見立て）
 
 **判定: 【TRIAL】（PoC・特定ユースケースでの実戦投入推奨）**
 

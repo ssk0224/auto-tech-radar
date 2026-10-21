@@ -7,7 +7,7 @@ published: true
 ---
 
 # cleanyourtv: 概要と革新性
-## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
+## 🎯 成熟度の目安（AI による見立て）
 **判定: ADOPT**
 
 **根拠:**

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getArticles, slugOf } from '../../utils/articles.js';
+import { getArticles, slugOf, starTier, STAR_TIERS, STAR_TIER_NOTE } from '../../utils/articles.js';
 
 export const GET: APIRoute = async () => {
   // ノイズ記事は getArticles 側で除外済み
@@ -7,11 +7,8 @@ export const GET: APIRoute = async () => {
     const slug = slugOf(post);
     const fm = post.frontmatter || {};
     const stars = Number(fm.stars) || 0;
-    let ring = "TRIAL";
-    if (stars >= 15000) ring = "ADOPT";
-    else if (stars >= 5000) ring = "TRIAL";
-    else if (stars >= 1000) ring = "ASSESS";
-    else ring = "HOLD";
+    // GitHub スター数による区分（評価・推奨ではない）
+    const ring = starTier(stars).label;
 
     return {
       slug,
@@ -32,12 +29,7 @@ export const GET: APIRoute = async () => {
     endpoint_url: "https://ssk0224.github.io/auto-tech-radar/api/radar.json",
     total_tracked_oss: items.length,
     updated_at: new Date().toISOString(),
-    rings_definition: {
-      ADOPT: "Stars >= 15,000: 商用本番稼働推奨・デファクトスタンダード基盤",
-      TRIAL: "Stars >= 5,000: 本番採用検証・高ROI期待新星",
-      ASSESS: "Stars >= 1,000: 急上昇トレンド・先行調査推奨",
-      HOLD: "検証保留・動向注視"
-    },
+    rings_definition: { tiers: STAR_TIERS.map((t) => t.label), note: STAR_TIER_NOTE },
     data: items
   }, null, 2), {
     headers: {

@@ -1,6 +1,6 @@
 # 海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
 
-## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
+## 🎯 成熟度の目安（AI による見立て）
 
 - **判定リング**: **ADOPT（積極採用・本番導入推奨）**
 - **判定根拠**: AWS製の軽量仮想化基盤 Firecracker を用いたマイクロVM隔離と、Dockerローカル開発からKubernetesクラスター運用まで統一されたAPIを備え、CNCF Landscape および OpenSSF Best Practices にも掲載されている信頼性の高いAIエージェント用サンドボックスランタイムです。Apache-2.0 ライセンスで商用・社内基盤への導入に適しています。

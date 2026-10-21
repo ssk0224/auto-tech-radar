@@ -1,7 +1,7 @@
 ---
 import { siteConfig } from "../config/site.js";
 import { isNoise } from "../../scripts/utils/noise_filter.mjs";
-import { getArticles } from "../utils/articles.js";
+import { getArticles, starTier, STAR_TIER_NOTE } from "../utils/articles.js";
 import noteUrls from "../../scripts/note_urls.json";
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
@@ -39,7 +39,6 @@ const ogImage = (isArticle && currentSlug && currentSlug !== 'auto-tech-radar')
   ? `https://ssk0224.github.io/auto-tech-radar/ogp/${currentSlug}.png` 
   : "https://ssk0224.github.io/auto-tech-radar/og-card.png";
 
-// 🎯 ThoughtWorks 成熟度リング自動判定 (ADOPT / TRIAL / ASSESS / HOLD)
 const starsCount = Number(frontmatter?.stars) || 0;
 // この記事の有料版（note）。note に公開済みで対応が取れた記事だけ単発購入を案内する（scripts/sync_note_urls.mjs）
 const noteItem = isArticle ? (noteUrls as Record<string, { url: string; price: number | null }>)[currentSlug] : undefined;
@@ -47,31 +46,12 @@ const notePriceLabel = noteItem?.price ? `¥${noteItem.price.toLocaleString()}` 
 // 有料版に実際に含まれる項目（暗号化時に有料部分の見出しから作る。本文は含まない）
 const paidSummaries = import.meta.glob("../../note_drafts/*_note.paid.json", { eager: true, import: "default" }) as Record<string, { chars: number; features: string[] }>;
 const paidSummary = paidSummaries[`../../note_drafts/${currentSlug}_note.paid.json`];
-let ringLabel = "TRIAL";
-let ringBadgeColor = "#60a5fa";
-let ringBadgeBg = "rgba(59, 130, 246, 0.18)";
-let ringBadgeBorder = "rgba(59, 130, 246, 0.4)";
-if (starsCount >= 15000) {
-  ringLabel = "ADOPT";
-  ringBadgeColor = "#34d399";
-  ringBadgeBg = "rgba(16, 185, 129, 0.18)";
-  ringBadgeBorder = "rgba(16, 185, 129, 0.4)";
-} else if (starsCount >= 5000) {
-  ringLabel = "TRIAL";
-  ringBadgeColor = "#60a5fa";
-  ringBadgeBg = "rgba(59, 130, 246, 0.18)";
-  ringBadgeBorder = "rgba(59, 130, 246, 0.4)";
-} else if (starsCount >= 1000) {
-  ringLabel = "ASSESS";
-  ringBadgeColor = "#fbbf24";
-  ringBadgeBg = "rgba(245, 158, 11, 0.18)";
-  ringBadgeBorder = "rgba(245, 158, 11, 0.4)";
-} else {
-  ringLabel = "HOLD";
-  ringBadgeColor = "#94a3b8";
-  ringBadgeBg = "rgba(148, 163, 184, 0.18)";
-  ringBadgeBorder = "rgba(148, 163, 184, 0.4)";
-}
+// GitHub スター数による区分（共通定義: src/utils/articles.js）
+const tier = starTier(starsCount);
+const ringLabel = tier.label;
+const ringBadgeColor = tier.color;
+const ringBadgeBg = tier.bg;
+const ringBadgeBorder = tier.border;
 ---
 <!doctype html>
 <html lang="ja">
@@ -582,7 +562,7 @@ if (starsCount >= 15000) {
       </div>
     </header>
 
-    <main data-repo-url={frontmatter?.repoUrl || ""} data-stars={starsCount} data-ring={ringLabel} data-ring-color={ringBadgeColor} data-ring-bg={ringBadgeBg} data-ring-border={ringBadgeBorder}>
+    <main data-repo-url={frontmatter?.repoUrl || ""} data-stars={starsCount} data-ring={ringLabel} data-ring-color={ringBadgeColor} data-ring-bg={ringBadgeBg} data-ring-border={ringBadgeBorder} data-ring-note={STAR_TIER_NOTE}>
       {isArticle && (
         <div class="article-hero-banner" style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6); background: #0b0f19;">
           <img 
@@ -701,13 +681,13 @@ if (starsCount >= 15000) {
       {isArticle && (
         <section style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #334155; border-radius: 12px; padding: 1.8rem; margin: 3rem 0; text-align: center;">
           <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem;">
-            🔔 毎朝 6:00 JST 完全自動配信
+            🔔 毎日自動で更新（新着は1日最大2本）
           </div>
           <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
             明日の海外急上昇OSS解剖レポートを見逃さないために
           </h3>
           <p style="font-size: 0.9rem; color: #94a3b8; max-width: 580px; margin: 0 auto 1.3rem; line-height: 1.6;">
-            GitHub 上の急上昇リポジトリから厳選された最新OSSのアーキテクチャ図解・受託開発提案シナリオを毎朝自動配信中。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
+            GitHub 上の急上昇リポジトリから取り上げた OSS のアーキテクチャ図解を毎日自動で更新しています。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
           </p>
           <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
             <a href="https://x.com/AutoTechRadar" target="_blank" rel="noopener noreferrer" style="background: #000; border: 1px solid #475569; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
@@ -924,7 +904,8 @@ if (starsCount >= 15000) {
           const articleTitle = document.title.split('|')[0].trim();
           const pageUrl = window.location.href;
           const mainEl = document.querySelector('main');
-          const ringLabel = esc(mainEl ? (mainEl.getAttribute('data-ring') || 'TRIAL') : 'TRIAL');
+          const ringLabel = esc(mainEl ? (mainEl.getAttribute('data-ring') || '') : '');
+          const ringNote = mainEl ? (mainEl.getAttribute('data-ring-note') || '') : '';
           const ringColor = esc(mainEl ? (mainEl.getAttribute('data-ring-color') || '#60a5fa') : '#60a5fa');
           const ringBg = esc(mainEl ? (mainEl.getAttribute('data-ring-bg') || 'rgba(59, 130, 246, 0.18)') : 'rgba(59, 130, 246, 0.18)');
           const ringBorder = esc(mainEl ? (mainEl.getAttribute('data-ring-border') || 'rgba(59, 130, 246, 0.4)') : 'rgba(59, 130, 246, 0.4)');
@@ -936,9 +917,9 @@ if (starsCount >= 15000) {
           metaBar.className = 'reading-meta-bar';
           metaBar.innerHTML = `
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-              <a href="${esc(baseUrl)}/radar-map/" title="ThoughtWorksモデル技術成熟度判定" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
+              <a href="${esc(baseUrl)}/radar-map/" title="${esc(ringNote)}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 800; color: ${ringColor}; background: ${ringBg}; border: 1px solid ${ringBorder}; padding: 0.18rem 0.55rem; border-radius: 9999px;">
                 <span>●</span>
-                <span>ThoughtWorks: ${ringLabel}</span>
+                <span>GitHub ${ringLabel}</span>
               </a>
               <span class="reading-badge">⏱️ 読了目安: 約 ${readMinutes} 分</span>
               <span>文字数: 約 ${textLength.toLocaleString()} 文字</span>

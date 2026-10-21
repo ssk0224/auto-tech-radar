@@ -29,3 +29,17 @@ export function getArticles() {
       return tb - ta || slugOf(a).localeCompare(slugOf(b));
     });
 }
+
+// GitHub スター数による区分（記事の評価や推奨ではない）。レーダー・記事・チートシートで共通
+export const STAR_TIERS = [
+  { min: 15000, label: "★15,000+", color: "#34d399", bg: "rgba(16, 185, 129, 0.18)", border: "rgba(16, 185, 129, 0.4)" },
+  { min: 5000, label: "★5,000+", color: "#60a5fa", bg: "rgba(59, 130, 246, 0.18)", border: "rgba(59, 130, 246, 0.4)" },
+  { min: 1000, label: "★1,000+", color: "#fbbf24", bg: "rgba(245, 158, 11, 0.18)", border: "rgba(245, 158, 11, 0.4)" },
+  { min: 0, label: "★1,000未満", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.18)", border: "rgba(148, 163, 184, 0.4)" },
+];
+export const STAR_TIER_NOTE = "区分は記事作成時点の GitHub スター数のみで機械的に決めたもので、採用の推奨や品質の評価ではありません。";
+export function starTier(stars) {
+  const n = Number(stars) || 0;
+  const ring = STAR_TIERS.findIndex((t) => n >= t.min);
+  return { ring, ...STAR_TIERS[ring] };
+}

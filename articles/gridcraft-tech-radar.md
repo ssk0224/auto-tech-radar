@@ -12,7 +12,7 @@ published: true
 
 従来のWebベースのスプレッドシート（HandsontableやUniver等）やヘビーなOfficeスイート（LibreOffice等）と異なり、GridCraftは**Copy-on-Write（CoW）**による極小メモリ消費、**依存グラフ計算エンジン**による差分再計算、そして**Model Context Protocol (MCP) をネイティブサポートしたAIエージェント対応**を中核に据えている点が最大の革新性です。
 
-## 🎯 ThoughtWorks成熟度リング判定（ADOPT / TRIAL / ASSESS / HOLD）
+## 🎯 成熟度の目安（AI による見立て）
 
 ### 判定：**ASSESS（評価フェーズ）〜 特定用途における TRIAL**
 

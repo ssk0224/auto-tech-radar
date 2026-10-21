@@ -136,7 +136,7 @@ pdfcraft-cli edit in.pdf --rotate 1:90 --delete 2 --title "2026年度 決算報�
 ```
 
 ### 4. Claude等のAIエージェントと接続（MCPサーバー起動）
-※ AIエージェント（Claude Desktop / Cursor）との直接連携設定（MCP JSON設定）は、本レポート後半のPRO限定実務キットエリアにて完全公開しています。
+※ 導入提案書テンプレート・工数見積表・導入手順は note の有料記事で提供しています（このページには含まれません）。
 
 ## 商用利用可否 & ライセンス考察
 

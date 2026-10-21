@@ -3,7 +3,7 @@
 
 export const siteConfig = {
   name: "Auto Tech Radar",
-  tagline: "世界最速のAIエージェント・急上昇OSS解体新書",
+  tagline: "急上昇OSSの日本語解説",
   url: "https://ssk0224.github.io/auto-tech-radar",
   
   // 有料記事の販売は note のみ（購入者だけが読める note の有料エリアで提供する）。

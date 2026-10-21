@@ -58,6 +58,6 @@
 これまで解説した OSS の技術スタック・スター数の一覧（検索・絞り込み対応、無料）：
 👉 https://ssk0224.github.io/auto-tech-radar/cheatsheet/
 
-毎朝6:00に海外急上昇OSSを日本語解剖中。
+毎日、海外の急上昇OSSを日本語で解説しています（AI が下書き）。
 最新トレンドを見逃さないよう @AutoTechRadar をフォロー＆RTお願いします！
 #AutoTechRadar #OSS #AI #エンジニア #プログラミング

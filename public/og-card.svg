@@ -50,7 +50,7 @@
 
   <!-- Subtitle / Value Prop -->
   <text x="100" y="375" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500">
-    毎朝6:00 JST自動更新 ｜ アーキテクチャ深層解説 ｜ 受託・自社SaaS構築マネタイズ手順書
+    毎日自動更新 ｜ README ベースのアーキテクチャ解説 ｜ AI による下書き
   </text>
 
   <!-- Feature Pills Footer -->

@@ -86,7 +86,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         📝 オンラインお問い合わせフォーム
       </h2>
       <p style="font-size: 0.88rem; color: #94a3b8; margin: 0 0 1.6rem;">
-        以下のフォームより送信いただけます。原則1営業日以内にご返信いたします。（機密保持契約 / NDA対応可能）
+        以下のフォームより送信いただけます。個人で運営しているため、ご返信までお時間をいただく場合があります。（機密保持契約 / NDA対応可能）
       </p>
 
       <form id="contact-form" method="POST" action={`https://formsubmit.co/${siteConfig.contactEmail}`} style="display: flex; flex-direction: column; gap: 1.2rem;">
@@ -153,7 +153,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       </form>
 
       <div id="form-success-msg" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; padding: 1.2rem; text-align: center; color: #6ee7b7; font-weight: 700; margin-top: 1rem;">
-        ✓ お問い合わせを受け付けました。ご記入いただいたメールアドレス宛に、担当者より1営業日以内にご返信いたします。
+        ✓ お問い合わせを受け付けました。ご記入いただいたメールアドレス宛に、順次ご返信いたします（お時間をいただく場合があります）。
       </div>
     </section>
 
@@ -294,7 +294,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
             successMsg.innerHTML = `
               <div style="font-size: 1.15rem; margin-bottom: 0.6rem; color: #34d399;">✓ お問い合わせを直接送信完了しました！</div>
               <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 1.2rem; line-height: 1.6;">
-                ご入力いただいた内容が担当者窓口へ直接送信されました。1営業日以内に <strong>${esc(email)}</strong> 宛にご返信・日程調整のご案内をお送りいたします。<br/>
+                ご入力いただいた内容が担当者窓口へ直接送信されました。<strong>${esc(email)}</strong> 宛に順次ご返信いたします。<br/>
                 <span style="font-size: 0.8rem; color: #94a3b8;">※バックアップとして、以下のボタンからGmailや手動送信も可能です。</span>
               </p>
               <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">

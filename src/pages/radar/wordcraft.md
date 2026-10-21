@@ -109,7 +109,7 @@ cargo run --release -p wordcraft-cli -- inspect report.docx
 ```
 
 ### 3. Claude Desktop / AIエージェントとの連携（MCP設定）
-※ AIエージェント（Claude Desktop / Cursor）との直接連携設定（MCP JSON設定）は、本レポート後半のPRO限定実務キットエリアにて完全公開しています。
+※ 導入提案書テンプレート・工数見積表・導入手順は note の有料記事で提供しています（このページには含まれません）。
 
 ---
 
