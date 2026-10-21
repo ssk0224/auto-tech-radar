@@ -49,6 +49,7 @@
   - 時刻だけのコミット: CI が `note_status.json`・`zenn_status.json` の `checkedAt` だけを変えて「chore: auto-index new tech radar entry」というコミットを毎回作る（件名が実態と合わない・履歴と rebase の手間が増える）。直す候補。
   - 自動操作の注意: 専用プロファイル `~/.auto-tech-radar/chrome-webmaster`。ログインだけ普通の Chrome の窓で行い、その窓を閉じると自動操作の窓（「自動テスト ソフトウェアによって制御」）が開く。**自動操作の窓は閉じない**。止まったら `~/.auto-tech-radar/webmaster_debug/`（screen.png・controls.json）を読んで直す。2026-10 の Search Console は入力欄の目印が aria-label。
   - **ローカル（Windows）では `npm test` が 36/275 件失敗する**（変更前も同じ 36 件＝既存）。原因の系統: CRLF（`core.autocrlf=true` で `\n` 前提の正規表現・split が外れる）、symlink の EPERM、複数テストが同じ `.astro` キャッシュで同時に `astro build`、git 同期テスト、有料原稿の数 38≠36。CI（Linux）は通る。根本対策（Windows でも通す＋CI に Windows を足す等）はバグ洗い出しワークフロー（wf_8baf0270-60c）の結果を見て実施する。
+  - **バグ洗い出し wf_8baf0270-60c は PC 再起動（2026-10-21 23:30 頃）で最後の分類段階の途中で止まった**。発見と再現の結果 61 件は `~/.claude/projects/C--Users-free1-auto-tech-radar/e825306b-6af3-45a5-a40b-93e45ddf1217/subagents/workflows/wf_8baf0270-60c/journal.jsonl`（各行の `result` キー）に残っている。次のセッションはここを読んで分類から再開する（例: launcher のローカル実行と CI が同じ日の `data/run_status/D.json` に追記すると [S] 同期で衝突し push されない、が再現済み）。
   - **星履歴 API は第三者のリポジトリで使える**（`gh api repos/<owner>/<repo>/stargazers/history` が HTTP 200・日別の星数、2026-10-21 実測）。→「Radar Ledger は後から作れないデータ」という前提は誤り。差別化は「いつ何を選んだかの事前記録・検証ログ・日本語の判断」に置く。
   - **Zenn**: `scripts/zenn_status.json` は 38 本とも 403（確認不能）。上の「34 本は 404」は現行データでは裏付けが無い（未確認として扱う）。
   - **週次オーナー報告 issue**: 材料（run_status・ledger・velocity・note_status・note_browser_log の stats）はあるが、**note の売上・購入数はリポジトリのどこにも無い**。報告には「売上データ無し」と明記し、Zenn（403）は載せない。
