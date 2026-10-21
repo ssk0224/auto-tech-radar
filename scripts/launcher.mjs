@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import readline from 'readline';
 import { exec, execSync, spawnSync } from 'child_process';
@@ -9,6 +10,7 @@ import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './util
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, configureMergeDrivers } from './utils/git_sync.mjs';
+import { hiddenAfterOwnerFix, onlyOldRingHeading, OLD_RING_HEADING } from './utils/note_pending.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -237,8 +239,17 @@ function getPendingNoteUpdates() {
     const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
     for (const [slug, v] of Object.entries(st.notes || {})) {
       if (!v.issues?.length || items.some((i) => i.slug === slug)) continue;
-      if (history[slug]?.noteUpdatedAt && history[slug].noteUpdatedAt >= st.checkedAt.slice(0, 10)) continue;
-      items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
+      if (hiddenAfterOwnerFix(history[slug]?.noteUpdatedAt, st.checkedAt)) continue;
+      // 問題が「古い成熟度の見出し」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、見出し 1 行だけ直してもらう
+      const heading = (() => {
+        try {
+          return fs.readFileSync(fileOf(slug), 'utf8').match(/^##\s*(🎯\s*成熟度の目安[^\n]*)$/m)?.[1].trim();
+        } catch (e) {
+          return '';
+        }
+      })();
+      if (onlyOldRingHeading(v) && heading) items.push({ slug, action: 'heading', heading, reason: `無料部分に古い見出し「${OLD_RING_HEADING}…」が残っています` });
+      else items.push({ slug, action: 'replace', reason: `公開中の note に問題があります: ${v.issues.join(' / ')}` });
     }
   } catch (e) {}
   // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
@@ -272,7 +283,8 @@ function loadNoteUrls() {
 function recordNoteUpdated(slug, deduped) {
   const history = loadHistory();
   const today = new Date().toISOString().split('T')[0];
-  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: today, ...(deduped ? { noteDedupedAt: today } : {}) };
+  // 時刻まで残す（CI の確認時刻と比べて、押し忘れで直っていない記事を再び一覧に出すため）
+  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString(), ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   syncHistory('chore(history): record note updates');
 }
@@ -400,6 +412,7 @@ function handleChoice(choice) {
       runPublishHelper('qiita');
       break;
     case 'u':
+      pullBeforeRun();
       runNoteUpdates();
       break;
     case 'm':
@@ -507,8 +520,11 @@ function runLeadMagnetPublish() {
 
 // note 公開済み記事の差し替えアシスト。1本ずつ、復号した全文をクリップボードへコピーし、
 // note の記事一覧と原稿を開く。オーナーが note で差し替えて Enter を押したら反映済みとして記録する
+// [U] で後回し（s）にした見出し修正は、このランチャーを閉じるまで一覧の末尾に回す
+const skippedHeadings = new Set();
+
 function runNoteUpdates() {
-  const pending = getPendingNoteUpdates();
+  const pending = getPendingNoteUpdates().sort((a, b) => skippedHeadings.has(a.slug) - skippedHeadings.has(b.slug));
   console.clear();
   console.log(`${c.red}${c.bold}================================================================================${c.reset}`);
   console.log(`   ${c.red}${c.bold}🛠 note 公開済み記事の差し替え（残り ${pending.length} 本）${c.reset}`);
@@ -532,6 +548,30 @@ function runNoteUpdates() {
     console.log(`  ${c.red}${c.bold}⚠ note に同じ記事が ${item.duplicates.length + 1} 本あります。いちばん古い 1 本を残し、次の ${item.duplicates.length} 本を「非公開」にしてください:${c.reset}`);
     item.duplicates.forEach((u) => console.log(`     ${c.red}✕ ${u}${c.reset}`));
     console.log(`     ${c.green}○ 残す: ${item.url}${c.reset}\n`);
+  }
+
+  if (item.action === 'heading') {
+    const tmp = path.join(os.tmpdir(), 'atr_note_heading.txt');
+    fs.writeFileSync(tmp, item.heading, 'utf8');
+    const copied = copyFileToClipboard(tmp);
+    const key = item.url?.match(/\/n\/(n\w+)/)?.[1];
+    if (key) openUrl(`https://editor.note.com/notes/${key}/edit/`);
+    console.log(`  ${c.cyan}${copied ? '📋 新しい見出しをクリップボードにコピーしました' : '新しい見出し'}: ${c.bold}${item.heading}${c.reset}`);
+    console.log(`  ${c.bold}手順（見出し 1 行だけ直します。本文の他の部分は触りません）:${c.reset}`);
+    console.log(`  1. 開いた note の編集画面で、見出し「${OLD_RING_HEADING}（ADOPT / …）」を探す（本文の上の方）`);
+    console.log(`  2. その見出しの文字だけをドラッグで選んで ${c.cyan}[Ctrl + V]${c.reset}（上の新しい見出しに置き換わります）`);
+    console.log(`  3. ${c.yellow}${c.bold}右上の「公開に進む」→ 有料ラインの位置が今までどおりか確認 →「更新する」${c.reset}`);
+    console.log(`  ${c.dim}（編集画面の本文が公開中の記事と違って見える場合は、以前の貼り付けが下書きに残っています。その記事は「s」で後回しにして知らせてください）${c.reset}`);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(`\n${c.yellow}${c.bold}「更新する」まで押したら Enter（後回し: s / メニューに戻る: 0） > ${c.reset}`, (ans) => {
+      rl.close();
+      const a = ans.trim().toLowerCase();
+      if (a === '0') return promptMenu();
+      if (a !== 's') recordNoteUpdated(item.slug, false);
+      else skippedHeadings.add(item.slug);
+      runNoteUpdates();
+    });
+    return;
   }
 
   if (item.action === 'unpublish') {

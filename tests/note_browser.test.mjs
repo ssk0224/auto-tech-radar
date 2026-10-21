@@ -65,3 +65,22 @@ test("編集画面にログインが必要なら、自動操作なしの Chrome 
     fs.rmSync(home, { recursive: true, force: true });
   }
 });
+
+test("[U]: 差し替えの記録が CI の確認より前なら、問題が残っている記事を一覧に出し続ける", async () => {
+  const { hiddenAfterOwnerFix } = await import("../scripts/utils/note_pending.mjs");
+  // 同じ日でも、記録（日付だけの旧形式・確認より前の時刻）が確認より前なら隠さない
+  assert.equal(hiddenAfterOwnerFix("2026-10-21", "2026-10-21T06:21:50.012Z"), false);
+  assert.equal(hiddenAfterOwnerFix("2026-10-21T05:40:00.000Z", "2026-10-21T06:21:50.012Z"), false);
+  // 確認より後に差し替えたものは、次の確認までは隠す
+  assert.equal(hiddenAfterOwnerFix("2026-10-21T06:30:00.000Z", "2026-10-21T06:21:50.012Z"), true);
+  assert.equal(hiddenAfterOwnerFix(undefined, "2026-10-21T06:21:50.012Z"), false);
+});
+
+test("[U]: 古い成熟度の見出しだけが問題の記事は、見出し 1 行の修正として扱う", async () => {
+  const { onlyOldRingHeading } = await import("../scripts/utils/note_pending.mjs");
+  const tw = "第三者（ThoughtWorks）の評価のような表現";
+  assert.equal(onlyOldRingHeading({ issues: [tw], excerpt: 'e1">🎯 ThoughtWorks成熟度リング判定（ADOPT / TRI' }), true);
+  assert.equal(onlyOldRingHeading({ issues: [tw, "受託単価"], excerpt: "ThoughtWorks成熟度リング判定" }), false);
+  assert.equal(onlyOldRingHeading({ issues: [tw], excerpt: "ThoughtWorks によると" }), false);
+  assert.equal(onlyOldRingHeading({ issues: [] }), false);
+});
