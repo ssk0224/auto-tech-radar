@@ -1,0 +1,24 @@
+{
+  "_about": "リポジトリの外にある公開文面の正本。公開中の文面は scripts/live_profile_check.mjs（.github/workflows/live-check.yml）がこれと比べ、違う・取得できない面を失敗にする。note・X・GitHub の文面を変えるときは、先にここを変える。毎朝・毎日などの頻度、全記事読み放題、最上級の表現は、データで裏付けられるまで書かない（tests/live_profile.test.mjs が検査する）",
+  "note": {
+    "urlname": "vast_ixora7005",
+    "creatorProfile": "GitHub で注目を集めている海外のオープンソースを、README などの公開情報をもとに日本語で解説しています。記事は AI が作成したもので、動作は検証していません。有料記事では技術仕様と導入時の注意点をまとめています。\n公式HP: https://ssk0224.github.io/auto-tech-radar/\n公式X: @AutoTechRadar",
+    "circle": {
+      "name": "Auto Tech Radar",
+      "description": "GitHub で注目を集めている海外のオープンソースを、公開情報をもとに日本語で解説するメディアです。\n【メンバー特典】\n・メンバーシップ特典に追加した有料記事を読めます（特典の対象かどうかは各記事のページに表示されます）"
+    },
+    "plan": {
+      "name": "スタンダードプラン",
+      "description": "メンバーシップ特典に追加した有料記事を読めます。特典に追加していない有料記事は、記事ごとの購入が必要です。"
+    }
+  },
+  "x": {
+    "handle": "AutoTechRadar",
+    "bio": "GitHub で注目を集めている海外のオープンソースを、公開情報をもとに日本語で解説しています📡\n▼ note の記事はこちら\nhttps://note.com/vast_ixora7005"
+  },
+  "github": {
+    "repo": "ssk0224/auto-tech-radar",
+    "description": "GitHub で注目を集めている海外のオープンソースを、公開情報から日本語で解説するサイトと記事の生成パイプライン",
+    "homepage": "https://ssk0224.github.io/auto-tech-radar/"
+  }
+}

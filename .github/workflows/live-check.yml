@@ -1,0 +1,49 @@
+name: Live surface check
+
+# リポジトリの外で公開している文面が、リポジトリの正本と同じかを確かめる。
+# - note のクリエイター紹介・メンバーシップの名前と説明・プランの説明・X の自己紹介・GitHub の About と data/profile_copy.json（scripts/live_profile_check.mjs）
+# - 公開中の note の無料部分と、原稿（note_drafts/）の無料部分を描画したもの（scripts/sync_note_urls.mjs）
+# 赤なら、公開中の文面が正本と違うか、確かめられなかった（未計測は「問題なし」にしない）。
+# サイトの公開（daily-crawl.yml）とは別の workflow で、書き込み権限も持たないので、公開は止めない。気づくためのもの
+on:
+  schedule:
+    - cron: "37 1 * * *" # 日本時間 10時37分（公開の定期実行と重ならない時刻）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-check
+  cancel-in-progress: false
+
+jobs:
+  live-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: "npm"
+      - run: npm ci
+      # 片方が赤でも、もう片方も確かめる（最後のステップでまとめて失敗にする）
+      - name: Profile, membership, X bio and GitHub About vs data/profile_copy.json
+        id: profile
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/live_profile_check.mjs
+      # 結果のファイル（scripts/note_urls.json・note_status.json）はこの実行の中だけで使い、commit しない
+      - name: Live note free parts vs rendered drafts
+        id: notes
+        continue-on-error: true
+        timeout-minutes: 20
+        run: node scripts/sync_note_urls.mjs
+      - name: Fail if a live surface differs from the source of truth or could not be checked
+        if: ${{ steps.profile.outcome != 'success' || steps.notes.outcome != 'success' }}
+        run: |
+          echo "::error title=Live surface check::公開中の文面が正本と違うか、確かめられませんでした（profile: ${{ steps.profile.outcome }} / notes: ${{ steps.notes.outcome }}）。上の各ステップの ::error を確認してください"
+          exit 1

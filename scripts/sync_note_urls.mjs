@@ -88,7 +88,8 @@ export async function fetchAllNotes({ fetchImpl = globalThis.fetch, delayMs = 10
       if (typeof n.name !== 'string' || typeof n.noteUrl !== 'string' || !n.noteUrl.startsWith('https://note.com/')) {
         throw new Error('想定外の応答形式（name / noteUrl）');
       }
-      notes.push({ name: n.name, noteUrl: n.noteUrl, price: typeof n.price === 'number' ? n.price : null, publishAt: typeof n.publishAt === 'string' ? n.publishAt : '' });
+      // membershipConnected: メンバーシップ特典に入っているか（項目が無ければ null＝分からない。false にしない）
+      notes.push({ name: n.name, noteUrl: n.noteUrl, price: typeof n.price === 'number' ? n.price : null, publishAt: typeof n.publishAt === 'string' ? n.publishAt : '', membershipConnected: typeof n.isMembershipConnected === 'boolean' ? n.isMembershipConnected : null });
     }
     // isLastPage が無い・真偽値でない応答を「最後のページ」とみなすと、一覧の途中で打ち切った対応表を作ってしまう
     if (typeof data.isLastPage !== 'boolean') throw new Error('想定外の応答形式（isLastPage が真偽値でない）');
