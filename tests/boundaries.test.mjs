@@ -6,7 +6,8 @@ import path from "path";
 import { stripProSection, findProLeaks } from "../scripts/utils/pro_boundary.mjs";
 import { extractReferences } from "../scripts/utils/reference_check.mjs";
 import { zennCta } from "../scripts/utils/funnel_copy.mjs";
-import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/utils/note_vault.mjs";
+import { splitPaid, isSealed } from "../scripts/utils/note_vault.mjs";
+import { COPY_FORBIDDEN, ownerCheckReport, describeReport, privateKeysIfPresent } from "../scripts/utils/owner_checks.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
 import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
 import { fixMermaidInContent, mermaidProblems } from "../scripts/utils/mermaid.mjs";
@@ -46,20 +47,8 @@ test("Zenn 記事の送客文は共通の文面（funnel_copy）と一致する"
 });
 
 // 公開される文面に出してはいけない表現（存在しない機能・架空の実績・根拠のない保証）
-const FORBIDDEN = [
-  [/アンロック/, "サイトに有料本文は無いのに「アンロック」をうたっている"],
-  [/即受注|受注に直結|に直結します/, "受注・成果を保証する表現"],
-  [/(分前|時間前).{0,40}(アンロック|購読|購入|参加)しました|(アンロック|購読|購入|参加)しました.{0,40}(分前|時間前)/, "架空の購入通知"],
-  [/Math\.random\(\)[^\n]{0,40}名/, "乱数で作った閲覧者数"],
-  [/全編読み放題|全記事読み放題|全レポート読み放題/, "メンバーシップで全記事が読めるかのような表現（特典に追加した記事のみ）"],
-  [/完全公開(され|して)います|全編公開されています|PRO限定(実務キット)?エリア/, "サイトで有料キットを公開しているかのような表現"],
-  [/ThoughtWorks/, "第三者（ThoughtWorks）の評価であるかのような表示（実際はスター数や AI の見立て）"],
-  [/毎朝\s*6[:：]00/, "定時配信の約束（GitHub の定期実行は数時間遅れることがある）"],
-  [/世界最速|世界最先端/, "根拠のない最上級表現"],
-  [/1営業日以内/, "個人運営で保証できない返信期限"],
-  [/社内稟議・提案書ドラフト|社内稟議テンプレ付|見積内訳付き/, "誇張表現（導入企画・提案書テンプレートを使用する）"],
-  [/^===\s*(SECTION|WEB ARTICLE|NOTE ARTICLE|X THREAD)\s*===$/m, "AIプロンプトのセクション区切り文字が漏洩"],
-];
+// 公開文面の禁止表現は有料本文の検査（scripts/utils/owner_checks.mjs）と同じ一覧を使う（テストの中に別の一覧を持たない）
+const FORBIDDEN = COPY_FORBIDDEN;
 function publicTexts() {
   const out = [];
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
@@ -136,39 +125,16 @@ test("公開文面に「100%経費精算可能」「専任エンジニアチー�
   assert.deepEqual(hits, []);
 });
 
+// 出品（scripts/utils/owner_checks.mjs の openNoteForPublishing）と同じ検査。禁止表現は COPY_FORBIDDEN・claims_check・hype_check を合わせ、
+// 全角・空白・ゼロ幅文字・強調記法を揃えてから比べる。金額は数字を問わず積算根拠表が必須。予告と内容一覧（.paid.json）の一致も見る。
+// 失敗の表示は記事名と規則名だけ（有料本文の文字列は出さない）
 test("復号可能な環境では有料本文に禁止表現・根拠なき固定単価が無く、無料部分の予告と一致する", (t) => {
-  let keys = [];
-  try {
-    keys = loadPrivateKeys();
-  } catch {}
+  const keys = privateKeysIfPresent();
   // 秘密鍵の無い環境（CI）では「合格」ではなく「未実施」と表示する（黙って通ったように見せない）
   if (keys.length === 0) return t.skip("秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）");
-
-  const hits = [];
-  for (const f of list("note_drafts", /_note\.md$/)) {
-    if (isNoise(path.basename(f).replace("_note.md", ""))) continue;
-    const full = assembleNote(f, keys);
-    const parts = splitPaid(full);
-    assert.ok(parts, `${f}: 有料ラインが分割できること`);
-    const paidText = parts.paid.join("\n");
-    for (const [re, why] of FORBIDDEN) {
-      if (re.test(paidText)) hits.push(`${f} [有料部]: ${why} (${paidText.match(re)?.[0]})`);
-    }
-    const hasPrice = /80万|250万|150万|300万/.test(paidText);
-    if (hasPrice) {
-      const lines = paidText.split(/\r?\n/);
-      const hasBasis = lines.some(l => 
-        l.includes("|") && 
-        (l.includes("工程") || l.includes("項目") || l.includes("業務")) && 
-        (l.includes("工数") || l.includes("人日")) && 
-        l.includes("単価") && 
-        l.includes("小計") && 
-        (l.includes("作業") || l.includes("詳細") || l.includes("内訳") || l.includes("成果物"))
-      );
-      assert.ok(hasBasis, `${f}: 有料部内の価格表記には積算根拠表（工程・工数・単価・小計）が必須`);
-    }
-  }
-  assert.deepEqual(hits, []);
+  const report = ownerCheckReport({ keys });
+  assert.ok(report.checked > 0, "検査した原稿が 0 本");
+  assert.equal(report.status, "green", describeReport(report));
 });
 
 test("全Web記事のFrontmatter完全性 (stars, title, description, pubDate)", () => {
