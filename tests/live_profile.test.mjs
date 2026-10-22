@@ -69,6 +69,10 @@ test("メンバーシップで「全記事・全アーカイブ読み放題」�
   // note の API は説明文を途中で改行して返す（「すべて読み\n  放題」2026-10-22 の実測）。改行・空白で分かれていても見つける
   assert.ok(membershipClaimProblems("レポートがすべて読み\n  放題になります", { paidNotes: 36, membershipConnected: 3 }).length > 0);
   assert.match(copyProblems({ ...COPY, x: { ...COPY.x, bio: "毎\n 朝 お届け" } }).join(), /x\.bio.*毎朝/);
+  // 言い回しを変えた全記事の主張も見つける
+  for (const s of ["全ての有料記事が読めます", "すべての有料記事を読めます", "有料記事が見放題", "有料記事を全部読めます"]) {
+    assert.ok(membershipClaimProblems(s, { paidNotes: 36, membershipConnected: 3 }).length > 0, s);
+  }
   // 本数が分からないときは言えるかどうかも分からない（問題として扱う）
   assert.ok(membershipClaimProblems(claim, { paidNotes: 36, membershipConnected: undefined }).length > 0);
   // 限定した言い方（特典に追加した記事）は本数によらず問題ない

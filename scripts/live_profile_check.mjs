@@ -35,7 +35,7 @@ const CLAIM_CLASSES = [
   [/WBS|見積もり自動生成|マネタイズ実践/, 'コードに無い機能・記事に無い内容'],
 ];
 // メンバーシップで全記事が読めるかのような表現
-const MEMBERSHIP_ALL_RE = /読み放題|全(?:有料)?(?:技術)?(?:記事|レポート|アーカイブ)|すべて読め|過去の全/;
+const MEMBERSHIP_ALL_RE = /(?:読み|見)放題|全て|すべて|全部|全(?:有料)?(?:技術)?(?:記事|レポート|アーカイブ)|過去の全/;
 
 export const normalizeCopy = (s) => String(s ?? '').normalize('NFKC').replace(/\s+/g, '');
 const comparable = (s, surface) => normalizeCopy(surface.opaqueUrls ? String(s ?? '').replace(/https?:\/\/\S+/g, 'URL') : s);
