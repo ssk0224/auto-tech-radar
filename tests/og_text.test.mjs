@@ -10,24 +10,32 @@ import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
 import { findHype } from "../scripts/utils/hype_check.mjs";
 import { CADENCE_CLAIM_RE } from "../src/utils/cadence.js";
 import { renderOgSvg, categoryLabelOf, readPngText, PNG_SOURCE_KEY, UNCATEGORIZED } from "../scripts/generate_og_cards.mjs";
-import { trackedFiles, readRepo, repoRoot } from "./helpers/public_text.mjs";
+import { trackedFiles, readRepo, repoRoot, renderedText } from "./helpers/public_text.mjs";
 import { normalizeEol } from "./helpers/read_src.mjs";
 
 const files = trackedFiles();
-const svgs = files.filter((f) => f.startsWith("public/") && f.endsWith(".svg"));
+const svgs = files.filter((f) => f.startsWith("public/") && /\.svg$/i.test(f));
 
 // SVG の <text>・<tspan> の文字（実体参照を戻す）
 export function svgTextNodes(svg) {
   const out = [];
   for (const m of svg.matchAll(/<(text|tspan)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
-    const t = m[2].replace(/<[^>]+>/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+    const t = m[2].replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
     if (t) out.push(t);
   }
   return out;
 }
 
-// 画像は記事やページと一緒に書き換わらないので、価格・提供内容（受託・協賛・収益化）と更新頻度を焼き込まない
-const OFFER_IN_IMAGE = /[¥￥]|\d\s*円|\$\s?\d|受託|協賛|スポンサー|収益化|マネタイズ|単価/;
+// 画像の中で画面に出る文字のすべて（<text>・<tspan>・<foreignObject> の HTML・<title>）。タグで分けた語はつないで読む
+export const svgRenderedLines = (svg) =>
+  renderedText(svg.replace(/<style\b[\s\S]*?<\/style>/gi, ""))
+    .split("\n")
+    .map((l) => l.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+// 画像は記事やページと一緒に書き換わらないので、価格・提供内容（受託・協賛・収益化）と更新頻度を焼き込まない。
+// 価格は通貨の記号・単位・通貨コード（JPY・USD など）のどの書き方でも拾う
+const OFFER_IN_IMAGE = /[¥￥$€£]|\d\s*(?:円|万円|ドル)|\b(?:JPY|USD|EUR|GBP|yen|dollars?)\b|価格|料金|税込|税別|受託|協賛|スポンサー|\bsponsor|収益化|マネタイズ|単価|\bpric(?:e|es|ing)\b|\bplan\b/i;
 
 function imageTextProblems(texts) {
   const text = texts.join("\n");
@@ -42,7 +50,7 @@ function imageTextProblems(texts) {
 test("OGP 画像（SVG）の文字に、禁止表現・誇張・価格や提供内容・更新頻度が無い", () => {
   assert.ok(svgs.includes("public/og-card.svg") && svgs.some((f) => f.startsWith("public/ogp/")), "検査の対象が git の追跡ファイルから取れていない");
   const hits = [];
-  for (const f of svgs) for (const h of imageTextProblems(svgTextNodes(readRepo(f)))) hits.push(`${f}: ${h}`);
+  for (const f of svgs) for (const h of imageTextProblems(svgRenderedLines(readRepo(f)))) hits.push(`${f}: ${h}`);
   assert.deepEqual(hits, []);
 });
 
@@ -54,6 +62,14 @@ test("画像の文字の検査は、価格・頻度・誇張を書き方を変�
   assert.deepEqual(svgTextNodes('<text x="1">A &amp; <tspan>B</tspan></text><tspan>&#x5186;</tspan>'), ["A & B", "円"]);
   // 文字参照で書いた価格も拾う
   assert.ok(imageTextProblems(svgTextNodes("<text>980&#20870;</text>")).length > 0);
+  // タグで分けた語・<text> の外（foreignObject の HTML）・通貨コードで書いた価格も拾う
+  for (const svg of [
+    '<svg><text x="1">毎<tspan>日</tspan>更新</text></svg>',
+    '<svg><foreignObject width="10" height="10"><div xmlns="http://www.w3.org/1999/xhtml">B2B協賛 ¥100k〜</div></foreignObject></svg>',
+    "<svg><text>Report JPY 980</text></svg>",
+    "<svg><text>即</text><text>受注</text><title>Pro plan</title><text>USD 9</text></svg>",
+  ]) assert.ok(imageTextProblems(svgRenderedLines(svg)).length > 0, svg);
+  assert.deepEqual(svgRenderedLines('<svg><style>.a{fill:#fff}</style><text>A<tspan>B</tspan></text><text>C</text></svg>'), ["AB", "C"]);
 });
 
 // 記事の frontmatter（ビルドと同じ書き方の範囲）
