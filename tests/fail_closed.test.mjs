@@ -35,8 +35,22 @@ export const NETWORK_CALL = new RegExp(
     String.raw`["'](?:undici|axios|node-fetch|got|ky|superagent)["']`,
   ].join("|"),
 );
+// 子プロセスで外部とやり取りするスクリプト: child_process を読み込み、通信する CLI（gh・curl・wget・ssh など、
+// git の push / pull / fetch / clone / ls-remote、npm・yarn・pnpm の install / ci、npx）を起動する形がある。
+// fetch や http の形だけを見ていると、gh api や curl の失敗を 0・live にする新しいスクリプトが対象から漏れる（2026-10-22 の検証）
+const CHILD_PROCESS = /["'](?:node:)?child_process["']/;
+export const NETWORK_CLI = new RegExp(
+  [
+    String.raw`["'\`](?:gh|curl|wget|ssh|scp|sftp|rsync|ftp|nc|ncat|telnet|aria2c|Invoke-WebRequest|Invoke-RestMethod|iwr|irm)(?=["'\`\s])`,
+    String.raw`["'\`]git\s+(?:push|pull|fetch|clone|ls-remote)\b`,
+    String.raw`\[\s*["'](?:push|pull|fetch|clone|ls-remote)["']`,
+    String.raw`["'\`](?:npm|pnpm|yarn)\s+(?:ci|install|i|add)\b`,
+    String.raw`["'\`]npx\s`,
+  ].join("|"),
+);
+export const talksToNetwork = (src) => NETWORK_CALL.test(src) || (CHILD_PROCESS.test(src) && NETWORK_CLI.test(src));
 export function networkScripts() {
-  return walk(path.join(root, "scripts")).filter((f) => /\.(mjs|js)$/.test(f) && NETWORK_CALL.test(fs.readFileSync(f, "utf8"))).map(rel);
+  return walk(path.join(root, "scripts")).filter((f) => /\.(mjs|js)$/.test(f) && talksToNetwork(fs.readFileSync(f, "utf8"))).map(rel);
 }
 // git のマージドライバ（共有の状態ファイルを機械的に合わせる。読めない入力を空として合わせると記録が消える）
 export function mergeDrivers() {
@@ -89,6 +103,12 @@ function mergeDriverRejectsBrokenInput(script) {
       }
     }
   };
+}
+
+// 故障注入で自動では確かめていない行（理由を必ず書く）。一覧を報告に出す（黙って対象から外さない）
+function notAutomated(reason) {
+  assert.ok(reason, "理由が無い");
+  return Object.assign(() => assert.ok(reason), { reason });
 }
 
 const FAULTS = {
@@ -200,6 +220,45 @@ const FAULTS = {
     assert.equal(eyecatchCompleteReport('{"set": ["a"], "skipped": [], "failed": []}').ok, true);
     assert.equal(eyecatchCompleteReport('{"set": [], "skipped": [], "failed": ["b"]}').ok, false);
   },
+  // git で GitHub とやり取りする共通処理。取り込み・送信に失敗したら ok: false と理由を返す（成功・「変更なし」にしない）
+  "scripts/utils/git_sync.mjs": async () => {
+    const { pullLatest, commitAndSync } = await import("../scripts/utils/git_sync.mjs");
+    const dir = tmp("atr-fc-git-");
+    try {
+      const g = (...a) => spawnSync("git", a, { cwd: dir, encoding: "utf8" });
+      g("init", "-q", "-b", "main");
+      g("config", "user.email", "test@example.invalid");
+      g("config", "user.name", "test");
+      fs.writeFileSync(path.join(dir, "a.json"), "{}\n");
+      g("add", "a.json");
+      g("commit", "-q", "-m", "init");
+      g("remote", "add", "origin", path.join(dir, "no-such-remote"));
+      assert.equal(pullLatest(dir).ok, false, "取り込めないのに ok");
+      fs.writeFileSync(path.join(dir, "a.json"), '{"a": 1}\n');
+      const r = commitAndSync(dir, ["a.json"], "test");
+      assert.equal(r.ok, false, "送れないのに ok");
+      assert.equal(r.step, "pull");
+      assert.ok(r.message, "失敗の理由が空");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  },
+  // push 済みの記事（origin/main）の読み取り。取り込めない・読めないときは例外（「記事が 0 本」にしない）
+  "scripts/utils/published_articles.mjs": async () => {
+    const { fetchOriginMain, articlesPublishedOnRef } = await import("../scripts/utils/published_articles.mjs");
+    const dir = tmp("atr-fc-pub-");
+    try {
+      spawnSync("git", ["init", "-q", "-b", "main"], { cwd: dir });
+      spawnSync("git", ["remote", "add", "origin", path.join(dir, "no-such-remote")], { cwd: dir });
+      assert.throws(() => fetchOriginMain(dir, 10000));
+      assert.throws(() => articlesPublishedOnRef(dir, "origin/main", "2026-10-22"));
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  },
+  // オーナー端末の対話メニュー（読み込むと画面を出して入力を待つ）。故障を注入して動かす仕組みが無いため、自動では確かめていない。
+  // 何もしない catch が無いこと（下の形の検査）だけを確かめる。通信の失敗は画面に ⚠ を出す（取り込みは git_sync.mjs の行で確かめる）
+  "scripts/launcher.mjs": notAutomated("対話メニュー。読み込むと入力待ちになる"),
   "scripts/audit_dist.mjs": () => {
     const dir = tmp("atr-fc-dist-");
     try {
@@ -214,6 +273,8 @@ const FAULTS = {
 };
 
 test("登録: 外部に問い合わせる・状態ファイルを合わせる・公開前に監査するスクリプトは、すべて故障注入の表に載っている", () => {
+  const manual = Object.entries(FAULTS).filter(([, f]) => f.reason).map(([k, f]) => `${k}（${f.reason}）`);
+  if (manual.length) console.log(`故障注入を自動で確かめていない行: ${manual.join(", ")}`);
   assert.ok(TARGETS.length >= 10, TARGETS.join(", "));
   assert.deepEqual(TARGETS.filter((f) => !(f in FAULTS)), [], "故障注入の表（FAULTS）に無いスクリプトがある");
   assert.deepEqual(Object.keys(FAULTS).filter((f) => !TARGETS.includes(f)), [], "表にあるが、対象でなくなった（または名前が変わった）スクリプトがある");
