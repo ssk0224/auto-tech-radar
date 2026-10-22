@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
-import { zennSummary, zennWarnings } from "../scripts/check_zenn.mjs";
+import { zennArticleResult, zennSummary, zennWarnings } from "../scripts/check_zenn.mjs";
 import { readText } from "./helpers/read_src.mjs";
 
 const frontmatter = (s) => s.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
@@ -89,6 +89,21 @@ test("Zenn の確認: 1 本も確認できない（API が 403 を返すなど�
   assert.match(w[0], /1 本も確認できませんでした（2 本すべて HTTP 403, fetch failed）/);
   // 確認できないことを「公開されていない（連携が未設定）」とは言わない
   assert.doesNotMatch(zennWarnings([{ slug: "ddd-tech-radar", published: true, live: null, status: 403 }]).join(), /GitHub 連携が未設定/);
-  // 一部でも確認できていれば、この警告は出さない
-  assert.deepEqual(zennWarnings([...blocked, { slug: "ccc-tech-radar", published: false, live: false }]), []);
+  // 一部だけ確認できたときも、確認できなかった本数を黙らずに警告する（以前は 1 本でも確認できれば何も言わなかった）
+  const partial = zennWarnings([...blocked, { slug: "ccc-tech-radar", published: false, live: false }]);
+  assert.equal(partial.length, 1, partial.join("\n"));
+  assert.match(partial[0], /3 本中 2 本は Zenn の公開状態を確認できませんでした（HTTP 403, fetch failed）/);
+  assert.deepEqual(zennSummary([...blocked, { slug: "ccc-tech-radar", published: false, live: false }]).unknown, 2);
+});
+
+test("Zenn の確認: 応答に published が無い・真偽値でない記事は「公開中」とみなさず未確認にする", async () => {
+  const ok = (article) => new Response(JSON.stringify({ article }), { status: 200 });
+  assert.equal((await zennArticleResult("a", false, async () => ok({ published: true, liked_count: 2 }))).live, true);
+  assert.equal((await zennArticleResult("a", false, async () => ok({ published: false }))).live, false);
+  const missing = await zennArticleResult("a", false, async () => ok({ liked_count: 2 }));
+  assert.equal(missing.live, null, "published が無い応答を公開中としない（以前は ?? true で公開中）");
+  assert.match(missing.error, /published/);
+  assert.equal((await zennArticleResult("a", false, async () => new Response("", { status: 404 }))).live, false);
+  assert.equal((await zennArticleResult("a", false, async () => new Response("", { status: 429 }))).live, null);
+  assert.equal((await zennArticleResult("a", false, async () => { throw new Error("fetch failed"); })).live, null);
 });
