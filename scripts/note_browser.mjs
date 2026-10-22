@@ -9,7 +9,7 @@ import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
-import { jstClock } from "../src/utils/dates.js";
+import { jstClock, utcStamp } from "../src/utils/dates.js";
 import { NOTE_FIX_MAX, applicableNoteRules, applyNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes, noteFixBudget } from "./utils/note_pending.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,7 +44,7 @@ function recordFix(slug) {
   const h = readFixHistory();
   if (h.error) throw new Error(`直した記録（${FIX_HISTORY}）が読めないため、公開しません: ${h.error}`);
   const keep = h.entries.filter((e) => Date.parse(e?.at) > Date.now() - 7 * 24 * 60 * 60 * 1000);
-  keep.push({ at: new Date().toISOString(), slug });
+  keep.push({ at: utcStamp(), slug });
   fs.mkdirSync(path.dirname(FIX_HISTORY), { recursive: true });
   const tmp = `${FIX_HISTORY}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(keep, null, 2) + "\n", "utf8");
@@ -694,7 +694,7 @@ function writeLog(entry) {
     version = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
   } catch (e) {}
   try {
-    fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
+    fs.writeFileSync(file, JSON.stringify({ at: utcStamp(), version, ...entry }, null, 2) + "\n", "utf8");
   } catch (e) {}
 }
 

@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { utcStamp } from '../src/utils/dates.js';
 import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
@@ -202,7 +203,7 @@ async function checkPublishedNotes(map, unlinked = []) {
     others.push({ name: n.name, url: n.noteUrl, price: n.price, publishAt: n.publishAt, issues });
   }
   if (others.length) console.log(`::warning title=原稿と対応づかない公開中の note::${others.length} 本（古い版の出品の可能性。scripts/note_status.json の unlinked）`);
-  fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), notes: status, unlinked: others }, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: utcStamp(), notes: status, unlinked: others }, null, 2) + '\n', 'utf8');
 }
 
 async function main() {

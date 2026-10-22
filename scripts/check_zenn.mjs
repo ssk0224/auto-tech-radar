@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { utcStamp } from '../src/utils/dates.js';
 
 const DIR = path.resolve('articles');
 const OUT = path.resolve('scripts/zenn_status.json');
@@ -57,7 +58,7 @@ async function main() {
   const summary = zennSummary(results);
   console.log(`✓ Zenn: 公開中 ${summary.live} / ${summary.total} 本（いいね合計 ${summary.likes}${summary.users.length ? `、アカウント ${summary.users.join(', ')}` : ''}）`);
   for (const w of zennWarnings(results, summary)) console.log(`::warning title=Zenn::${w}`);
-  fs.writeFileSync(OUT, JSON.stringify({ checkedAt: new Date().toISOString(), summary, articles: results }, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(OUT, JSON.stringify({ checkedAt: utcStamp(), summary, articles: results }, null, 2) + '\n', 'utf8');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

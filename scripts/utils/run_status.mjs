@@ -3,7 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
-import { jstDate as jstDateOf } from "../../src/utils/dates.js";
+import { jstDate as jstDateOf, utcStamp } from "../../src/utils/dates.js";
 
 // rejected: 生成した記事が CI の品質ゲート（npm test）に通らず、取り除いた（workflow の Post-Crawl Quality Test Gate が記録する）
 export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "error", "cap_reached", "rejected"];
@@ -46,7 +46,7 @@ export function recordRunStatus({ rootDir = process.cwd(), now = Date.now(), gen
     const date = jstDate(now);
     const schedule = process.env.RUN_SCHEDULE ? ` (${process.env.RUN_SCHEDULE})` : "";
     const ev = event || `${process.env.GITHUB_EVENT_NAME || "local"}${schedule}`;
-    const next = appendRun(readRunStatus(rootDir, date), date, { at: new Date(now).toISOString(), event: ev, generated, reason, model });
+    const next = appendRun(readRunStatus(rootDir, date), date, { at: utcStamp(now), event: ev, generated, reason, model });
     const file = runStatusFile(rootDir, date);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(next, null, 2) + "\n", "utf8");

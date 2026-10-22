@@ -1,61 +1,90 @@
-// 日付の決まり: 表示と「今日・直近 N 日」の判定は日本時間（JST）の暦日、保存用のキー（台帳のファイル名・GitHub 検索の日付）は UTC と名前で区別する。
-// 計算は src/utils/dates.js の関数だけで行う（jstDate / jstDaysAgo / utcDate / addDays / withinLastDays）。
-// 「toISOString().slice(0, 10)」（UTC の日付）と「+ 9 時間してから UTC として読む」が scripts・src に散らばり、
-// UTC の日付と JST の公開日を比べて「直近 2 日」が 3〜4 日になる・週報が 9 日分になる、といった食い違いが起きた（2026-10-22）
+// 日付の決まり: 表示と「今日・直近 N 日」の判定は日本時間（JST）の暦日、保存用のキー・記録の時刻（台帳のファイル名・GitHub 検索の日付・
+// 実行記録の at）は UTC と名前で区別する。Date を暦日・時刻・文字列に変える計算は src/utils/dates.js の関数だけで行う
+// （jstDate / jstDaysAgo / jstClock / utcDate / utcStamp / addDays / withinLastDays）。
+// 書き方を一つずつ禁じるのではなく、「Date を暦日・時刻に変える API」をこのファイルの外で使うこと自体を止める:
+// 実行するマシンの時刻帯で結果が変わる API（getMonth・toLocaleDateString・toJSON の切り出し…）は owner PC（JST）と CI（UTC）で違う値を返し、
+// UTC の API をその場で使うと JST の公開日と比べて「直近 2 日」が 3〜4 日になる・週報が 9 日分になる、といった食い違いが起きた（2026-10-22）
 import test from "node:test";
 import assert from "node:assert/strict";
-import { jstDate, jstDaysAgo, utcDate, addDays, withinLastDays, jstDayStart } from "../src/utils/dates.js";
-import { trackedFiles, readRepo } from "./helpers/public_text.mjs";
+import { jstDate, jstDaysAgo, utcDate, utcStamp, addDays, withinLastDays, jstDayStart } from "../src/utils/dates.js";
+import { trackedFiles, isCodeFile, stripComments, readRepo } from "./helpers/public_text.mjs";
 
-// その場で暦日・時差を計算する書き方（UTC の日付の切り出し・手で足す 9 時間・UTC の日付部品の読み出し）
-export const RAW_CALENDAR_MATH = [
-  [/toISOString\(\)\s*\.\s*(?:slice|substring|substr)\(\s*0\s*,\s*10\s*\)/, "toISOString() の先頭 10 文字（UTC の日付）"],
-  [/toISOString\(\)\s*\.\s*split\(\s*["'`]T["'`]\s*\)\s*\[\s*0\s*\]/, "toISOString().split('T')[0]（UTC の日付）"],
-  [/toISOString\(\)\s*\.\s*(?:slice|substring|substr)\(\s*\d+\s*,\s*1[0-9]\s*\)/, "toISOString() の切り出し（UTC の日時）"],
-  [/\b9\s*\*\s*60\s*\*\s*60\s*\*\s*1000\b|\b9\s*\*\s*3600\s*\*\s*1000\b|\b32400000\b/, "手で足す 9 時間（JST の時差）"],
-  [/\.getUTC(?:FullYear|Month|Date|Day|Hours|Minutes)\(\)/, "UTC の日付・時刻の部品を直接読む"],
-  [/T00:00:00(?:\.000)?(?:Z|\+0?9:?00)["'`]/, "暦日の 0 時を文字列で組み立てる"],
-];
-const POLICY_FILE = "src/utils/dates.js";
-
-function rawCalendarMath(text) {
+const NINE_HOURS = new Set([9 * 3600 * 1000, 9 * 3600, 9 * 60]);
+// 数の積（9 * 60 * 60 * 1000・9 * 36e5・32400000）を計算して、9 時間（ms・秒・分）になるものを拾う
+function nineHourProducts(line) {
   const hits = [];
-  text.split("\n").forEach((line, i) => {
-    for (const [re, why] of RAW_CALENDAR_MATH) if (re.test(line)) hits.push(`${i + 1}: ${why}: ${line.trim().slice(0, 100)}`);
-  });
+  for (const m of line.matchAll(/(?<![\w.])\d[\d_]*(?:\.\d+)?(?:e\d+)?(?:\s*\*\s*\d[\d_]*(?:\.\d+)?(?:e\d+)?)*/gi)) {
+    const factors = m[0].split("*").map((x) => Number(x.trim().replace(/_/g, "")));
+    const value = factors.reduce((a, b) => a * b, 1);
+    if (NINE_HOURS.has(value) && (factors.length > 1 || value >= 32400)) hits.push(m[0].trim());
+  }
   return hits;
 }
 
-test("scripts・src のコードは、暦日・時差の計算を src/utils/dates.js に任せ、その場で UTC/JST を混ぜて計算しない", () => {
-  const code = trackedFiles().filter((f) => (f.startsWith("scripts/") || f.startsWith("src/")) && /\.(mjs|js|ts|astro)$/.test(f));
-  assert.ok(code.includes("scripts/ping_search_engines.mjs") && code.includes(POLICY_FILE), "検査の対象が git の追跡ファイルから取れていない");
+// Date を暦日・時刻・文字列に変える API と、時差・時刻帯をその場で書くこと
+export const CALENDAR_APIS = [
+  [/\.\s*(?:toISOString|toJSON|toUTCString|toGMTString|toDateString|toTimeString)\s*\(/, "Date を文字列にする（utcStamp・jstDate を使う）"],
+  [/\.\s*(?:toLocaleDateString|toLocaleTimeString)\s*\(|\bIntl\s*\.\s*DateTimeFormat\b/, "時刻帯で変わる日付の書式（jstDate・jstClock を使う）"],
+  [/\.\s*toLocaleString\s*\([^)]*\b(?:timeZone|year|month|day|hour|minute|dateStyle|timeStyle)\b|new\s+Date\([^)]*\)\s*\.\s*toLocaleString\s*\(/, "Date の toLocaleString（時刻帯で変わる）"],
+  [/\.\s*(?:get|set)(?:UTC)?(?:FullYear|Month|Date|Day|Hours|Minutes|Seconds)\s*\(|\.\s*getTimezoneOffset\s*\(/, "Date の暦日・時刻の部品を直接読む・書く"],
+  [/\bnew\s+Date\(\s*[^()\s,]+\s*,|\bDate\s*\.\s*UTC\s*\(/, "暦日の部品から Date を作る（実行するマシンの時刻帯・UTC を暗に選ぶ）"],
+  [/Asia\/Tokyo|[+-]0?9:?00\b|\b(?:UTC|GMT)\s*\+\s*0?9\b/, "時刻帯・時差をその場で書く"],
+  [/["'`][^"'`\n]*T\d{2}:\d{2}|T\$\{/, "日時を文字列で組み立てる"],
+  [/\.\s*(?:slice|substring|substr)\(\s*0\s*,\s*(?:10|19)\s*\)|\.\s*split\(\s*["'`]T["'`]\s*\)/, "日時の文字列から暦日・時刻を切り出す"],
+];
+const POLICY_FILE = "src/utils/dates.js";
+
+export function calendarMath(text) {
   const hits = [];
-  for (const f of code) {
-    if (f === POLICY_FILE) continue;
-    for (const h of rawCalendarMath(readRepo(f))) hits.push(`${f}:${h}`);
-  }
+  stripComments(text)
+    .split("\n")
+    .forEach((line, i) => {
+      for (const [re, why] of CALENDAR_APIS) if (re.test(line)) hits.push(`${i + 1}: ${why}: ${line.trim().slice(0, 100)}`);
+      for (const p of nineHourProducts(line)) hits.push(`${i + 1}: 手で足す 9 時間（${p}）: ${line.trim().slice(0, 100)}`);
+    });
+  return hits;
+}
+
+test("scripts・src のコードは、Date を暦日・時刻・文字列に変える計算を src/utils/dates.js に任せ、その場で UTC/JST・実行環境の時刻帯を混ぜない", () => {
+  const code = trackedFiles().filter((f) => (f.startsWith("scripts/") || f.startsWith("src/")) && isCodeFile(f));
+  assert.ok(code.includes("scripts/ping_search_engines.mjs") && code.includes(POLICY_FILE), "検査の対象が git のファイル一覧から取れていない");
+  const hits = code.filter((f) => f !== POLICY_FILE).flatMap((f) => calendarMath(readRepo(f)).map((h) => `${f}:${h}`));
   assert.deepEqual(hits, []);
 });
 
-test("書き方を変えた UTC/JST の手計算も検出する", () => {
+test("書き方を変えた UTC/JST の手計算・実行環境の時刻帯に頼る書き方も検出する", () => {
   for (const ng of [
     "const d = new Date().toISOString().slice(0,10);",
-    "const d = now.toISOString().split(\"T\")[0];",
+    'const d = now.toISOString().split("T")[0];',
     "new Date(t + 9*60*60*1000)",
     "const label = `${d.getUTCMonth() + 1}月`;",
     "Date.parse(`${day}T00:00:00+09:00`)",
     "x.toISOString().substring(0, 10)",
+    "const d = new Date().toJSON().slice(0, 10);",
+    "const t = Date.now() + 9 * 36e5;",
+    "const d = new Date().toLocaleDateString('sv-SE');",
+    "const label = `${n.getMonth()+1}月${n.getDate()}日`;",
+    "const iso = d.toISOString(); const day = iso.slice(0, 10);",
+    "const jst = new Date(Date.now() + 32400000);",
+    "new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo' }).format(d)",
+    "const d = new Date(2026, 9, 22);",
+    "const s = new Date().toLocaleString('ja-JP', { month: 'long' });",
+    "const off = new Date().getTimezoneOffset();",
+    "const day = stamp.split('T')[0];",
   ]) {
-    assert.ok(rawCalendarMath(ng).length > 0, ng);
+    assert.ok(calendarMath(ng).length > 0, ng);
   }
-  assert.deepEqual(rawCalendarMath("const d = jstDate(now);"), []);
+  for (const ok of ["const d = jstDate(now);", "const s = stars.toLocaleString();", "const top = items.slice(0, 7);", "// toISOString().slice(0, 10) はここでは使わない", "const w = 540;"]) {
+    assert.deepEqual(calendarMath(ok), [], ok);
+  }
 });
 
-test("JST の今日・N 日前は日本時間の暦日で、UTC の日付とは名前で区別する", () => {
+test("JST の今日・N 日前は日本時間の暦日で、UTC の日付・時刻とは名前で区別する", () => {
   // 日本時間 2026-10-22 06:17 は UTC では 2026-10-21 21:17
   const t = Date.parse("2026-10-21T21:17:00Z");
   assert.equal(jstDate(t), "2026-10-22");
   assert.equal(utcDate(t), "2026-10-21");
+  assert.equal(utcStamp(t), "2026-10-21T21:17:00.000Z");
   assert.equal(jstDaysAgo(6, t), "2026-10-16");
   assert.equal(jstDaysAgo(0, t), "2026-10-22");
   assert.equal(addDays("2026-10-01", -1), "2026-09-30");

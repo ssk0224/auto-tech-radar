@@ -2,6 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import { getArticles, hrefOf, starTier, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
 import { categoryOf } from "../utils/categories.js";
+import { jstDate } from "../utils/dates.js";
+const builtOn = jstDate(); // CSV のファイル名に付ける、掲載データ（ビルド時点）の日本時間の日付
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 const sortedPosts = posts;
@@ -153,7 +155,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     </div>
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ builtOn }}>
     // リアルタイム検索フィルター
     const searchInput = document.getElementById('filter-search');
     const rows = document.querySelectorAll('.matrix-row');
@@ -255,7 +257,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `auto-tech-radar-cheatsheet-${new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date())}.csv`; // 日本時間の日付
+        a.download = `auto-tech-radar-cheatsheet-${builtOn}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
