@@ -8,6 +8,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { prepareBuildRoot, astroBuild, removeDir } from "./helpers/site_build.mjs";
+import { ignoredSiteInputs } from "../scripts/utils/public_tree.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const scanner = path.join(root, "scripts", "utils", "public_tree.mjs");
@@ -34,6 +35,25 @@ test("配信物の検査は、描画した HTML に組み立てた連絡先・�
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// public/ の中身はビルドでそのままサイトに載り、src/ はページに取り込まれる。.gitignore で無視しても載るので、
+// 許可リストの外のファイル（状態の JSON・内部の文書）がそこにあれば、内容の形によらずビルドを止める
+test("サイトの入力（public/・src/）にある、許可リストの外（gitignore された）ファイルを見つける。リポのサイトの入力には無い", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-site-in-"));
+  try {
+    const g = (...a) => spawnSync("git", a, { cwd: dir, encoding: "utf8" });
+    g("init", "-q");
+    fs.writeFileSync(path.join(dir, ".gitignore"), "/public/*\n!/public/robots.txt\n/src/**\n!/src/**/\n!/src/**/*.astro\n");
+    for (const f of ["public/robots.txt", "public/note_status.json", "src/pages/a.astro", "src/data/watchlist.json", "docs/x.md"]) {
+      fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true });
+      fs.writeFileSync(path.join(dir, f), "x");
+    }
+    assert.deepEqual(ignoredSiteInputs(dir).sort(), ["public/note_status.json", "src/data/watchlist.json"]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  assert.deepEqual(ignoredSiteInputs(root), []);
 });
 
 test("サイトのビルド（npm run build）は、astro build のあとに配信物の検査をする", () => {

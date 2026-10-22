@@ -3,7 +3,8 @@
 // CI の $RUNNER_TEMP に置く。tests/public_tree.test.mjs と tests/state_writers.test.mjs が、追跡ファイル・書き出し先・git add をこの台帳と突き合わせる。
 import fs from "fs";
 import path from "path";
-import { pathToFileURL } from "url";
+import { spawnSync } from "child_process";
+import { fileURLToPath, pathToFileURL } from "url";
 import zlib from "zlib";
 
 // 公開出力の台帳: スクリプトが書いてよい追跡パス（/ で終わるものはその配下すべて）。
@@ -382,6 +383,14 @@ export function privateShapeHitsInDir(dir) {
   return hits;
 }
 
+// サイトの入力（SITE_INPUTS）にある、.gitignore の許可リストの外のファイル。public/ はそのままサイトに載り、src/ はページに取り込まれるので、
+// 無視していても公開される（内容の形によらず止める）。git が使えないときは、確かめられないので止める（見逃すより止める）
+export function ignoredSiteInputs(repoRoot) {
+  const r = spawnSync("git", ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--", ...SITE_INPUTS], { cwd: repoRoot, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(`サイトの入力の許可リストを確かめられません（git ls-files: ${(r.stderr || r.error?.message || "").trim()}）`);
+  return r.stdout.split("\0").filter(Boolean);
+}
+
 // CLI: node scripts/utils/public_tree.mjs scan <dir>（npm run build が astro build のあとに dist を見る）。
 // ソースでは読めない、ビルドの時に組み立てた値（{user}@{domain}・[a, b].join("@")・テンプレート）も、描画した結果なら見える。
 // 見つけたら終了コード 1（ビルドが失敗し、配信しない）。CI のログも公開されるので、出すのはファイル・行・種類だけ
@@ -394,6 +403,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const hits = privateShapeHitsInDir(dir);
   if (hits.length) {
     console.error(`配信物に、公開してはいけない内容の形があります（${hits.length} 件）:\n${hits.join("\n")}`);
+    process.exit(1);
+  }
+  const ignored = ignoredSiteInputs(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".."));
+  if (ignored.length) {
+    console.error(`サイトの入力（public/・src/）に、許可リストの外のファイルがあります（gitignore してもサイトに載る。ownerDir か $RUNNER_TEMP に置く）:\n${ignored.join("\n")}`);
     process.exit(1);
   }
   console.log(`配信物（${path.basename(dir)}）に、公開してはいけない内容の形はありません`);
