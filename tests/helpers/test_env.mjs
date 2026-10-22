@@ -111,8 +111,13 @@ function install() {
   // 値は読み込んだ時点のものを固定して使う（テストが process.env を置き換えたり、GIT_CONFIG_GLOBAL などを消したりしても、子に届ける）
   const pinned = Object.fromEntries(INHERIT.filter((k) => process.env[k] !== undefined).map((k) => [k, process.env[k]]));
   const keyOf = (env, k) => Object.keys(env).find((x) => (process.platform === "win32" ? x.toUpperCase() === k : x === k));
+  // テストファイルの中（node --test が NODE_TEST_CONTEXT を立てて起動した）から起動する子には、NODE_TEST_CONTEXT を渡さない。
+  // 受け継ぐと、子の node --test は「テストファイルの中から呼ばれた」としてファイルを一つも走らせず、緑で終わる（中のテストの失敗が見えない）
+  const insideTestFile = Boolean(process.env.NODE_TEST_CONTEXT);
   const testEnv = (given) => {
     const env = { ...given };
+    const context = insideTestFile && keyOf(env, "NODE_TEST_CONTEXT");
+    if (context) delete env[context];
     // 呼び出し側が明示した値は残す。ただし undefined・null（子には渡らない）は「指定なし」と同じに扱う
     for (const [k, v] of Object.entries(pinned)) {
       const key = keyOf(env, k);

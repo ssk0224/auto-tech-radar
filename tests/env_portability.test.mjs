@@ -681,3 +681,12 @@ test("隣の一時ディレクトリ", () => { const d = path.join(os.tmpdir(), 
   assert.notEqual(r.status, 0, "テストファイルのプロセスの外（実行全体の一時ディレクトリ）に書いたのに緑");
   assert.match(r.stdout + r.stderr, /atr-shared/);
 });
+
+test("入れ子の node --test: テストの中から起動した node --test が、受け継いだ NODE_TEST_CONTEXT のせいでファイルを一つも走らせずに緑にならない", () => {
+  const dir = fs.mkdtempSync(path.join(tmp, "nested-"));
+  fs.writeFileSync(path.join(dir, "inner.test.mjs"), `import test from "node:test"; import assert from "node:assert/strict";\ntest("中で失敗する", () => { assert.equal(1, 2); });\n`);
+  const body = `import { spawnSync } from "node:child_process";
+test("ゲートのテスト群を走らせる", () => { const r = spawnSync(process.execPath, ["--test", "inner.test.mjs"], { cwd: ${JSON.stringify(dir)}, encoding: "utf8" }); assert.notEqual(r.status, 0); assert.match(r.stdout, /中で失敗する/, "中のテストが走っていない: " + r.stdout + r.stderr); });`;
+  const r = runTestFile(body);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+});
