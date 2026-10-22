@@ -167,43 +167,68 @@ test("無料部分の検査: 数字の符号・○×・通貨記号が原稿と�
 // 本文の 1 文字を同じ種類の別の文字に変えると、必ず bad になる（正規化が、その種類の文字を比較から消していない）
 const CATEGORIES = { L: /\p{L}/u, N: /\p{N}/u, P: /\p{P}/u, S: /\p{S}/u };
 const SWAP = { L: ["あ", "い"], N: ["1", "2"], P: ["、", "。"], S: ["○", "×"] };
-// HTML のタグ・実体参照の外にある、種類 cat の最初の文字の位置
-function firstTextChar(html, re) {
+// HTML のタグ・実体参照の外にある本文の文字の位置（re に当たる文字だけ）。先頭・中ほど・末尾を試す
+// （先頭の 1 文字だけを変えていたため、末尾の 1 割を欠いても ok にする比較を見逃した。2026-10-22 の検証）
+// 変えて試す文字は、正規化（NFKC）で形の変わらない文字だけ。whole: 末尾を欠くときは、すべての文字と実体参照（&amp; など）を数える
+function textChars(html, re = /\S/u, { whole = false } = {}) {
+  const out = [];
   let inTag = false;
-  let inEntity = false;
-  for (let i = 0; i < html.length; i++) {
-    const c = html[i];
+  let entity = -1;
+  let i = 0;
+  for (const c of html) {
     if (inTag) inTag = c !== ">";
-    else if (inEntity) inEntity = c !== ";";
-    else if (c === "<") inTag = true;
-    else if (c === "&") inEntity = true;
-    else if (re.test(c) && c.normalize("NFKC") === c) return i;
+    else if (entity >= 0) {
+      if (c === ";") {
+        if (whole) out.push([entity, i + 1]);
+        entity = -1;
+      }
+    } else if (c === "<") inTag = true;
+    else if (c === "&") entity = i;
+    else if (re.test(c) && (whole || c.normalize("NFKC") === c) && !/\s/u.test(c)) out.push([i, i + c.length]);
+    i += c.length;
   }
-  return -1;
+  return out;
 }
-test("無料部分の検査: 実際の原稿すべてで、文字・数字・句読点・記号のどれを 1 文字変えても bad になる", async () => {
+const pick = (xs) => [...new Set([xs[0], xs[Math.floor(xs.length / 2)], xs[xs.length - 1]])];
+// 本文の文字の区間 spans を消した HTML
+const without = (html, spans) => [...spans].sort((x, y) => y[0] - x[0]).reduce((h, [s, e]) => h.slice(0, s) + h.slice(e), html);
+const realDrafts = async () => {
   const fs = await import("fs");
   const path = await import("path");
   const dir = "note_drafts";
   const files = fs.readdirSync(dir).filter((f) => f.endsWith("_note.md"));
   assert.ok(files.length >= 10, files.join());
+  return files.map((f) => [f, fs.readFileSync(path.join(dir, f), "utf8")]).map(([f, d]) => [f, d, renderDraftFree(d)]).filter(([, , h]) => h);
+};
+test("無料部分の検査: 実際の原稿すべてで、文字・数字・句読点・記号のどれを 1 文字変えても（先頭・中ほど・末尾のどこでも）bad になる", async () => {
   const seen = new Set();
-  for (const f of files) {
-    const draft = fs.readFileSync(path.join(dir, f), "utf8");
-    const html = renderDraftFree(draft);
-    if (!html) continue;
+  for (const [f, draft, html] of await realDrafts()) {
     assert.equal(freePartVerdict(html, draft).status, "ok", f);
     for (const [cat, re] of Object.entries(CATEGORIES)) {
-      const i = firstTextChar(html, re);
-      if (i < 0) continue;
+      const at = textChars(html, re);
+      if (!at.length) continue;
       seen.add(cat);
       const [a, b] = SWAP[cat];
-      const to = html[i] === a ? b : a;
-      const mutated = html.slice(0, i) + to + html.slice(i + 1);
-      assert.equal(freePartVerdict(mutated, draft).status, "bad", `${f}: ${cat} の 1 文字を変えても bad にならない`);
+      for (const [i, end] of pick(at)) {
+        const to = html.slice(i, end) === a ? b : a;
+        const mutated = html.slice(0, i) + to + html.slice(end);
+        assert.equal(freePartVerdict(mutated, draft).status, "bad", `${f}: ${cat} の 1 文字（${i} / ${html.length}）を変えても bad にならない`);
+      }
     }
   }
   assert.deepEqual([...seen].sort(), ["L", "N", "P", "S"], "原稿に 4 種類の文字が揃っていない（検査の前提が崩れた）");
+});
+
+test("無料部分の検査: 実際の原稿すべてで、本文の末尾を 1 文字・1 割・半分欠いた公開中の本文は bad（short）", async () => {
+  for (const [f, draft, html] of await realDrafts()) {
+    const at = textChars(html, /\S/u, { whole: true });
+    for (const n of [1, Math.ceil(at.length * 0.1), Math.ceil(at.length / 2)]) {
+      const cut = without(html, at.slice(at.length - n));
+      const v = freePartVerdict(cut, draft);
+      assert.equal(v.status, "bad", `${f}: 末尾の ${n} 文字を欠いても bad にならない`);
+      assert.equal(v.kind, "short", `${f}: 末尾の ${n} 文字を欠いた本文が short にならない（${v.kind}）`);
+    }
+  }
 });
 
 test("無料部分の検査: 文言が違い、しかも原稿より大きく長い本文は past（末尾が一致しなくても有料部分が見えている恐れ）", () => {
