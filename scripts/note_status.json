@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-22T11:52:23.650Z",
+  "checkedAt": "2026-10-22T12:22:50.716Z",
   "notes": {
     "aihot": {
       "eyecatch": true,
@@ -32,38 +32,6 @@
       },
       "name": "海外急上昇OSS「AIHOT」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-17T10:32:53.000+09:00"
-    },
-    "anatomy": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1581,
-        "draftFreeChars": 1636,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「anatomy」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-15T10:07:56.000+09:00"
     },
     "answer-me-with-html": {
       "eyecatch": true,
@@ -160,70 +128,6 @@
       },
       "name": "海外急上昇OSS「Compositor」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-12T21:49:42.000+09:00"
-    },
-    "diplay": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1305,
-        "draftFreeChars": 1355,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-14T10:14:04.000+09:00"
-    },
-    "droiddeck": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1619,
-        "draftFreeChars": 1674,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「DroidDeck」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-15T11:51:25.000+09:00"
     },
     "dsh-our-free-model": {
       "eyecatch": true,
@@ -416,102 +320,6 @@
       },
       "name": "海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-19T22:12:19.000+09:00"
-    },
-    "how-to-live-better": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1350,
-        "draftFreeChars": 1410,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「how-to-live-better」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-12T21:50:48.000+09:00"
-    },
-    "jev-chat-jarvis": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1322,
-        "draftFreeChars": 1380,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「jev-chat-jarvis」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-17T16:01:23.000+09:00"
-    },
-    "jev-ultrafast": {
-      "eyecatch": true,
-      "issues": [],
-      "paidLine": {
-        "freeChars": 1561,
-        "draftFreeChars": 1621,
-        "endPct": 100,
-        "pastDraft": false,
-        "endsWith": "ます。 ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「jev-ultrafast」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-10T10:27:28.000+09:00"
     },
     "jiuwenswarm": {
       "eyecatch": true,
@@ -911,40 +719,6 @@
       "name": "海外急上昇OSS「pinvou-agent」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-09T20:31:30.000+09:00"
     },
-    "potatotool": {
-      "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）"
-      ],
-      "paidLine": {
-        "freeChars": 2154,
-        "draftFreeChars": 2191,
-        "endPct": null,
-        "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「PotatoTool」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-09T20:18:19.000+09:00"
-    },
     "solidcraft": {
       "eyecatch": true,
       "issues": [
@@ -1049,41 +823,6 @@
       },
       "name": "海外急上昇OSS「tokenspeed」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
       "updatedAt": "2026-10-09T20:22:19.000+09:00"
-    },
-    "universal-modder": {
-      "eyecatch": true,
-      "issues": [
-        "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）",
-        "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）"
-      ],
-      "paidLine": {
-        "freeChars": 1360,
-        "draftFreeChars": 1400,
-        "endPct": null,
-        "pastDraft": false,
-        "endsWith": "後、マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。"
-      },
-      "sale": {
-        "can_member_edit": false,
-        "can_member_publish": false,
-        "can_member_read": false,
-        "can_member_write": false,
-        "can_multiple_limited_note": false,
-        "can_read": false,
-        "is_purchased_within_last_24_hours": false,
-        "is_limited": false,
-        "is_magazine_purchased": false,
-        "is_member_edit": false,
-        "is_member_editing": false,
-        "is_purchased": false,
-        "member_edit_locked_at": null,
-        "price": 980,
-        "is_public_membership_connected": true,
-        "is_recently_purchased": false,
-        "requires_login_for_purchase": false
-      },
-      "name": "海外急上昇OSS「universal-modder」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き",
-      "updatedAt": "2026-10-17T01:47:42.000+09:00"
     },
     "vectorcraft": {
       "eyecatch": true,
