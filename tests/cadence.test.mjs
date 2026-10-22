@@ -1,7 +1,7 @@
 // 更新頻度の表示は、手書きの「毎日更新」ではなく掲載中の記事の公開日から数える
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cadenceFacts, cadenceText, CADENCE_CLAIM_RE, CADENCE_WINDOW_DAYS } from "../src/utils/cadence.js";
+import { cadenceFacts, cadenceText, CADENCE_CLAIM_RE, CADENCE_WINDOW_DAYS, PUBLISH_COUNT_RE } from "../src/utils/cadence.js";
 
 const NOW = Date.parse("2026-10-22T06:17:00+09:00");
 
@@ -33,4 +33,16 @@ test("頻度の語の検出は、書き方を変えても拾う（毎日・毎�
     assert.match(s, CADENCE_CLAIM_RE, s);
   }
   for (const s of ["直近30日の掲載: 3本", "週間ダイジェスト", "定期購読", "月額1,980円", "未設定時は GITHUB_TOKEN を使用"]) assert.doesNotMatch(s, CADENCE_CLAIM_RE, s);
+});
+
+test("頻度の語は語の一覧ではなく形（毎＋時の単位・時の単位＋ly・every/each＋時の単位・N本／日・カタカナの頻度語）で拾う", () => {
+  for (const s of ["（デイリー更新）", "新着は毎夕に追加", "Updated everyday", "1日1本ずつ追加", "毎日更新中", "毎営業日に配信", "nightly builds of the radar", "updated each morning", "3本/日のペースで", "ウィークリーでお届け", "2 posts per day", "日に2本"]) {
+    assert.match(s, CADENCE_CLAIM_RE, s);
+  }
+  for (const s of ["1本ずつ差し替えられます", "月額保守", "週間ダイジェスト", "定期購読", "1日以上たったリポジトリ", "30日あたりのスター増加数"]) assert.doesNotMatch(s, CADENCE_CLAIM_RE, s);
+});
+
+test("掲載本数を述べる形（直近N日の掲載・公開がN本）を拾い、掲載本数と関係のない期間の記述は拾わない", () => {
+  for (const s of ["直近30日の掲載: 99本", "過去7日間に公開された記事", "この1週間で12本を掲載", "新着 5 件"]) assert.match(s, PUBLISH_COUNT_RE, s);
+  for (const s of ["直近 30 日間のスターの伸び", "全 39 本の技術レポート", "作成から 7 日以上", "Zenn の公開状態を 1 本も確認できませんでした", "同じオーナーの記事を直近 30 日以内に 1 本掲載済み"]) assert.doesNotMatch(s, PUBLISH_COUNT_RE, s);
 });

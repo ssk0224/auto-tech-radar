@@ -3,7 +3,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
-import { jstDate, jstDaysAgo, jstClock } from '../src/utils/dates.js';
+import { jstDate, jstDaysAgo, jstClock, WEEK_DAYS } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -47,17 +47,16 @@ function getTopPosts() {
     return { slug, title, desc, tags, stars, pubDate };
   });
 
-  // 直近7日（日本時間・今日を含む。サイトの週間ダイジェストと同じ範囲）に公開した記事をスター数順に。7本に満たなければ新しい順で補う
-  const since = jstDaysAgo(6);
-  const recent = posts.filter(p => p.pubDate >= since).sort((a, b) => b.stars - a.stars);
-  const rest = posts.filter(p => !(p.pubDate >= since)).sort((a, b) => b.pubDate.localeCompare(a.pubDate));
-  return [...recent, ...rest];
+  // 直近 WEEK_DAYS 日（日本時間・今日を含む。サイトの週間ダイジェストと同じ範囲）に公開した記事をスター数順に。
+  // 範囲の外の記事で本数を補わない（「直近7日に取り上げた」と書いて古い記事を混ぜない）
+  const since = jstDaysAgo(WEEK_DAYS - 1);
+  return posts.filter(p => p.pubDate >= since).sort((a, b) => b.stars - a.stars);
 }
 
 const topPosts = getTopPosts().slice(0, 7);
 
 if (topPosts.length === 0) {
-  console.log('記事が見つかりません。');
+  console.log(`直近${WEEK_DAYS}日に公開した記事がありません。`);
   process.exit(1);
 }
 
@@ -69,7 +68,7 @@ const outputFile = path.join(xDir, `weekly_summary_${today}.txt`);
 const featuredNames = topPosts.slice(0, 2).map(p => p.title.split(' - ')[0].split(':')[0].trim()).join(' / ');
 const dateLabel = `${Number(today.slice(5, 7))}月${Number(today.slice(8, 10))}日`;
 
-let threadText = `今週取り上げた GitHub 急上昇OSS ${topPosts.length}選（${dateLabel}）\n\n`;
+let threadText = `直近${WEEK_DAYS}日に取り上げた GitHub 急上昇OSS ${topPosts.length}選（${dateLabel}）\n\n`;
 threadText += `注目: ${featuredNames} など。README をもとに技術構成と使いどころを日本語で解説しています。\n`;
 threadText += `技術リサーチのメモにどうぞ（ブックマーク推奨 📌）👇🧵\n\n`;
 
@@ -90,7 +89,7 @@ threadText += `【全OSSの比較チートシート】\n`;
 threadText += `--------------------------------------------------\n`;
 threadText += `これまで解説した OSS の技術スタック・スター数の一覧（検索・絞り込み対応、無料）：\n`;
 threadText += `👉 https://ssk0224.github.io/auto-tech-radar/cheatsheet/\n\n`;
-threadText += `毎朝、海外の急上昇OSSを日本語で解説しています（AI が下書き）。\n`;
+threadText += `海外で注目されている OSS を日本語で解説しています（AI が下書き）。\n`;
 threadText += `最新トレンドを見逃さないよう @AutoTechRadar をフォロー＆RTお願いします！\n`;
 threadText += `#AutoTechRadar #OSS #AI #エンジニア #プログラミング\n`;
 
@@ -106,7 +105,7 @@ const firstTweet = `今週取り上げた GitHub 急上昇OSS ${topPosts.length}
 const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(firstTweet)}`;
 
 console.log('===============================================================================');
-console.log(`⚡ 【X集客ブースト】週間まとめスレッドテキストを発行しました！（${dateLabel} ${timeStr}版）`);
+console.log(`⚡ 【X集客ブースト】直近7日のまとめスレッドのテキストを作りました！（${dateLabel} ${timeStr}版）`);
 console.log(`📄 保存先: ${outputFile}`);
 console.log('===============================================================================\n');
 

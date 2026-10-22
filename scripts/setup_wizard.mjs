@@ -48,7 +48,7 @@ async function guideNote() {
   console.log(`${C.bold}${C.green}▶ [ステップ 2/3] note（有料記事販売・即金化）の開設${C.reset}`);
   console.log(`${C.dim}─────────────────────────────────────────────────────────────────────────────${C.dim}${C.reset}`);
   console.log(`note は、日本最大の有料コンテンツ販売プラットフォームです。`);
-  console.log(`毎朝自動生成されるドラフトを貼り付けるだけで、${C.bold}${C.yellow}1記事500円〜980円で販売${C.reset}できます。\n`);
+  console.log(`自動生成されたドラフトを確認・編集して、有料記事として販売できます（価格は自分で決めます。売れるとは限りません）。\n`);
 
   console.log(`${C.bold}【画面操作の手順】${C.reset}`);
   console.log(`  ① これからブラウザで note 会員登録画面が開きます。`);
@@ -72,14 +72,14 @@ async function guideNote() {
 async function guideX() {
   clearScreen();
   printHeader();
-  console.log(`${C.bold}${C.green}▶ [ステップ 3/3] X (Twitter)（最新OSS速報アカウント）の開設${C.reset}`);
+  console.log(`${C.bold}${C.green}▶ [ステップ 3/3] X (Twitter) アカウントの開設${C.reset}`);
   console.log(`${C.dim}─────────────────────────────────────────────────────────────────────────────${C.dim}${C.reset}`);
   console.log(`X は、最新技術を求めるエンジニア・副業開発者をサイトやnoteへ集客する拡散装置です。\n`);
 
   console.log(`${C.bold}【画面操作の手順】${C.reset}`);
   console.log(`  ① これからブラウザで X アカウント作成画面が開きます。`);
   console.log(`  ② ${C.cyan}「Google で登録」${C.reset} を押して、お使いの Gmail を選択します。`);
-  console.log(`  ③ アカウント名・ユーザー名を決めます（例:「最新OSS速報@AI」「TechRadar_JP」など）。\n`);
+  console.log(`  ③ アカウント名・ユーザー名を決めます（例:「TechRadar_JP」など）。\n`);
 
   const answer = await prompt(`${C.bold}${C.yellow}👉 ブラウザで X 登録画面を開きますか？ (y/n) [デフォルト: y]: ${C.reset}`);
   if (answer.toLowerCase() !== "n") {

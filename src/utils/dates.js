@@ -24,9 +24,10 @@ export function withinLastDays(dayStartMs, nowMs, days) {
   return dayStartMs <= nowMs && nowMs - dayStartMs < days * DAY_MS;
 }
 
-// 直近 7 日間（週間ダイジェスト）
+// 週間ダイジェスト（サイトの /weekly/ と X のまとめスレッド）が扱う日数。ページの「直近N日」の表示もこの値から作る
+export const WEEK_DAYS = 7;
 export function withinLastWeek(dayStartMs, nowMs) {
-  return withinLastDays(dayStartMs, nowMs, 7);
+  return withinLastDays(dayStartMs, nowMs, WEEK_DAYS);
 }
 
 // ---- 日付の決まり（tests/dates_policy.test.mjs） ----
@@ -45,6 +46,12 @@ export function jstDate(now = Date.now()) {
 export function utcDate(now = Date.now()) {
   const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
   return Number.isFinite(ms) ? isoDay(ms) : null;
+}
+
+// 記録用の UTC の時刻（ISO 8601・末尾 Z）。実行記録の at・checkedAt などの保存用。表示・暦日の判定には使わず、読むときは jstDate に渡す
+export function utcStamp(now = Date.now()) {
+  const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
+  return new Date(ms).toISOString();
 }
 
 // 暦日（YYYY-MM-DD）の n 日後（負なら前）。時差に関係しない暦の計算

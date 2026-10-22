@@ -15,7 +15,7 @@ import { dependencyProblems } from './utils/deps.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
-import { jstDate } from '../src/utils/dates.js';
+import { jstDate, utcStamp } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -311,7 +311,7 @@ function recordNoteUpdated(slug, deduped) {
   const history = loadHistory();
   const today = jstDate();
   // 時刻まで残す（CI の確認時刻と比べて、押し忘れで直っていない記事を再び一覧に出すため）
-  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString(), ...(deduped ? { noteDedupedAt: today } : {}) };
+  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: utcStamp(), ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   syncHistory('chore(history): record note updates');
 }
@@ -1071,8 +1071,8 @@ function runCrawlerManual() {
 
 function runWeeklyThread() {
   console.clear();
-  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 週次まとめスレッド発行 ===${c.reset}\n`);
-  console.log(`ストックされた急上昇OSSからTop 7を厳選し、週次まとめスレッドテキストを生成します...\n`);
+  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 直近7日のまとめスレッド発行 ===${c.reset}\n`);
+  console.log(`ストックされた急上昇OSSからTop 7を厳選し、直近7日のまとめスレッドのテキストを生成します...\n`);
   try {
     execSync('node scripts/generate_weekly_thread.mjs', { stdio: 'inherit' });
     console.log(`\n${c.green}${c.bold}✓ スレッド生成とX投稿画面の起動が完了しました！${c.reset}\n`);

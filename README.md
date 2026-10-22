@@ -5,7 +5,7 @@
 [![RSS 2.0 Feed](https://img.shields.io/badge/RSS-Feed-orange?style=for-the-badge)](https://ssk0224.github.io/auto-tech-radar/rss.xml)
 
 > **Auto Tech Radar** は、GitHub（Search API）でスター数が伸びているオープンソース（OSS）を選び、README などの公開情報をもとに Google Gemini（`gemini-2.5-flash` ほか）が日本語の解説を下書きし、自動検査を通ったものだけを掲載するサイトです。
-> 候補探しは GitHub Actions の定期実行（cron: 日本時間 6:17・8:43・12:17）で行い、条件を満たす候補が無い日・生成に失敗した日は掲載しません。実際の掲載本数はサイトの各ページ（「直近30日の掲載」）に、掲載データから数えて表示しています。
+> 候補探しは GitHub Actions の定期実行（cron: 日本時間 6:17・8:43・12:17）で行い、条件を満たす候補が無い日・生成に失敗した日は掲載しません。実際の掲載本数は、サイトのトップページなどに掲載データ（記事の公開日）から数えて表示しています。
 
 記事は導入や採用を勧めるものではありません。性能などの記述は README の記載に基づくもので、ソフトウェアを動かして確かめたものではありません。
 
