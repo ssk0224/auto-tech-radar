@@ -146,6 +146,26 @@ test("commitAndSync は、台帳でオーナーが書く出力でないパスを
   }
 });
 
+test("commitAndSync は、台帳の場所（ディレクトリ）を渡されても、その中の新しい・変わったファイルがその場所の形でなければ何もコミット・push しない", () => {
+  const { tmp, owner, remote, g, put } = ownerRepo();
+  try {
+    const head = g(remote, "rev-parse", "main");
+    for (const [file, text] of [["note_drafts/HANDOFF.md", "# 引き継ぎ\n内部のメモ\n"], ["note_drafts/b_note.md", "# b\n封印の目印が無い原稿\n"], ["note_drafts/a_note.md", "# a\n書き換えた（目印が無い）\n"]]) {
+      put(file, text);
+      const r = commitAndSync(owner, ["note_drafts/"], "x");
+      assert.equal(r.ok, false, file);
+      assert.equal(r.step, "ledger", file);
+      assert.ok(r.message.includes(file) && !r.message.includes("内部のメモ"), r.message);
+      assert.equal(g(owner, "diff", "--cached", "--name-only"), "");
+      g(owner, "checkout", "--", "note_drafts/");
+      g(owner, "clean", "-fdq", "--", "note_drafts/");
+    }
+    assert.equal(g(remote, "rev-parse", "main"), head);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test("オーナー端末の入口（ランチャーと、ランチャーが起動するスクリプト）は、台帳でオーナーが書く出力にだけ書く（CI だけが書く記録・記事を書かない）", () => {
   const problems = entrypointWriterProblems(root, { owner: ["scripts/launcher.mjs"], ci: workflowScripts(root) });
   assert.deepEqual(problems, []);

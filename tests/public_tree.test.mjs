@@ -8,7 +8,8 @@ import fs from "fs";
 import { execFileSync } from "child_process";
 import os from "os";
 import path from "path";
-import { PUBLIC_OUTPUTS, RETIRED_OUTPUTS, publicOutputOf, isRetiredOutput, privateShapeHits, privateShapeHitsInFile, outputPathsWrittenBy } from "../scripts/utils/public_tree.mjs";
+import zlib from "zlib";
+import { PUBLIC_OUTPUTS, RETIRED_OUTPUTS, publicOutputOf, isRetiredOutput, privateShapeHits, privateShapeHitsInFile, outputPathsWrittenBy, ledgerFileProblems, isSiteInput } from "../scripts/utils/public_tree.mjs";
 import { trackedFiles, publishableFiles, isGitIgnored } from "./helpers/tracked_files.mjs";
 import { codeFiles, writeTargetsOf, allWriteTargets } from "./helpers/write_targets.mjs";
 import { workflowStagingProblems } from "./helpers/git_commands.mjs";
@@ -94,12 +95,12 @@ test("(a) 形の検査は、書き方を変えた実例を捕まえ、許可し�
       j("D:", bs, "backup", bs, "keys", bs, "vault_private.P", "EM"), j("~/.ssh/id_", "ed25519"), j("C:", bs, "certs", bs, "site.p", "fx"), j("./secrets/deploy.k", "ey"), j("/etc/ssl/private/site.p", "12"),
     ],
     "private-key-block": [
-      `-----BEGIN ${"RSA "}PRIVATE KEY-----`, `-----BEGIN ${""}PRIVATE KEY-----`, j("-----BEGIN PGP ", "PRIVATE KEY BLOCK-----"), j("-----BEGIN ENCRYPTED ", "PRIVATE KEY-----"),
+      j("-----BEGIN RSA ", "PRIVATE KEY-----"), j("-----BEGIN ", "PRIVATE KEY-----"), j("-----BEGIN PGP ", "PRIVATE KEY BLOCK-----"), j("-----BEGIN ENCRYPTED ", "PRIVATE KEY-----"),
       j("PuTTY-User-", "Key-File-3: ssh-ed25519"), j("key: LS0tLS1CRUdJTi", "BPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K"),
     ],
     hex40: [`old main ${crypto.randomBytes(20).toString("hex")}`, `sha=${crypto.randomBytes(20).toString("hex").toUpperCase()}`],
     "login-only-resource": [
-      j("https://editor.note.com/notes/", "n0123456789ab/edit/"), j("see https://claude.ai/code/", "session_01AbCdEf9"), j('{ "total', 'Pv": 237 }'),
+      j("https://editor.note.com/notes/", "n0123456789ab/edit/"), j("see https://claude.ai/code/", "session_01AbCdEf9"), j('{ "tot', 'alPv": 237 }'),
       j('{"total', '_pv": 812, "comment', '_count": 3}'), j('"likeCo', 'unt":5'), j("https://note.com/api/v1/st", "ats/pv?filter=all&page=1"), j("GET note.com/api/v2/st", "ats/pv"),
     ],
   };
@@ -112,6 +113,9 @@ test("(a) 形の検査は、書き方を変えた実例を捕まえ、許可し�
     `placeholder="name${at}example.com"`,
     `git${at}github.com:owner/repo.git`,
     `<!-- SPDX-FileCopyrightText: 2024-2026 dev${at}upstream.ai -->`,
+    // 描画した HTML では、ライセンス表記のコメントが行の途中に来る
+    `<li>x</li></ul> <!-- SPDX-FileCopyrightText: 2024-2026 dev${at}upstream.ai --> <p>`,
+    `<span class="line"><span>&lt;!-- SPDX-FileCopyrightText: 2024-2026 dev${at}upstream.ai --&gt;</span></span>`,
     String.raw`Sync configs under C:\Users\you`,
     "keys/note_vault_public.pem",
     "!keys/note_vault_public.pem",
@@ -125,6 +129,119 @@ test("(a) 形の検査は、書き方を変えた実例を捕まえ、許可し�
   assert.ok(!JSON.stringify(privateShapeHits(`x taro${at}gmail.com`)).includes("taro"));
 });
 
+// 部品に分けた・隠した書き方: マークアップやコードの文字列連結で分けたもの、見えない文字、ASCII 以外の名前、二重に逃がした \、
+// base64・圧縮の中身、古い Windows のホーム、ログイン後の統計の値。実例はこのファイル自体が引っかからないよう、実行時に組み立てる
+test("(a) 形の検査は、部品に分けた・隠した書き方（タグや連結で分けた・見えない文字・ASCII 以外・二重の逃がし・base64・圧縮）も捕まえる", () => {
+  const at = "@";
+  const bs = "\\";
+  const j = (...parts) => parts.join("");
+  const addr = j("taro.yamada", at, "gmail.com");
+  const q = '"';
+  const bad = {
+    email: [
+      j("<span>taro.yamada</span>", at, "<span>gmail.com</span>"),
+      j(q, "taro.yamada", q, " + ", q, at, q, " + ", q, "gmail.com", q),
+      j("'taro' + '.yamada", at, "' + 'gmail.com'"),
+      j("<b>ken</b><!-- x -->", at, "<i>mail.co.jp</i>"),
+      j("{", q, "jiro.suzuki", q, "}", at, "yahoo.co.jp"),
+      j("taro.yamada\u200B", at, "gmail.com"),
+      j("taro\u2060.yamada", at, "\uFEFFgmail.com"),
+      j("yamada.tar\u014D", at, "gmail.com"),
+      j("\u5c71\u7530", at, "gmail.com"),
+      j("atob(", q, Buffer.from(addr).toString("base64"), q, ")"),
+      j("String.fromCharCode(", [...addr].map((c) => c.charCodeAt(0)).join(","), ")"),
+    ],
+    "user-home-path": [
+      j("C:", bs.repeat(4), "Users", bs.repeat(4), "taro", bs.repeat(4), "x"),
+      j("C:", bs.repeat(8), "Users", bs.repeat(8), "taro"),
+      j("C:", bs, "Documents and Settings", bs, "taro", bs, "x"),
+      j("c:/documents and ", "settings/hanako/"),
+    ],
+    "login-only-resource": [j('{"stats":{"p', 'v":1234,"su', 'ki":56}}'), j("{ s", "uki: 56, p", "v: 1234 }"), j('"page', 'Views": 99')],
+  };
+  for (const [kind, samples] of Object.entries(bad)) {
+    for (const s of samples) assert.ok(privateShapeHits(s).some((h) => h.kind === kind), `${kind} を見逃した: ${JSON.stringify(s)}`);
+  }
+  // 圧縮したファイル（gzip・zlib）の中身も見る。中身を確かめられない圧縮・アーカイブの形式は止める
+  const body = Buffer.from(`{"m":"${addr}","p":"${j("C:", bs, bs, "Users", bs, bs, "taro")}"}`);
+  for (const [name, b] of Object.entries({ gzip: zlib.gzipSync(body), deflate: zlib.deflateSync(body), gzipInBase64: Buffer.from(`x=${zlib.gzipSync(body).toString("base64")}`) })) {
+    assert.ok(privateShapeHitsInFile(b).some((h) => h.kind === "email"), name);
+  }
+  for (const [name, b] of Object.entries({ bzip2: Buffer.concat([Buffer.from("BZh91AY&SY"), crypto.randomBytes(64)]), xz: Buffer.concat([Buffer.from([0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]), crypto.randomBytes(64)]), sevenZip: Buffer.concat([Buffer.from([0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c]), crypto.randomBytes(64)]) })) {
+    assert.ok(privateShapeHitsInFile(b).some((h) => h.kind === "undecodable-archive"), name);
+  }
+  // 許可した形・ふつうのコードは通す
+  for (const s of [
+    j("import mdx from ", q, at, "astrojs/mdx", q, ";"),
+    j("const handle = ", q, at, q, " + user.name;"),
+    j("<span>", at, "</span><span>ssk0224</span>"),
+    j(q, "name", q, " + ", q, at, q, " + ", q, "example.com", q),
+    j('{"pv_sample": "x", "stars": 7887, "views_url": "/a"}'),
+    j("atob(", q, Buffer.from("hello world, plain text here").toString("base64"), q, ")"),
+  ]) assert.deepEqual(privateShapeHits(s), [], s);
+});
+
+// 台帳の場所（記事・原稿・OGP 画像）には、書く側が作る形のファイルだけを置く。場所が台帳の中でも、内部の文書・状態の JSON は入れない
+test("台帳の場所に出うるファイル（追跡中と、gitignore されていない未追跡）は、その場所の書く側が作る形をしている", () => {
+  const bad = [];
+  for (const f of publishableFiles(root)) {
+    if (!publicOutputOf(f)) continue;
+    let b;
+    try {
+      b = fs.readFileSync(path.join(root, f));
+    } catch (e) {
+      if (e.code === "ENOENT" || e.code === "EISDIR") continue;
+      throw e;
+    }
+    for (const p of ledgerFileProblems(f, b)) bad.push(`${f}: ${p}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("台帳の場所の形の検査は、場所に置いた内部の文書・状態の JSON・形の違う記事や原稿を捕まえ、.gitignore でも入らない", () => {
+  const b = (s) => Buffer.from(s);
+  const sealedNote = (name) => b(`# t\n\n本文\n<!-- PAID_SEALED: ${name.replace(/\.md$/, ".paid.enc")} 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->\n`);
+  const bad = {
+    "note_drafts/HANDOFF.md": b("# 引き継ぎ\n\n内部のメモ\n"),
+    "note_drafts/handoff_note.md": b("# 引き継ぎ\n\n内部のメモ\n"),
+    "note_drafts/x_note.md": sealedNote("y_note.md"),
+    "note_drafts/x_note.paid.json": b('{"chars": 10, "features": [], "issues": ["a"]}'),
+    "note_drafts/x_note.paid.enc": b('{"v":2,"alg":"x","aad":"other_note.md"}'),
+    "note_drafts/note_status.json": b("{}"),
+    "public/ogp/x.png": b("not a png"),
+    "public/ogp/x.svg": b("# not svg"),
+    "public/ogp/x.json": b("{}"),
+    "src/pages/radar/watchlist.json": b("[]"),
+    "src/pages/radar/HANDOFF.md": b("# 引き継ぎ\n\n内部のメモ\n"),
+    "src/pages/radar/x.md": b('---\ntitle: "x"\n---\n本文\n'),
+  };
+  for (const [f, buf] of Object.entries(bad)) assert.ok(ledgerFileProblems(f, buf).length > 0, `形の違うファイルを通した: ${f}`);
+  const good = {
+    "note_drafts/x_note.md": sealedNote("x_note.md"),
+    "note_drafts/x_note.paid.json": b('{"chars": 10, "features": ["導入提案書テンプレート（Markdown）"]}'),
+    "src/pages/radar/x.md": b('---\nlayout: "../../layouts/Layout.astro"\ntitle: "x"\npubDate: "2026-10-22"\nrepoUrl: "https://github.com/o/r"\n---\n本文\n'),
+    "public/ogp/x.svg": b('<svg xmlns="http://www.w3.org/2000/svg"></svg>'),
+  };
+  for (const [f, buf] of Object.entries(good)) assert.deepEqual(ledgerFileProblems(f, buf), [], f);
+  for (const f of ["note_drafts/HANDOFF.md", "note_drafts/note_status.json", "public/note_status.json", "public/ogp/x.json", "src/pages/radar/watchlist.json", "public/docs/HANDOFF.md"]) {
+    assert.ok(isGitIgnored(root, f), `台帳の場所の中の、形の違うファイルが .gitignore で無視されていない: ${f}`);
+  }
+});
+
+test("台帳の場所の形（封印した原稿の目印・要約の項目・暗号文の形）は、原稿を封印するコード（scripts/utils/note_vault.mjs）が書く形と一致する", async () => {
+  const vault = await import("../scripts/utils/note_vault.mjs");
+  const paid = "## 導入手順\n手順\n## 想定問答\nQ";
+  const full = `# t\n\n${"本文。".repeat(10)}\n【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】\n${paid}\n`;
+  const pub = vault.publicNoteText("note_drafts/x_note.md", full);
+  assert.notEqual(pub, full, "有料ラインの書き方が変わり、封印されなかった");
+  assert.deepEqual(ledgerFileProblems("note_drafts/x_note.md", Buffer.from(pub)), []);
+  const summary = JSON.stringify(vault.paidContentSummary(paid), null, 2);
+  assert.deepEqual(ledgerFileProblems("note_drafts/x_note.paid.json", Buffer.from(summary)), []);
+  const { publicKey } = crypto.generateKeyPairSync("rsa", { modulusLength: 2048, publicKeyEncoding: { type: "spki", format: "pem" }, privateKeyEncoding: { type: "pkcs8", format: "pem" } });
+  const enc = vault.encryptText(paid, publicKey, "x_note.md");
+  assert.deepEqual(ledgerFileProblems("note_drafts/x_note.paid.enc", Buffer.from(enc)), []);
+});
+
 test("(b) リポのコード（scripts・src・ルートの設定。tests は除く）の書き出し先は、公開出力の台帳にあるか gitignore 済み（止めた出力 x_posts・zenn_drafts・articles には書かない）", () => {
   const bad = [];
   for (const w of allWriteTargets(root, codeFiles(root))) {
@@ -132,6 +249,7 @@ test("(b) リポのコード（scripts・src・ルートの設定。tests は除
     for (const u of w.unresolved) bad.push(`${at}: 書き先をたどれない (${u})`);
     for (const p of w.repoPaths) {
       if (isRetiredOutput(p)) bad.push(`${at}: 止めた出力に書く ${p}`);
+      else if (!publicOutputOf(p) && isSiteInput(p)) bad.push(`${at}: サイトのビルドの入力（gitignore してもサイトに載る）に、台帳に無い出力を書く ${p}`);
       else if (!publicOutputOf(p) && !isGitIgnored(root, p.replace(/\*/g, "x"))) bad.push(`${at}: 公開出力の台帳に無く gitignore もされていない ${p}`);
     }
   }
@@ -262,7 +380,7 @@ test("(c) コミットの検査は、書き方を変えた全部入りのコミ�
   const ciPaths = outputPathsWrittenBy("ci");
   const problems = (yml) => workflowStagingProblems(yml, ciPaths).problems;
   for (const y of [
-    'run: |\n  git add src/pages/radar/ public/\n  git commit -m "chore: x [skip ci]"\n  git pull --rebase origin main\n  git push origin main\n',
+    'run: |\n  git add src/pages/radar/ public/ogp/\n  git commit -m "chore: x [skip ci]"\n  git pull --rebase origin main\n  git push origin main\n',
     "run: git checkout -- scripts/note_urls.json && git clean -fdq -- src/pages/radar public",
     'run: |\n  git config --global user.name "a"\n  git fetch origin main\n  git merge --ff-only origin/main\n  git diff --staged --quiet || git rebase --abort || true\n',
     "- uses: actions/checkout@v7\n- uses: actions/deploy-pages@v5\n",
@@ -288,7 +406,17 @@ test("(c) コミットの検査は、書き方を変えた全部入りのコミ�
     "- uses: stefanzweifel/git-auto-commit-action@v5",
     "- uses: EndBug/add-and-commit@v9",
     "run: gh api -X PUT repos/o/r/contents/scripts/x.json -f content=eA==",
+    // GitHub の API（REST の式つきの URL・GraphQL）・CLI でリポに書く。workflow から GitHub の API は使わない
+    'run: gh api --method PUT "repos/${{ github.repository }}/contents/scripts/note_status.json" -f content=eA==',
+    "run: gh api graphql -f query='mutation { createCommitOnBranch(input: {}) { commit { url } } }'",
+    'run: curl -sS -X PUT -H "Authorization: Bearer $T" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/contents/a.json" -d @body.json',
+    "run: gh release upload v1 note_status.json",
+    // CI の診断を、だれでも取り出せる成果物（artifact）にしない。Pages に上げるのはサイトのビルドの出力だけ
+    "- uses: actions/upload-artifact@v4\n  with:\n    path: ~/.auto-tech-radar/note_status.json\n",
+    "- uses: actions/upload-pages-artifact@v5\n  with:\n    path: ./data\n",
+    "- uses: actions/upload-pages-artifact@v5\n",
   ]) assert.ok(problems(y).length > 0, y);
+  assert.deepEqual(problems('- uses: actions/upload-pages-artifact@v5\n  with:\n    path: "./dist"\n'), []);
 });
 
 test("台帳: 追跡している状態ファイル（data/・scripts/*.json）はすべて台帳にあり、書く側が 2 つ以上の記録にはマージドライバがある", async () => {
@@ -319,7 +447,7 @@ test("許可リスト: 追跡中のファイルはどれも無視の対象でな
   assert.deepEqual(ignoredButTracked, [], "許可リストの外にある追跡ファイル（-f で足した・許可リストに無い置き場所）");
   const r = crypto.randomBytes(4).toString("hex");
   for (const o of PUBLIC_OUTPUTS) {
-    const p = o.path.endsWith("/") ? `${o.path}${r}/x.md` : o.path;
+    const p = o.path.endsWith("/") ? `${o.path}${o.example}` : o.path;
     assert.ok(!isGitIgnored(root, p), `台帳の公開出力が無視されている: ${p}`);
   }
   for (const p of [`docs/${r}.md`, `${r}.json`, `${r}.md`, `scripts/${r}.json`, `scripts/utils/${r}.log`, `scripts/${r}/state.txt`, `data/${r}.json`, `data/${r}/a.jsonl`, `src/${r}.json`, `src/data/${r}.txt`, `tests/${r}.txt`, `keys/${r}.txt`, `.${r}/x`, `books/${r}.md`, `.github/${r}.json`]) {

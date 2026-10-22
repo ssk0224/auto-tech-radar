@@ -40,16 +40,41 @@
 /books/*
 !/books/.gitkeep
 
-# 公開出力の台帳（PUBLIC_OUTPUTS）
-!/src/pages/radar/
-!/src/pages/radar/**
+# 公開出力の台帳（PUBLIC_OUTPUTS）。場所ごとに、書く側が作る形（PUBLIC_OUTPUTS の shape）のファイル名だけを許す。
+# 場所の中でも、内部の文書（HANDOFF.md など）・状態の JSON（note_status.json など）は入らない
+!/src/pages/radar/*.md
 !/note_drafts/
+/note_drafts/*
+!/note_drafts/*_note.md
+!/note_drafts/*_note.paid.enc
+!/note_drafts/*_note.paid.json
+!/note_drafts/LEAD_MAGNET_CHEAT_SHEET.md
 !/public/
+/public/*
+!/public/ogp/
+/public/ogp/*
+!/public/ogp/*.png
+!/public/ogp/*.svg
+# public/ の直下の静的ファイル（手で書くソース。スクリプトは書かない）。public/ の中身はサイトにそのまま載る
+!/public/robots.txt
+!/public/llms.txt
+!/public/manifest.json
+!/public/og-card.png
+!/public/og-card.svg
+!/public/indexnow-key.txt
+!/public/3f9a7b21e84c40d99a5e2f7b8c1d3e5a.txt
 !/data/
 /data/*
 !/data/run_status/
+/data/run_status/*
+!/data/run_status/*.json
 !/data/ledger/
+/data/ledger/**
+!/data/ledger/**/
+!/data/ledger/**/*.jsonl
 !/data/derived/
+/data/derived/*
+!/data/derived/*.json
 !/scripts/publish_history.json
 !/scripts/note_urls.json
 !/keys/

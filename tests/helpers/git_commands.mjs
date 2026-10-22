@@ -17,8 +17,22 @@ const STAGING_GIT = new Set(["add", "stage", "commit", "update-index", "apply", 
 const GLOBAL_WITH_VALUE = new Set(["-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--super-prefix", "--config-env"]);
 const COMMIT_LONG_OK = new Set(["--message", "--file", "--quiet", "--allow-empty", "--no-edit", "--signoff", "--no-verify", "--author", "--date", "--verbose", "--cleanup"]);
 const COMMIT_LONG_VALUE = new Set(["--message", "--file", "--author", "--date", "--cleanup"]);
-// workflow で使ってよい action（コミット・push をしないことを確かめたもの）。新しい action は、コミットしないかを確かめてから足す
-const REVIEWED_ACTIONS = new Set(["actions/checkout", "actions/setup-node", "actions/configure-pages", "actions/upload-pages-artifact", "actions/deploy-pages", "actions/cache", "actions/upload-artifact", "actions/download-artifact"]);
+// workflow で使ってよい action と、その入力（with）の確かめ。コミット・push をせず、だれでも取り出せる成果物（artifact）に
+// CI の診断を載せないことを確かめたものだけ。新しい action は、確かめてから足す（upload-artifact は、公開リポではだれでも取り出せるので使わない）
+const SITE_OUT = "dist";
+const REVIEWED_ACTIONS = {
+  "actions/checkout": () => null,
+  "actions/setup-node": () => null,
+  "actions/configure-pages": () => null,
+  "actions/deploy-pages": () => null,
+  "actions/cache": () => null,
+  // Pages に上げるのはサイトのビルドの出力（./dist）だけ（既定の _site/・data/・ownerDir などは上げない）
+  "actions/upload-pages-artifact": (w) => (String(w?.path ?? "").trim().replace(/^\.\//, "").replace(/\/$/, "") === SITE_OUT ? null : "サイトのビルドの出力（./dist）以外を Pages に上げる"),
+};
+// GitHub の API・CLI（REST・GraphQL・gh）。workflow はリポへの書き込みを git push（台帳の明示パス）と deploy-pages だけで行い、API は使わない
+const GITHUB_API = /(?:^|[\s;&|(`$])gh\s+[a-z]|api\.github\.com|uploads\.github\.com|\bGITHUB_(?:API|GRAPHQL)_URL\b|github\.(?:api_url|graphql_url)\b|\/graphql\b|createCommitOnBranch|octokit/i;
+// ${{ ... }} の式（中に空白がある）を 1 語に置き換えてから見る（repos/${{ github.repository }}/contents を見逃さない）
+const withoutExpressions = (t) => t.replace(/\$\{\{[^}]*\}\}/g, "GHEXPR");
 const HOLE_RE = /\u0001\d+\u0001/;
 const rel = (repoRoot, f) => path.relative(repoRoot, f).split(path.sep).join("/");
 
@@ -114,16 +128,16 @@ export function workflowStagingProblems(yml, allowedPaths) {
       else if (v && typeof v === "object") {
         for (const [k, x] of Object.entries(v)) {
           if (k === "run" && typeof x === "string") runs.push(x);
-          else if (k === "uses" && typeof x === "string") uses.push(x);
+          else if (k === "uses" && typeof x === "string") uses.push({ ref: x, with: v.with });
           else walk(x);
         }
       }
     };
     walk(parseFrontmatter(`---\n${yml.replace(/\r\n/g, "\n")}\n---\n`).frontmatter);
   } catch {
-    // YAML として読めない断片は、そのまま全体を見る（見逃すより止める）
+    // YAML として読めない断片は、そのまま全体を見る（見逃すより止める。入力 with は読めないので、確かめのある action は止まる）
     runs = [yml];
-    uses = [...yml.matchAll(/uses:\s*["']?([^\s"'#]+)/g)].map((m) => m[1]);
+    uses = [...yml.matchAll(/uses:\s*["']?([^\s"'#]+)/g)].map((m) => ({ ref: m[1], with: undefined }));
   }
   const text = runs.map((r) => r.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n")).join("\n");
   const addOk = (a) => !/[*?[\]$:]/.test(a) && a !== "." && (allowedPaths.includes(a) || allowedPaths.includes(`${a.replace(/\/$/, "")}/`));
@@ -134,10 +148,14 @@ export function workflowStagingProblems(yml, allowedPaths) {
     problems.push(...invocationProblems(inv, addOk));
   }
   for (const u of uses) {
-    const name = u.split("@")[0];
-    if (!REVIEWED_ACTIONS.has(name)) problems.push(`uses: ${name}（コミット・push をしないか確かめていない action）`);
+    const name = u.ref.split("@")[0];
+    const check = Object.hasOwn(REVIEWED_ACTIONS, name) ? REVIEWED_ACTIONS[name] : null;
+    if (!check) problems.push(`uses: ${name}（コミット・push・成果物の公開をしないか確かめていない action）`);
+    else if (check(u.with)) problems.push(`uses: ${name}: ${check(u.with)}`);
   }
-  for (const m of [...runs, ...uses].join("\n").matchAll(/repos\/[^\s"']*\/(?:contents|git\/(?:blobs|trees|commits|refs))\b/g)) problems.push(`GitHub の API でリポに書いている（${m[0]}）`);
+  const all = withoutExpressions([...runs, ...uses.map((u) => u.ref)].join("\n"));
+  for (const m of all.matchAll(/repos\/[^\s"']*\/(?:contents|git\/(?:blobs|trees|commits|refs))\b/g)) problems.push(`GitHub の API でリポに書いている（${m[0]}）`);
+  for (const line of withoutExpressions(text).split("\n")) if (GITHUB_API.test(line)) problems.push(`GitHub の API・CLI を使っている（${line.trim().slice(0, 120)}）`);
   return { problems, adds };
 }
 
