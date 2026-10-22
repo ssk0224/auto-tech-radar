@@ -26,10 +26,17 @@ jobs:
       - name: Match the owner PC git settings
         run: git config --global core.autocrlf true
       - uses: actions/checkout@v7
+      # Node・ロケール・時間帯も owner PC に合わせる（tests/helpers/owner_host.json。runner の既定は en-US・UTC で、日付の表記・日付の境目が owner PC と違う）。
+      # 合わせられたかは、テストの中で実際の値を確かめる（ATR_OWNER_MIRROR=1。tests/env_portability.test.mjs）
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: "npm"
+      - name: Match the owner PC locale and time zone
+        shell: pwsh
+        run: |
+          Set-Culture ja-JP
+          tzutil /s "Tokyo Standard Time"
       - run: npm ci
       # リポは .gitattributes で LF に固定されているが、owner PC の作業ツリーには CRLF のファイル（古い checkout・エディタの保存）が残る。
       # 同じ状態（追跡しているテキストを全部 CRLF）にして、改行に依存するコードを見つける
@@ -40,4 +47,6 @@ jobs:
         env:
           ATR_REQUIRE_CHROME: "1"
           ATR_FORBID_SKIP: "1"
+          ATR_OWNER_MIRROR: "1"
+          TZ: Asia/Tokyo
         run: npm test
