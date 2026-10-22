@@ -14,3 +14,9 @@ export function isGitIgnored(cwd, relPath) {
     return false;
   }
 }
+
+// 公開リポに出うるファイル: 追跡中 + 未追跡で gitignore されていないもの（CI が生成し、これからコミットする記事など）
+export function publishableFiles(cwd) {
+  const out = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  return [...new Set(out.split("\0").filter(Boolean))];
+}

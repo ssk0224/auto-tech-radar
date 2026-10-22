@@ -15,6 +15,8 @@ import { onTermination, TERMINATION_SIGNALS } from "../scripts/utils/termination
 import { probePurged, parseShas } from "../scripts/probe_purged_shas.mjs";
 import { isolateGitConfig } from "./helpers/git_env.mjs";
 import { linkDir } from "./helpers/links.mjs";
+import { codeFiles } from "./helpers/write_targets.mjs";
+import { scriptStagingProblems, entrypointWriterProblems, workflowScripts } from "./helpers/git_commands.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 isolateGitConfig();
@@ -84,22 +86,95 @@ test("オーナー端末の同期は、台帳でオーナーが書く出力だ�
   }
 });
 
-test("ランチャーの GitHub への同期は、台帳でオーナーが書く出力だけ（git add . ・記事の生成・実行記録の push をしない）", () => {
-  const src = fs.readFileSync(path.join(root, "scripts/launcher.mjs"), "utf8");
-  // git の add を直接呼ばない（同期は commitAndSync に台帳のパスを渡す）
-  assert.doesNotMatch(src, /git\s+add\b|['"]add['"]\s*,/);
-  const ownerPaths = new Set(outputPathsWrittenBy("owner"));
-  const calls = [...src.matchAll(/commitAndSync\(\s*rootDir\s*,\s*([^,]+?)\s*,/g)].map((m) => m[1]);
-  assert.ok(calls.length > 0);
-  for (const arg of calls) {
-    if (arg === "paths") continue;
-    const list = arg.match(/^\[(.*)\]$/);
-    assert.ok(list, `commitAndSync に台帳から作っていないパス: ${arg}`);
-    for (const p of list[1].split(",").map((s) => s.trim().replace(/^['"]|['"]$/g, ""))) assert.ok(ownerPaths.has(p), `${p} はオーナーが書く出力ではない`);
+test("コミットに足す（ステージする）のは commitAndSync だけで、その入口で台帳のオーナーの出力かを確かめる（git の書き方・配列・文字列・別名を問わない）", () => {
+  assert.deepEqual(scriptStagingProblems(root, codeFiles(root)), []);
+});
+
+test("ステージの検査は、書き方を変えたステージ・台帳に無いパスの commitAndSync を捕まえる", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-stg-"));
+  try {
+    fs.mkdirSync(path.join(dir, "scripts", "utils"), { recursive: true });
+    fs.copyFileSync(path.join(root, "scripts/utils/git_sync.mjs"), path.join(dir, "scripts/utils/git_sync.mjs"));
+    fs.copyFileSync(path.join(root, "scripts/utils/public_tree.mjs"), path.join(dir, "scripts/utils/public_tree.mjs"));
+    const ok = [
+      "import { execSync } from 'child_process';",
+      "import { commitAndSync } from './utils/git_sync.mjs';",
+      "import { outputPathsWrittenBy } from './utils/public_tree.mjs';",
+      "const rootDir = process.cwd();",
+      "const paths = outputPathsWrittenBy('owner').filter((p) => p);",
+      "commitAndSync(rootDir, paths, 'm');",
+      "commitAndSync(rootDir, ['scripts/publish_history.json'], 'm');",
+      "execSync('git rev-parse HEAD');",
+    ];
+    fs.writeFileSync(path.join(dir, "scripts", "ok.mjs"), ok.join("\n"));
+    assert.deepEqual(scriptStagingProblems(dir, [path.join(dir, "scripts", "ok.mjs"), path.join(dir, "scripts/utils/git_sync.mjs")]), []);
+    const bad = {
+      localPaths: "import { commitAndSync } from './utils/git_sync.mjs';\nconst rootDir = process.cwd();\nconst paths = ['scripts/note_browser_log.json'];\ncommitAndSync(rootDir, paths, 'm');",
+      aliased: "import { commitAndSync as sync } from './utils/git_sync.mjs';\nsync(process.cwd(), ['data/run_status/'], 'm');",
+      stageArray: "import { spawnSync } from 'child_process';\nspawnSync('git', ['stage', '.']);",
+      globalOpt: "import { execFileSync } from 'child_process';\nexecFileSync('git', ['-C', process.cwd(), 'add', '-A']);",
+      commitAll: "const run = (a) => a;\nrun(['commit', '-a', '-m', 'x']);",
+      shellString: "import { execSync } from 'child_process';\nexecSync('git add .');",
+      template: "import { execSync } from 'child_process';\nconst d = '.';\nexecSync(`git -C ${d} add --all`);",
+      unguardedSpread: "import { spawnSync } from 'child_process';\nexport function push(paths) {\n  spawnSync('git', ['add', '--', ...paths]);\n}",
+    };
+    for (const [name, src] of Object.entries(bad)) {
+      const file = path.join(dir, "scripts", `${name}.mjs`);
+      fs.writeFileSync(file, src);
+      assert.ok(scriptStagingProblems(dir, [file]).length > 0, name);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
-  assert.match(src, /const paths = outputPathsWrittenBy\('owner'\)/);
-  // CI だけが書く記事・記録（src/pages/radar・data/）を、この端末で生成しない
-  assert.doesNotMatch(src, /scripts\/crawl_and_generate\.mjs|scripts\/snapshot_ledger\.mjs/);
+});
+
+test("commitAndSync は、台帳でオーナーが書く出力でないパスを渡されたら、何もコミット・push せずに止まる", () => {
+  const { tmp, owner, remote, g, put } = ownerRepo();
+  try {
+    const head = g(remote, "rev-parse", "main");
+    put("scripts/note_browser_log.json", "{}\n");
+    put("data/run_status/2026-10-22.json", '{"runs":["owner"]}\n');
+    for (const paths of [["scripts/note_browser_log.json"], ["data/run_status/"], ["."], [":/"], ["scripts/publish_history.json", "docs/"]]) {
+      const r = commitAndSync(owner, paths, "x");
+      assert.equal(r.ok, false, paths.join(" "));
+      assert.equal(r.step, "ledger", paths.join(" "));
+    }
+    assert.equal(g(remote, "rev-parse", "main"), head);
+    assert.equal(g(owner, "diff", "--cached", "--name-only"), "");
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("オーナー端末の入口（ランチャーと、ランチャーが起動するスクリプト）は、台帳でオーナーが書く出力にだけ書く（CI だけが書く記録・記事を書かない）", () => {
+  const problems = entrypointWriterProblems(root, { owner: ["scripts/launcher.mjs"], ci: workflowScripts(root) });
+  assert.deepEqual(problems, []);
+  // CI 側の入口も解析できている（workflow が動かすスクリプトが見つかる）
+  assert.ok(workflowScripts(root).includes("scripts/crawl_and_generate.mjs"));
+});
+
+test("入口の検査は、ランチャーが CI だけが書く記録を書くスクリプトを起動したら捕まえる（起動の書き方を問わない）", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-ent-"));
+  try {
+    fs.mkdirSync(path.join(dir, "scripts", "utils"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "scripts/utils/run_status.mjs"), "import fs from 'fs';\nimport path from 'path';\nfs.writeFileSync(path.join(process.cwd(), 'data', 'run_status', 'x.json'), '{}');\n");
+    fs.writeFileSync(path.join(dir, "scripts/flagged.mjs"), "import fs from 'fs';\nconst ONLY = process.argv.includes('--status-only');\nif (!ONLY) fs.writeFileSync('scripts/note_urls.json', '{}');\n");
+    const variants = {
+      execString: "import { execSync } from 'child_process';\nexecSync('node scripts/utils/run_status.mjs rejected', { cwd: process.cwd() });",
+      spawnArray: "import { spawnSync } from 'child_process';\nspawnSync(process.execPath, ['scripts/utils/run_status.mjs', 'rejected']);",
+      template: "import { execSync } from 'child_process';\nconst s = 'run_status';\nexecSync(`node scripts/utils/${s}.mjs`);",
+      flagMissing: "import { execSync } from 'child_process';\nexecSync('node scripts/flagged.mjs');",
+    };
+    for (const [name, src] of Object.entries(variants)) {
+      fs.writeFileSync(path.join(dir, "scripts/launcher.mjs"), src);
+      assert.ok(entrypointWriterProblems(dir, { owner: ["scripts/launcher.mjs"], ci: [] }).length > 0, name);
+    }
+    // フラグで書き出しを止めている呼び出し（--status-only）は、その書き出しをしない
+    fs.writeFileSync(path.join(dir, "scripts/launcher.mjs"), "import { spawnSync } from 'child_process';\nspawnSync(process.execPath, ['scripts/flagged.mjs', '--status-only']);");
+    assert.deepEqual(entrypointWriterProblems(dir, { owner: ["scripts/launcher.mjs"], ci: [] }), []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("公開中の note の検査をオーナー端末で取り直しても（--status-only）、CI だけが書く購入リンクの対応表は変えず、検査結果は指定の置き場所に書く", () => {

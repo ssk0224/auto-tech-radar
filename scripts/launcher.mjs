@@ -811,10 +811,8 @@ function runPublishHelper(mode) {
         rlConfirm.close();
         if (cAns.trim() !== '0' && cAns.trim().toLowerCase() !== 's') {
           recordPublish(selected.slug, 'note');
-          console.log(`\n  ${c.green}✓ note出品完了を記録しました。note_urls.json を同期中...${c.reset}`);
-          try {
-            execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
-          } catch (e) {}
+          // 購入リンクの対応表（scripts/note_urls.json）は CI だけが書く（書き手を 1 つにする。この端末で書くと CI の更新と衝突する）
+          console.log(`\n  ${c.green}✓ note出品完了を記録しました。購入リンクの対応表は、次の GitHub Actions の便で更新されます。${c.reset}`);
         } else {
           console.log(`\n  ${c.yellow}出品をスキップしました（ステータスは未完了のまま保持されます）。${c.reset}`);
         }

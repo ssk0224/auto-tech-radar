@@ -5,6 +5,7 @@ import fs from "fs";
 import { spawnSync } from "child_process";
 import path from "path";
 import { pathToFileURL } from "url";
+import { pathsOutsideLedger } from "./public_tree.mjs";
 
 // .gitattributes の merge=<名前> ごとのドライバ（tests/workflow.test.mjs が .gitattributes と突き合わせる）
 export const MERGE_DRIVERS = {
@@ -65,8 +66,12 @@ export function pullLatest(cwd, branch = "main", { timeout } = {}) {
   return { ok: true, message: r.out, restored };
 }
 
-// paths をコミットし、最新の main に載せ直して push する。戻り値 { ok, step, message, restored }
+// paths をコミットし、最新の main に載せ直して push する。戻り値 { ok, step, message, restored }。
+// コミットに足せるのは、公開出力の台帳（scripts/utils/public_tree.mjs）でオーナー端末が書く出力だけ（ステージはこの関数の中だけで行う。
+// 台帳の外・「.」のような全体の指定を渡されたら、何もステージせずに止まる。tests/state_writers.test.mjs が確かめる）
 export function commitAndSync(cwd, paths, message, branch = "main") {
+  const outside = pathsOutsideLedger(paths, "owner");
+  if (!paths.length || outside.length) return { ok: false, step: "ledger", message: `公開出力の台帳でこの端末が書く出力ではないパス: ${outside.join(" ") || "(なし)"}`, restored: [] };
   configureMergeDrivers(cwd);
   const restored = repairWorkingTree(cwd);
   let r = git(cwd, ["add", "--", ...paths]);

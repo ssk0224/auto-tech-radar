@@ -1,9 +1,66 @@
+# このリポは公開されている。入れてよいものだけを許可する（既定はすべて無視）。
+# 公開出力の台帳（scripts/utils/public_tree.mjs の PUBLIC_OUTPUTS）と、ソースコード・テスト・設定だけを許可する。
+# オーナー端末の状態・内部の文書・CI の診断結果・新しい状態ファイルは、名前や置き場所を変えても既定で無視され、git add でも入らない
+# （置き場所は scripts/utils/owner_dir.mjs の ownerDir か、CI の $RUNNER_TEMP）。tests/public_tree.test.mjs の「許可リスト」が確かめる。
+# 新しい種類のファイルを公開するときは、公開してよいかを確かめてから、ここに許可を足す。
+/*
+
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/*.yml
+!/.gitattributes
+!/.gitignore
+!/.env.example
+!/README.md
+!/astro.config.mjs
+!/package.json
+!/package-lock.json
+
+# ソースコード・テスト（コードの種類だけ）
+!/scripts/
+/scripts/**
+!/scripts/**/
+!/scripts/**/*.mjs
+!/scripts/**/*.js
+!/src/
+/src/**
+!/src/**/
+!/src/**/*.astro
+!/src/**/*.js
+!/src/**/*.mjs
+!/src/**/*.ts
+!/src/**/*.css
+!/tests/
+/tests/**
+!/tests/**/
+!/tests/**/*.mjs
+!/books/
+/books/*
+!/books/.gitkeep
+
+# 公開出力の台帳（PUBLIC_OUTPUTS）
+!/src/pages/radar/
+!/src/pages/radar/**
+!/note_drafts/
+!/public/
+!/data/
+/data/*
+!/data/run_status/
+!/data/ledger/
+!/data/derived/
+!/scripts/publish_history.json
+!/scripts/note_urls.json
+!/keys/
+/keys/*
+!/keys/note_vault_public.pem
+
+# 許可した場所の中でも入れないもの（後ろの規則が優先）
 node_modules/
-dist/
 .env
 .env.*
 !.env.example
-.astro/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -12,7 +69,7 @@ CLAUDE.md
 
 # 有料原稿の復号鍵・復号済みの原稿は絶対にコミットしない（公開鍵 keys/note_vault_public.pem のみ例外）
 *.pem
-!keys/note_vault_public.pem
+!/keys/note_vault_public.pem
 note_full/
 *.paid.md
 
@@ -20,12 +77,3 @@ note_full/
 x_posts/
 zenn_drafts/
 articles/
-
-# オーナー端末の状態・内部の文書は公開リポに置かない（置き場所は scripts/utils/owner_dir.mjs の ownerDir）。
-# 以前ここにあったファイルが手元に残っても、誤ってコミットしない
-scripts/note_status.json
-scripts/note_updates.json
-scripts/note_browser_log.json
-data/watchlist.json
-docs/HANDOFF.md
-AGENT_RULES.md

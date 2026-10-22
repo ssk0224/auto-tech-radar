@@ -96,7 +96,7 @@ test("マージドライバを設定しないと X 投稿の記録が rebase で
     const seed = path.join(tmp, "seed");
     g(tmp, "clone", "-q", remote, seed);
     fs.mkdirSync(path.join(seed, "scripts/utils"), { recursive: true });
-    for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs", "utils/git_sync.mjs"]) fs.copyFileSync(path.join(root, "scripts", f), path.join(seed, "scripts", f));
+    for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs", "utils/git_sync.mjs", "utils/public_tree.mjs"]) fs.copyFileSync(path.join(root, "scripts", f), path.join(seed, "scripts", f));
     fs.copyFileSync(path.join(root, ".gitattributes"), path.join(seed, ".gitattributes"));
     const history = (o) => fs.writeFileSync(path.join(seed, "scripts/publish_history.json"), JSON.stringify(o, null, 2) + "\n");
     history({ a: { x: true } });
