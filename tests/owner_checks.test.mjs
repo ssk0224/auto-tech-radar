@@ -249,3 +249,56 @@ test("入れ子のつもりのコードブロック（外側と同じ長さの `
   const ok = "````markdown\n# 提案書の雛形\n```yaml\nkey: v\n```\n````";
   assert.ok(!paidNoteProblems(withPaid(ok)).some((p) => /入れ子/.test(p)), "外側を長くした正しい入れ子");
 });
+
+// ---- 2026-10-22 第 3 回: 検証役が示した残りのすり抜け（通貨・大字・同形異字・ルビ・ひらがな・表・予告の形） ----
+
+test("有料本文の金額: 通貨記号・通貨コード・外貨名・大字・k/M 表記でも、根拠表が無ければ検出する", () => {
+  const noTable = PAID_BODY.split("\n").filter((l) => !l.startsWith("|")).join("\n");
+  const amounts = [
+    "導入費用は USD 12,000 程度です。", "導入費用は 50,000 JPY です。", "導入費用は八拾万円です。", "導入費用は80萬円です。",
+    "導入費用は0.8M円です。", "導入費用は €9,500 です。", "導入費用は9,500ユーロです。", "導入費用は 12k USD です。",
+    "導入費用は £7,800 です。", "導入費用は 3.5千ドル です。", "導入費用は弐百萬円です。", "初期費用 EUR 4,200。",
+  ];
+  for (const amount of amounts) {
+    assert.ok(paidNoteProblems(note(`${noTable}\n${amount}`)).some((p) => /積算根拠/.test(p)), amount);
+  }
+  assert.ok(!paidNoteProblems(note(`${noTable}\nAPI 利用料は 1 リクエスト $0.002 です。`)).some((p) => /積算根拠/.test(p)), "少額の従量課金は見積額ではない");
+});
+
+test("有料本文の禁止表現: 大字・同形異字（キリル文字など）・ルビ・ひらがな書き・表のセル分割・読点で書き方を変えても検出する", () => {
+  const variants = [
+    "お問い合わせには壱営業日以内に回答します。",
+    "評価は ThоughtWorks の基準に沿っています。", // о はキリル文字
+    "評価は Thοughtworks 流です。", // ο はギリシャ文字
+    "世界<ruby>最<rt>さい</rt></ruby>速の推論基盤です。",
+    "メンバーなら全編読みほうだいです。",
+    "せかいさいそくの推論基盤です。",
+    "| 効果 | 受注に | 直結します |",
+    "この構成は受注に、直結します。",
+    "世界<!--\n注記\n-->最速の推論基盤です。",
+  ];
+  for (const phrase of variants) {
+    assert.ok(paidNoteProblems(withPaid(phrase)).some((p) => /禁止表現|文字体系/.test(p)), JSON.stringify(phrase));
+  }
+});
+
+test("有料本文の禁止表現: ひらがな書きの照合は、短い読みで普通の文を取り違えない", () => {
+  for (const ok of ["もうかなり前から使われています。", "おかげで設定が楽になります。", "β版の機能も試せます。"]) {
+    assert.deepEqual(paidNoteProblems(withPaid(ok)), [], ok);
+  }
+});
+
+test("無料部分の予告: 表の行・全角番号・丸数字・引用の中の箇条書き・「」の項目・続きを示す見出しの予告も照合する", () => {
+  const teaser = ["- そのまま出せる「提案書 Markdown完全版」", "- 「詳細工数・見積シミュレーション表」", "- 公式READMEに基づく「導入手順」", "- 懸念への「想定問答集」"];
+  const base = note(PAID_BODY, teaser);
+  const insertHead = (anchor, lines) => base.replace(anchor, `${anchor}\n${lines.join("\n")}`);
+  const cases = [
+    ["「」の項目（購入に触れた行）", insertHead("### 🔒 有料エリアで完全公開する実践ナレッジ", ["購入された方には「障害対応ランブック」もお付けします。", ""])],
+    ["表の行", base.replace("## はじめに", "## はじめに\n| 項目 | 内容 |\n|---|---|\n| **有料版の特典** | 障害対応ランブック |\n")],
+    ["続きを示す見出しの下の・箇条書き", insertHead(teaser[3], ["", "### 続きで読めるもの", "・障害対応ランブック", "・監視ダッシュボード雛形"])],
+    ["全角の番号", insertHead(teaser[3], ["１）障害対応ランブック"])],
+    ["丸数字", insertHead(teaser[3], ["②障害対応ランブック"])],
+    ["有料ライン直前の引用の中の箇条書き", base.replace("> noteは購入後", "> * 障害対応ランブック\n> noteは購入後")],
+  ];
+  for (const [name, md] of cases) assert.ok(paidNoteProblems(md).some((p) => /予告/.test(p)), name);
+});

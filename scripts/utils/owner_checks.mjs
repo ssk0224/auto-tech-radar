@@ -10,6 +10,7 @@ import path from "path";
 import { FORBIDDEN as CLAIMS_FORBIDDEN } from "./claims_check.mjs";
 import { HYPE_RULES } from "./hype_check.mjs";
 import { normalizeEol } from "./eol.mjs";
+import { RULE_READINGS } from "./rule_readings.mjs";
 import { isNoise } from "./noise_filter.mjs";
 import { parseDraftToNotePayload } from "./note_html.mjs";
 import {
@@ -56,6 +57,14 @@ const kanjiToArabic = (run) => {
   }
   return String(total + digit);
 };
+// 大字（壱・弐・拾・萬など）。参・拾・陸のように普通の語にも使う字は、数字の並びの中にあるときだけ数字として読む
+const DAIJI_ALWAYS = { 壱: "一", 壹: "一", 弌: "一", 弐: "二", 貳: "二", 貮: "二", 弍: "二", 萬: "万", 阡: "千", 仟: "千", 佰: "百", 陌: "百", 廿: "二十", 卅: "三十" };
+const DAIJI_IN_RUN = { 参: "三", 參: "三", 肆: "四", 伍: "五", 陸: "六", 漆: "七", 柒: "七", 捌: "八", 玖: "九", 拾: "十", 什: "十" };
+const NUMERAL_CHARS = `〇零一二三四五六七八九十百千万億兆${Object.keys(DAIJI_ALWAYS).join("")}${Object.keys(DAIJI_IN_RUN).join("")}`;
+const daijiToKanji = (s) =>
+  s
+    .replace(new RegExp(`[${NUMERAL_CHARS}]{2,}`, "g"), (run) => [...run].map((c) => DAIJI_IN_RUN[c] || c).join(""))
+    .replace(new RegExp(`[${Object.keys(DAIJI_ALWAYS).join("")}]`, "g"), (c) => DAIJI_ALWAYS[c]);
 const decodeEntities = (s) =>
   s
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
@@ -63,40 +72,131 @@ const decodeEntities = (s) =>
     .replace(/&(lt|gt|quot|apos|nbsp|amp);/g, (_, n) => ({ lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", amp: "&" })[n]);
 
 export const normalizeForRules = (text) =>
-  decodeEntities(normalizeEol(text))
-    .normalize("NFKC")
+  daijiToKanji(decodeEntities(normalizeEol(text).replace(/<!--[\s\S]*?-->/g, "")).normalize("NFKC"))
     .replace(/!?\[([^\]\n]*)\]\([^)\n]*\)/g, "$1") // [文字](URL) → 文字
     .replace(/!?\[([^\]\n]*)\]\[[^\]\n]*\]/g, "$1")
     .replace(/<[^>\n]*>/g, "") // HTML タグ
     .replace(/[*_~`\\]/g, "") // 強調・取り消し線・コード・エスケープ
     .replace(INVISIBLE_OR_SPACE, "") // 改行も消す（行をまたいだ表現も 1 つの並びとして見る）
-    .replace(/[〇零一二三四五六七八九十百千]+/g, kanjiToArabic)
+    .replace(/(?<![\d.])[〇零一二三四五六七八九十百千]+/g, kanjiToArabic) // 算用数字の後の「千・百」（3.5千 など）は桁の単位なので残す
     .replace(/(\d),(?=\d{3})/g, "$1")
     .replace(/(\d+(?:\.\d+)?)分の(\d+(?:\.\d+)?)/g, "$2/$1");
 // 飾りの記号（かっこ・引用符・中黒・ダッシュ・絵文字など）を挟んでもすり抜けないよう、それを外した並び。
 // 「:」「。」「|」のような区切りは残す（表の「単価: 5万円」を「単価5万円」とつなげて誤検出しないため）
 const withoutDecoration = (normalized) => normalized.replace(/[\p{Ps}\p{Pe}\p{Pi}\p{Pf}\p{Pd}\p{So}\p{Sk}・]/gu, "");
+// 区切り（読点・句点・表のセル境界など、句読点と記号すべて）も外した並び。「受注に、直結」「| 受注に | 直結します |」を 1 つの並びとして見る
+const withoutSeparators = (normalized) => normalized.replace(/[\p{P}\p{S}]/gu, "");
+// ルビ（<rt>・<rp>）は本文の並びの外に表示されるので、それを外した並びも見る
+const withoutRuby = (s) => s.replace(/<(rt|rp)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+// カタカナをひらがなにそろえる（規則側も同じにそろえ、漢字は読みでも当てる: kanaRule）
+const toHiragana = (s) => s.replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const MIN_KANA_TOKEN = 4; // 「もうか（儲か）」「かせげ（稼げ）」のような 3 文字以下の読みは普通の文（もうかなり 等）と区別できないので読みでは当てない
+const RE_TOKEN = /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+/u;
+function kanaToken(token) {
+  let minLen = 0;
+  const pieces = token.match(/\p{Script=Han}+|[^\p{Script=Han}]+/gu).map((part) => {
+    if (!/\p{Script=Han}/u.test(part)) {
+      minLen += part.length;
+      return toHiragana(part);
+    }
+    const readings = RULE_READINGS[part];
+    if (!readings || readings.length !== [...part].length) throw new Error(`RULE_READINGS に「${part}」の 1 文字ずつの読みが無い`);
+    return [...part]
+      .map((ch, k) => {
+        const alts = [].concat(readings[k]);
+        minLen += Math.min(...alts.map((a) => a.length));
+        return `(?:${ch}|${alts.join("|")})`;
+      })
+      .join("");
+  });
+  return minLen >= MIN_KANA_TOKEN ? pieces.join("") : toHiragana(token);
+}
+// 規則の正規表現を、漢字の並びは「漢字か読み」、カタカナはひらがなで当たる形に書き換える（文字クラス [..] とエスケープはそのまま）
+export function kanaRule(re) {
+  const src = re.source;
+  let out = "";
+  for (let i = 0; i < src.length; ) {
+    const rest = src.slice(i);
+    const piece =
+      rest.match(/^\\[pPu]\{[^}]*\}|^\\./)?.[0] || rest.match(/^\[(?:\\.|[^\]\\])*\]/)?.[0];
+    if (piece) {
+      out += piece;
+      i += piece.length;
+      continue;
+    }
+    const token = rest.match(RE_TOKEN)?.[0];
+    if (token) {
+      out += kanaToken(token);
+      i += token.length;
+      continue;
+    }
+    out += src[i++];
+  }
+  return new RegExp(out, re.flags);
+}
+// 規則の漢字・カタカナを読み（ひらがな）でも当てる版。下の ruleViews のひらがなにそろえた並びに当てる
+export const PAID_KANA_RULES = PAID_RULES.map(([re, why]) => [kanaRule(re), why]);
 // note に載せたときに読者が読む有料部分の文字（note 用 HTML の有料部分からタグを外したもの）
 const readerText = (payBodyHtml) => payBodyHtml.replace(/<[^>]*>/g, "\n");
 // 読者に見出しとして見えるもの（note 用 HTML の h1〜h6）。コードブロックに飲み込まれた「## 〜」は見出しにならない
 const readerHeadings = (payBodyHtml) =>
   (payBodyHtml.match(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/g) || []).map((h) => decodeEntities(h.replace(/<[^>]*>/g, "")));
-// 規則を当てる並び: 原稿そのまま（行頭・行末を見る規則のため）と、原稿・読者に見える文字それぞれを揃えたもの
+// 規則を当てる並び: 原稿そのまま（行頭・行末を見る規則のため）と、原稿・読者に見える文字（それぞれルビあり／なし）を揃えたもの。
+// 揃えた並びごとに飾りを外した並びを足し、原稿からは区切りも外した並びを足す。
+// 区切りを外すのは原稿（Markdown）だけ: note は表を「単価: 5万円」の形の文に直すので、読者向けの文から「:」を外すと積算根拠表の行が「単価5万円」になり誤検出する
 export function ruleViews(paidRaw, payBodyHtml) {
-  const views = [paidRaw];
-  for (const src of [paidRaw, readerText(payBodyHtml)]) {
+  const views = new Set([paidRaw]);
+  const sources = [[paidRaw, true], [withoutRuby(paidRaw), true], [readerText(payBodyHtml), false], [readerText(withoutRuby(payBodyHtml)), false]];
+  for (const [src, joinSeparators] of sources) {
     const n = normalizeForRules(src);
-    views.push(n, withoutDecoration(n));
+    views.add(n).add(withoutDecoration(n));
+    if (joinSeparators) views.add(withoutSeparators(n));
   }
-  return views;
+  return [...views];
 }
 
-// 金額（揃えた並びで見る: 円の有無・桁区切り・漢数字・括弧書きを問わない）。有料本文で示すときは積算根拠表が必須。
-// 「万・億」の後が件数の単位（スター・件・人など）なら金額ではない。それ以外は金額とみなす（知らない書き方は止める側に倒す）
+// 見た目がラテン文字に似た別の文字体系の字（キリル文字の о・ギリシャ文字の ο など）を混ぜた語。
+// 規則の綴りを 1 字だけ似た字に替えるとどの規則にも当たらなくなるので、混ざっていること自体を問題にする
+const FOREIGN_LETTER = /(?![\p{Script=Latin}\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Common}\p{Script=Inherited}])\p{L}/u;
+export function mixedScriptWords(text) {
+  return (text.normalize("NFKC").match(/[\p{L}\p{M}]+/gu) || []).filter((w) => /\p{Script=Latin}/u.test(w) && FOREIGN_LETTER.test(w)).length;
+}
+
+// 金額（揃えた並びで見る: 円の有無・桁区切り・漢数字・大字・括弧書きを問わない）。有料本文で示すときは積算根拠表が必須。
+// 「万・億・兆」の後が件数の単位（スター・件・人など）なら金額ではない。それ以外は金額とみなす（知らない書き方は止める側に倒す）
 const NON_MONEY_COUNTER = /^(?:行|件|人|回|個|台|社|語|字|文字|ページ|PV|DL|ダウンロード|スター|stars?|★|トークン|tokens?|リクエスト|ユーザー|名|時間|秒|ステップ|パラメータ|ファイル|枚|本|曲|点|部|エキスパート|MAU|DAU)/i;
+// 通貨の書き方は手で並べず、実行環境の通貨データ（ICU）から作る: ISO 4217 の通貨コード・記号（ja/en の symbol と narrowSymbol）・
+// 日本語の通貨名とその最後の語（「オーストラリア ドル」→ドル）。英字だけの短い記号（R・Fr など）は普通の語と区別できないので除く
+const currencyText = (locale, code, display) =>
+  new Intl.NumberFormat(locale, { style: "currency", currency: code, currencyDisplay: display }).formatToParts(1).find((p) => p.type === "currency").value.normalize("NFKC");
+function currencyWords() {
+  const words = new Map(); // 書き方 → 通貨コード
+  for (const code of Intl.supportedValuesOf("currency")) {
+    const forms = [code];
+    for (const locale of ["ja", "en"]) for (const display of ["symbol", "narrowSymbol"]) forms.push(currencyText(locale, code, display));
+    const jaName = currencyText("ja", code, "name");
+    forms.push(jaName.replace(/\s+/g, ""), jaName.split(/\s+/).pop());
+    for (const f of forms) if (f && !/^[A-Za-z.\s]{1,2}$/.test(f) && !words.has(f)) words.set(f, code);
+  }
+  return words;
+}
+const CURRENCY = currencyWords();
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const CURRENCY_RE = [...CURRENCY.keys()].sort((a, b) => b.length - a.length).map(escapeRe).join("|");
+const MULTIPLIER = { k: 1e3, K: 1e3, 千: 1e3, thousand: 1e3, 万: 1e4, 十万: 1e5, M: 1e6, mn: 1e6, million: 1e6, 百万: 1e6, 千万: 1e7, 億: 1e8, B: 1e9, bn: 1e9, billion: 1e9, 兆: 1e12 };
+const MULT_RE = Object.keys(MULTIPLIER).sort((a, b) => b.length - a.length).join("|");
+const AMOUNT_BEFORE = new RegExp(`(?<![A-Za-z])(${CURRENCY_RE})(\\d+(?:\\.\\d+)?)(${MULT_RE})?`, "gu");
+const AMOUNT_AFTER = new RegExp(`(\\d+(?:\\.\\d+)?)(${MULT_RE})?(${CURRENCY_RE})(?![A-Za-z\\p{Script=Katakana}ー])`, "gu");
+// 見積額とみなす下限（以前の規則と同じ: 円は 1 万以上、¥ 記号を前に付けた額はすべて、外貨は 100 以上）
+const isEstimateSized = (value, word, symbolFirst) => {
+  if (CURRENCY.get(word) !== "JPY") return value >= 100;
+  return (symbolFirst && word === "¥") || value >= 1e4;
+};
 export function hasMoneyAmount(normalized) {
-  for (const m of normalized.matchAll(/\d+(?:\.\d+)?[万億](.{0,8})/gu)) if (!NON_MONEY_COUNTER.test(m[1])) return true;
-  return /\d{5,}円|[¥￥]\d|\$\d{3,}|\d{3,}(?:ドル|USD)/i.test(normalized);
+  for (const m of normalized.matchAll(/\d+(?:\.\d+)?[十百千]?[万億兆](.{0,8})/gu)) if (!NON_MONEY_COUNTER.test(m[1])) return true;
+  for (const [, word, num, mult] of normalized.matchAll(AMOUNT_BEFORE)) if (isEstimateSized(Number(num) * (MULTIPLIER[mult] || 1), word, true)) return true;
+  for (const [, num, mult, word] of normalized.matchAll(AMOUNT_AFTER)) if (isEstimateSized(Number(num) * (MULTIPLIER[mult] || 1), word, false)) return true;
+  return false;
 }
 const isBasisRow = (l) =>
   l.includes("|") &&
@@ -127,8 +227,14 @@ export const PROMISE_CATEGORIES = [
   [/コード|スクリプト|ラッパー/, /コード|スクリプト|ラッパー|実装/, "コード"],
   [/マネタイズ|活用|収益化/, withFeature(/収益化/, "活用・収益化の考え方"), "活用・収益化"],
 ];
-const PROMISE_CONTEXT = /有料|購入|特典|会員限定|メンバー限定|収録/;
-const LIST_ITEM = /^(\s*)(?:[-*+•]|\d+[.)．])\s+(.*)$/;
+// 有料エリア・続きに触れる言葉（見出し・前置きの行・表の行・「」の項目を含む行が予告かどうかを決める）
+const PROMISE_CONTEXT = /有料|購入|特典|会員限定|メンバー限定|収録|続き|この先|ここから先|本編|お付け|付録|プレゼント/;
+// 箇条書きの印: - * + （後ろに空白）・中黒や●などの記号・番号（1. 1) 1、 (1)）。全角の番号は NFKC で、丸数字は「- 」に直してから見る
+const LIST_ITEM = /^(\s*)(?:[-*+](?=\s)|[•・●○◎■□◆◇▪▫▶►▸➤✓✔✅☑→⇒☆★]|\d+[.)、]|\(\d+\))\s*(\S.*)$/u;
+const TABLE_ROW = /^\s*\|(.*)\|\s*$/;
+const TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|\s*$/;
+const HEADING = /^#{1,6} /;
+const QUOTED = /[「『【〈《“"]([^」』】〉》”"]+)[」』】〉》”"]/g;
 // コードブロックの中の行を空にした行の並び（コード中の「# コメント」や「- 」を見出し・箇条書きとして数えない）
 function outsideFences(lines) {
   let fence = false;
@@ -138,32 +244,56 @@ function outsideFences(lines) {
     return fence || marker ? "" : l;
   });
 }
-const isSkippable = (l) => !l.trim() || /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(l) || /^\s*>/.test(l);
+// 予告を読む形にそろえた行: コードブロックの外だけ・丸数字は「- 」・全角は半角（NFKC）・引用の「>」は外す（引用の中の箇条書きも予告）
+const headForm = (lines) =>
+  outsideFences(lines).map((raw) => {
+    const l = raw.replace(/^(\s*(?:>\s?)*)\p{No}/u, "$1- ").normalize("NFKC");
+    return { text: l.replace(/^(\s*)(?:>\s?)+/, "$1"), quoted: /^\s*>/.test(l) };
+  });
+const cellsOf = (row) => row.match(TABLE_ROW)[1].split("|").map((c) => c.replace(/[*_`]/g, "").trim()).filter(Boolean);
+const isRow = (l) => TABLE_ROW.test(l) && !TABLE_SEPARATOR.test(l);
+// 有料ラインの直前で読み飛ばす行: 空行・区切り線・引用の地の文（引用の中の箇条書きは読み飛ばさない）
+const isSkippable = ({ text, quoted }) => !text.trim() || /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(text) || (quoted && !LIST_ITEM.test(text));
 
-// 無料部分から予告を取り出す。見出しの言い回しに頼らないよう、次の 3 つを予告とみなす:
-// (1) 見出しか直前の行が有料エリアに触れている箇条書き (2) 有料ラインの直前（区切り線・引用だけを挟む）にある箇条書き
-// (3) 有料エリアに触れた行の『』で囲んだ項目
+// 無料部分から予告を取り出す。見出しの言い回しや書式に頼らないよう、次を予告とみなす:
+// (1) 見出しか前置きの行が有料エリア・続きに触れている箇条書き・表の行 (2) 有料エリアに触れた表の行の、ほかのセル
+// (3) 有料ラインの直前（空行・区切り線・引用の地の文だけを挟む）にある、字下げしていない箇条書きのまとまり
+//     （比較表のような表は有料ラインの直前にあっても予告とは限らないので、表は (1)(2) だけで読む）
+// (4) 有料エリアに触れた文の「」『』【】などで囲んだ項目（囲んだ中身が購入の手続きそのもの＝「購入・チップ履歴」などは除く）
+//     （同じ行でも別の文の引用は予告ではない）
 export function teaserPromises(headLines) {
-  const lines = outsideFences(headLines);
+  const rows = headForm(headLines).slice(0, -1); // head の最後の行は有料ラインそのもの（splitPaid）
+  const lines = rows.map((r) => r.text);
   const promised = new Set();
+  const addRow = (l, all) => {
+    for (const c of cellsOf(l)) if (all || !PROMISE_CONTEXT.test(c)) promised.add(c);
+  };
   let context = "";
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
-    if (/^#{1,6} /.test(l)) context = l;
-    else if (LIST_ITEM.test(l)) {
-      if (PROMISE_CONTEXT.test(context)) promised.add(i);
-    } else if (l.trim()) context = l;
-    if (PROMISE_CONTEXT.test(l)) for (const m of l.matchAll(/『([^』]+)』/g)) promised.add(m[1]);
-  }
-  let end = lines.length - 2; // head の最後の行は有料ラインそのもの（splitPaid）
-  while (end >= 0 && isSkippable(lines[end])) end--;
-  const last = end >= 0 ? lines[end].match(LIST_ITEM) : null;
-  if (last && last[1].length < 2) {
-    for (let i = end; i >= 0 && (LIST_ITEM.test(lines[i]) || !lines[i].trim() || /^\s{2,}\S/.test(lines[i])); i--) {
-      if (LIST_ITEM.test(lines[i])) promised.add(i);
+    const item = l.match(LIST_ITEM);
+    if (HEADING.test(l)) context = l;
+    else if (item) {
+      if (PROMISE_CONTEXT.test(context)) promised.add(item[2]);
+    } else if (isRow(l)) {
+      const isHeaderRow = TABLE_SEPARATOR.test(lines[i + 1] || "");
+      if (PROMISE_CONTEXT.test(l)) addRow(l, false);
+      else if (!isHeaderRow && PROMISE_CONTEXT.test(context)) addRow(l, true);
+    } else if (l.trim() && !TABLE_SEPARATOR.test(l)) context = l;
+    for (const sentence of l.split(/(?<=[。！？!?])/)) {
+      if (PROMISE_CONTEXT.test(sentence)) for (const m of sentence.matchAll(QUOTED)) if (!PROMISE_CONTEXT.test(m[1])) promised.add(m[1]);
     }
   }
-  return [...promised].map((x) => (typeof x === "number" ? lines[x].match(LIST_ITEM)[2] : x));
+  let end = rows.length - 1;
+  while (end >= 0 && isSkippable(rows[end])) end--;
+  const last = end >= 0 ? lines[end].match(LIST_ITEM) : null;
+  if (last && last[1].length < 2) {
+    for (let i = end; i >= 0 && (LIST_ITEM.test(lines[i]) || isSkippable(rows[i]) || /^\s{2,}\S/.test(lines[i])); i--) {
+      const item = lines[i].match(LIST_ITEM);
+      if (item && item[1].length < 2) promised.add(item[2]);
+    }
+  }
+  return [...promised];
 }
 
 // 1 つの予告に複数の項目をつないだ書き方（＆・＋、かっこでくくった項目どうしの「と」「、」「や」など）は分けて照合する
@@ -232,11 +362,17 @@ export function paidNoteProblems(fullMd, { summary } = {}) {
   const paid = parts.paid.join("\n");
   const payBody = parseDraftToNotePayload(text, true).payBody;
   const views = ruleViews(paid, payBody);
+  const kanaViews = views.map(toHiragana);
   const problems = [];
-  for (const [re, why] of PAID_RULES) {
-    if (views.some((v) => re.test(v))) problems.push(`有料本文の禁止表現: ${why}`);
+  for (const [i, [re, why]] of PAID_RULES.entries()) {
+    if (views.some((v) => re.test(v)) || kanaViews.some((v) => PAID_KANA_RULES[i][0].test(v))) problems.push(`有料本文の禁止表現: ${why}`);
   }
-  if (views.slice(1).some(hasMoneyAmount) && !parts.paid.some(isBasisRow)) {
+  if (mixedScriptWords(paid) || mixedScriptWords(readerText(payBody))) {
+    problems.push("有料本文の禁止表現: ラテン文字の語に、見た目の似た別の文字体系の字（キリル文字など）が混ざっている");
+  }
+  // 金額は区切り（小数点・通貨記号）を残した並びで見る
+  const amountViews = [paid, readerText(payBody)].map(normalizeForRules).flatMap((n) => [n, withoutDecoration(n)]);
+  if (amountViews.some(hasMoneyAmount) && !parts.paid.some(isBasisRow)) {
     problems.push("有料本文の金額に積算根拠表（工程・工数・単価・小計）が無い");
   }
   problems.push(...promiseProblems(parts.head, payBody));
