@@ -20,3 +20,12 @@ note_full/
 x_posts/
 zenn_drafts/
 articles/
+
+# オーナー端末の状態・内部の文書は公開リポに置かない（置き場所は scripts/utils/owner_dir.mjs の ownerDir）。
+# 以前ここにあったファイルが手元に残っても、誤ってコミットしない
+scripts/note_status.json
+scripts/note_updates.json
+scripts/note_browser_log.json
+data/watchlist.json
+docs/HANDOFF.md
+AGENT_RULES.md
