@@ -9,7 +9,7 @@ import {
   extractQuantities, extractHosts, extractCommandWords, readmeFacts, ungroundedTokens,
   installSection, ledeText, factsFileFor, SITE_HOSTS,
 } from "../scripts/utils/readme_facts.mjs";
-import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, NOTE_FIXED_TEXT, h2Headings } from "../scripts/utils/article_template.mjs";
+import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, NOTE_FIXED_TEXT, h2Headings, webPageProblems, noteHeadProblems } from "../scripts/utils/article_template.mjs";
 import { licenseStatementProblems } from "../scripts/utils/license_resolver.mjs";
 import { licenseSection } from "../scripts/utils/license_section.mjs";
 import { splitPaid } from "../scripts/utils/note_vault.mjs";
@@ -148,6 +148,30 @@ test("Web 記事と note の無料部分の H2 見出しは、生成スクリプ
   for (const slug of notes) {
     const head = splitPaid(read(path.join("note_drafts", `${slug}_note.md`))).head.join("\n");
     for (const h of h2Headings(head)) if (!NOTE_FREE_TEMPLATE_H2.includes(h)) bad.push(`${slug}_note.md: ${h}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+// ---- 公開物の形: 決まった節と原文つきの文だけ（scripts/utils/page_shape.mjs、leakhunt C3 の再発防止） ----
+// 原文を伴わない行（比較表・H3 の小節・自由な段落・インラインのコマンド・素のホスト名）や、訳が原文を超える文
+// （原文に無い固有名・数値、評価・比較・利用条件・費用・評判の語）は、どの節に入れても赤になる
+const fmtProblems = (slug, ps) => ps.map((p) => `${slug}: ${p.kind}: ${p.detail}`);
+const paidFeatures = (slug) => {
+  const f = path.join("note_drafts", `${slug}_note.paid.json`);
+  return fs.existsSync(f) ? JSON.parse(read(f)).features : [];
+};
+
+test("掲載中のすべての Web 記事は、決まった節と原文つきの文（README の文とその訳）と構成図だけでできている", () => {
+  const bad = [];
+  for (const slug of pages) bad.push(...fmtProblems(slug, webPageProblems(read(path.join(radarDir, `${slug}.md`)), factsOf(slug))));
+  assert.deepEqual(bad, []);
+});
+
+test("すべての note 原稿の無料部分は、題名・リード・原文つきの文・有料版の内容一覧・価格の案内だけでできている", () => {
+  const bad = [];
+  for (const slug of notes) {
+    const head = splitPaid(read(path.join("note_drafts", `${slug}_note.md`))).head.join("\n");
+    bad.push(...fmtProblems(slug, noteHeadProblems(head, factsOf(slug), paidFeatures(slug))));
   }
   assert.deepEqual(bad, []);
 });

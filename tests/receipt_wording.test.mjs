@@ -9,6 +9,7 @@ import { NOTE_TEXT_RULES, applyNoteRules } from "../scripts/utils/note_pending.m
 import { paidLineReport } from "../scripts/sync_note_urls.mjs";
 import { RECEIPT_LINE, OLD_RECEIPT_CLAIM, normalizeReceiptLine, receiptProblems } from "../scripts/utils/receipt.mjs";
 import { readText } from "./helpers/read_src.mjs";
+import { NOTE_PRICE_BOX } from "../scripts/utils/article_template.mjs";
 
 const RECEIPT = "> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。";
 const OLD_CLAIM = /インボイス|即時発行可能|経費精算いただけます/;
@@ -28,7 +29,9 @@ test("生成スクリプトの雛形も同じ案内を使い、インボイス�
   for (const f of ["scripts/crawl_and_generate.mjs", "scripts/utils/note_vault.mjs", "scripts/generate_lead_magnet_note.mjs"]) {
     assert.doesNotMatch(readText(f), OLD_CLAIM, f);
   }
-  assert.ok(readText("scripts/crawl_and_generate.mjs").split("\n").includes(RECEIPT));
+  // note の無料部分は生成スクリプトが決まった形（定型文の領収書の案内を含む価格の案内）で作る（leakhunt C3、2026-10-22）
+  assert.ok(NOTE_PRICE_BOX.split("\n").includes(RECEIPT));
+  assert.match(readText("scripts/crawl_and_generate.mjs"), /renderNoteHead\(/);
 });
 
 test("[E] が公開中の note で直した後の案内は原稿の案内と同じ文になり、CI の原稿との比較（endPct）が一致する", () => {

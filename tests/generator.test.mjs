@@ -11,6 +11,7 @@ import { parseFrontmatter } from "astro/markdown";
 import { mermaidProblems } from "../scripts/utils/mermaid.mjs";
 import { mermaidParseErrors } from "../scripts/utils/mermaid_parse.mjs";
 import { isolateGitConfig } from "./helpers/git_env.mjs";
+import { MOCK_README } from "./fixtures/mock_readme.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 
@@ -19,26 +20,29 @@ isolateGitConfig();
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro", ".claude"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
-// receipt: 無料部分の領収書の案内（生成モデルが雛形の定型文を少し言い換えた形。保存時に定型文にそろえる）
-// web: Web 記事の末尾に足す本文（導入の勧め・ライセンスの節などの検査用）
-// free: note の無料部分の本文（公開側の原稿は品質ゲートの最小の長さ以上になる）
+// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は見出し 2 つと原文つきの文（tests/fixtures/mock_readme.mjs の README の文とその訳）だけ、
+// note は有料部分の本文だけ。リード・成熟度・インストール・ライセンス・図・note の無料部分・X は生成スクリプトがデータから作る
+// overview: Web 記事の出力の原文つきの文（既定は README の文を正しく訳したもの）。web: その後ろに足す行（原文を伴わない行の検査用）
+// diagram: 生成モデルが描いた Mermaid 図（描かせない。描いていれば採用しない）
+// free / hype: 生成モデルが書いた note の無料部分（書かせない。書いていれば採用しない）
 const FREE = "この記事では、公式 README に沿って導入の流れと注意点を説明します。".repeat(15);
-// diagram: Mermaid 図の中身（既定は補正の要らない図）。frontmatter: Web 記事の frontmatter（null なら書かない＝生成モデルが frontmatter を省いた出力）
-const DEFAULT_FRONTMATTER = 'layout: "../../layouts/Layout.astro"\ntitle: "testtool - test"\ndescription: "test"\npubDate: "2000-01-01"\ntags: ["Go"]\nrepoUrl: "https://github.com/acme/testtool"\nstars: 99999';
-const output = ({ mermaid = true, diagram = 'graph TD\n  A["CLI"] --> B["Core"]', frontmatter = DEFAULT_FRONTMATTER, footer = true, image = "", hype = "", paidExtra = "", web = "", free = FREE, receipt = "> ※noteは購入後、マイページから領収書を発行できます。" } = {}) => `=== WEB ARTICLE ===
-${frontmatter === null ? "" : `---\n${frontmatter}\n---`}
-# testtool: 概要と革新性
-## 解決する主要な課題とアーキテクチャ
-${mermaid ? `\`\`\`mermaid\n${diagram}\n\`\`\`` : "図なし"}
+const STATEMENTS = [
+  "## 概要",
+  "- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。",
+  "  - 原文（README）: testtool is a command-line tool for checking deployment pipelines.",
+  "- Linux・macOS・Windows で動作します。",
+  "  - 原文（README）: It runs on Linux, macOS and Windows.",
+  "## 主な機能と構成（README の要約）",
+  "- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。",
+  "  - 原文（README）: testtool reads a YAML file and reports each failed step.",
+].join("\n");
+const PAYWALL = "--------------------------------------------------\n【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】\n--------------------------------------------------";
+const output = ({ overview = STATEMENTS, diagram = null, footer = true, image = "", hype = "", paidExtra = "", web = "", free = "" } = {}) => `=== WEB ARTICLE ===
+${overview}
+${diagram ? `\`\`\`mermaid\n${diagram}\n\`\`\`` : ""}
 ${web}
 === NOTE ARTICLE ===
-# testtool note
-${free}
-無料部分の導入。${hype}経費精算にも使えます。
-${receipt}
---------------------------------------------------
-【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
---------------------------------------------------
+${free || hype ? `# testtool note\n${free}\n無料部分の導入。${hype}\n${PAYWALL}` : ""}
 ${PAID}
 ${paidExtra}
 ${image ? `\`\`\`yaml\nservices:\n  app:\n    image: ${image}\n\`\`\`` : ""}
@@ -130,7 +134,19 @@ test("保存した記事の見出しはテンプレートの見出しだけで�
     const facts = JSON.parse(fs.readFileSync(path.join(dir, "data/readme_facts/testtool.json"), "utf8"));
     assert.equal(facts.repo, "acme/testtool");
     assert.equal(facts.created_at, "2026-01-15T00:00:00Z");
-    assert.deepEqual(Object.keys(facts).sort(), ["commands", "created_at", "expansions", "hosts", "install_blocks", "license", "quantities", "repo"]);
+    assert.deepEqual(Object.keys(facts).sort(), ["commands", "created_at", "diagrams", "expansions", "hosts", "install_blocks", "language", "license", "quantities", "repo", "sentences", "status_lines", "words"]);
+    // 公開物の形（決まった節と原文つきの文だけ）を、テストと同じ検査で満たす
+    const { webPageProblems, noteHeadProblems } = await import("../scripts/utils/article_template.mjs");
+    assert.deepEqual(webPageProblems(web, facts), []);
+    assert.deepEqual(noteHeadProblems(head.trimEnd() + "\n【有料ライン" + pub.split("【有料ライン")[1].split("\n")[0], facts, ["導入提案書テンプレート（Markdown）", "導入時の想定問答"]), []);
+    assert.ok(web.includes("- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。\n  - 原文（README）: testtool is a command-line tool for checking deployment pipelines."), web);
+    assert.match(web, /^title: "testtool - testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです"$/m);
+    // note の無料部分の主な機能は、Web 記事と同じ原文つきの文
+    assert.ok(head.includes("- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。\n  - 原文（README）: testtool reads a YAML file and reports each failed step."), head);
+    // X の投稿文は生成モデルの出力（hello）ではなく、概要の最初の原文つきの文から作る
+    const x = fs.readFileSync(path.join(dir, "x_posts/testtool_x.txt"), "utf8");
+    assert.ok(x.includes("testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。"), x);
+    assert.doesNotMatch(x, /\bhello\b/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -159,14 +175,21 @@ test("末尾の案内・ハッシュタグが欠けた生成物は標準の末�
 });
 
 for (const [name, opts, why] of [
-  ["構成図が無い", { mermaid: false }, /Mermaid/],
+  // 図は生成モデルに描かせない（README にある図だけを転記する。leakhunt C3、2026-10-22）
+  ["Web記事に生成モデルが描いた構成図を含む", { diagram: 'graph TD\n  A["CLI"] --> B["Core"]' }, /Web記事に README の原文を伴わない行があります/],
   ["実在しないイメージを含む", { image: "ghcr.io/acme/does-not-exist:latest" }, /実在を確認できない参照/],
   ["無料部分に誇張表現（一発起動）を含む", { hype: "コピペで本番一発起動できます。" }, /誇張・結果保証の表現/],
   ["有料部分に収入の金額を含む", { paidExtra: "このSaaSでMRR 50万円を見込めます。" }, /誇張・結果保証の表現/],
-  ["無料部分に領収書の案内が無い", { receipt: "" }, /領収書の案内（定型文）が無料部分にありません/],
-  ["note の公開部分が品質ゲートの最小の長さより短い", { free: "" }, /公開部分が短すぎます/],
+  // note の無料部分は生成モデルに書かせない（データから作る）。書いていれば採用しない
+  ["生成モデルが note の無料部分を書いている", { free: FREE }, /生成モデルが note の無料部分を書いています/],
+  ["Web記事の概要に原文つきの文が無い", { overview: "## 概要\n## 主な機能と構成（README の要約）" }, /Web記事の概要に原文つきの文がありません/],
   ["Web記事に有料キットの見出しを含む（品質ゲートの有料本文の検査に落ちる）", { web: "## 💰 【クライアント提示用】詳細工数・見積シミュレーション表\n| 項目 | 人日 |\n|---|---|\n| 要件定義 | 2 |" }, /有料キットの内容が含まれています/],
-  ["無料部分でインボイス対応をうたう", { hype: "インボイス制度にも対応しています。" }, /インボイス対応・即時発行・経費精算できるという断定/],
+  ["無料部分でインボイス対応をうたう", { hype: "インボイス制度にも対応しています。" }, /生成モデルが note の無料部分を書いています/],
+  // 原文つきの文の検査（scripts/utils/anchored.mjs）: 原文が README の文でない・訳が原文を超える
+  ["原文が README の文ではない", { web: "- testtool は最速のツールです。\n  - 原文（README）: testtool is the fastest tool ever built." }, /公開物の形を満たしません（quote）/],
+  ["訳に原文に無い社数を足す", { web: "- testtool は YAML ファイルを読み、300 の組織で使われています。\n  - 原文（README）: testtool reads a YAML file and reports each failed step." }, /公開物の形を満たしません（token）/],
+  ["訳に利用条件の結論を足す", { web: "- testtool は Linux・macOS・Windows で動き、商用利用も問題なく行えます。\n  - 原文（README）: It runs on Linux, macOS and Windows." }, /公開物の形を満たしません（topic）/],
+  ["H3 の小節に比較表を置く", { web: "### 他のツールとの比較\n| 項目 | testtool | other |\n|---|---|---|\n| 価格 | 0 | 有料 |" }, /Web記事にテンプレート外の見出しがあります/],
   ["Web記事で導入を勧める", { web: "本番環境への導入を推奨します。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
   ["Web記事に引用の無い比較（優位）を含む", { web: "競合よりも優位です。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
   ["Web記事で禁止の記載が無いことを根拠にライセンスを推測する", { web: "## 商用利用可否 & ライセンス考察\n明示的な禁止がないため、OSSの慣例として許容されることが多いです。" }, /禁止の記載が無いことを根拠にしたライセンスの推測/],
@@ -359,41 +382,43 @@ test("すべてのモデルが 404 なら次の候補を試さずに止め、rea
 
 // ---- 生成時の検査と CI の品質ゲートのずれ・実データの揺れ（2026-10-21 の全体点検で見つかった不具合の再発防止） ----
 const readWeb = (dir, slug = "testtool") => fs.readFileSync(path.join(dir, "src/pages/radar", `${slug}.md`), "utf8");
-// Mermaid の補正が要る図（ラベルに括弧・コロン）。補正しないとサイトで描画できず、品質ゲートで落ちる
+// Mermaid の補正が要る図（ラベルに括弧・コロン）。README にこの形の図があっても、書き換えて直すことはせず、転記しない
 const NEEDS_FIX = "graph TD\n  A[CLI (main)] --> B[Core: engine]";
+const RENDERABLE = 'graph TD\n  A["CLI"] --> B["Core"]';
+const FENCE = "```";
+const readmeWith = (diagram) => `${MOCK_README}\n${FENCE}mermaid\n${diagram}\n${FENCE}\n`;
 
-test("記事の最後が Mermaid 図でも、図を補正・検査してから保存する（閉じの ``` を落として補正・検査を素通りさせない）", async () => {
-  const { dir, log } = run(output({ diagram: NEEDS_FIX }));
-  try {
-    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
-    const web = readWeb(dir);
-    assert.deepEqual(mermaidProblems(web), []);
-    assert.deepEqual(await mermaidParseErrors(web), []);
-    assert.match(web, /A\["CLI \(main\)"\]/);
-    assert.equal((web.match(/```/g) || []).length % 2, 0);
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-});
-
-// 説明文に \ や " や $$ を含むリポジトリ（Windows のパス・LaTeX・料金など）。frontmatter は生成モデルが書く場合と、省いて生成スクリプトが補う場合がある
-const TRICKY_DESC = String.raw`Sync configs under C:\Users\you with "profiles" and save $$ on hosting`;
-for (const [name, frontmatter] of [
-  ["生成モデルが説明文をそのまま \"...\" に入れた", DEFAULT_FRONTMATTER.replace('title: "testtool - test"', () => `title: "testtool - ${TRICKY_DESC}"`).replace('description: "test"', () => `description: "${TRICKY_DESC}"`)],
-  ["生成モデルが frontmatter を省いた（生成スクリプトが補う）", null],
-]) {
-  test(`説明文に \\ " $$ を含むリポジトリでも、frontmatter はサイトのビルドと同じ方法で読め、文字が化けない: ${name}`, () => {
-    const { dir, log } = run(output({ frontmatter }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }) });
+test("図は生成モデルに描かせず、README にある図のうち描画できるものだけをそのまま転記する（描画できない図は転記しない）", async () => {
+  for (const [diagram, kept] of [[RENDERABLE, true], [NEEDS_FIX, false]]) {
+    const { dir, log } = run(output(), { MOCK_README: readmeWith(diagram) });
     try {
       assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
-      const { frontmatter: fm } = parseFrontmatter(readWeb(dir));
-      for (const k of ["title", "description"]) {
-        assert.ok(fm[k].includes(String.raw`C:\Users\you`), `${k}: ${fm[k]}`);
-        assert.ok(fm[k].includes("$$ on hosting"), `${k}: ${fm[k]}`);
-        assert.match(fm[k], /["']profiles["']/);
-      }
-      assert.equal(fm.stars, 1234);
+      const web = readWeb(dir);
+      assert.equal(web.includes(diagram), kept, web);
+      assert.equal(/README にある図を、そのまま転記/.test(web), kept, web);
+      assert.deepEqual(mermaidProblems(web), []);
+      assert.deepEqual(await mermaidParseErrors(web), []);
+      assert.equal((web.match(/```/g) || []).length % 2, 0);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-  });
-}
+  }
+});
+
+// 説明文に \ や " や $$ を含むリポジトリ（Windows のパス・LaTeX・料金など）。題名・説明文は概要の最初の原文つきの文（ここでは説明文の訳）から作る
+const TRICKY_DESC = String.raw`Sync configs under C:\Users\you with "profiles" and save $$ on hosting`;
+const TRICKY_OVERVIEW = `## 概要\n- ${String.raw`C:\Users\you`} の設定を "profiles" で同期し、ホスティングの $$ を抑えます。\n  - 原文（README）: ${TRICKY_DESC}\n## 主な機能と構成（README の要約）`;
+test("説明文に \\ \" $$ を含むリポジトリでも、その訳から作る題名・説明文は、サイトのビルドと同じ方法で読め、文字が化けない", () => {
+  const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }) });
+  try {
+    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    const { frontmatter: fm } = parseFrontmatter(readWeb(dir));
+    for (const k of ["title", "description"]) {
+      assert.ok(fm[k].includes(String.raw`C:\Users\you`), `${k}: ${fm[k]}`);
+      assert.ok(fm[k].includes("$$"), `${k}: ${fm[k]}`);
+      assert.match(fm[k], /["']profiles["']/);
+    }
+    assert.equal(fm.stars, 1234);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
 
 test("リポジトリ名が . で始まる（.claude など）場合も、X 投稿文の記事リンクは保存した記事ページを指す", () => {
   const { dir, log } = run(output(), { MOCK_REPO: JSON.stringify({ name: ".claude", full_name: "acme/.claude", html_url: "https://github.com/acme/.claude" }) });
@@ -469,7 +494,7 @@ test("Gemini が応答を返さないままでも、時間切れにして次の�
 // 除くのは、このファイル自身・ゲート自体の検証（複製に不具合を入れる gates）・オーナー端末のブラウザ操作（note_browser）だけ
 const NOT_GATE = new Set(["generator.test.mjs", "gates.test.mjs", "note_browser.test.mjs"]);
 test("生成して保存した記事・原稿は、CI の品質ゲート（監査と npm test のテスト群）にそのまま通る", () => {
-  const { dir, log } = run(output({ diagram: NEEDS_FIX }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }) }, { keepDates: true });
+  const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }), MOCK_README: readmeWith(RENDERABLE) }, { keepDates: true });
   try {
     assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
     const audit = spawnSync(process.execPath, ["scripts/audit_quality.mjs"], { cwd: dir, encoding: "utf8" });

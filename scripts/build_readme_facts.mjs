@@ -7,7 +7,7 @@
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
-import { readmeFacts, factsFileFor, FACTS_DIR } from "./utils/readme_facts.mjs";
+import { readmeFacts, factsFileFor, FACTS_DIR, renderableDiagrams } from "./utils/readme_facts.mjs";
 import { resolveLicense } from "./utils/license_resolver.mjs";
 import { repoFullNameFromUrl } from "./utils/ledger.mjs";
 
@@ -29,7 +29,8 @@ export async function buildFacts(slug, full) {
   const [owner, name] = full.split("/");
   const [repo, readme, license] = await Promise.all([getJson(`https://api.github.com/repos/${full}`), getReadme(full), resolveLicense(owner, name, { headers })]);
   const { spdx, name: licenseName, url, status, sourceAvailable, extraNotices } = license;
-  const facts = readmeFacts(readme, { repo: repo.full_name, created_at: repo.created_at, description: repo.description, license: { spdx, name: licenseName, url, status, sourceAvailable, extraNotices } });
+  const facts = readmeFacts(readme, { repo: repo.full_name, created_at: repo.created_at, language: repo.language, description: repo.description, license: { spdx, name: licenseName, url, status, sourceAvailable, extraNotices } });
+  facts.diagrams = await renderableDiagrams(facts.diagrams);
   fs.mkdirSync(FACTS_DIR, { recursive: true });
   fs.writeFileSync(factsFileFor(slug), JSON.stringify(facts, null, 2) + "\n", "utf8");
   return facts;
@@ -50,7 +51,7 @@ if (import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   for (const [slug, full] of targets(process.argv.slice(2))) {
     try {
       const f = await buildFacts(slug, full);
-      console.log(`✓ ${slug}: 数値 ${f.quantities.length} / ホスト ${f.hosts.length} / コマンドの語 ${f.commands.length} / 導入手順 ${f.install_blocks.length}`);
+      console.log(`✓ ${slug}: 文 ${f.sentences.length} / 数値 ${f.quantities.length} / ホスト ${f.hosts.length} / コマンドの語 ${f.commands.length} / 導入手順 ${f.install_blocks.length} / 開発段階 ${f.status_lines.length}`);
     } catch (e) {
       failed++;
       console.error(`✖ ${slug}: ${e.message}`);

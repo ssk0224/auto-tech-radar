@@ -79,5 +79,6 @@ test("既存の note 原稿・リードマグネットのハッシュタグ行�
   for (const u of UNRELATED) assert.ok(!gen.includes(u), `generate_lead_magnet_note.mjs: ${u}`);
   const crawl = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
   for (const u of UNRELATED) assert.ok(!crawl.includes(u), `crawl_and_generate.mjs: ${u}`);
-  assert.match(crawl, /\$\{noteHashtags\(repo\)\.join\(" "\)\}/);
+  // 生成スクリプトは原稿の末尾のタグ行を、記事の対象から作ったタグ（noteHashtags）で置き換える（プロンプトにはタグを書かせない。leakhunt C3、2026-10-22）
+  assert.match(crawl, /applyNoteHashtags\([\s\S]*?, noteHashtags\(repo\)\)/);
 });

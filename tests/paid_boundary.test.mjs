@@ -14,6 +14,7 @@ import { linkDir } from "./helpers/links.mjs";
 import { PAID_FEATURE_RULES, STANDARD_FOOTER, paidContentSummary, splitPaid, loadPrivateKeys, assembleNote, isSealed, decryptText, sealedFileFor } from "../scripts/utils/note_vault.mjs";
 import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, sectionLabels, paidHeadingLines } from "../scripts/utils/article_template.mjs";
 import { normalizeEol } from "../scripts/utils/eol.mjs";
+import { INSTALL_TOPIC_RE } from "../scripts/utils/readme_facts.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (p) => normalizeEol(fs.readFileSync(p, "utf8"));
@@ -66,38 +67,19 @@ function runGenerator(mockOut, extraEnv = {}, prepare = null) {
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], { cwd: dir, encoding: "utf8", env });
   return { dir, log: r.stdout + r.stderr };
 }
-const FREE = "この記事では、公式 README に沿って概要と注意点を説明します。".repeat(15);
+// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は原文つきの文（tests/fixtures/mock_readme.mjs の README の文）だけ、note は有料部分の本文だけ
 const mock = (paid) => `=== WEB ARTICLE ===
----
-layout: "../../layouts/Layout.astro"
-title: "testtool - test"
-description: "test"
-pubDate: "2000-01-01"
-tags: ["Go"]
-repoUrl: "https://github.com/acme/testtool"
-stars: 1
----
-# testtool: 概要
-## 解決する主要な課題とアーキテクチャ
-\`\`\`mermaid
-graph TD
-  A["CLI"] --> B["Core"]
-\`\`\`
+## 概要
+- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。
+  - 原文（README）: testtool is a command-line tool for checking deployment pipelines.
+## 主な機能と構成（README の要約）
+- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。
+  - 原文（README）: testtool reads a YAML file and reports each failed step.
 === NOTE ARTICLE ===
-# testtool note
-## 主な機能とアーキテクチャ概要
-${FREE}
-> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
---------------------------------------------------
-【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
---------------------------------------------------
 ${paid}
 ---
 **【note出品時用 推奨ハッシュタグ】**
 #AI #OSS
-=== X THREAD ===
-[TWEET 1]
-hello
 `;
 
 test("生成時に不採用にした原稿の有料本文の断片は、ログ（公開リポジトリの Actions ログ）に出ない: 規則の名前と記事のスラッグだけを出す", () => {
@@ -174,6 +156,11 @@ test("末尾の案内（公開されたまま暗号化しない部分）に置�
   const parts = splitPaid(note);
   assert.ok(parts.paid.some((l) => l.includes("受託単価の決め方")), "メンバーシップに触れた有料本文が公開側（末尾）に入った");
   assert.ok(!parts.tail.some((l) => l.includes("受託単価の決め方")));
+  // ハッシュタグの行の形をした有料本文（# で始まる文）も公開側に入れない。タグは句読点の無い短い語だけ
+  for (const prose of ["#受託単価はまず見積の前提をそろえてから決めます。", "#本番構築の手順は、次のコマンドで起動します", "#ここから先は会員限定の手順（docker compose up -d）"]) {
+    const p2 = splitPaid(note.replace("#AI #OSS", `#AI #OSS\n${prose}`));
+    assert.ok(p2.paid.some((l) => l === prose), `ハッシュタグの形の有料本文が公開側（末尾）に入った: ${prose}`);
+  }
   // 標準の末尾はそのまま公開側に残る
   const std = splitPaid(["# t", "無料", "【有料ライン ここから先は有料会員限定】", "有料", STANDARD_FOOTER.trim()].join("\n"));
   assert.ok(std.hasTail);
@@ -181,8 +168,11 @@ test("末尾の案内（公開されたまま暗号化しない部分）に置�
 });
 
 test("サイト・スクリプトの案内文は、無料の Web 記事に README から転記している導入手順を有料の売りとして案内しない", () => {
-  // 無料側の題材（Web 記事のテンプレートのインストールの節）。「導入手順」はその言い換え
-  const freeTopic = new RegExp(`${WEB_TEMPLATE_H2.find((h) => /インストール/.test(h)).replace(/^## /, "").split("（")[0]}手順|導入手順`);
+  // 無料側の題材（Web 記事のインストールの節に README から転記するもの）。語の類は README の導入手順の節の判定と同じ定義（INSTALL_TOPIC_RE）:
+  // インストール手順・導入手順だけでなく、セットアップ手順・クイックスタート・環境構築なども同じ題材として扱う
+  const freeTopic = INSTALL_TOPIC_RE;
+  for (const s of ["インストール手順の完全版", "導入手順", "セットアップ手順とクイックスタート", "環境構築ガイド", "Quick Start", "getting started"]) assert.match(s, freeTopic, s);
+  assert.doesNotMatch("導入提案書テンプレート・工数見積表", freeTopic);
   const paidContext = /有料|実務キット|メンバーシップ特典|note の有料記事/;
   const files = [];
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {

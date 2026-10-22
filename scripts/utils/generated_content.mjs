@@ -98,7 +98,7 @@ export function frontmatterProblems(md) {
 // 保存する直前の Web 記事の最終検査（CI の品質ゲートの Mermaid・有料キット・空白の検査、ビルドの frontmatter 解析と同じもの）
 export async function finalWebArticleProblems(md) {
   const problems = [...frontmatterProblems(md)];
-  if (!/```mermaid/.test(md)) problems.push("Mermaid 構成図がありません");
+  // 図は生成モデルに描かせない（README にある図だけを転記する。leakhunt C3）。図が無いことは問題にしない
   problems.push(...mermaidProblems(md));
   problems.push(...(await mermaidParseErrors(md)).map((e) => `Mermaid図を描画できません: ${e}`));
   if ((md.match(/```/g) || []).length % 2 !== 0) problems.push("閉じていないコードブロックがあります");

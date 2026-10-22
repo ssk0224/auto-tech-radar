@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { normalizeEol } from "./eol.mjs";
 import { jstDate } from "./selection.mjs";
+import { readmeSentenceKeys, statusLines, readmeWords } from "./anchored.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const FACTS_DIR = path.join(rootDir, "data", "readme_facts");
@@ -156,9 +157,14 @@ function readmePhrases(text) {
 
 // ---- README の事実の集合 ----
 // 導入手順の節（この見出しの下にあるコードブロックだけを「インストール」の節に転記する）
-const INSTALL_HEADING_RE = /install|set[ -]?up|getting started|get started|quick ?start|導入|インストール|環境構築|安装|快速|部署|deploy/i;
+const INSTALL_HEADING_RE = /install|set[ -]?up|getting started|get started|quick ?start|導入|インストール|セットアップ|クイックスタート|環境構築|安装|快速|部署|deploy/i;
+// 導入手順の題材（Web 記事のインストールの節に README から転記するもの）を指す語の類。サイト・スクリプトの案内文で、
+// これを有料版の売りとして書かない（tests/paid_boundary.test.mjs）。「導入」は「導入提案書」と区別するため手順・方法の語と組にする
+export const INSTALL_TOPIC_RE = /install|set[ -]?up|getting started|get started|quick ?start|インストール|セットアップ|クイックスタート|環境構築|安装|部署|導入(?:手順|方法|の手順|の仕方|ガイド)/i;
 const MAX_INSTALL_BLOCKS = 4;
 const MAX_INSTALL_LINES = 30;
+const MAX_DIAGRAMS = 2;
+const MAX_DIAGRAM_LINES = 60;
 
 // meta.description: GitHub のリポジトリの説明文（上流の作者が書いたもの）。数値・ホストは README と同じく事実の集合に入れる
 export function readmeFacts(readme, meta = {}) {
@@ -171,7 +177,14 @@ export function readmeFacts(readme, meta = {}) {
   return {
     repo: meta.repo ?? null,
     created_at: meta.created_at ?? null,
+    language: meta.language ?? null,
     license: meta.license ?? null,
+    // 原文つきの文の照合に使う README の文の指紋（scripts/utils/anchored.mjs）・開発段階の記載・英字の語
+    sentences: readmeSentenceKeys(md, meta.description || ""),
+    status_lines: statusLines(md, String(meta.repo || "").split("/")[1] || ""),
+    words: readmeWords(md, meta.description || ""),
+    // README にある Mermaid の図（記事にはこれだけをそのまま転記する。生成モデルには図を描かせない）
+    diagrams: codeBlocks(md).filter((b) => b.lang === "mermaid" && b.code.trim() && b.code.split("\n").length <= MAX_DIAGRAM_LINES).slice(0, MAX_DIAGRAMS).map((b) => b.code),
     quantities: extractQuantities(upstream),
     hosts: extractHosts(upstream),
     commands: extractCommandWords(md, { inline: true }),
@@ -224,4 +237,16 @@ export function ledeText({ full_name, created_at, date, stars, gain7d = null }) 
   if (Number.isFinite(Number(stars)) && date) s.push(`${date} 時点のスター数は ${Number(stars).toLocaleString("en-US")} です。`);
   if (gain7d !== null && gain7d !== undefined && Number.isFinite(Number(gain7d))) s.push(`Radar Ledger の記録では、直近 7 日間の増加数は ${Number(gain7d).toLocaleString("en-US")} です。`);
   return s.join("");
+}
+
+// README の図のうち、サイトと同じ版の Mermaid で描画でき、品質ゲートの検査を満たすものだけを残す（転記なので書き換えて直すことはしない）
+export async function renderableDiagrams(diagrams) {
+  const { mermaidProblems } = await import("./mermaid.mjs");
+  const { mermaidParseErrors } = await import("./mermaid_parse.mjs");
+  const ok = [];
+  for (const d of diagrams || []) {
+    const md = "```mermaid\n" + d + "\n```\n";
+    if (!mermaidProblems(md).length && !(await mermaidParseErrors(md)).length) ok.push(d);
+  }
+  return ok;
 }

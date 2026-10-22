@@ -4,7 +4,6 @@ import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
 import { generateOgCardForPost } from "./generate_og_cards.mjs";
 import { sanitizeAndAttachUrlToTweet } from "./utils/twitter_formatter.mjs";
-import { stripProSection } from "./utils/pro_boundary.mjs";
 import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, publicNoteProblems, sealedFileFor } from "./utils/note_vault.mjs";
 import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 
@@ -15,19 +14,19 @@ import { findForbiddenClaims, findWebArticleClaims, WEB_CLAIMS_PROMPT_RULE } fro
 import { resolveLicense, licensePromptText, licenseStatementProblems, LICENSE_PROMPT_RULE } from "./utils/license_resolver.mjs";
 import { findHype, HYPE_PROMPT_RULE, findUnverifiablePraise, UNVERIFIABLE_PRAISE_PROMPT_RULE } from "./utils/hype_check.mjs";
 import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
-import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
-import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
-import { normalizeHeadings } from "./utils/headings.mjs";
 import { trendingSearchQueries, searchReposUrl } from "./utils/github_queries.mjs";
 import { resolveModelOrder, classifyGeminiError, GeminiStopError } from "./utils/gemini_models.mjs";
 import { recordRunStatus as writeRunStatus, jstDate as jstToday } from "./utils/run_status.mjs";
 import { rankCandidates, watchlistDocument, pubDateProblem, jstDate, SELECTION_CONFIG, REJECTION_REASONS } from "./utils/selection.mjs";
 import { slugForRepoName } from "./utils/blocklist.mjs";
 import { isPublishedOn, radarArticlesOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
-import { setFrontmatterField, quoteFrontmatterStrings, unwrapMarkdownFence, closeOpenFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
-import { readmeFacts, ungroundedTokens, installSection, ledeText, factsFileFor } from "./utils/readme_facts.mjs";
-import { licenseSection } from "./utils/license_section.mjs";
-import { WEB_H2, NOTE_H2, WEB_LLM_H2, NOTE_FREE_TEMPLATE_H2, NOTE_FIXED_TEXT, h2Headings, assembleWebArticle, assembleNoteHead, paidHeadingsToBold } from "./utils/article_template.mjs";
+import { unwrapMarkdownFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
+import { readmeFacts, ungroundedTokens, factsFileFor, renderableDiagrams } from "./utils/readme_facts.mjs";
+import { WEB_H2, LLM_OVERVIEW_H2, NOTE_FREE_TEMPLATE_H2, NOTE_FIXED_TEXT, NOTE_PAYWALL, h2Headings, paidHeadingsToBold, renderWebPage, webPageProblems, renderNoteHead, noteHeadProblems } from "./utils/article_template.mjs";
+import { parseStatements, QUOTE_PREFIX } from "./utils/anchored.mjs";
+import { STATEMENT_TOPIC_RULES } from "./utils/hype_check.mjs";
+import { findProLeaks } from "./utils/pro_boundary.mjs";
+import { normalizeEol } from "./utils/eol.mjs";
 import { paidContentSummary } from "./utils/note_vault.mjs";
 
 // 不採用の理由。ログ（公開リポジトリの Actions ログ）には規則の名前だけを出し、一致した文面（有料本文の断片を含みうる）は出さない（leakhunt C4、2026-10-22）
@@ -204,31 +203,37 @@ function licenseFor(repo) {
   return licenseCache.get(repo.full_name);
 }
 
-// 1回のAI呼び出しで「Web記事」「note有料記事ドラフト」「Xスレッド」を3点一括生成
+// 1回のAI呼び出しで「Web記事の原文つきの文」と「note有料記事の有料部分」を一括生成する（X の投稿文は生成スクリプトが決まった形で作る）
 // today: 実行開始時に決めた日本時間の日付（本日分の上限の判定と同じ日付を公開日にする）
-// 生成モデルに書かせるのは README から確かめられる節だけ（scripts/utils/article_template.mjs）。
-// 競合比較・ROI や削減率・ライセンスの結論・誇張したリードは書かせず、リード・インストール・ライセンスの節は
-// 生成スクリプトがデータから決まった形で作る（leakhunt C3、2026-10-22）
-async function generateAllContent(repo, readme, today, slug) {
+// 公開する部分に生成モデルが書くのは、README の文（原文）とその訳の組だけ（scripts/utils/anchored.mjs）。
+// 原文は README の文と照合し、訳は原文に無い固有名・数値を足していないか、評価・比較・利用条件・費用・評判の語が無いかを確かめる。
+// リード・成熟度・インストール・ライセンス・図・note の無料部分・X は、生成スクリプトがデータから決まった形で作る（leakhunt C3、2026-10-22）
+async function generateAllContent(repo, readme) {
   const licenseName = licensePromptText(await licenseFor(repo));
+  const topicWords = STATEMENT_TOPIC_RULES.map(([, why]) => why).join("・");
 
   const systemInstruction = `
-あなたはオープンソース（OSS）の README を正確に日本語で要約する技術ライターです。
-README とリポジトリ情報だけを根拠に、以下の3つのコンテンツを一括作成してください。
-1. 自社Webサイト用 Astro技術解説マークダウン
-2. note有料販売用 記事パッケージ（無料導入部＋有料ノウハウ部の2重構造）
-3. X (Twitter) 用の紹介スレッド投稿文（3ツイート構成）
+あなたはオープンソース（OSS）の README を正確に日本語へ訳す技術翻訳者です。
+README とリポジトリ情報だけを根拠に、次の 2 つを一括作成してください。
+1. Web記事に載せる「原文つきの文」（README の文を選び、その日本語訳と組にしたもの）
+2. note有料記事の有料部分の本文
 
 必ず指定のデリミタ（=== SECTION ===）で正確に区切って出力してください。
 
-【事実性の厳守】
-- 公開される部分（Web記事・noteの有料ラインより前・X）に、READMEに無い数値（性能・速度・費用・削減率・倍率・容量）、URL、コマンドを書かないこと。生成後に README と照合し、README に無いものが1つでもあれば採用しない。
-- 他の製品・商用サービスとの比較（比較表・価格差・性能差）は書かないこと。
-- スター数の伸び方・注目度・コミュニティの反応（「数ヶ月で」「トレンド1位」「世界中のエンジニアが注目」など）は書かないこと。リードは生成スクリプトが作成日とスター数の記録から書く。
-- 略語の展開（MCP など）は README に書かれている場合だけ書くこと。
+【原文つきの文の書き方】
+- 1 組は次の 2 行にすること。1 行目は「- 」で始まる日本語の訳、2 行目は「${QUOTE_PREFIX}」に続けて README の文をそのまま書く:
+- （日本語の訳）
+${QUOTE_PREFIX}（README の文。1 文以上を README のとおりに書き、言い換え・要約・省略・連結をしない）
+- 訳には原文の内容だけを書くこと。原文に無い固有名・製品名・数値・URL・コマンド・ファイル名を足さないこと。生成後に原文と README を照合し、1 つでも足していれば採用しない。
+- 訳には次の類の語を書かないこと（原文にあっても訳さない。そのような原文は選ばない）: ${topicWords}。
+- 訳は原文より長くしないこと。
+- 見出しは「${LLM_OVERVIEW_H2}」と「${WEB_H2.architecture}」の 2 つだけにし、その下には原文つきの文だけを書くこと。ほかの見出し・段落・表・図（Mermaid）・コードブロックは書かないこと。
+- リード・成熟度・インストール手順・ライセンス・図・note の無料部分・X の投稿文は書かないこと（生成スクリプトが README・LICENSE ファイル・リポジトリの記録から作る）。
+
+【有料部分の事実性】
 - Dockerイメージ名、パッケージ名、CLIコマンド、ポート番号、設定キー、MCPサーバーの起動方法は、与えられたREADMEに記載があるものだけを使うこと。記載がないものを推測で作らないこと。
 - READMEにMCPサーバーとしての起動方法の記載がない場合は、mcpServers の設定例を作らず「公式のMCPサーバー手段は案内されていない」と明記すること。
-- 金額は、有料部分の見積表の工数×単価のように計算の前提を示せるものだけを書くこと。ROI・削減率・性能値の予測は書かないこと。
+- 金額は、見積表の工数×単価のように計算の前提を示せるものだけを書くこと。ROI・削減率・性能値の予測は書かないこと。
 - 導入実績・連携実績・顧客数・受賞歴など、READMEで確認できない実績は書かないこと。
 
 【誇張・結果保証の禁止】
@@ -242,7 +247,7 @@ ${LICENSE_PROMPT_RULE}
 `;
 
   const prompt = `
-以下のGitHubリポジトリ情報を基に、3つのコンテンツを作成してください。
+以下のGitHubリポジトリ情報を基に作成してください。
 
 [リポジトリ情報]
 名前: ${repo.full_name}
@@ -253,49 +258,22 @@ URL: ${repo.html_url}
 概要: ${repo.description}
 
 [README]
-${readme || "(READMEなし - リポジトリ概要から分析してください)"}
+${readme || "(READMEなし)"}
 
 --------------------------------------------------
 以下のフォーマット通りに出力してください。余計な挨拶は不要です。
-見出し（## で始まる行）はフォーマットにあるものだけを使い、ほかの見出しを足さないこと。
 
 === WEB ARTICLE ===
----
-layout: "../../layouts/Layout.astro"
-title: "${repo.name} - ${repo.description.replace(/"/g, "'")}"
-description: "${repo.description.replace(/"/g, "'")}"
-pubDate: "${today}"
-tags: ["${repo.language}", "OSS", "GitHub"]
-repoUrl: "${repo.html_url}"
-stars: ${repo.stargazers_count}
----
-
-# ${repo.name}: 概要
-※README に書かれている目的と主な機能を2〜3段落で要約してください。
-
-${WEB_H2.maturity}
-※README とリポジトリ情報（スター数・更新状況）から読み取れる範囲で、成熟度の目安と根拠を簡潔に書いてください。第三者機関（ThoughtWorks 等）の評価であるかのような表現や、確認できない本番利用実績は書かないでください。ADOPT / TRIAL などの採用判定や導入の勧めは書かず、検証候補になる用途として書いてください。
+${LLM_OVERVIEW_H2}
+（README に書かれている目的を表す原文つきの文を 3 組）
 
 ${WEB_H2.architecture}
-※必須：このセクション内に、コンポーネント構成やデータフローを示すMermaidダイアグラム（\`\`\`mermaid ... \`\`\` / graph TD 等）を必ず1つ以上含めて視覚的に図解してください。
-※インストール手順とライセンスの節は書かないでください（生成スクリプトが README のコードブロックと LICENSE ファイルから付け足します）。
+（README に書かれている主な機能・構成を表す原文つきの文を 4〜6 組）
 
 === NOTE ARTICLE ===
-# 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS化のアイデア付き
-
-${NOTE_H2.features}
-（無料公開エリア：README に書かれている技術的な特徴と構成の要約。インストール手順・コマンドは書かない（Web記事に README から転記する）。冒頭のリードと、ライン以降に何が入っているかの一覧は生成スクリプトが書く）
-
-> 💡 **【価格と経費精算について】**
-> 本記事の価格は **980円** です。
-> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
-
---------------------------------------------------
-【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
---------------------------------------------------
-
-※有料ライン以降では Markdown の見出し（# で始まる行）を使わず、各節の題は **太字の行** で書くこと（note の目次に見出しが表示されるため）。
-※有料ライン以降は、READMEの要約ではなく実務で使える材料（最低2,000文字以上）を書くこと。途中で切らないこと。
+※ここには note 有料記事の有料部分の本文だけを書くこと（題名・無料部分・価格の案内・有料ライン・ハッシュタグは生成スクリプトが書く）。
+※Markdown の見出し（# で始まる行）を使わず、各節の題は **太字の行** で書くこと（note の目次に見出しが表示されるため）。
+※READMEの要約ではなく実務で使える材料（最低2,000文字以上）を書くこと。途中で切らないこと。
 
 **💡 このOSSを活用した具体的なマネタイズ戦略（受託・自社サービス化）**
 1. クライアントへの提案シナリオと受託開発モデル（想定規模は下記の工数見積表から算出、提案先ターゲット、ペイン、受注構成案）
@@ -319,43 +297,10 @@ ${NOTE_H2.features}
 
 **まとめと今後の展望**
 - 導入を検討する際の次のステップ（READMEで確認すべき点・小さく試す手順）
-
----
-### 🎁 【メンバーシップのご案内】
-Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
-
----
-**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-${noteHashtags(repo).join(" ")}
-
-=== X THREAD ===
-※重要規則：
-1. TWEET 1には必ず末尾に「${X_LINK_LABEL}\nhttps://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/」を配置すること。全体の文字数は全角110文字以内厳守（X文字数140文字制限対策）。
-2. TWEET 2はURLなし。全角100文字以内厳守。
-3. TWEET 3は補足まとめ。全角100文字以内厳守。
-
-[TWEET 1]
-【海外OSS解説】
-GitHubで★${repo.stargazers_count}の「${repo.name}」を解説。
-${repo.description.slice(0, 45)}...
-${X_LINK_LABEL}
-https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
-
-[TWEET 2]
-【README に書かれている特徴】
-（README に書かれている特徴を全角80文字以内で要約。URLなし。速度・コスト等の数値は README に書かれているものだけを使い、他のツールとの比較は書かない）
-
-[TWEET 3]
-【💡 実務キットは note で】
-導入提案書テンプレート・工数見積表は note の有料記事で公開中。
-${X_LINK_LABEL}
-https://ssk0224.github.io/auto-tech-radar/radar/REPO_SLUG/
-
 `;
 
   const { text, model } = await callGemini(prompt, systemInstruction);
-  const parsed = await parseGeneratedOutput(text, repo, today, model, slug);
-  return { ...parsed, model };
+  return { ...parseGeneratedOutput(text), model };
 }
 
 // この実行で使えないと分かったモデル（404 等）と、利用枠を使い切ったモデル（429）は、以降の候補でも呼ばない
@@ -397,11 +342,11 @@ async function callGemini(prompt, systemInstruction) {
         }), GEMINI_TIMEOUT_MS, `Gemini ${model}`);
 
         const text = response.text || "";
-        if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===") && text.includes("=== X THREAD ===")) {
+        if (text.includes("=== WEB ARTICLE ===") && text.includes("=== NOTE ARTICLE ===")) {
           return { text, model };
         }
-        console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB, NOTE, and X THREAD).`);
-        lastError = new Error(`Model ${model} の出力に必要なセクション（WEB / NOTE / X THREAD）がありません`);
+        console.warn(`[Gemini Format Warning] Model ${model} output was incomplete or missing section headers (needs WEB and NOTE).`);
+        lastError = new Error(`Model ${model} の出力に必要なセクション（WEB / NOTE）がありません`);
       } catch (err) {
         lastError = err;
         if (err?.timedOut) {
@@ -447,111 +392,90 @@ function sanitizeZennTopic(topic) {
   return t || "programming";
 }
 
-// 出力テキストを各ファイル用にパース
-async function parseGeneratedOutput(rawText, repo, today, model = null, slug = slugOf(repo)) {
-  let webContent = "";
-  let noteContent = "";
-  let xContent = "";
-
+// 生成モデルの出力を「Web 記事」と「note の有料部分」に分ける
+function parseGeneratedOutput(rawText) {
+  let web = "";
+  let note = "";
   const parts = rawText.split(/=== (WEB ARTICLE|NOTE ARTICLE|X THREAD) ===/g);
   for (let i = 1; i < parts.length; i += 2) {
-    const section = parts[i].trim();
     const body = (parts[i + 1] || "").trim();
+    if (parts[i] === "WEB ARTICLE") web = unwrapMarkdownFence(body);
+    else if (parts[i] === "NOTE ARTICLE") note = sanitizeMarkdownContent(body);
+  }
+  return { rawWeb: normalizeEol(web), rawNote: normalizeEol(note) };
+}
 
-    if (section === "WEB ARTICLE") {
-      webContent = unwrapMarkdownFence(body);
-    } else if (section === "NOTE ARTICLE") {
-      noteContent = body;
-    } else if (section === "X THREAD") {
-      xContent = body;
+// Web 記事の出力から原文つきの文を読み取る。見出し 2 つと原文つきの文以外の行（段落・表・図・ほかの見出し）は stray として返す
+function webStatementsOf(rawWeb) {
+  const sections = { pre: [], overview: [], architecture: [], other: [] };
+  const headings = [];
+  let cur = "pre";
+  for (const line of rawWeb.split("\n")) {
+    if (/^#{1,6} /.test(line)) {
+      const h = line.trimEnd();
+      cur = h === LLM_OVERVIEW_H2 ? "overview" : h === WEB_H2.architecture ? "architecture" : "other";
+      if (cur === "other") headings.push(h);
+      continue;
     }
+    sections[cur].push(line);
   }
+  const strip = (ss) => ss.map(({ ja, quote }) => ({ ja, quote }));
+  const ov = parseStatements(sections.overview);
+  const ar = parseStatements(sections.architecture);
+  const stray = [...sections.pre, ...sections.other].filter((l) => l.trim()).length + ov.stray.length + ar.stray.length + headings.length;
+  return { overview: strip(ov.statements), architecture: strip(ar.statements), stray, otherHeadings: headings };
+}
 
-  // Web記事のフォールバック
-  if (!webContent.startsWith("---")) {
-    webContent = `---
-layout: "../../layouts/Layout.astro"
-title: "${repo.name} - ${repo.description.replace(/"/g, "'")}"
-description: "${repo.description.replace(/"/g, "'")}"
-pubDate: "${today}"
-tags: ["${repo.language}", "OSS"]
-repoUrl: "${repo.html_url}"
-stars: ${repo.stargazers_count}
----
+// note の出力: 有料部分の本文だけのはず。有料ラインの行があれば、その前（生成モデルが書いた無料部分）を別に返す
+function notePartsOf(rawNote) {
+  const lines = rawNote.split("\n");
+  const at = lines.findIndex((l) => /有料ライン|ここから先は有料/.test(l));
+  if (at === -1) return { free: "", paid: rawNote };
+  return { free: lines.slice(0, at).join("\n"), paid: lines.slice(at + 1).join("\n") };
+}
 
-${webContent}`;
-  } else if (!webContent.includes("layout:")) {
-    webContent = webContent.replace(/^---\r?\n/, '---\nlayout: "../../layouts/Layout.astro"\n');
-  }
+const NOTE_TITLE = (repo) => `# 海外急上昇OSS「${repo.name}」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS化のアイデア付き`;
+const NOTE_PAID_START = NOTE_PAYWALL.split("\n")[2];
 
-  // 公開日・リポジトリ URL・スター数は生成モデルの出力ではなく実データで上書きする
-  // （日付が違うと 1 日の生成本数の上限が効かず、スター数が違うと事実と異なる表示になる）
-  webContent = setFrontmatterField(webContent, "pubDate", `"${today}"`);
-  webContent = setFrontmatterField(webContent, "repoUrl", `"${repo.html_url}"`);
-  webContent = setFrontmatterField(webContent, "stars", String(repo.stargazers_count));
-  // 実際に生成に使ったモデル（フォールバックが起きた日を後から追えるように）
-  if (model) webContent = setFrontmatterField(webContent, "generator_model", `"${model}"`);
-  // タイトル・説明文は YAML として正しい文字列に書き直す（説明文の " や \ でビルドが止まる・文字が化けるのを防ぐ）
-  webContent = quoteFrontmatterStrings(webContent);
-
-  // サニタイズ＆品質不変条件ガード（閉じていないコードブロックは、Mermaid の補正・検査の前に閉じる）
-  webContent = closeOpenFence(sanitizeMarkdownContent(webContent));
-  webContent = fixMermaidInContent(webContent);
-  webContent = stripProSection(webContent);
-  // ページの h1 は 1 つだけ（生成モデルが本文の章見出しにも # を使うことがある）
-  webContent = normalizeHeadings(webContent, repo.name);
-  if (!webContent.includes("```mermaid")) {
-    // 汎用の架空構成図で埋めず、この生成結果は採用しない
-    throw new Error("Web記事にMermaid構成図が含まれていません");
-  }
-  // 補正しても Mermaid の構文上の問題が残る生成結果は採用しない（テスト・監査と同じ検査）
-  const mermaidIssues = mermaidProblems(webContent);
-  if (mermaidIssues.length > 0) throw new Error(`Mermaid図に問題があります: ${mermaidIssues.join(" / ")}`);
-  // サイトと同じ版の Mermaid で実際に解析し、描画できない図を含む記事は採用しない
-  const parseErrors = await mermaidParseErrors(webContent);
-  if (parseErrors.length > 0) throw new Error(`Mermaid図を描画できません: ${parseErrors.join(" / ")}`);
-
-  // バッククォートの不整合があれば補正
-  webContent = closeOpenFence(webContent);
-
-  noteContent = sanitizeMarkdownContent(noteContent);
-
-  xContent = xContent.replace(/REPO_SLUG/g, slug);
-
-  // X投稿文にワンクリック投稿リンクを付加（厳密な140文字制限・リンク保証）
-  let enhancedXContent = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
-  const tweets = xContent.split(/\[TWEET \d+\]/gi).map((t) => t.trim()).filter(Boolean);
-
-  if (tweets.length === 0) {
-    throw new Error("X投稿スレッドが正しく生成されていません（ツイート数不足）");
-  }
-
-  tweets.forEach((rawTweet, idx) => {
-    let tweet = rawTweet.replace(/REPO_SLUG/g, slug);
-    let intentUrl = '';
-
+// X の投稿文（3 ツイート）。生成モデルには書かせず、リポジトリの記録と概要の最初の原文つきの文から作る
+function xThreadText(repo, slug, firstJa) {
+  const link = `${X_LINK_LABEL}\nhttps://ssk0224.github.io/auto-tech-radar/radar/${slug}/`;
+  const feature = [...firstJa].length > 90 ? `${[...firstJa].slice(0, 89).join("")}…` : firstJa;
+  const tweets = [
+    `【海外OSS解説】\nGitHubで★${repo.stargazers_count}の「${repo.name}」を解説。\n${String(repo.description || "").slice(0, 45)}...\n${link}`,
+    `【README に書かれている特徴】\n${feature}`,
+    `【💡 実務キットは note で】\n導入提案書テンプレート・工数見積表は note の有料記事で公開中。\n${link}`,
+  ];
+  let out = `==================================================\n📱 ${repo.name} X (Twitter) 投稿用スレッド\n==================================================\n\n`;
+  tweets.forEach((raw, idx) => {
+    let tweet = raw;
+    let intentUrl;
     if (idx === 0) {
       // 第1ツイートは必ず記事リンクを付加し、140文字（280 weight）厳守で安全整形
-      const safeData = sanitizeAndAttachUrlToTweet(tweet, slug);
-      tweet = safeData.tweet;
-      intentUrl = safeData.intentUrl;
+      const safe = sanitizeAndAttachUrlToTweet(tweet, slug);
+      tweet = safe.tweet;
+      intentUrl = safe.intentUrl;
     } else {
-      const lines = tweet.split("\n");
-      if (lines.length > 5) {
-        tweet = lines.slice(0, 5).join("\n");
-      }
       intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     }
-
-    const tweetNum = idx + 1;
-    enhancedXContent += `--------------------------------------------------\n【ツイート ${tweetNum}】\n${tweet}\n\n👉 ワンクリックで投稿画面を開く:\n${intentUrl}\n--------------------------------------------------\n\n`;
+    out += `--------------------------------------------------\n【ツイート ${idx + 1}】\n${tweet}\n\n👉 ワンクリックで投稿画面を開く:\n${intentUrl}\n--------------------------------------------------\n\n`;
   });
+  return out;
+}
 
-  return {
-    web: webContent,
-    note: noteContent,
-    x: enhancedXContent,
-  };
+// Web 記事の frontmatter（題名・説明文は概要の最初の原文つきの文から page_shape が書く）
+function webFrontmatter(repo, today, model) {
+  const lines = [
+    'layout: "../../layouts/Layout.astro"',
+    `pubDate: "${today}"`,
+    `tags: ${JSON.stringify([...new Set([repo.language, "OSS", "GitHub"].filter(Boolean))])}`,
+    `repoUrl: "${repo.html_url}"`,
+    `stars: ${repo.stargazers_count}`,
+  ];
+  if (repo.created_at) lines.push(`repoCreatedAt: "${jstDate(repo.created_at)}"`);
+  // 実際に生成に使ったモデル（フォールバックが起きた日を後から追えるように）
+  if (model) lines.push(`generator_model: "${model}"`);
+  return lines.join("\n");
 }
 
 function sleep(ms) {
@@ -722,74 +646,77 @@ async function run() {
     }
 
     try {
-      const result = await generateAllContent(repo, readme, today, slug);
+      const generated = await generateAllContent(repo, readme);
       const license = await licenseFor(repo);
-      // README の事実の集合（data/readme_facts/<slug>.json）。公開する部分はこの集合に無い数値・ホスト・コマンドを含んではいけない
+      // README の事実の集合（data/readme_facts/<slug>.json）。公開する部分の原文は README の文、訳は原文の語と数値だけでできていること
       const facts = readmeFacts(readme, {
         repo: repo.full_name,
         created_at: repo.created_at ?? null,
+        language: repo.language ?? null,
         description: repo.description,
         license: { spdx: license.spdx, name: license.name, url: license.url, status: license.status, sourceAvailable: license.sourceAvailable, extraNotices: license.extraNotices },
       });
-      const lede = ledeText({ full_name: repo.full_name, created_at: repo.created_at, date: today, stars: repo.stargazers_count, gain7d: loadVelocity().repos?.[repo.full_name]?.gain_7d ?? null });
+      facts.diagrams = await renderableDiagrams(facts.diagrams);
+      const gain7d = loadVelocity().repos?.[repo.full_name]?.gain_7d ?? null;
       // 不採用の理由（規則の名前だけ）。すべての検査を通してから、1 つでもあれば採用しない
       const problems = [];
+      const { rawWeb, rawNote } = generated;
 
-      // Web 記事: 生成モデルが書いてよい節は WEB_LLM_H2 だけ。リード・インストール・ライセンスはデータから付け足す
-      if (h2Headings(result.web).some((h) => !WEB_LLM_H2.includes(h))) problems.push("Web記事にテンプレート外の見出しがあります");
-      result.web = assembleWebArticle(result.web, { lede, install: installSection(facts, repo.html_url), license: licenseSection(license) });
+      // Web 記事: 生成モデルの出力は、見出し 2 つと原文つきの文だけ（それ以外の行があれば採用しない）
+      const st = webStatementsOf(rawWeb);
+      if (st.otherHeadings.length) problems.push("Web記事にテンプレート外の見出しがあります");
+      if (st.stray) problems.push("Web記事に README の原文を伴わない行があります");
+      if (!st.overview.length) throw new Rejection([...problems, "Web記事の概要に原文つきの文がありません"]);
+      const name = repo.full_name.split("/")[1];
+      const web = renderWebPage({ frontmatter: webFrontmatter(repo, today, generated.model), name, stars: repo.stargazers_count, date: today, gain7d, overview: st.overview, architecture: st.architecture, facts });
+      for (const p of webPageProblems(web, facts)) problems.push(`Web記事が公開物の形を満たしません（${p.kind}）`);
 
-      // 有料部分は公開リポジトリに平文で置かない。有料ラインが無い原稿は有料部分を切り分けられないので採用しない
-      if (!splitPaid(result.note)) {
-        throw new Rejection(["note原稿に有料ラインがありません"]);
-      }
+      // note: 生成モデルが書くのは有料部分だけ。無料部分（題名・リード・原文つきの文・有料版の内容一覧・価格の案内）はデータから作る
+      const noteParts = notePartsOf(rawNote);
+      if (noteParts.free.trim()) problems.push("生成モデルが note の無料部分を書いています（無料部分はデータから作ります）");
+      if (h2Headings(noteParts.free).some((h) => !NOTE_FREE_TEMPLATE_H2.includes(h))) problems.push("note原稿の無料部分にテンプレート外の見出しがあります");
+      const paidBody = noteParts.paid.split("\n").filter((l, i, a) => !(i === a.findIndex((x) => x.trim()) && /^-{3,}\s*$/.test(l))).join("\n");
       // 推奨ハッシュタグは生成モデルの出力ではなく、記事の対象（言語・トピック）から作ったもので揃える。
-      // 領収書の案内は定型文にそろえ、そろえられない（案内が無い・事実と異なる古い断定がある）原稿は採用しない（次の候補を試す）
-      // 有料部分の節の題は太字の行にする（note.com の目次に出さない）。無料部分のリードと有料版の内容一覧はデータから作る
-      const parts = splitPaid(applyNoteHashtags(withStandardFooter(result.note), noteHashtags(repo)));
+      // 有料部分の節の題は太字の行にする（note.com の目次に出さない）。有料版の内容一覧は有料部分の節の題から判定する
+      const draft = applyNoteHashtags(withStandardFooter(`${NOTE_TITLE(repo)}\n${NOTE_PAYWALL.split("\n").slice(0, 2).join("\n")}\n${NOTE_PAID_START}\n${paidBody.trim()}\n`), noteHashtags(repo));
+      const parts = splitPaid(draft);
       const paid = paidHeadingsToBold(parts.paid.join("\n"));
-      const noteText = normalizeReceiptLine([assembleNoteHead(parts.head.join("\n"), { lede, features: paidContentSummary(paid).features }), paid, ...parts.tail].join("\n"));
-      const head = splitPaid(noteText).head.join("\n");
-      if (h2Headings(head).some((h) => !NOTE_FREE_TEMPLATE_H2.includes(h))) problems.push("note原稿の無料部分にテンプレート外の見出しがあります");
+      const statements = [...st.overview, ...st.architecture];
+      const head = renderNoteHead({ title: NOTE_TITLE(repo), stars: repo.stargazers_count, date: today, gain7d, statements, features: paidContentSummary(paid).features, facts });
+      const noteText = normalizeReceiptLine([head, paid, ...parts.tail].join("\n"));
+      for (const p of noteHeadProblems(splitPaid(noteText).head.join("\n"), facts, paidContentSummary(paid).features)) problems.push(`note原稿の無料部分が公開物の形を満たしません（${p.kind}）`);
       for (const p of [...noteDraftProblems(noteText), ...publicNoteProblems(noteFile, noteText), ...receiptProblems(noteText)]) problems.push(`note原稿が要件を満たしません（${ruleId(p)}）`);
-      // README で確かめられない数値・ホスト・コマンドの語（公開する部分: Web 記事（frontmatter の題名・説明文を含む）と note の無料部分）
-      const ungrounded = [...ungroundedTokens(result.web, facts), ...ungroundedTokens(head, facts, readmeFixedFacts)];
+
+      // 内容の検査は、保存するもの（Web 記事・note・X）と、生成モデルの出力そのもの（捨てた行を含む）の両方にかける
+      const x = xThreadText(repo, slug, st.overview[0].ja);
+      const result = { web, x, model: generated.model };
+      const publicTexts = [web, head, rawWeb, noteParts.free];
+      const ungrounded = [...ungroundedTokens(web, facts), ...ungroundedTokens(head, facts, readmeFixedFacts), ...ungroundedTokens(rawWeb, facts), ...ungroundedTokens(noteParts.free, facts, readmeFixedFacts)];
       if (ungrounded.length) problems.push(`README で確かめられない数値・ホスト・コマンドがあります（${[...new Set(ungrounded.map((u) => u.kind))].join(", ")}）`);
       // 実在しないイメージ・パッケージを購入者に渡さない（参照名は有料部分から拾うことがあるので、ログには件数だけを出す）
-      const missing = await findMissingReferences(`${noteText}\n${result.web}`);
+      const missing = await findMissingReferences(`${noteText}\n${web}`);
       if (missing.length) problems.push(`実在を確認できない参照があります（${missing.length}件）`);
       if (/"mcpServers"/.test(noteText) && !/mcp/i.test(readme)) problems.push("READMEにMCPの記載が無いのにMCP設定が含まれています");
       // 禁止表現・誇張表現の有無を厳格検査（テスト・監査と共通定義）
-      const forbiddenHits = [...findForbiddenClaims(noteText), ...findForbiddenClaims(result.web), ...findForbiddenClaims(result.x)];
+      const forbiddenHits = [noteText, web, x, rawWeb, rawNote].flatMap(findForbiddenClaims);
       if (forbiddenHits.length) problems.push(`生成文面に禁止・誇張表現が含まれています（${[...new Set(forbiddenHits.map(ruleId))].join(" / ")}）`);
-      // Web 記事だけの検査: 導入の勧め・引用の無い比較・ライセンスの推測と、LICENSE ファイルの判定と食い違うライセンス表記（既存の Web 記事にもテストで同じ検査をかける）
-      const webHits = [...findWebArticleClaims(result.web), ...licenseStatementProblems(result.web, await licenseFor(repo))];
+      // Web 記事の検査: 導入の勧め・引用の無い比較・ライセンスの推測と、LICENSE ファイルの判定と食い違うライセンス表記・有料キットの内容
+      const webHits = [...findWebArticleClaims(result.web), ...licenseStatementProblems(result.web, await licenseFor(repo)), ...findWebArticleClaims(rawWeb), ...licenseStatementProblems(rawWeb, license)];
       if (webHits.length) problems.push(`Web記事に根拠のない推奨・比較・ライセンス表記があります（${[...new Set(webHits.map(ruleId))].join(" / ")}）`);
-      // プロンプトで禁止した誇張・結果保証の表現（一発起動・爆発的・収入の金額など）が残っていれば採用しない（新規生成物だけの検査）
-      const hypeHits = [...findHype(noteText), ...findHype(result.web), ...findHype(result.x)];
+      const leaks = findProLeaks(rawWeb);
+      if (leaks.length) problems.push("Web記事に有料キットの内容が含まれています");
+      // プロンプトで禁止した誇張・結果保証の表現（一発起動・爆発的・収入の金額など）
+      const hypeHits = [...findHype(noteText), ...findHype(result.web), ...findHype(result.x), ...findHype(rawWeb), ...findHype(rawNote)];
       if (hypeHits.length) problems.push(`生成文面に誇張・結果保証の表現が含まれています（${[...new Set(hypeHits.map(ruleId))].join(" / ")}）`);
-      // 公開する部分（Web 記事・note の無料部分・X）の確かめられない評価の語（掲載中の全ページにもテストで同じ検査をかける）
-      const praiseHits = [...findUnverifiablePraise(result.web), ...findUnverifiablePraise(head), ...findUnverifiablePraise(result.x)];
+      // 公開する部分（Web 記事・note の無料部分・X）の確かめられない評価の語
+      const praiseHits = [...publicTexts, result.x].flatMap((t) => findUnverifiablePraise(t));
       if (praiseHits.length) problems.push(`公開する文面に確かめられない評価の語があります（${[...new Set(praiseHits.map(ruleId))].join(" / ")}）`);
 
-      // X投稿スレッドの完全性検証（途中で切れた不完全なスレッドの書き込み防止）
-      const cleanXBody = (result.x || "").replace(/^[=\-\s\n📱]+.*?X \(Twitter\) 投稿用スレッド[=\-\s\n]+/m, "").trim();
-      if (!result.x || result.x.length < 200 || cleanXBody.length < 50) {
-        problems.push(`X投稿スレッドが不完全または不足しています（全体: ${result.x ? result.x.length : 0}B, 本文: ${cleanXBody.length}文字）`);
-      }
-
-      // Web記事のコードブロック構文不変条件保証（未クローズのバッククォートを自動補正）
-      const webBackticks = (result.web.match(/```/g) || []).length;
-      if (webBackticks % 2 !== 0) {
-        result.web += "\n```\n";
-      }
-
-      // 公開日（生成した日の JST の日付）がリポジトリの作成日より前になる記事は書かない。作成日は frontmatter にも残す（選定の集中判定に使う）
-      if (repo.created_at) result.web = setFrontmatterField(result.web, "repoCreatedAt", `"${jstDate(repo.created_at)}"`);
-      const dateProblem = pubDateProblem((result.web.match(/^pubDate:\s*["']?([^"'\n]*)["']?/m) || [])[1], repo.created_at);
+      // 公開日（生成した日の JST の日付）がリポジトリの作成日より前になる記事は書かない
+      const dateProblem = pubDateProblem(today, repo.created_at);
       if (dateProblem) problems.push(dateProblem);
       // 保存するそのままの本文を、CI の品質ゲート・ビルドと同じ方法で最終検査する（途中の段階だけ検査して、ゲートで落ちる記事を保存しない）
-      const finalProblems = await finalWebArticleProblems(result.web);
+      const finalProblems = await finalWebArticleProblems(web);
       if (finalProblems.length) problems.push(`Web記事が品質ゲートを満たしません（${[...new Set(finalProblems.map(ruleId))].join(" / ")}）`);
       if (problems.length) throw new Rejection(problems);
 
