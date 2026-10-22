@@ -6,7 +6,7 @@ import os from "os";
 import path from "path";
 import { execFileSync } from "child_process";
 import { sanitizeAndAttachUrlToTweet, extractTweet1, calcTwitterWeight } from "../scripts/utils/twitter_formatter.mjs";
-import { classifyXResponse } from "../scripts/auto_tweet_x.mjs";
+import { classifyXResponse, postLatestTweet } from "../scripts/auto_tweet_x.mjs";
 import { recentArticleUrls } from "../scripts/ping_search_engines.mjs";
 
 test("ツイートは行数に関係なく weight 245 以内に収まり、URL と 👇 を残す", () => {
@@ -46,6 +46,63 @@ test("X の応答: 429 と 5xx だけ再試行し、他の 4xx は失敗とし�
   // 認証・権限エラーは記事のせいではないので記録しない（記録すると鍵を直しても二度と投稿されない）
   assert.equal(classifyXResponse(401), "auth");
   assert.equal(classifyXResponse(403, '{"title":"Forbidden","detail":"oauth1 app permissions"}'), "auth");
+});
+
+test("X の応答: 失敗として記録するのは記事のせいと分かる応答（400・422・重複投稿の 403）だけ。402（クレジット切れ）・408・425 などは再試行", () => {
+  for (const s of [402, 404, 408, 409, 413, 425, 451]) assert.equal(classifyXResponse(s, ""), "retry", String(s));
+  // 想定外の成功以外の値（1xx・3xx）も記録しない
+  assert.equal(classifyXResponse(304, ""), "retry");
+});
+
+// X への投稿を、一時ディレクトリの記事・履歴と模擬の fetch で動かす（api.twitter.com には接続しない）
+function runTweet(historyText, response, env = { X_API_KEY: "k", X_API_SECRET: "s", X_ACCESS_TOKEN: "t", X_ACCESS_TOKEN_SECRET: "u" }) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "atr-x-"));
+  fs.mkdirSync(path.join(root, "scripts"));
+  fs.mkdirSync(path.join(root, "x_posts"));
+  fs.mkdirSync(path.join(root, "src/pages/radar"), { recursive: true });
+  fs.writeFileSync(path.join(root, "x_posts/demo_x.txt"), "[TWEET 1]\n短い本文です\n👇\n\n[TWEET 2]\nx");
+  fs.writeFileSync(path.join(root, "src/pages/radar/demo.md"), '---\npubDate: "2026-10-20"\n---\n本文');
+  const historyFile = path.join(root, "scripts/publish_history.json");
+  if (historyText !== null) fs.writeFileSync(historyFile, historyText);
+  const calls = [];
+  const lines = [];
+  const fetchImpl = async (url) => {
+    calls.push(url);
+    if (response instanceof Error) throw response;
+    return new Response(response.body || "", { status: response.status });
+  };
+  return { root, historyFile, calls, lines, run: () => postLatestTweet({ root, env, fetchImpl, log: (l) => lines.push(l) }) };
+}
+
+test("X 投稿: 出品履歴が壊れて読めないときは投稿せず、履歴も書かず、::error で失敗にする（壊れた履歴を空として上書きしない）", async () => {
+  const t = runTweet('{"a": {"note": true, "x": tr');
+  const r = await t.run();
+  assert.equal(r.exitCode, 1);
+  assert.deepEqual(t.calls, [], "投稿しない");
+  assert.equal(fs.readFileSync(t.historyFile, "utf8"), '{"a": {"note": true, "x": tr', "履歴を書き換えない");
+  assert.ok(t.lines.some((l) => l.startsWith("::error") && /publish_history\.json/.test(l)), t.lines.join("\n"));
+  fs.rmSync(t.root, { recursive: true, force: true });
+});
+
+test("X 投稿: 再試行の応答（402 など）・通信の失敗・鍵の未設定は記録せず ::warning で知らせる。記事のせいの 400 は failed として記録する", async () => {
+  const credit = runTweet("{}", { status: 402, body: '{"title":"CreditsDepleted"}' });
+  const r1 = await credit.run();
+  assert.equal(credit.calls.length, 1);
+  assert.deepEqual(JSON.parse(fs.readFileSync(credit.historyFile, "utf8")), {}, "402 を failed として記録しない");
+  assert.ok(credit.lines.some((l) => l.startsWith("::warning") && /402/.test(l)), credit.lines.join("\n"));
+  assert.equal(r1.outcome, "retry");
+  const net = runTweet("{}", new Error("fetch failed"));
+  await net.run();
+  assert.ok(net.lines.some((l) => l.startsWith("::warning") && /fetch failed/.test(l)), net.lines.join("\n"));
+  assert.deepEqual(JSON.parse(fs.readFileSync(net.historyFile, "utf8")), {});
+  const nokey = runTweet("{}", { status: 201 }, {});
+  await nokey.run();
+  assert.deepEqual(nokey.calls, []);
+  assert.ok(nokey.lines.some((l) => l.startsWith("::warning") && /キー/.test(l)), nokey.lines.join("\n"));
+  const badReq = runTweet("{}", { status: 400, body: "bad" });
+  await badReq.run();
+  assert.equal(JSON.parse(fs.readFileSync(badReq.historyFile, "utf8")).demo.x, "failed");
+  for (const t of [credit, net, nokey, badReq]) fs.rmSync(t.root, { recursive: true, force: true });
 });
 
 test("出品履歴のマージ: true は failed より優先、failed は true に化けない", () => {
