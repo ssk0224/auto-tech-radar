@@ -13,7 +13,8 @@
     "vault:reseal": "node scripts/note_vault.mjs reseal",
     "note:sync": "node scripts/sync_note_urls.mjs",
     "note:serve": "node scripts/note_api_server.mjs",
-    "test": "node --import ./tests/helpers/test_env.mjs --test-reporter ./tests/helpers/skip_gate_reporter.mjs --test tests/*.test.mjs"
+    "test": "node --import ./tests/helpers/test_env.mjs --test-reporter ./tests/helpers/skip_gate_reporter.mjs --test tests/*.test.mjs",
+    "daily": "gh run list --workflow daily-crawl.yml -L 5"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
