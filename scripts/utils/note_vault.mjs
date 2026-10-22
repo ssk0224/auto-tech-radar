@@ -1,7 +1,7 @@
 // note 有料原稿の暗号化保管庫
 // 公開リポジトリには「無料部分 + 有料ライン + 暗号化済みの有料部分」だけを置く。
 // 暗号化は公開鍵 (keys/note_vault_public.pem) だけで行えるため、CI に秘密情報は不要。
-// 復号できるのは秘密鍵を持つオーナー端末のみ（既定: ~/.auto-tech-radar/note_vault_private.pem）。
+// 復号できるのは秘密鍵を持つオーナー端末のみ（既定の置き場所は ownerDir。./owner_dir.mjs）。
 import crypto from "crypto";
 import fs from "fs";
 import { ownerDir } from "./owner_dir.mjs";

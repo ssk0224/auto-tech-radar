@@ -10,7 +10,6 @@ import { pathToFileURL } from "url";
 export const MERGE_DRIVERS = {
   "merge.publish-history.driver": "node scripts/merge_publish_history.mjs %O %A %B",
   "merge.note-urls.driver": "node scripts/merge_note_urls.mjs %O %A %B",
-  "merge.note-status.driver": "node scripts/merge_note_status.mjs %O %A %B",
 };
 
 // stdout と stderr は別に持つ。ファイル名・パスなど「値」として使うのは stdout だけ（stderr には、Windows の core.autocrlf=true が出す

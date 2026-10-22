@@ -2,5 +2,3 @@
 * text=auto eol=lf
 scripts/publish_history.json merge=publish-history
 scripts/note_urls.json merge=note-urls
-scripts/note_status.json merge=note-status
-scripts/zenn_status.json merge=note-status

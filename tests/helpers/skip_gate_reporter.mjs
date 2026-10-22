@@ -8,6 +8,7 @@ import { spec as Spec } from "node:test/reporters";
 export const ALLOWED_SKIP_REASONS = [
   /秘密鍵が無い/, // 有料本文の復号は秘密鍵のある owner PC だけ（CI は秘密情報を使わない）
   /xvfb-run が無い/, // xvfb-run は Linux 専用
+  /オーナー端末の状態ファイルが無い/, // 差し替えリストなどオーナー端末の状態は公開リポに置かない（scripts/utils/owner_dir.mjs）ため CI には無い
 ];
 
 export const unexpectedSkips = (skipped) => skipped.filter((s) => !ALLOWED_SKIP_REASONS.some((re) => re.test(String(s.skip))));

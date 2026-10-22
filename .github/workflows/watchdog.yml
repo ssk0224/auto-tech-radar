@@ -1,0 +1,33 @@
+name: No-article watchdog
+
+# 日本時間の今日の記事が push 済みの main に 1 本も無ければ、Issue（ラベル pipeline-alert）でアラートする（scripts/alert_if_no_article.mjs）。
+# 監視は監視される側（daily-crawl.yml）と別の workflow・別の concurrency group で動かす。
+# 同じ group に載せると、push で起きた実行が待機中の定期便を取り消したとき、監視ごと消えて「記事が無いのに何も言わない」になる
+on:
+  schedule:
+    - cron: "45 3 * * *" # 日本時間 12:45（daily-crawl の第3便 12:17 の後）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: "no-article-watchdog"
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: "npm"
+      - run: npm ci
+      - name: Alert if no article today
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/alert_if_no_article.mjs

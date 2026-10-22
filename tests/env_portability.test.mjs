@@ -183,11 +183,19 @@ test("skip: Windows の CI（ATR_FORBID_SKIP=1）は、許可していない理�
   assert.equal(run("秘密鍵が無いため未実施", true).status, 0, "許可した理由（秘密鍵が無い）は通る");
 });
 
-test("HANDOFF.md にテストの件数・合否の数字を手で書かない（書いた時点の数字は古くなり、Windows で落ちているのに「通る」と読める）", () => {
-  const doc = fs.readFileSync(path.join(root, "docs/HANDOFF.md"), "utf8").replace(/\r\n/g, "\n");
-  const stale = doc.split("\n").filter((l) => /テスト\s*\d+\s*件|\d+\s*\/\s*\d+\s*件(?:失敗|成功|通)|npm test[^\n]{0,20}\d+\s*件/.test(l));
+// 引き継ぎ文書（HANDOFF.md）は公開リポから外し、オーナー端末の専用フォルダに置いた（tests/public_tree.test.mjs）。
+// 件数を手で書かない規則は、追跡しているすべての Markdown 文書に広げる（どの文書に書いても同じく古くなる）
+test("追跡している Markdown 文書にテストの件数・合否の数字を手で書かない（書いた時点の数字は古くなり、Windows で落ちているのに「通る」と読める）", async () => {
+  const { trackedFiles } = await import("./helpers/tracked_files.mjs");
+  const docs = trackedFiles(root).filter((f) => f.endsWith(".md") && !f.startsWith("note_drafts/") && !f.startsWith("src/pages/radar/"));
+  assert.ok(docs.includes("README.md"));
+  const stale = docs.flatMap((f) =>
+    fs.readFileSync(path.join(root, f), "utf8").replace(/\r\n/g, "\n").split("\n")
+      .filter((l) => /テスト\s*\d+\s*件|\d+\s*\/\s*\d+\s*件(?:失敗|成功|通)|npm test[^\n]{0,20}\d+\s*件/.test(l))
+      .map((l) => `${f}: ${l.trim().slice(0, 80)}`)
+  );
   assert.deepEqual(stale, [], "テストの件数は書かない。現在の合否は ci-windows.yml と npm test の実行結果");
-  assert.match(doc, /ci-windows\.yml/, "Windows の CI の存在を HANDOFF に書く");
+  assert.match(fs.readFileSync(path.join(root, "README.md"), "utf8"), /ci-windows\.yml/, "Windows の CI の存在を README に書く");
 });
 
 test("Windows の CI（ci-windows.yml）は、owner PC と同じ条件で全テストを走らせ、環境依存の skip を失敗にする", () => {

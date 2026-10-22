@@ -1,5 +1,5 @@
 // 日本時間の今日の記事（pubDate が今日）が 1 本も無ければ、このリポジトリの Issue でアラートを出す。
-// GitHub Actions の第3便（12:17 JST）のデプロイ後に実行する（.github/workflows/daily-crawl.yml）。
+// GitHub Actions の監視（.github/workflows/watchdog.yml、12:45 JST。daily-crawl.yml とは別の concurrency group）が実行する。
 // - 判定は記事ファイルの有無で行う（生成後に品質ゲートで取り除かれた記事は「無い」として扱う）。
 //   CI では作業ツリーではなく push 済みの origin/main を見る（生成したが commit・push に失敗した記事を「ある」と数えない）。
 //   理由は data/run_status/YYYY-MM-DD.json（scripts/utils/run_status.mjs）の記録を載せる

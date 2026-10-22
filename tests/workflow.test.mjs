@@ -66,7 +66,7 @@ test("品質ゲートに落ちたとき、この実行が commit するもの（
   const added = commit.run.match(/^\s*git add (.+)$/m)[1].trim().split(/\s+/).map((p) => p.replace(/\/$/, ""));
   const gate = steps.find((s) => s.id === "gate");
   const restored = [...gate.run.matchAll(/^\s*git checkout -- (.+)$/gm)].flatMap((m) => m[1].trim().split(/\s+/).map((p) => p.replace(/\/$/, "")));
-  for (const p of added.filter((x) => x !== "data")) assert.ok(restored.includes(p), `${p} を品質ゲートで元に戻していません`);
+  for (const p of added.filter((x) => x !== "data" && !x.startsWith("data/"))) assert.ok(restored.includes(p), `${p} を品質ゲートで元に戻していません`);
   // note の同期結果（scripts/note_urls.json など）は、生成物より先に戻して確かめる（同期の食い違いだけで記事を捨てない）
   assert.ok(gate.run.indexOf("scripts/note_urls.json") < gate.run.indexOf("git checkout -- src/pages/radar"));
   // 同期結果だけを戻して公開した回も、実行を失敗にして気づけるようにする
@@ -96,7 +96,7 @@ test("マージドライバを設定しないと X 投稿の記録が rebase で
     const seed = path.join(tmp, "seed");
     g(tmp, "clone", "-q", remote, seed);
     fs.mkdirSync(path.join(seed, "scripts/utils"), { recursive: true });
-    for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs", "merge_note_status.mjs", "utils/git_sync.mjs"]) fs.copyFileSync(path.join(root, "scripts", f), path.join(seed, "scripts", f));
+    for (const f of ["merge_publish_history.mjs", "merge_note_urls.mjs", "utils/git_sync.mjs"]) fs.copyFileSync(path.join(root, "scripts", f), path.join(seed, "scripts", f));
     fs.copyFileSync(path.join(root, ".gitattributes"), path.join(seed, ".gitattributes"));
     const history = (o) => fs.writeFileSync(path.join(seed, "scripts/publish_history.json"), JSON.stringify(o, null, 2) + "\n");
     history({ a: { x: true } });

@@ -49,9 +49,9 @@ test("GitHub からの取り込みは utils/git_sync.mjs の pullLatest だけ�
   }
   const launcher = readText("scripts/launcher.mjs");
   assert.equal((launcher.match(/pullLatest\(rootDir/g) || []).length, 3, "起動時・メニュー実行前・[S] の 3 か所");
-  // [S] は git add . の前に衝突の印・壊れた出品履歴を直す（そのままコミットして GitHub に送らない）
+  // [S] はコミットする（台帳でオーナーが書く出力だけを commitAndSync に渡す）前に、衝突の印・壊れた出品履歴を直す（そのままコミットして GitHub に送らない）
   const sync = launcher.match(/function runCloudSync\(\) \{[\s\S]*?\n\}/)[0];
-  const add = sync.indexOf("execSync('git add .'");
+  const add = sync.indexOf("commitAndSync(rootDir, paths");
   assert.ok(add > 0 && sync.indexOf("repairWorkingTree(rootDir)") < add);
   assert.ok(sync.indexOf("historyUnreadable()") < add);
 });

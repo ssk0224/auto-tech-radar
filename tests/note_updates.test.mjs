@@ -1,11 +1,15 @@
-// note 公開済み記事の差し替えリスト（scripts/note_updates.json）が実データと食い違っていないことを確かめる
+// note 公開済み記事の差し替えリスト（オーナー端末の ownerDir/note_updates.json。公開リポには置かない）が実データと食い違っていないことを確かめる
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
+import { noteUpdatesFile } from "../scripts/utils/owner_dir.mjs";
 
-test("差し替えリストは note 公開済みの全記事を含み、ノイズ記事だけを非公開にする", () => {
-  const spec = JSON.parse(fs.readFileSync("scripts/note_updates.json", "utf8"));
+const specFile = noteUpdatesFile();
+const absent = !fs.existsSync(specFile) && "オーナー端末の状態ファイルが無いため未実施（差し替えリストはオーナー端末の ownerDir にだけ置く）";
+
+test("差し替えリストは note 公開済みの全記事を含み、ノイズ記事だけを非公開にする", { skip: absent }, () => {
+  const spec = JSON.parse(fs.readFileSync(specFile, "utf8"));
   const history = JSON.parse(fs.readFileSync("scripts/publish_history.json", "utf8"));
   assert.match(spec.since, /^\d{4}-\d{2}-\d{2}$/);
   for (const [slug, v] of Object.entries(history)) {

@@ -111,15 +111,6 @@ test("公開中の note の検査: 禁止表現・ThoughtWorks・# 始まりの�
   assert.ok(claims.some((i) => /コピペで本番/.test(i)));
 });
 
-test("note_status.json の衝突は検査時刻が新しい方を採る", async () => {
-  const { newerStatus } = await import("../scripts/merge_note_status.mjs");
-  const a = { checkedAt: "2026-10-21T05:20:00Z", notes: { x: 1 } };
-  const b = { checkedAt: "2026-10-21T05:23:00Z", notes: { x: 2 } };
-  assert.equal(newerStatus(a, b), b);
-  assert.equal(newerStatus(b, a), b);
-  assert.equal(newerStatus(null, a), a);
-});
-
 test("公開中の note の有料ラインの位置: 原稿どおり / 上 / 下（有料部分が無料で見える）を見分ける", async () => {
   const { paidLineReport } = await import("../scripts/sync_note_urls.mjs");
   const draft = "# T\n\n## 概要\nこれは無料部分の最初の段落です。とても大事な説明が続きます。\n\n## 詳細\nさらに無料の説明が続き、最後の無料の文で終わります。\n\n【有料ライン ここから先は有料】\n---\n### 🎁 【メンバーシップのご案内】\nx";
