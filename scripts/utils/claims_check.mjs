@@ -83,6 +83,27 @@ export function findWebArticleClaims(text) {
   return hits;
 }
 
+// ---- サイトの運営者の文（記事本文の外: ページの見出し・案内・ボタン・meta・llms.txt）が約束してはいけないこと ----
+// 速さ（即時・N秒で）、無料のサービス、検査・除外の網羅（一切・すべて・100%）は、運営の実態やコードで裏付けられない。
+// 手で書いた約束（「即時見積もり」「1秒で試算」「無料相談」「言い回しにかかわらず一切公開しません」）が、事実の確認なしに残った（2026-10-22）
+export const SITE_PROMISE_RULES = [
+  [/\d+\s*(?:秒|分)(?:で|以内)|即(?:時|日|座)|瞬時|\binstant(?:ly)?\b/i, "速さを約束する表現（処理・対応にかかる時間は保証できない）"],
+  [/無料(?:で)?(?:相談|診断|見積|サポート|導入|構築|対応)|\bfree\s+(?:consultation|quote|estimate|support)\b/i, "無料のサービスを約束する表現"],
+  [
+    /一切|言い回し(?:に|を)?(?:かかわらず|問わず)|(?:すべて|全て|あらゆる|いかなる|どんな)[^。\n]{0,20}(?:検査|検出|除外|排除|ブロック|取り除|防|止め)|100\s*[%％]|漏れなく|完全に(?:検査|防|排除|除外|検出)|必ず(?:検出|除外|止め|防)|\bnever\s+publish|\bguarantee/i,
+    "検査・除外の網羅を保証する表現（規則に無い言い回しは検出できない）",
+  ],
+];
+
+export function findSitePromises(text) {
+  const hits = [];
+  for (const [re, why] of SITE_PROMISE_RULES) {
+    const m = String(text || "").match(re);
+    if (m) hits.push(`${why} ("${m[0]}")`);
+  }
+  return hits;
+}
+
 // ---- 公開している「自動で検査していること」の一覧（src/pages/about.astro が表示する） ----
 // 一覧は上の規則（と hype_check.mjs の HYPE_RULES）から作る。手で書くと、規則より広い範囲を保証する文になる
 // （「誇張表現は公開しません」と書いていたが、規則に無い「革新的」「極限」は検出されず残った。2026-10-22）。
@@ -95,4 +116,5 @@ export const PUBLIC_CHECK_GROUPS = [
   { name: "導入・採用を勧める表現", source: "scripts/utils/claims_check.mjs", scope: "生成時に当たった Web 記事は公開しません。掲載中の Web 記事とサイトの配信物もテストで検査します。", rules: uniqueWhys(WEB_ADOPTION_RULES) },
   { name: "比較・最上級の表現", source: "scripts/utils/claims_check.mjs", scope: "同じ段落に README の該当箇所をリンク付きで引用していない Web 記事は公開しません。", rules: [{ why: WEB_SUPERLATIVE_WHY }] },
   { name: "ライセンスの推測", source: "scripts/utils/claims_check.mjs", scope: "ライセンス・商用利用の文脈で当たった Web 記事は公開しません。", rules: [{ why: WEB_LICENSE_REASONING_WHY }] },
+  { name: "サイトの案内文の約束", source: "scripts/utils/claims_check.mjs", scope: "記事本文以外のサイトの文（見出し・案内・ボタン・説明文）をテストで検査します。", rules: uniqueWhys(SITE_PROMISE_RULES) },
 ];

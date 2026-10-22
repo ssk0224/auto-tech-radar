@@ -163,7 +163,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
         <!-- Q4: 未分類 -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #fbbf24; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-            🧩 Q4: {UNCATEGORIZED}（タグが上の3つに当てはまらない記事）
+            🧩 Q4: {UNCATEGORIZED}（タグが上の{TOPIC_CATEGORIES.length}つに当てはまらない記事）
           </h4>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
             {radarItems.filter(item => item.quadrant === 3).map(item => (

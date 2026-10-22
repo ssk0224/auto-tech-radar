@@ -7,10 +7,10 @@ const { variant = "text" } = Astro.props;
 const facts = cadenceFacts((getArticles() as any[]).map((p) => p.frontmatter?.pubDate), Date.now());
 ---
 {variant === "metric" ? (
-  <div class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days}>
+  <div class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days} data-derived="cadence" data-derived-value={facts.count}>
     <div style="font-size: 1.5rem; font-weight: 900; color: #38bdf8;">{facts.count} 本</div>
     <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">直近{facts.days}日の掲載{facts.lastDate ? `（最終 ${facts.lastDate}）` : ""}</div>
   </div>
 ) : (
-  <span class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days}>{cadenceText(facts)}</span>
+  <span class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days} data-derived="cadence" data-derived-value={facts.count}>{cadenceText(facts)}</span>
 )}

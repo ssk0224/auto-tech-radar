@@ -6,8 +6,11 @@ import { dateLabel } from "../utils/dates.js";
 import { ellipsis } from "../utils/article_page.js";
 import { ogpPathFor } from "../utils/ogp.js";
 import Cadence from "../components/Cadence.astro";
+import { categoryOf, TOPIC_CATEGORIES, UNCATEGORIZED } from "../utils/categories.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
+// 絞り込みのボタン: 分類の定義そのもの（タグの完全一致。当てはまらない記事は「未分類」）。手で書いた分類名を出さない
+const categoryPills = [...TOPIC_CATEGORIES.map((c) => ({ key: c.key, label: c.label })), { key: "none", label: UNCATEGORIZED }];
 ---
 <Layout title="Auto Tech Radar | 海外急上昇OSS徹底解剖メディア">
   <!-- Hero Section -->
@@ -135,20 +138,17 @@ const posts = getArticles() as any[];
           type="text" 
           id="search-input" 
           aria-label="記事をキーワードで検索" 
-          placeholder="リポジトリ名やキーワードで瞬時に検索... (例: AI, agent, Python, CLI)" 
+          placeholder="リポジトリ名やキーワードで検索 (例: AI, agent, Python, CLI)" 
           style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.92rem; outline: none;"
         />
       </div>
       <!-- One-click Category Quick Filters -->
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">技術領域絞込:</span>
-        <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">全ジャンル</button>
-        <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent</button>
-        <button class="cat-pill" data-cat="saas" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🚀 SaaS代替・脱課金</button>
-        <button class="cat-pill" data-cat="llm" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">⚡ ローカル推論・LLM</button>
-        <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発者ツール・自動化</button>
-        <button class="cat-pill" data-cat="rust" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🦀 Rust高速基盤</button>
-        <button class="cat-pill" data-cat="python" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🐍 Python ML</button>
+        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">タグによる分類:</span>
+        <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">すべて</button>
+        {categoryPills.map((c) => (
+          <button class="cat-pill" data-cat={c.key} style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">{c.label}</button>
+        ))}
       </div>
     </div>
   </section>
@@ -171,7 +171,7 @@ const posts = getArticles() as any[];
           const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
           const title = post.frontmatter?.title || post.file;
           return (
-            <article class="post-card" data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
+            <article class="post-card" data-category={categoryOf(post.frontmatter?.tags).key} data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
               <div class="post-card-inner">
                 <div class="post-card-thumb">
                   <a href={hrefOf(post)} tabindex="-1" aria-hidden="true">
@@ -305,13 +305,17 @@ const posts = getArticles() as any[];
     const countEl = document.getElementById("post-count");
     const catPills = document.querySelectorAll(".cat-pill");
 
+    // 検索語（部分一致）と分類（カードの data-category の完全一致）の両方で絞り込む
+    let activeCat = "";
     function applyFilter(query) {
       let visibleCount = 0;
       cards.forEach((card) => {
         const title = card.getAttribute("data-title") || "";
         const desc = card.getAttribute("data-desc") || "";
         const tags = card.getAttribute("data-tags") || "";
-        if (!query || title.includes(query) || desc.includes(query) || tags.includes(query)) {
+        const catOk = !activeCat || card.getAttribute("data-category") === activeCat;
+        const queryOk = !query || title.includes(query) || desc.includes(query) || tags.includes(query);
+        if (catOk && queryOk) {
           card.style.display = "";
           visibleCount++;
         } else {
@@ -338,9 +342,8 @@ const posts = getArticles() as any[];
         pill.style.color = "#fff";
         pill.style.border = "none";
 
-        const cat = pill.getAttribute("data-cat") || "";
-        if (searchInput) searchInput.value = cat;
-        applyFilter(cat);
+        activeCat = pill.getAttribute("data-cat") || "";
+        applyFilter(searchInput ? searchInput.value.toLowerCase().trim() : "");
       });
     });
   </script>

@@ -20,7 +20,7 @@ const shortTitle = (t: string) => String(t || "").split(" - ")[0].trim();
 
     <h2 style="color: #fff;">自動で検査していること</h2>
     <p>文の表現は、次の規則に当たるかを機械的に検査しています。規則に無い言い回しは検出できません（検出する語の定義は <a href={`${siteConfig.githubUrl}/blob/main/scripts/utils/claims_check.mjs`}>claims_check.mjs</a>・<a href={`${siteConfig.githubUrl}/blob/main/scripts/utils/hype_check.mjs`}>hype_check.mjs</a> で公開しています）。</p>
-    <ul id="public-checks">
+    <ul id="public-checks" data-derived="checks" data-derived-value={PUBLIC_CHECK_GROUPS.length}>
       {PUBLIC_CHECK_GROUPS.map((g) => (
         <li><strong>{g.name}</strong>: {g.scope}
           <ul>{g.rules.map((r) => <li>{r.why}</li>)}</ul>
