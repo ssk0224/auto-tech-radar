@@ -2,7 +2,7 @@
 //   node scripts/note_vault.mjs seal-all        平文の有料部分を含む原稿をすべて暗号化（公開鍵のみで実行可）
 //   node scripts/note_vault.mjs open <slug>     出品用の完全版を ~/.auto-tech-radar/note_full/ に復号
 //   node scripts/note_vault.mjs open-all        すべて復号
-//   node scripts/note_vault.mjs reseal          古い鍵・旧形式の暗号化ファイルを現在の公開鍵で暗号化し直す
+//   node scripts/note_vault.mjs reseal [--all]  古い鍵・旧形式の暗号化ファイル（--all: すべて）を現在の公開鍵で暗号化し直す
 //   node scripts/note_vault.mjs keygen          鍵ペアを生成（秘密鍵はオーナー端末、公開鍵は keys/）
 //   node scripts/note_vault.mjs rotate          新しい鍵ペアを作り、すべて暗号化し直す
 // 鍵の作り直し（rotate）の前に GitHub Actions の Daily Tech Radar Pipeline を一時停止してください。
@@ -15,6 +15,7 @@ import {
   isSealed, splitPaid, writeSealedNote, assembleNote, openNoteForPublishing, paidContentSummary, summaryFileFor,
   loadPublicKey, loadPrivateKeys, keyId, sealedFileFor, sealedInfo,
 } from "./utils/note_vault.mjs";
+import { paidHeadingsToBold } from "./utils/headings.mjs";
 
 const [cmd, arg] = process.argv.slice(2);
 
@@ -55,16 +56,20 @@ function keygen() {
   console.log(`✓ 公開鍵: ${publicKeyFile}（コミットする）`);
 }
 
-// 現在の公開鍵・現行形式でない暗号化ファイルを暗号化し直す
-function reseal(pub = loadPublicKey()) {
+// 現在の公開鍵・現行形式でない暗号化ファイルを暗号化し直す。all: すべて暗号化し直す
+// （有料部分の見出しを太字の行にする。平文は端末のメモリ上だけで扱う）
+function reseal(pub = loadPublicKey(), { all = false } = {}) {
   const keys = loadPrivateKeys();
   const kid = keyId(pub);
   let n = 0;
   for (const f of noteFiles()) {
     if (!isSealed(fs.readFileSync(f, "utf8"))) continue;
     const info = sealedInfo(fs.readFileSync(sealedFileFor(f), "utf8"));
-    if (info && info.v === 2 && info.kid === kid) continue;
-    writeSealedNote(f, assembleNote(f, keys), pub);
+    if (!all && info && info.v === 2 && info.kid === kid) continue;
+    const full = assembleNote(f, keys);
+    // --all: 有料部分の見出しを太字の行にしてから暗号化し直す（note.com の目次に有料部分の見出しを出さない。leakhunt C4）
+    const parts = all ? splitPaid(full) : null;
+    writeSealedNote(f, parts ? [...parts.head, paidHeadingsToBold(parts.paid.join("\n")), ...parts.tail].join("\n") : full, pub);
     n++;
   }
   console.log(`✓ 暗号化し直し: ${n} 本`);
@@ -105,7 +110,7 @@ try {
   else if (cmd === "summarize") summarize();
   else if (cmd === "open" && arg) console.log(`✓ ${openNoteForPublishing(path.join(noteDir, `${arg}_note.md`))}`);
   else if (cmd === "open-all") { noteFiles().forEach((f) => openNoteForPublishing(f)); console.log(`✓ 復号先: ${openedDir}`); }
-  else if (cmd === "reseal") reseal();
+  else if (cmd === "reseal") reseal(loadPublicKey(), { all: arg === "--all" });
   else if (cmd === "keygen") keygen();
   else if (cmd === "rotate") rotate();
   else {

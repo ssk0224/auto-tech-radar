@@ -4,7 +4,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
-import { findHype, HYPE_PROMPT_RULE } from "../scripts/utils/hype_check.mjs";
+import { findHype, HYPE_PROMPT_RULE, findUnverifiablePraise } from "../scripts/utils/hype_check.mjs";
+import { splitPaid } from "../scripts/utils/note_vault.mjs";
+import { normalizeEol } from "../scripts/utils/eol.mjs";
 
 const NG = [
   "コピペで本番一発起動できる設定キット",
@@ -74,10 +76,43 @@ test("公開している原稿（note の無料部分・Web 記事・Zenn 原稿
   );
   assert.ok(files.length > 100);
   for (const f of files) assert.deepEqual(findHype(fs.readFileSync(f, "utf8")), [], f);
-  // aihot・opendots の箇条書きは、公開中の文に [E] の規則を当てた結果と同じ（「実稼働」を「動作未検証」と並べない）
-  for (const slug of ["aihot", "opendots"]) {
-    const s = fs.readFileSync(`note_drafts/${slug}_note.md`, "utf8");
-    assert.ok(s.split(/\r?\n/).includes("- 公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & .env 設定キット」"), slug);
-    assert.doesNotMatch(s, /実稼働/, slug);
+  // 無料部分の有料版の案内は、有料部分の節の題から判定した一覧（*.paid.json の features）だけ。
+  // 生成モデルが書いた宣伝の箇条書き（「Docker Compose & .env 設定キット」「実稼働」など）は残さない（leakhunt C4、2026-10-22）
+  for (const f of fs.readdirSync("note_drafts").filter((x) => x.endsWith("_note.paid.json"))) {
+    const { features } = JSON.parse(fs.readFileSync(path.join("note_drafts", f), "utf8"));
+    const head = splitPaid(normalizeEol(fs.readFileSync(path.join("note_drafts", f.replace(".paid.json", ".md")), "utf8"))).head.join("\n");
+    const listed = head.split("### 🔒 有料エリアの内容\n")[1]?.split("\n\n")[0].split("\n").map((l) => l.replace(/^- /, "")) ?? [];
+    assert.deepEqual(listed, features, f);
+    assert.doesNotMatch(head, /実稼働|設定キット|導入手順/, f);
   }
+});
+
+// ---- 確かめられない評価の語（leakhunt C3、2026-10-22）: 生成時に加えて、掲載中のすべての Web 記事と note の無料部分に使う ----
+test("確かめられない最上級・絶対の評価と根拠の無い評判を見つけ、手順の説明や否定・コードの中は見つけない", () => {
+  for (const s of ["革新的なアーキテクチャ", "推論を極限まで最適化", "DeepSeekモデルに特化した最高峰のパフォーマンス", "不要なアプリを完全に除去", "ゼロクラッシュの堅牢性", "ハルシネーション0%", "シリコンバレーのエンジニアを熱狂させている", "世界中のエンジニアから注目を集めています", "超高速な配信性能", "劇的に効率化"]) {
+    assert.ok(findUnverifiablePraise(s).length > 0, s);
+  }
+  for (const s of ["完全には対応していません", "高速に動作します（README によると p50 32.8ms）", "最適化されたカーネル", "```bash\n# 革新的\n```", "最新の手順は README を確認してください"]) {
+    assert.deepEqual(findUnverifiablePraise(s), [], s);
+  }
+});
+
+test("掲載中のすべての Web 記事と note の無料部分に、確かめられない評価の語が無い", () => {
+  const bad = [];
+  for (const f of fs.readdirSync("src/pages/radar").filter((x) => x.endsWith(".md"))) {
+    const hits = findUnverifiablePraise(fs.readFileSync(path.join("src/pages/radar", f), "utf8"));
+    if (hits.length) bad.push(`${f}: ${hits.join(", ")}`);
+  }
+  for (const f of fs.readdirSync("note_drafts").filter((x) => x.endsWith("_note.md"))) {
+    const head = splitPaid(normalizeEol(fs.readFileSync(path.join("note_drafts", f), "utf8"))).head.join("\n");
+    const hits = findUnverifiablePraise(head);
+    if (hits.length) bad.push(`${f}: ${hits.join(", ")}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("生成スクリプトは確かめられない評価の語をプロンプトで禁止し、公開する部分を同じ規則で検査する", () => {
+  const src = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
+  assert.match(src, /\$\{UNVERIFIABLE_PRAISE_PROMPT_RULE\}/);
+  assert.match(src, /findUnverifiablePraise\(/);
 });

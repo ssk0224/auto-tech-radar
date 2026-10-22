@@ -21,9 +21,15 @@ const PAYWALL_MARKERS = ["【有料ライン", "有料会員限定", "ここか�
 // 有料ライン以降でも、出品時に必要な案内・ハッシュタグは有料コンテンツではないので公開側に残す
 const TAIL_RE = /^(### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*)/;
 // 末尾フッター（公開されたまま暗号化されない部分）に置いてよい行。これ以外の行があれば有料本文が混ざっている
-const FOOTER_LINE_RE = /^(\s*|-{3,}|### 🎁 【メンバーシップのご案内】|[^#|`<>\n]{0,300}メンバーシップ[^#|`<>\n]{0,300}|\*\*【note出品時用 推奨ハッシュタグ】\*\*.*|(#\S+\s*)+)$/;
+// 案内の文は標準の末尾（STANDARD_FOOTER）の行と完全に一致するものだけ（「メンバーシップ」に触れた任意の文を許すと、
+// 生成モデルが案内の見出しの後に書いた有料本文が暗号化されずに公開される。leakhunt #81、2026-10-22）
+const FOOTER_LINE_RE = /^(\s*|-{3,}|### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*(（出品時にタグ欄へ貼り付けてください）)?|(#\S+\s*)+)$/;
 export function isFooterOnly(lines) {
-  return lines.every((l) => FOOTER_LINE_RE.test(l.replace(/\r$/, "")));
+  const standard = new Set(STANDARD_FOOTER.split("\n").map((l) => l.trim()).filter(Boolean));
+  return lines.every((l) => {
+    const line = l.replace(/\r$/, "");
+    return FOOTER_LINE_RE.test(line) || standard.has(line.trim());
+  });
 }
 export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->\r?$/m;
 export const MIN_PAID_CHARS = 1500;
@@ -175,23 +181,20 @@ export function loadPrivateKeys() {
 }
 
 // 有料原稿テキストを公開用 .md と暗号化 .paid.enc に分けて書き出す。平文の有料部分はディスクに書かない。
-// 有料部分の見出し（##）から「有料版に何が入っているか」を判定する。本文は含めない。
+// 有料部分の節の題から「有料版に何が入っているか」を判定する。本文は含めない。
 // Web 記事の購入案内に、その記事の有料版に実際にある項目だけを表示するために使う
-const PAID_FEATURES = [
+// 有料部分の節の題は見出しを使わず太字の行で書く（note.com の目次に有料部分の見出しが出るため）。古い原稿の見出しも節の題として読む。
+// 有料版の売りは README から作り直せないもの（提案書・見積・活用の考え方・想定問答）だけにする。
+// 導入手順は無料の Web 記事に README から転記しているので、有料の売りにしない（leakhunt C4、2026-10-22）
+export const PAID_FEATURE_RULES = [
   [/提案書/, "導入提案書テンプレート（Markdown）"],
   [/見積/, "工数・見積表"],
-  [/Docker|導入手順|インストール|セットアップ|起動|カスタマイズ|実装の勘所|設定/, "導入手順"],
-  [/マネタイズ|活用/, "活用・収益化の考え方"],
+  [/マネタイズ|活用|収益化/, "活用・収益化の考え方"],
   [/想定問答|Q&A/, "導入時の想定問答"],
 ];
 export function paidContentSummary(paidText) {
-  const h2 = paidText.split(/\r?\n/).filter((l) => /^#{2,3} /.test(l));
-  const features = [];
-  for (const [re, label] of PAID_FEATURES) {
-    const hit = h2.filter((l) => re.test(l));
-    if (hit.length === 0) continue;
-    features.push(label === "導入手順" && hit.some((l) => /未検証|公式未提供/.test(l)) ? "導入手順（公式未提供・動作未検証の例を含む）" : label);
-  }
+  const labels = paidText.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^#{2,3} /.test(l) || /^\*\*[^*].*\*\*$/.test(l));
+  const features = PAID_FEATURE_RULES.filter(([re]) => labels.some((l) => re.test(l))).map(([, label]) => label);
   return { chars: [...paidText.replace(/\s/g, "")].length, features };
 }
 export const summaryFileFor = (noteFile) => noteFile.replace(/\.md$/, ".paid.json");
@@ -219,8 +222,10 @@ export function writeSealedNote(noteFile, fullContent, publicKeyPem = loadPublic
   }
   const publicText = publicNoteText(noteFile, fullContent);
   const aad = path.basename(noteFile);
-  fs.writeFileSync(sealedFileFor(noteFile), encryptText(parts.paid.join("\n"), publicKeyPem, aad), "utf8");
-  fs.writeFileSync(summaryFileFor(noteFile), JSON.stringify(paidContentSummary(parts.paid.join("\n")), null, 2) + "\n", "utf8");
+  // 暗号化は元の原稿をそのまま復元できる形で行う（有料部分の見出しを太字の行にするのは、生成スクリプトと reseal --all の側）
+  const paid = parts.paid.join("\n");
+  fs.writeFileSync(sealedFileFor(noteFile), encryptText(paid, publicKeyPem, aad), "utf8");
+  fs.writeFileSync(summaryFileFor(noteFile), JSON.stringify(paidContentSummary(paid), null, 2) + "\n", "utf8");
   fs.writeFileSync(noteFile, publicText, "utf8");
   return { sealed: true };
 }

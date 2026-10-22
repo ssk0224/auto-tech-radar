@@ -108,6 +108,32 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("保存した記事の見出しはテンプレートの見出しだけで、リード・インストール・ライセンスの節と README の事実の集合はデータから作る", async () => {
+  const { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, h2Headings, paidHeadingLines } = await import("../scripts/utils/article_template.mjs");
+  const { dir, log } = run(output({ paidExtra: "## 📋 提案書テンプレート\n本文\n## 🗣️ 想定問答\n回答" }));
+  try {
+    const web = fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8");
+    assert.ok(h2Headings(web).every((h) => WEB_TEMPLATE_H2.includes(h)), web);
+    assert.ok(h2Headings(web).includes("## インストール（README からの転記）"), web);
+    assert.ok(h2Headings(web).includes("## ライセンス"), web);
+    // リードは作成日（JST）とスター数の記録から
+    assert.ok(web.includes("acme/testtool は 2026-01-15 に GitHub で作成されたリポジトリです。"), web);
+    assert.match(web, /時点のスター数は 1,234 です。/);
+    const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
+    const head = pub.split("【有料ライン")[0];
+    assert.ok(h2Headings(head).every((h) => NOTE_FREE_TEMPLATE_H2.includes(h)), head);
+    assert.ok(head.includes("## はじめに\n\nacme/testtool は 2026-01-15 に GitHub で作成されたリポジトリです。"), head);
+    // 有料版の内容一覧は有料部分の節の題から（生成モデルの宣伝文ではない）
+    assert.ok(head.includes("### 🔒 有料エリアの内容\n- 導入提案書テンプレート（Markdown）\n- 導入時の想定問答"), head);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "note_drafts/testtool_note.paid.json"), "utf8")).features, ["導入提案書テンプレート（Markdown）", "導入時の想定問答"]);
+    assert.deepEqual(paidHeadingLines(head.replace(/^# .*$/m, "")).filter((h) => !/^#{2,3} /.test(h)), []);
+    const facts = JSON.parse(fs.readFileSync(path.join(dir, "data/readme_facts/testtool.json"), "utf8"));
+    assert.equal(facts.repo, "acme/testtool");
+    assert.equal(facts.created_at, "2026-01-15T00:00:00Z");
+    assert.deepEqual(Object.keys(facts).sort(), ["commands", "created_at", "expansions", "hosts", "install_blocks", "license", "quantities", "repo"]);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("1 回の実行で生成する新規記事は 1 本まで（候補が複数あっても 2 本目は生成しない）", () => {
   const calls = path.join(os.tmpdir(), `atr-calls-count-${process.pid}`);
   fs.rmSync(calls, { force: true });
@@ -145,6 +171,13 @@ for (const [name, opts, why] of [
   ["Web記事に引用の無い比較（優位）を含む", { web: "競合よりも優位です。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
   ["Web記事で禁止の記載が無いことを根拠にライセンスを推測する", { web: "## 商用利用可否 & ライセンス考察\n明示的な禁止がないため、OSSの慣例として許容されることが多いです。" }, /禁止の記載が無いことを根拠にしたライセンスの推測/],
   ["LICENSE ファイルが無いのに、Web記事が MIT と書く", { web: "## 商用利用可否 & ライセンス考察\nMIT License なので商用利用は可能です。" }, /ライセンス未指定である旨が書かれていない/],
+  // README で確かめられない内容を書かせない（leakhunt C3、2026-10-22）
+  ["Web記事にテンプレート外の節（競合比較）を含む", { web: "## 競合ツール/商用SaaSとの徹底比較\n| 項目 | testtool |\n|---|---|\n| 起動 | 速い |" }, /Web記事にテンプレート外の見出しがあります/],
+  ["Web記事に README に無い削減率を含む", { web: "クラウドAPIコストを9割どころか90％削減できます。" }, /README で確かめられない数値・ホスト・コマンドがあります（quantity）/],
+  ["note の無料部分に README に無いホストとコマンドを含む", { free: `${FREE}\n\`\`\`bash\ncurl -fsSL https://cdn.example.net/install.sh | sh\n\`\`\`` }, /README で確かめられない数値・ホスト・コマンドがあります（host, command）/],
+  ["Web記事に確かめられない評価の語を含む", { web: "推論を極限まで最適化した革新的なアーキテクチャです。" }, /公開する文面に確かめられない評価の語があります（確かめられない最上級・絶対の評価）/],
+  ["note の無料部分に根拠の無い評判を含む", { free: `${FREE}\nシリコンバレーのエンジニアを熱狂させています。` }, /公開する文面に確かめられない評価の語があります（根拠の無い評判・注目度）/],
+  ["note の無料部分にテンプレート外の節を含む", { free: `${FREE}\n## 競合ツール/商用SaaSとの徹底比較\n比較の本文` }, /note原稿の無料部分にテンプレート外の見出しがあります/],
 ]) {
   test(`不採用になる: ${name}`, () => {
     const { dir, log } = run(output(opts));
@@ -157,12 +190,16 @@ for (const [name, opts, why] of [
   });
 }
 
-test("ライセンスは GitHub の表示ではなく LICENSE ファイルの本文から判定してプロンプトに渡し、Web 記事の表記が一致すれば採用する", () => {
+test("ライセンスは GitHub の表示ではなく LICENSE ファイルの本文から判定してプロンプトに渡し、Web 記事のライセンスの節は生成スクリプトがその判定から書く（生成モデルには書かせない）", () => {
   const promptFile = path.join(os.tmpdir(), `atr-prompt-${process.pid}`);
   const mit = "MIT License\n\nCopyright (c) 2026 acme\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction.\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n";
-  const { dir, log } = run(output({ web: "## 商用利用可否 & ライセンス考察\nMIT License です（[LICENSE](https://github.com/acme/testtool/blob/main/LICENSE)）。" }), { MOCK_LICENSE_TEXT: mit, MOCK_PROMPT: promptFile });
+  const { dir, log } = run(output(), { MOCK_LICENSE_TEXT: mit, MOCK_PROMPT: promptFile });
   try {
     assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    const web = fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8");
+    assert.ok(web.includes("## ライセンス\n\n- ライセンス: MIT License（SPDX: MIT）\n- 確認先: [LICENSE ファイル](https://github.com/acme/testtool/blob/main/LICENSE)"), web);
+    assert.match(web, /法的な助言ではありません/);
+    assert.match(fs.readFileSync(promptFile, "utf8"), /Web記事にライセンスの節は書かないこと/);
     const prompt = fs.readFileSync(promptFile, "utf8");
     assert.match(prompt, /^ライセンス: MIT License（SPDX: MIT）$/m);
     assert.match(prompt, /^ライセンスの確認先: https:\/\/github\.com\/acme\/testtool\/blob\/main\/LICENSE$/m);
