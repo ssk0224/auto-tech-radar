@@ -20,3 +20,18 @@ test("スポンサー判定は plan の完全一致で、sponsor 始まりの別
   assert.ok(ids.includes("sponsor-tieup") && ids.includes("sponsor-monthly"));
   assert.ok(!ids.includes("sponsor-guide-article"));
 });
+
+// 問い合わせ先に個人のメールアドレスを出さない（公開ページ・HTML のソース・送信先の URL のどこにも）。
+// 送信先は FormSubmit が発行するランダムな文字列（エイリアス。メールアドレスではない）だけで決める
+test("問い合わせはメールアドレスを出さず、FormSubmit のエイリアス（siteConfig.contactFormAlias）に送る", async () => {
+  const { siteConfig } = await import("../src/config/site.js");
+  const emailShape = /[^\s@"'`]+@[^\s@"'`]+\.[a-z]{2,}/i;
+  for (const [k, v] of Object.entries(siteConfig)) if (typeof v === "string") assert.doesNotMatch(v, emailShape, `siteConfig.${k} がメールアドレスの形`);
+  assert.equal(typeof siteConfig.contactFormAlias, "string", "siteConfig.contactFormAlias（FormSubmit のエイリアス）が無い");
+  assert.doesNotMatch(siteConfig.contactFormAlias, /@/);
+  assert.doesNotMatch(src, /mailto:|mail\.google\.com|contactEmail/);
+  // FormSubmit への送信先は、エイリアスの値からだけ作る（formsubmit.co/ の後ろに直接アドレスを書かない）
+  const targets = [...src.matchAll(/formsubmit\.co\/(?:ajax\/)?([^"'`\s)]*)/g)].map((m) => m[1]);
+  assert.ok(targets.length >= 2, "フォームの送信先が無い");
+  for (const t of targets) assert.ok(/^\$\{\s*(?:siteConfig\.contactFormAlias|formAlias)\s*\}$/.test(t), `送信先がエイリアスの値ではない: ${t}`);
+});
