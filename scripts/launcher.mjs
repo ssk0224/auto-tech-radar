@@ -6,7 +6,9 @@ import { exec, execSync, spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
-import { openNoteForPublishing, loadPrivateKeys, purgeOpenedNotes } from './utils/note_vault.mjs';
+import { loadPrivateKeys, purgeOpenedNotes } from './utils/note_vault.mjs';
+// 出品・差し替え（[4]・[A]・[U]）で完全版を開く入口。開く前に全原稿の有料本文を検査し、red・未実施（秘密鍵なし）なら開かずに理由を表示する
+import { openNoteForPublishing } from './utils/owner_checks.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { commitAndSync, pullLatest, repairWorkingTree } from './utils/git_sync.mjs';

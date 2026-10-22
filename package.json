@@ -11,6 +11,8 @@
     "vault:seal": "node scripts/note_vault.mjs seal-all",
     "vault:rotate": "node scripts/note_vault.mjs rotate",
     "vault:reseal": "node scripts/note_vault.mjs reseal",
+    "vault:seal-from": "node scripts/note_vault.mjs seal-from",
+    "vault:check": "node scripts/note_vault.mjs check",
     "note:sync": "node scripts/sync_note_urls.mjs",
     "note:serve": "node scripts/note_api_server.mjs",
     "test": "node --import ./tests/helpers/test_env.mjs --test-reporter ./tests/helpers/skip_gate_reporter.mjs --test tests/*.test.mjs"
