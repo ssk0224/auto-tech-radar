@@ -37,7 +37,9 @@ function readFixHistory() {
   try {
     const h = JSON.parse(raw);
     if (Array.isArray(h)) return { entries: h };
-  } catch (e) {}
+  } catch (e) {
+    return { error: `形式が正しくありません（${e.message.split("\n")[0]}）` };
+  }
   return { error: "形式が正しくありません" };
 }
 // 「更新する」を押す直前に 1 本ずつ書く（押した後に窓が閉じられたり落ちたりしても、押した分は必ず数える）。7 日より古い記録は消す。
@@ -91,7 +93,9 @@ async function serveBridge(ctx) {
     if (u.pathname === "/log") {
       try {
         console.log(`  ${JSON.parse(route.request().postData() || "{}").text}`);
-      } catch (e) {}
+      } catch (e) {
+        // ブラウザ側の途中経過の表示だけ（結果は eyecatch-complete で受け取る）。読めない記録は表示しない
+      }
     }
     return route.fulfill({ body: "ok", headers: { "Access-Control-Allow-Origin": "https://note.com" } });
   });
@@ -574,11 +578,15 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
     // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない。
     // テスト用: ATR_NOTE_STATUS に CI の検査結果の代わりのファイル（実データの note_status.json は CI が毎回書き換えるため）
-    let flagged = new Set();
+    // 検査結果が無い・壊れて読めないときは「問題なし」とみなさず、どの記事も問題があるものとして扱う（自動では再公開しない）
+    let flagged;
     try {
       const st = JSON.parse(fs.readFileSync(process.env.ATR_NOTE_STATUS || path.join(__dirname, "note_status.json"), "utf8"));
       flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
-    } catch (e) {}
+    } catch (e) {
+      flagged = new Set(tasks.map((t) => t.slug));
+      console.log(`  … CI の検査結果（note_status.json）を読めないため、本文に問題が無いか分かりません。見出し画像は下書きに付けるだけにして、自動では再公開しません（${e.code || e.message.split("\n")[0]}）`);
+    }
     const base = async () => tasks.length && page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
     await base();
     for (let i = 0; i < tasks.length; i++) {
@@ -745,10 +753,15 @@ function writeLog(entry) {
   let version = "";
   try {
     version = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
-  } catch (e) {}
+  } catch (e) {
+    version = "不明"; // git が無い・リポジトリの外で動いた。記録には残す
+  }
   try {
     fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
-  } catch (e) {}
+  } catch (e) {
+    // 記録が残らないと、[U] の一覧が「直した」ことを知らずに同じ記事を出し続ける。黙らずに知らせる
+    console.log(`⚠ 実行記録（${path.basename(file)}）を書けませんでした: ${e.code || e.message.split("\n")[0]}`);
+  }
 }
 
 if (process.argv[1] && process.argv[1].endsWith("note_browser.mjs")) {

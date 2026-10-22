@@ -52,6 +52,25 @@ test("本文に要修正の問題がある記事は、下書きに画像を付�
   }
 });
 
+test("CI の検査結果（note_status.json）が壊れて読めないときは、本文に問題が無いとみなさず、どの記事も自動では再公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
+  const key = JSON.parse(readText("scripts/note_urls.json")).zcode.url.split("/n/")[1];
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));
+  try {
+    const broken = path.join(home, "note_status.json");
+    fs.writeFileSync(broken, '{"checkedAt": "2026-10-21T00:00:00.000Z", "notes": {');
+    const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "eyecatch"], {
+      encoding: "utf8",
+      timeout: 240000,
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: broken },
+    });
+    const out = r.stdout + r.stderr;
+    assert.match(out, /CI の検査結果.*読めない/, out);
+    assert.match(out, /本文の差し替え待ち 1 \/ 失敗 0/, out);
+  } finally {
+    rmDir(home);
+  }
+});
+
 test("編集画面にログインが必要なら、自動操作なしの Chrome でログインしてもらい、閉じたら同じ記事を続ける", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
   const key = JSON.parse(readText("scripts/note_urls.json")).zcode.url.split("/n/")[1];
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nb-"));

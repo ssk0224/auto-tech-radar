@@ -33,30 +33,32 @@ async function notifySearchEngines() {
     console.log('ℹ️ 直近に公開した記事が無いため、通知をスキップしました');
     return;
   }
-  const urlList = [...articles, `${SITE}/`, `${SITE}/cheatsheet/`];
-  const payload = {
-    host: 'ssk0224.github.io',
-    key: KEY,
-    keyLocation: `${SITE}/${KEY}.txt`,
-    urlList,
-  };
+  await notifyIndexNow([...articles, `${SITE}/`, `${SITE}/cheatsheet/`]);
+}
 
+// IndexNow に通知する。受理（200 / 202）だけが ok。拒否（403 鍵不一致・422 URL 不正・429 など）は bad、通信の失敗は unknown で、
+// どちらも ::warning で残す（以前は通信の失敗を console.warn だけにしていて、Actions の注釈に出なかった）。公開は止めない
+export async function notifyIndexNow(urlList, { fetchImpl = globalThis.fetch, log = console.log } = {}) {
+  const payload = { host: 'ssk0224.github.io', key: KEY, keyLocation: `${SITE}/${KEY}.txt`, urlList };
+  let res;
   try {
-    const res = await fetch('https://api.indexnow.org/indexnow', {
+    res = await fetchImpl('https://api.indexnow.org/indexnow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(10000),
     });
-    // 200 / 202 が受理。それ以外（403 鍵不一致、422 URL 不正、429 など）は警告として残す
-    if (res.status === 200 || res.status === 202) {
-      console.log(`✓ IndexNow 受理: HTTP ${res.status} (${urlList.length} 件)`);
-    } else {
-      console.log(`::warning title=IndexNow::HTTP ${res.status} ${await res.text().catch(() => '')}`);
-    }
   } catch (err) {
-    console.warn(`- IndexNow 通知スキップ: ${err.message}`);
+    log(`::warning title=IndexNow::通知できませんでした（${err.message}）。検索エンジンへの通知は届いていません`);
+    return { status: 'unknown' };
   }
+  if (res.status === 200 || res.status === 202) {
+    log(`✓ IndexNow 受理: HTTP ${res.status} (${urlList.length} 件)`);
+    return { status: 'ok' };
+  }
+  const body = await res.text().catch((e) => `（応答の本文を読めません: ${e.message}）`);
+  log(`::warning title=IndexNow::HTTP ${res.status} ${body.slice(0, 300)}`);
+  return { status: 'bad' };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

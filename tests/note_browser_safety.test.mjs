@@ -180,10 +180,13 @@ nb.on("exit", (code) => { holder.kill(); console.log(JSON.stringify({ code, out 
 `);
   try {
     const key = urls.zcode.url.split("/n/")[1];
+    // 問題の無い CI の検査結果（検査結果が無い・読めないときは、どの記事も自動では再公開しない）
+    const status = path.join(home, "note_status.json");
+    fs.writeFileSync(status, JSON.stringify({ checkedAt: "2026-10-21T00:00:00.000Z", notes: {} }));
     const r = spawnSync(xvfb, ["-a", process.execPath, driver], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: path.join(home, "none.json"), ATR_NOTE_PROFILE_WAIT_MS: "60000" },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: key, ATR_NOTE_STATUS: status, ATR_NOTE_PROFILE_WAIT_MS: "60000" },
     });
     const res = JSON.parse(r.stdout.trim().split("\n").pop());
     assert.match(res.out, /note 用の Chrome の窓が開いたままです/);
