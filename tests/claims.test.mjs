@@ -26,3 +26,9 @@ test("収益の誇張の検査は、技術的な数量（リクエスト数・�
   for (const ok of ["月100万リクエストを処理", "毎月5万ダウンロード", "月間10万PV"]) assert.deepEqual(findForbiddenClaims(ok), [], ok);
   for (const ng of ["月収100万", "月100万円稼げる", "月50万円の収入"]) assert.ok(findForbiddenClaims(ng).length > 0, ng);
 });
+
+test("成果を保証する「〜に直結します」は、生成時の検査（claims_check）でも有料本文の検査（boundaries）と同じく検出する", async () => {
+  const { findForbiddenClaims } = await import("../scripts/utils/claims_check.mjs");
+  for (const ng of ["この提案は成約に直結します", "即受注", "受注に直結する導入例"]) assert.ok(findForbiddenClaims(ng).length > 0, ng);
+  assert.deepEqual(findForbiddenClaims("ユーザー体験の向上に直結するコンサルティング"), []);
+});
