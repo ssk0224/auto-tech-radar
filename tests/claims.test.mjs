@@ -2,28 +2,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
-import path from "path";
 
 import { FORBIDDEN } from "../scripts/utils/claims_check.mjs";
+import { trackedFiles } from "./helpers/public_text.mjs";
 
-test("OGP 画像・リードマグネット・README・サイトページとその生成スクリプトに禁止表現が無い", () => {
-  const files = [
-    "README.md",
-    "scripts/note_urls.json",
-    "scripts/note_updates.json",
-    "scripts/launcher.mjs",
-    "scripts/publish_helper.mjs",
-    "src/layouts/Layout.astro",
-    "public/og-card.svg",
-    "scripts/generate_og_cards.mjs",
-    "scripts/generate_lead_magnet_note.mjs",
-    "scripts/generate_weekly_thread.mjs",
-    "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md",
-    ...fs.readdirSync("src/pages").filter((f) => f.endsWith(".astro")).map((f) => path.join("src/pages", f)),
-    ...fs.readdirSync("public/ogp").filter((f) => f.endsWith(".svg")).map((f) => path.join("public/ogp", f)),
-    ...fs.readdirSync("note_drafts").filter((f) => f.endsWith(".md")).map((f) => path.join("note_drafts", f)),
-    ...fs.readdirSync("x_posts").filter((f) => f.endsWith(".txt")).map((f) => path.join("x_posts", f)),
-  ];
+// 対象は手で選ばず、git が追跡しているテキストのすべて（公開リポなので、どれも誰でも読める）。
+// 除くのは、禁止表現を「禁止する語」として書く場所だけ: 規則の定義・テスト・内部の作業記録（docs/、CI の状態ファイル）
+const RULE_QUOTING = (f) =>
+  f.startsWith("tests/") || f.startsWith("docs/") || f === "scripts/utils/claims_check.mjs" || f === "scripts/utils/hype_check.mjs" || /^scripts\/[a-z_]+_(log|status)\.json$/.test(f);
+
+test("git が追跡している公開テキスト（README・サイト・画像・原稿・投稿文・スクリプト・データ）に禁止表現が無い", () => {
+  const files = trackedFiles().filter((f) => /\.(md|mdx|markdown|mjs|js|ts|astro|json|txt|svg|xml|yml|yaml|html)$/i.test(f) && !/package-lock\.json$/.test(f) && !RULE_QUOTING(f));
+  for (const must of ["README.md", "src/layouts/Layout.astro", "public/og-card.svg", "public/llms.txt", "src/pages/radar/aihot.md", "scripts/launcher.mjs"]) assert.ok(files.includes(must), `検査の対象に ${must} が無い`);
   for (const f of files) {
     if (!fs.existsSync(f)) continue;
     const s = fs.readFileSync(f, "utf8");
