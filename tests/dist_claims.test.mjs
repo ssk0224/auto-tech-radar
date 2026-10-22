@@ -11,7 +11,7 @@ import path from "path";
 import { findForbiddenClaims, findSitePromises, WEB_ADOPTION_RULES, PUBLIC_CHECK_GROUPS } from "../scripts/utils/claims_check.mjs";
 import { findHype } from "../scripts/utils/hype_check.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
-import { cadenceFacts, CADENCE_CLAIM_RE, PUBLISH_COUNT_RE } from "../src/utils/cadence.js";
+import { cadenceFacts, cadenceText, cadenceMetricText, weekWindowText, findCadenceClaims } from "../src/utils/cadence.js";
 import { TOPIC_CATEGORIES, UNCATEGORIZED } from "../src/utils/categories.js";
 import { jstDayStart, withinLastWeek, WEEK_DAYS } from "../src/utils/dates.js";
 import { prepareBuildRoot, astroBuild, removeDir } from "./helpers/site_build.mjs";
@@ -135,10 +135,7 @@ function operatorTextOf(rel, raw, articles = []) {
 export function cadenceHitsIn(rel, raw, articles) {
   const hits = [];
   for (const line of operatorTextOf(rel, raw, articles)) {
-    for (const re of [CADENCE_CLAIM_RE, PUBLISH_COUNT_RE]) {
-      const m = line.match(re);
-      if (m) hits.push(`${rel}: ${m[0]} ← ${line.slice(0, 80)}`);
-    }
+    for (const m of findCadenceClaims(line)) hits.push(`${rel}: ${m} ← ${line.slice(0, 80)}`);
   }
   return hits;
 }
@@ -173,6 +170,11 @@ test("運営者の文の検査は、Cadence の隣に手で書いた本数・連
   assert.ok(promiseHitsIn("about/index.html", "<p>あらゆる誇張を自動で取り除いています</p>").length > 0);
   assert.ok(promiseHitsIn("estimate/index.html", "<h1>即時見積もり</h1><a>この構成で無料相談する</a>").length >= 1);
   assert.deepEqual(promiseHitsIn("about/index.html", "<p>規則に無い言い回しは検出できません。</p>"), []);
+  assert.ok(promiseHitsIn("estimate/index.html", "<a>この前提でお問い合わせする（24時間以内にご返信・当日中に回答）→</a>").length > 0, "返信の速さ");
+  assert.ok(promiseHitsIn("contact/index.html", "<p>翌営業日までにご連絡します</p>").length > 0, "翌営業日");
+  assert.ok(promiseHitsIn("contact/index.html", "<p>We reply within 1 business day.</p>").length > 0, "英語の返信の速さ");
+  assert.ok(promiseHitsIn("contact/index.html", "<p>お問い合わせには速やかに対応いたします</p>").length > 0, "速やかに対応");
+  assert.deepEqual(promiseHitsIn("contact/index.html", "<p>返信までの日数はお約束できません。</p>"), [], "速さを約束しない文");
   const art = [{ title: "fastx - 画像を瞬時に変換する CLI", description: "毎日の作業を瞬時に片付ける、画像変換のための小さなコマンドラインツールです" }];
   assert.deepEqual(promiseHitsIn("index.html", "<h3>fastx - 画像を瞬時に変換する CLI</h3><p>毎日の作業を瞬時に片付ける、画像変換のための小さな…</p>", art), [], "記事のデータ（タイトル・説明文）は OSS についての文");
   assert.ok(promiseHitsIn("index.html", "<h3>fastx - 画像を瞬時に変換する CLI</h3><p>瞬時にお届け</p>", art).length > 0, "記事のデータの隣の運営者の文は読む");
@@ -193,18 +195,22 @@ function publishedArticles() {
     .filter((x) => x.date);
 }
 
-// data-derived の種類ごとの正しい値（記事データ・定数から導く）。知らない種類は通さない（手で書いた文に印だけ付けて検査を逃れない）
+// data-derived の種類ごとの正しい値と、要素の文の全体（記事データ・定数・検査の定義から作った文）。知らない種類は通さない（手で書いた文に印だけ付けて検査を逃れない）。
+// 文は「値を含む」でなく全体が一致すること（値の隣に手で書いた「（毎日更新）」を、データから作った表示の一部として通さない）
+const squash = (s) => s.replace(/\s+/g, " ").trim();
 function expectedDerived() {
   const dates = publishedArticles().map((x) => x.date);
+  // ビルドの開始時と今とで日付をまたいでも、どちらかの時点の値なら正しい
+  const facts = [builtAt, Date.now()].map((t) => cadenceFacts(dates, t));
+  const checksText = PUBLIC_CHECK_GROUPS.map((g) => `${g.name}: ${g.scope} ${g.rules.map((r) => r.why).join(" ")}`).join(" ");
   return {
-    // ビルドの開始時と今とで日付をまたいでも、どちらかの時点の値なら正しい
-    cadence: new Set([cadenceFacts(dates, builtAt).count, cadenceFacts(dates, Date.now()).count].map(String)),
-    "weekly-window": new Set([String(WEEK_DAYS)]),
-    checks: new Set([String(PUBLIC_CHECK_GROUPS.length)]),
+    cadence: { values: new Set(facts.map((f) => String(f.count))), texts: new Set(facts.flatMap((f) => [cadenceText(f), cadenceMetricText(f)]).map(squash)) },
+    "week-window": { values: new Set([String(WEEK_DAYS)]), texts: new Set([squash(weekWindowText(WEEK_DAYS))]) },
+    checks: { values: new Set([String(PUBLIC_CHECK_GROUPS.length)]), texts: new Set([squash(checksText)]) },
   };
 }
 
-test("データから作った表示（data-derived）は、どのページでも記事データ・定数から導いた値と一致し、表示の文にもその値が出ている", () => {
+test("データから作った表示（data-derived）は、どのページでも値と文の全体が記事データ・定数・検査の定義から作ったものと一致する", () => {
   assertBuilt();
   const expected = expectedDerived();
   const seen = new Set();
@@ -215,11 +221,11 @@ test("データから作った表示（data-derived）は、どのページで�
       seen.add(`${el.kind}@${rel.startsWith("radar/") ? "radar/" : rel}`);
       const ok = expected[el.kind];
       if (!ok) wrong.push(`${rel}: 知らない種類 ${el.kind}`);
-      else if (!ok.has(el.value)) wrong.push(`${rel}: ${el.kind}=${el.value}（正しい値 ${[...ok].join("/")}）`);
-      else if (el.kind !== "checks" && !new RegExp(`(?<!\\d)${el.value}(?!\\d)`).test(el.text)) wrong.push(`${rel}: ${el.kind} の表示「${el.text}」に値 ${el.value} が無い`);
+      else if (!ok.values.has(el.value)) wrong.push(`${rel}: ${el.kind}=${el.value}（正しい値 ${[...ok.values].join("/")}）`);
+      else if (!ok.texts.has(squash(el.text))) wrong.push(`${rel}: ${el.kind} の文「${el.text.slice(0, 120)}」がデータから作った文と違う`);
     }
   }
-  for (const must of ["cadence@index.html", "cadence@radar/", "weekly-window@weekly/index.html", "checks@about/index.html"]) assert.ok(seen.has(must), `${must} にデータから作った表示が無い`);
+  for (const must of ["cadence@index.html", "cadence@radar/", "week-window@weekly/index.html", "checks@about/index.html"]) assert.ok(seen.has(must), `${must} にデータから作った表示が無い`);
   assert.deepEqual(wrong, []);
 });
 

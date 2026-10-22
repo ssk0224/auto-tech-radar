@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
 import { getArticles, hrefOf, pubTime } from "../utils/articles.js";
 import { dateLabel, withinLastWeek, WEEK_DAYS } from "../utils/dates.js";
+import { weekWindowText } from "../utils/cadence.js";
 
 // 直近7日（ビルド時点の日本時間で今日を含む 7 日間）に公開された記事をすべて。pubDate 降順・ノイズ除外は getArticles 側。
 // 件数では切らない（「直近7日間の一覧」と書いて上位 7 件だけを出すと、同じ週の他の記事が抜ける）
@@ -22,10 +23,10 @@ const topPosts = (getArticles() as any[]).filter((p) => withinLastWeek(pubTime(p
       </div>
       <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
         GitHub急上昇の<br/>
-        <span style="background: linear-gradient(135deg, #a5b4fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><span data-derived="weekly-window" data-derived-value={WEEK_DAYS}>直近{WEEK_DAYS}日間</span>に取り上げたOSS</span>
+        <span style="background: linear-gradient(135deg, #a5b4fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><span data-derived="week-window" data-derived-value={WEEK_DAYS}>{weekWindowText(WEEK_DAYS)}</span>に取り上げたOSS</span>
       </h1>
       <p style="font-size: 1rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.5rem; line-height: 1.7;">
-        <span data-derived="weekly-window" data-derived-value={WEEK_DAYS}>直近{WEEK_DAYS}日間</span>に当サイトで取り上げたオープンソースの一覧です。詳細は各記事をご覧ください。
+        <span data-derived="week-window" data-derived-value={WEEK_DAYS}>{weekWindowText(WEEK_DAYS)}</span>に当サイトで取り上げたオープンソースの一覧です。詳細は各記事をご覧ください。
       </p>
 
       <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
@@ -41,7 +42,7 @@ const topPosts = (getArticles() as any[]).filter((p) => withinLastWeek(pubTime(p
     <!-- 直近 WEEK_DAYS 日の記事のカード一覧 -->
     {topPosts.length === 0 && (
       <div style="background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 2rem 1.5rem; text-align: center; color: #94a3b8; font-size: 0.95rem; line-height: 1.7;">
-        <span data-derived="weekly-window" data-derived-value={WEEK_DAYS}>直近{WEEK_DAYS}日間</span>に公開された記事はまだありません。過去の記事は<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/`} style="color: #60a5fa;">トップページ</a>からご覧いただけます。
+        <span data-derived="week-window" data-derived-value={WEEK_DAYS}>{weekWindowText(WEEK_DAYS)}</span>に公開された記事はまだありません。過去の記事は<a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/`} style="color: #60a5fa;">トップページ</a>からご覧いただけます。
       </div>
     )}
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
