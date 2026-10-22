@@ -7,15 +7,18 @@ tags: ["Python", "OSS", "GitHub", "LLM", "Inference", "AgenticAI"]
 repoUrl: "https://github.com/lightseekorg/tokenspeed"
 repoCreatedAt: "2026-05-06"
 stars: 2201
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "TensorRT-LLM との性能比較の記述を README の記載（TensorRT-LLM レベルの性能を掲げ、最も高性能なエンジンになることを目標とする）に合わせて訂正。比較表の TensorRT-LLM のライセンスを Apache 2.0 に訂正"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# tokenspeed: 概要と革新性
+# tokenspeed: 概要
 
-## 概要
+lightseekorg/tokenspeed は 2026-05-06 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,201 です。
+
 `tokenspeed`は、GitHubで2200以上のスターを獲得している、Python製のオープンソースLLM推論エンジンです。その名の通り「光速」のLLM推論を実現することを目指し、特に**エージェントワークロード**に最適化されています。TensorRT-LLMレベルのパフォーマンスとvLLMレベルの使いやすさを両立させることを目標に掲げ、プロダクション環境でのエージェントワークロードにおいて最も高性能な推論エンジンとなることを目指しています。
 
 README によると、PyTorch Foundation は TokenSpeed を PyTorch Ecosystem Landscape に迎えた際に、そのアーキテクチャ上の特徴（コントロールプレーンと実行プレーンの分離など）を紹介しています（[PyTorch のブログ](https://pytorch.org/blog/pytorch-ecosystem-landscape-q3-update/)）。また README には、非営利団体の LightSeek Foundation が支援し、NVIDIA や AMD などのベンダーからハードウェア・エンジニアリング面の支援を受けていると記載されています。
@@ -36,12 +39,11 @@ flowchart TD
     ExecPlane --> Hardware["NVIDIA Blackwell / AMD ROCm GPU"]
 ```
 
-
 現代のLLMアプリケーション、特に複雑なタスクを自律的に実行するエージェントAIにおいては、推論速度と安定性がビジネスの成否を大きく左右します。従来のLLM推論エンジンは、汎用性や開発の容易さを追求する一方で、エージェントワークロード特有の動的なリクエストパターンやKVキャッシュ管理の課題に対して、最適なパフォーマンスを提供しきれていないケースがありました。
 
 TokenSpeedは、この課題に対し根本的に異なるアーキテクチャアプローチで挑みます。
 
-### 革新的なアーキテクチャの核心
+### アーキテクチャの核心
 
 1.  **コントロールプレーンと実行プレーンの分離:**
     *   **コントロールプレーン (C++):** リクエストのライフサイクル、KVキャッシュの所有権、オーバーラップタイミングなどを有限状態機械（FSM）としてC++で実装。コンパイル時に型システムによって安全なKVリソースの再利用を強制し、実行時のエラーリスクを最小限に抑え、高い信頼性とパフォーマンスを実現します。
@@ -53,116 +55,15 @@ TokenSpeedは、この課題に対し根本的に異なるアーキテクチャ�
     *   README によると、カーネルのレジストリには Blackwell 世代 GPU 向けのエージェントワークロード用 **MLA (Multi-head Latent Attention)** 実装が含まれます（README ではこの実装を "one of the fastest" と説明しています）。カーネルは公開 API とプラグインの仕組みで分離されており、異なるアクセラレータへの拡張を想定しています。
 
 3.  **SMG統合AsyncLLMによる低オーバーヘッドなリクエスト処理:**
-    *   エントリーポイントとしてSMG (Shared Memory Group) 統合のAsyncLLMを採用し、CPU側のリクエストハンドリングにおけるオーバーヘッドを最小限に抑え、全体的なスループット向上に貢献しています。
+    *   エントリーポイントとしてSMG 統合のAsyncLLMを採用し、CPU側のリクエストハンドリングにおけるオーバーヘッドを最小限に抑え、全体的なスループット向上に貢献しています。
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-LLM推論エンジンには、vLLM、TensorRT-LLM、OpenVINOなど、様々な選択肢があります。以下は README などの公開情報をもとにした比較で、性能を当サイトで計測したものではありません。
+README にインストール手順のコードブロックが見つかりませんでした。導入方法は [README](https://github.com/lightseekorg/tokenspeed#readme) を確認してください。
 
-| 特徴/エンジン | TokenSpeed | vLLM | TensorRT-LLM |
-| :------------ | :--------- | :--- | :----------- |
-| **主要ターゲット** | エージェントワークロード | 汎用LLM推論 | NVIDIA GPU向け最適化 |
-| **パフォーマンス** | README では「TensorRT-LLM レベルの性能」とし、本番のエージェントワークロードで最も高性能なエンジンになることを目標に掲げる | 高い | 非常に高い (NVIDIA最適化) |
-| **使いやすさ** | vLLMレベル (Python実行プレーン) | 非常に高い | 中程度 (NVIDIAエコシステム依存) |
-| **安定性/信頼性** | C++コントロールプレーンによるコンパイル時保証 | 実行時管理 | 高い |
-| **アーキテクチャ** | コントロール/実行プレーン分離、モジュール型カーネル | 統合型、Python中心 | NVIDIA固有最適化 |
-| **ベンダー中立性** | 高い (LightSeek Foundationによる非営利支援) | 中程度 | 低い (NVIDIA依存) |
-| **ハードウェアサポート** | NVIDIA, AMDなど広範なベンダーからの支援 | GPU (NVIDIA, AMD) | NVIDIA GPU |
-| **ライセンス** | MIT License | Apache 2.0 | Apache 2.0 |
+## ライセンス
 
-### TokenSpeedの特徴（README の記載に基づく）
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/lightseekorg/tokenspeed/blob/main/LICENSE)
 
-> TokenSpeed is a speed-of-light LLM inference engine designed for **agentic workloads**, with TensorRT-LLM-level performance and vLLM-level usability. The goal is to be the most performant inference engine for production agentic workloads.
-> — [TokenSpeed README](https://github.com/lightseekorg/tokenspeed#readme)
-
-*   **エージェントワークロード向けの設計:** README はエージェントワークロード向けの推論エンジンと説明し、Kimi K2.5（B200）のエージェントワークロードでの TensorRT-LLM とのパレート曲線の比較図を掲載しています。図の条件（モデル・GPU・ワークロード）以外での性能は、当サイトでは検証していません。
-*   **性能と開発速度の両立:** C++ のコントロールプレーンでリソース管理を行い、Python の実行プレーンで開発の柔軟性を確保する構成です。
-*   **ベンダー中立性と信頼性:** 非営利団体LightSeek Foundationの支援と、NVIDIA、AMDといった複数ベンダーからのサポートは、特定のベンダーにロックインされるリスクを低減し、長期的なプロジェクトにおける信頼性を高めます。
-*   **モジュール性と拡張性:** カーネルのモジュール化により、将来的な新しいハードウェアや最適化技術への対応が容易であり、システムの寿命と適応性を向上させます。
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-TokenSpeedの革新的な技術は、様々なビジネス機会を創出します。
-
-1.  **エージェントAIシステム構築の受託開発:**
-    *   顧客: 大規模言語モデルを活用した自律型エージェント（例: カスタマーサポートAI、自動コード生成AI、データ分析エージェント）の導入を検討している企業。
-    *   提案: TokenSpeed をバックエンドの候補として検証し、応答速度や安定性の改善を図るシステムを構築。
-    *   価値: 応答速度や安定性を重視するエージェント AI の構築案件で、推論基盤の選択肢を示せる。
-
-2.  **高速LLM推論APIサービスの提供（マイクロSaaS）:**
-    *   特定の高性能LLM（例: Qwen3.8, Kimi K3など、TokenSpeedがDay 0サポートするモデル）に特化した、超高速推論APIサービスを構築。
-    *   顧客: 自社でGPUインフラを持たない中小企業やスタートアップ、開発者。
-    *   価値: 特定のワークロードに合わせて最適化したサービスを提供し、サブスクリプションモデルで収益化。
-
-3.  **LLMインフラ最適化コンサルティング:**
-    *   顧客: 既にLLMを運用しているが、推論コストやレイテンシに課題を抱えている企業。
-    *   提案: TokenSpeedへの移行支援、既存システムのパフォーマンスチューニング、GPUリソースの最適化。
-    *   価値: 運用コスト削減、ユーザー体験向上に直結するコンサルティングサービスを提供。
-
-4.  **データセンター/クラウドプロバイダー向けソリューション:**
-    *   顧客: LLM推論サービスを顧客に提供するデータセンター事業者やクラウドプロバイダー。
-    *   提案: TokenSpeedを基盤とした、高性能かつスケーラブルなLLM推論インフラの構築。
-    *   価値: 推論基盤の選択肢を増やし、エージェント向けワークロードの要件に合わせた構成を提案できる。
-
-## インストール & クイックスタート手順
-
-TokenSpeedの導入は、Pythonベースであるため比較的容易です。公式ドキュメントに詳細な手順が記載されていますが、基本的な流れは以下の通りです。
-
-1.  **前提条件:**
-    *   Python 3.8+
-    *   CUDA対応GPU (NVIDIA) または AMD ROCm対応GPU (AMD)
-    *   適切なドライバーのインストール
-
-2.  **インストール:**
-    ```bash
-    # pipでインストール (詳細な依存関係は公式ドキュメントを参照)
-    pip install tokenspeed
-    ```
-    または、ソースコードからビルドすることも可能です。
-
-3.  **サーバーの起動:**
-    TokenSpeedは、指定したLLMモデルをロードし、推論リクエストを受け付けるサーバーとして機能します。
-
-    ```bash
-    # 例: Qwen3.8モデルをロードしてサーバーを起動
-    tokenspeed server --model Qwen/Qwen3.8-2.4T-A95B --port 8000
-    ```
-    これにより、`http://localhost:8000` で推論APIが利用可能になります。
-
-4.  **推論リクエストの送信:**
-    Pythonクライアントから非同期で推論リクエストを送信できます。
-
-    ```python
-    import asyncio
-    import httpx
-
-    async def main():
-        url = "http://localhost:8000/v1/completions" # または /v1/chat/completions
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "model": "Qwen/Qwen3.8-2.4T-A95B",
-            "prompt": "Hello, what is TokenSpeed?",
-            "max_tokens": 100,
-            "temperature": 0.7
-        }
-
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, headers=headers, json=data, timeout=60.0)
-            response.raise_for_status()
-            print(response.json())
-
-    if __name__ == "__main__":
-        asyncio.run(main())
-    ```
-
-より詳細な設定やモデルレシピ、並列化オプションについては、[公式ドキュメント](https://lightseek.org/tokenspeed/)を参照してください。
-
-## 商用利用可否 & ライセンス考察
-
-TokenSpeedは**MIT License**の下で公開されています。これは、最も寛容なオープンソースライセンスの一つであり、以下の商用利用に関する自由を保証します。
-
-*   **商用利用:** 完全に許可されています。
-*   **変更・配布:** 自由にコードを変更し、再配布することができます。
-*   **サブライセンス:** 変更したコードを独自のライセンスで配布することも可能です（ただし、元のMITライセンス表示は保持する必要があります）。
-
-このライセンスモデルは、企業がTokenSpeedを自社製品やサービスに組み込む際の法的な障壁を極めて低くします。さらに、LightSeek Foundationという非営利団体がプロジェクトを支援しているため、特定の商業的利益に左右されることなく、コミュニティ主導で技術進化が進むという信頼性も大きなメリットです。商用利用を検討する企業にとって、TokenSpeedは非常に魅力的な選択肢となるでしょう。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

@@ -1,19 +1,25 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "universal-modder - PCゲーム解析・アセット生成・Mod構築を完全自動化するAIエージェント統合フレームワーク"
+title: "universal-modder - PCゲーム解析・アセット生成・Mod構築を自動化するAIエージェント統合フレームワーク"
 description: "Claude CodeなどのAIエージェントにPCゲームのMod開発を一任。リバースエンジニアリング、fal.aiを用いたアート/3D/音声生成、実機検証、プロモーション動画制作までを自律実行するOSS「universal-modder」を徹底解剖。"
 pubDate: "2026-10-15"
 tags: ["Python", "OSS", "GitHub", "ReverseEngineering", "GameDev", "LLM", "ClaudeCode"]
 repoUrl: "https://github.com/rehan-remade/universal-modder"
 repoCreatedAt: "2026-09-30"
 stars: 7929
+updatedDate: "2026-10-22"
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# universal-modder: 概要と革新性
+# universal-modder: 概要
+
+rehan-remade/universal-modder は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 7,929 です。
 
 `universal-modder`（GitHubスター数7,900超）は、Claude Code、Codex、Cursor、Gemini CLIなどのLLMコーディングエージェントに対して、**PCゲームのリバースエンジニアリング、コード生成、生成AIアセット作成、ゲーム内実機テスト、紹介動画作成**までの一連のMod開発パイプラインを統合実行させるオープンソースの自律型エージェント環境です。
 
-従来、ゲームMod制作はアセンブリ解析、バイナリパッチ、ゲームエンジン固有の非公開データ構造調査、ピクセルアートや3Dモデル制作など、高度かつ多分野にわたる職人芸を要求されてきました。`universal-modder`は、Agent Skills仕様に準拠したツールチェーン、専用CLI（`um`）、fal.aiと連携するMCP（Model Context Protocol）サーバー、そして過去の解析知見を蓄積する自律型ナレッジベース（KB）を組み合わせることで、**「ゲームのパスとModの要件を自然言語で渡すだけで、AIが実バイナリを調査し、稼働するModを実装・検証する」**という異次元の開発体験を実現しています。
+従来、ゲームMod制作はアセンブリ解析、バイナリパッチ、ゲームエンジン固有の非公開データ構造調査、ピクセルアートや3Dモデル制作など、高度かつ多分野にわたる職人芸を要求されてきました。`universal-modder`は、Agent Skills仕様に準拠したツールチェーン、専用CLI（`um`）、fal.aiと連携するMCPサーバー、そして過去の解析知見を蓄積する自律型ナレッジベース（KB）を組み合わせることで、**「ゲームのパスとModの要件を自然言語で渡すだけで、AIが実バイナリを調査し、稼働するModを実装・検証する」**という異次元の開発体験を実現しています。
 
 ---
 
@@ -60,81 +66,22 @@ graph TD
 
 ---
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 評価軸 | universal-modder (OSS) | 従来のMod制作ツール群 (Vortex/ModOrganizer) | 一般的なAIコーディング (Cursor/Copilot単体) |
-|---|---|---|---|
-| **対象レイヤー** | 調査・バイナリ解析〜コード〜アセット〜実機QA | パッケージ配置・競合管理のみ | コード生成・補完のみ |
-| **リバースエンジニアリング連携** | ILSpy / Ghidra / Cpp2IL をMCP/CLI経由で自律駆動 | なし（人間が外部ツールで実施） | なし（バイナリ入力不可） |
-| **マルチモーダルアセット生成** | fal.ai / ComfyUI連携で2Dスプライト・3D・音声を一括生成 | なし | テキストのみ（外部SaaS手動併用） |
-| **実機フィードバック検証** | OSレベルのプロセス制御・画面キャプチャによる自律QA | なし | なし |
-| **知見の永続化** | AIがAIのために書くKB（Pull Request自動起票） | 人間向けフォーラム/Wiki | 会話コンテキスト終了で揮発 |
-| **導入コスト** | 完全無料（MITライセンス / API実費のみ） | 無料 | 月額サブスクリプション |
-
----
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-`universal-modder`の技術スタックは、ゲームModの枠を越え、産業用ソフトウェアのリバースエンジニアリングや自律型QAエージェント事業へと直結します。
-
-### 1. レガシーデスクトップアプリのモダナイゼーション受託
-- **ターゲット**: ソースコードを喪失した古いWindows業務用システム（VB6、Delphi、C++ MFC）を運用している企業。
-- **提供価値**: `universal-modder`のリバースエンジニアリング自動化パイプラインを活用し、バイナリ解析からAPIフック、モダンWebフロントエンドへのデータバイパス（DLLインジェクション型プロキシ）を短期間で構築。
-
-### 2. インディーゲーム向け自律型QA・回帰テスト自動化SaaS
-- **概要**: ビルドバイナリをアップロードするだけで、AIエージェントがゲームを自律起動し、探索・操作を行ってクラッシュや描画破綻を検出、修正パッチ候補とともに動画レポートを納品するマイクロSaaS。
-- **収益モデル**: 月額3万円〜15万円のステージ課金制。
-
-### 3. ゲームIPホルダー公認の「UGC/Mod制作支援プラットフォーム」OEM提供
-- **概要**: ゲーム開発会社向けに、ファンコミュニティが安全かつ手軽に新規コンテンツ（マップ、アイテム、NPC）をAI生成して配布できるサンドボックス基盤を提供。
-
----
-
-## インストール & クイックスタート手順
-
-### 必要要件
-- OS: Windows 10/11（WSL2経由またはNative PowerShell）
-- Python 3.10以上, Git, ffmpeg, uv（推奨）
-- 3Dレンダリング用: Blender（パスを通しておくこと）
-- fal.ai APIキー（アセット自動生成を行う場合）
-
-### 1. インストール
-Claude Codeまたは他エージェントにプラグインとして導入、または`uv`でCLIをセットアップします。
+以下は [README](https://github.com/rehan-remade/universal-modder#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
 ```bash
-# 推奨: uvツール経由でum CLIをグローバルインストール
-uv tool install git+https://github.com/rehan-remade/universal-modder
-
-# または Claude Code に直接プラグイン登録
-/plugin marketplace add rehan-remade/universal-modder
-/plugin install universal-modder@universal-modder
+uv tool install git+https://github.com/rehan-remade/universal-modder     # or: pipx install git+...
 ```
-
-### 2. APIキーの設定
-fal.aiのAPIキーをセキュアストレージに登録します。
 
 ```bash
-um fal key set
-# プロンプトに従い API Key を入力
+um fal key set                                                   # hidden prompt
+export FAL_KEY="$(secret-tool lookup service fal.ai key api)"    # Linux: before starting the agent
 ```
 
-### 3. クイック実行（対象ゲームの調査からMod生成まで）
-エージェント（Claude Code等）を起動し、対象ディレクトリを指定して要件を伝えます。
+## ライセンス
 
-```bash
-# 対象ゲームのフィンガープリント調査（CLI単体実行例）
-um scan "C:\Games\Terraria"
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/rehan-remade/universal-modder/blob/main/LICENSE)
 
-# Claude Code へのプロンプト例:
-# 「Terrariaに新しい追尾型ロケットランチャーを追加して。スプライトはfalで自動生成し、実機テストまで完了させて。」
-```
-
----
-
-## 商用利用可否 & ライセンス考察
-
-- **ライセンス**: **MIT License**
-- **商用利用**: ソースコードの改変、再配布、商用SaaSのバックエンドへの組み込みが法的に無償で許諾されています。
-- **コンプライアンス上の必須遵守事項**:
-  1. **アンチチート/オンライン対戦**: 規約上、オンライン対戦ゲームのバイパスやチートツール開発をプロンプト・コードレベルで明示的にブロック（セーフティガイドラインに準拠）。
-  2. **著作権法遵守**: ゲーム本体のバイナリや逆コンパイルされた生コードを再配布せず、パッチ（差分ファイル）または独自アセットのみを出力する設計を維持すること。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

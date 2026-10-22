@@ -115,11 +115,8 @@ articles.forEach(file => {
     warningCount++;
   }
 
-  // C. 想定単価・ビジネス活用チェック
-  if (!content.includes('ビジネス') && !content.includes('受託') && !content.includes('マネタイズ')) {
-    console.warn(`  ⚠️ [NO MONETIZATION] 商用マネタイズ分析が不足しています: ${file}`);
-    warningCount++;
-  }
+  // C. （削除 2026-10-22）Web 記事に「ビジネス・受託・マネタイズ」の節を求める検査は置かない。
+  // README で確かめられない活用アイデア・費用の節を書かせる圧力になるため（leakhunt C3。記事の形は scripts/utils/article_template.mjs）
 
   // D. PRO限定エリア（有料本文）の Web 掲載禁止チェック
   // 静的配信のHTMLに含めた有料本文は誰でも読めるため、有料本文は note でのみ提供する

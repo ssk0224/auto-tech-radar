@@ -7,9 +7,15 @@ tags: ["Swift", "OSS", "GitHub", "macOS", "Metal", "AI"]
 repoUrl: "https://github.com/robbietilton/Compositor"
 repoCreatedAt: "2026-09-17"
 stars: 15455
+updatedDate: "2026-10-22"
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# Compositor: 概要と革新性
+# Compositor: 概要
+
+robbietilton/Compositor は 2026-09-17 に GitHub で作成されたリポジトリです。2026-10-11 時点のスター数は 15,455 です。
 
 近年、Adobe Creative Cloudのサブスクリプションコスト高騰やクラウド依存への反発から、ローカルネイティブかつ軽量なクリエイティブツールの需要が急速に高まっています。「Compositor」は、macOS（Apple Silicon）専用にゼロからSwiftで設計された、完全オープンソース（MITライセンス）のPhotoshopオルタナティブです。
 
@@ -21,7 +27,7 @@ Compositorが解決する中核的な技術課題は以下の3点です：
 
 1. **高負荷なGPU非破壊レンダリングのローカル完結**:
    各レイヤーの調整レイヤー（Curves, Levels, LUT）、レイヤースタイル（Drop Shadow, Stroke等）をMetalパイプライン上でリアルタイム計算。メモリ消費を動的にスケーリングし、大容量PSD/PSBファイルも即座に展開。
-2. **Photoshopワークフローの完全再現**:
+2. **Photoshop風のワークフロー**:
    ブレンドモードの計算順序、クリッピングマスク、非破壊変形、Camera Raw風フィルターパネルなど、プロが違和感なく移行できる操作系を提供。
 3. **人間とAIエージェントのハイブリッド制作基盤**:
    `.comp`ファイルの実体はディレクトリ構造（`manifest.json` + `layer_*.png`）であり、OSのファイル監視（FSEvents）と連動。AIスクリプトがレイヤーを追加・変形すると、エディタ側がリロードなしで即座にビューポートを更新します。
@@ -55,51 +61,17 @@ graph TD
     end
 ```
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 機能・指標 | Adobe Photoshop | GIMP | Figma | **Compositor (本OSS)** |
-|---|---|---|---|---|
-| **ライセンス / コスト** | 月額約3,278円〜 / プロプライエタリ | 無料 / GPLv3 | 無料〜月額課金 / クラウド限定 | **完全無料 (MITライセンス)** |
-| **プラットフォーム** | macOS / Windows / iPad | Win / Mac / Linux | Web / Electron | **macOS (Apple Silicon特化)** |
-| **レンダリング基盤** | 独自GPUエンジン | GEGL (CPU主体/一部GPU) | WebGL | **Metal / Swift Native (超低遅延)** |
-| **PSD/PSB 互換性** | 完全対応 (ネイティブ) | 部分対応 (スタイル欠落あり) | インポートのみ | **高精度対応 (レイヤー・マスク保持)** |
-| **外部自動化 / AI統合** | ExtendScript / UXP (重厚) | Script-Fu / Python-fu | REST API / プラグイン | **ローカルファイル直書き換え型 (超高速)** |
-| **ソースコード改変** | 不可 | 可能 (難解なCベース) | 不可 | **可能 (モダンSwift/Xcode)** |
+以下は [README](https://github.com/robbietilton/Compositor#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1. **EC事業者向けバナー大量自動生成ローカルパイプライン受託**:
-   クラウドSaaSの画像生成API（CloudinaryやBannerbear等）を利用すると毎月数十万のAPI従量課金が発生します。Compositorの`.comp`書き換えアーキテクチャを活用し、ローカルMac Studioで数千枚の多言語・多サイズバナーを全自動バッチ出力するシステムを構築・納品する受託モデル。
-2. **広告代理店向け「AIアシスト型社内画像編集スイート」の内製化支援**:
-   Compositorをフォークし、自社ファインチューニング済みのStable Diffusionや背景除去モデルをワンクリックで起動・差し替えできるプラグインを組み込んだ専用ビルドを提供。月額保守または開発ライセンスで収益化。
-3. **ゲームアセット・2Dスプライト制作の自動化パイプライン**:
-   UnityやUnreal Engineと連携し、キャラクタースキンや装備のバリエーションレイヤーを外部スクリプトから一括生成し、デザイナーがCompositor上で最終レタッチを行うハイブリッド制作フローのインテグレーション。
-
-## インストール & クイックスタート手順
-
-### 1. Homebrewによるワンコマンドインストール
-最も簡単な導入方法はHomebrew Caskを使用することです：
-
-```bash
+```sh
 brew install --cask robbietilton-compositor
 ```
 
-### 2. ソースコードからのビルド（開発者向け）
-独自のツールやレイヤーエフェクトを追加したい場合は、Xcodeからビルドします：
+## ライセンス
 
-```bash
-# リポジトリのクローン
-git clone https://github.com/robbietilton/Compositor.git
-cd Compositor
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/robbietilton/Compositor/blob/main/LICENSE)
 
-# Xcodeプロジェクトを開いてビルド
-open Compositor.xcodeproj
-```
-※macOS 14 (Sonoma) 以降、およびApple Silicon搭載Macが必要です。Schemeを「Compositor」に設定して `Cmd + R` で起動します。
-
-## 商用利用可否 & ライセンス考察
-
-Compositorは**MIT License**の下で公開されています。
-- **商用利用**: 商用プロジェクトでの制作、業務利用、またはコードをベースとした商用アプリケーションの再配布・販売が可能。
-- **改変と組み込み**: 自社独自の機能を追加して社内ツールとして配備することや、クローズドソースの製品に組み込んで配布することも許容されています（著作権表示およびMIT許諾表示の保持のみが必要）。
-- **GPLとの違い**: コピーレフト条項がないため、自社で開発したプラグインや追加コードをオープンソース化する義務が一切発生しません。エンタープライズ受託開発において極めて採用しやすいライセンスです。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

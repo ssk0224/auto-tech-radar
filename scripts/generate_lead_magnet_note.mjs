@@ -99,7 +99,7 @@ export function generateLeadMagnetNote() {
   md += `--- \n\n`;
   md += `## 🎁 【note公式メンバーシップのご案内】\n\n`;
   md += `Auto Tech Radar noteメンバーシップ（月額1,980円）では、\n`;
-  md += `メンバーシップ特典に追加された有料記事（導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順など）を読むことができます。\n\n`;
+  md += `メンバーシップ特典に追加された有料記事（導入提案書テンプレート・工数見積表など）を読むことができます。\n\n`;
   md += `👉 **[note公式メンバーシップを見る](https://note.com/vast_ixora7005)**\n\n`;
 
   md += `--- \n`;

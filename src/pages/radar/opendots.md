@@ -7,13 +7,17 @@ tags: ["TypeScript", "OSS", "GitHub", "AI-Agents", "CopilotKit"]
 repoUrl: "https://github.com/CopilotKit/OpenDots"
 repoCreatedAt: "2026-09-30"
 stars: 5570
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "採用判定のラベルと導入を勧める表現を削除"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# OpenDots: 概要と革新性
+# OpenDots: 概要
+
+CopilotKit/OpenDots は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-19 時点のスター数は 5,570 です。
 
 OpenDotsは、CopilotKitチームが開発したオープンソースの常駐型AIエージェント（AI Coworker）ワークスペーステンプレートです。単なるチャットボットではなく、「各エージェント（Dot）が独立したLinuxコンテナ/ブラウザ環境（Dot Computer）を持ち、Web UI・音声通話・Slackの間をシームレスに行き来しながら永続的にタスクを遂行する」という次世代のエージェントアーキテクチャを具現化しています。
 
@@ -82,63 +86,26 @@ flowchart TB
 
 ---
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 機能 / 指標 | OpenDots (OSS) | Devin / Cognition (SaaS) | Multi-On / Browserbase | Dify / Flowise (OSS) |
-| :--- | :--- | :--- | :--- | :--- |
-| **ライセンス** | **MIT（完全オープンソース）** | プロプライエタリ | 商用SaaS | Apache-2.0 |
-| **実行環境** | **エージェント毎の独立永続コンテナ** | クラウド一時VM | クラウドブラウザAPI | なし（API実行のみ） |
-| **マルチモーダル連携**| **テキスト / 音声通話 / Slack** | チャット/Webのみ | API/ブラウザのみ | 主にチャットUI |
-| **人間介在 (HITL)** | **インライン承認カード標準** | PR/チャット承認 | ダッシュボード介入 | 一部ノードで対応 |
-| **ホスティング費用** | **自社インフラ（月数千円〜）** | 月額$500〜/席 | 従量課金制 | 自社インフラ |
-| **データプライバシー**| **完全オンプレ/自社VPC可能** | ベンダー預け | ベンダー預け | 自社VPC可能 |
+以下は [README](https://github.com/CopilotKit/OpenDots#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
----
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1. **自社特化型「AIリサーチャー＆ライター」の受託構築**
-   - リサーチ部門向けに、Parallel Web Searchと連携したDotを配備。情報収集→Markdownドラフト作成→Notion/Slack同期までを承認フロー付きで半自動化。
-2. **社内情シス向け「Slack常駐型オペレーションDot」**
-   - Composio経由でGoogle WorkspaceやGitHubと連携。Slackメンションで一次障害調査や権限付与リクエストの承認・実行を担うエージェントを構築。
-3. **マイクロSaaS展開: 「LegalDot（契約書レビュー＆要約専用エージェント）」**
-   - 専門知識プロンプトと法務MCPサーバーをプリセットし、士業・法務担当者向けに月額29,800円/組織でセキュアに提供。
-
----
-
-## インストール & クイックスタート手順
-
-### 必要要件
-- **Node.js 24** 以上
-- **Docker & Docker Compose**
-- OpenAI または OpenAI互換モデルAPIキー
-
-```bash
-# 1. リポジトリのクローン
+```sh
 git clone https://github.com/CopilotKit/OpenDots.git
 cd OpenDots
-
-# 2. 依存関係のインストール
 npm ci
-
-# 3. 環境変数設定
 cp .env.example .env
-
-# 4. CopilotKit Intelligenceの連携
-npx copilotkit@latest login
-npx copilotkit@latest project select
-
-# 5. .env に OPENAI_API_KEY を設定後、起動
 npm run dev
 ```
-ブラウザで `http://127.0.0.1:5173` にアクセスし、Spaceの作成およびDotの設定を開始します。
 
----
+```sh
+npx copilotkit@latest login
+npx copilotkit@latest project select
+```
 
-## 商用利用可否 & ライセンス考察
+## ライセンス
 
-- **ライセンス**: **MIT License**
-- **商用利用**: ソースコードの改変、再配布、商用SaaSへの組み込み、受託開発納品すべてにおいて制限なく利用可能です。著作権表示および許諾表示を保持するだけで問題ありません。
-- **外部サービス依存に関する注意点**:
-  - `CopilotKit Intelligence`: ローカル評価用Dockerコンテナ、または有償クラウド/自己ホスティングライセンスを選択可能。
-  - `Parallel Search / Composio`: 利用量に応じた商用APIキーが必要です。
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/CopilotKit/OpenDots/blob/main/LICENSE)
+
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

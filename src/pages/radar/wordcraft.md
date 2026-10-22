@@ -1,19 +1,23 @@
 ---
 layout: "../../layouts/Layout.astro"
 title: "wordcraft - Pure Rustで完全再実装されたMicrosoft Word代替OSSの衝撃"
-description: "メモリ安全かつ超高速。Model Context Protocol（MCP）と422個のAPIでAIエージェントによるドキュメント自動生成を可能にする新世代ワープロOSS「WordCraft」を徹底解説。"
+description: "MCPと422個のAPIでAIエージェントによるドキュメント自動生成を可能にする新世代ワープロOSS「WordCraft」を徹底解説。"
 pubDate: "2026-10-14"
 tags: ["Rust", "OSS", "GitHub", "MCP", "AI-Agents"]
 repoUrl: "https://github.com/storytold/wordcraft"
 repoCreatedAt: "2026-10-07"
 stars: 11077
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "根拠のない比較表現（「人間と同等以上の精度」など）を訂正"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# wordcraft: 概要と革新性
+# wordcraft: 概要
+
+storytold/wordcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 11,077 です。
 
 `storytold/wordcraft` は、Microsoft Word のワークフロー、UI（リボンUI）、そしてファイル仕様（.docx / OOXML）を、依存関係なしに **Pure Rust** でゼロからクリーンルーム再実装したオープンソースのデスクトップ・Web向けワードプロセッサです。
 
@@ -21,7 +25,7 @@ corrections:
 
 ### 主な革新性
 1. **README に記載の性能**: 段落レイアウトをキャッシュするため、188 ページの文書で入力したときの再レイアウトが約 **1.4ms** と記載されています（当サイトでは計測していません）。Electron は使っていません。
-2. **AIエージェント・ファースト設計**: 全422種類のUIアクションがユニークなコマンドIDとして公開されており、**MCP（Model Context Protocol）** サーバーまたはCLIを通じて、Claude 等の AI モデルからヘッドレスで文書の作成・編集を操作できます。
+2. **AIエージェント・ファースト設計**: 全422種類のUIアクションがユニークなコマンドIDとして公開されており、**MCP** サーバーまたはCLIを通じて、Claude 等の AI モデルからヘッドレスで文書の作成・編集を操作できます。
 3. **オフライン・完全プライベート**: 校閲・文法チェック・PDF/DOCX変換が外部API通信なしにローカルで完結。
 
 ---
@@ -66,62 +70,29 @@ graph TD
 
 ---
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 項目 | Microsoft Word / 365 | LibreOffice / OpenOffice | Google Docs API | **WordCraft (本リポジトリ)** |
-|---|---|---|---|---|
-| **ライセンス** | プロプライエタリ（月額課金） | MPL 2.0 / LGPL | プロプライエタリ（Cloud依存） | **MIT / Apache 2.0 (デュアル)** |
-| **ランタイム** | C++ / 大型ランタイム | レガシーC++ / Java依存 | Web / REST API | **Pure Rust (シングルバイナリ)** |
-| **起動・動作速度** | 普通〜やや重い | 重い（起動に数秒） | ネットワーク依存 | **極小（ミリ秒単位起動・1.4ms再描画）** |
-| **AIエージェント連携** | Copilot (要追加料金/閉域) | プラグイン拡張が困難 | スクリプトベース | **MCP / CLI / JSON制御が標準装備** |
-| **メモリ消費量** | 500MB〜1.5GB | 300MB〜800MB | ブラウザ依存（大） | **数十MB〜（GPUネイティブ）** |
-| **データプライバシー** | クラウド同期が基本 | ローカル完結 | クラウド送信必須 | **完全オフライン動作** |
+以下は [README](https://github.com/storytold/wordcraft#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
----
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-### 1. 金融・士業向け「完全オンプレミスAI帳票・契約書自動生成基盤」
-- **ペイン**: 秘匿性が極めて高い顧客情報や契約書を、外部のクラウドOfficeやSaaSにアップロードできない。
-- **ソリューション**: 社内ローカルLLM（Ollama等）と `wordcraft-cli mcp` を連携。社内規定に沿ったフォーマットで .docx および検証済み PDF をミリ秒で生成・差分比較（Track Changes）するシステムを受託構築。
-
-### 2. CI/CDパイプライン組み込み型「ドキュメントリント・自動パブリッシャー」
-- **ソリューション**: Gitリポジトリ上のMarkdown / TeX文書をコミット時に自動でCI上で検知。WordCraftのCLI経由で、印刷クオリティの高品質な社外公開用DOCX/PDFへレンダリングし、タイポ・表記揺れを `wordcraft-proof` で弾く自動化SaaSを展開。
-
----
-
-## インストール & クイックスタート手順
-
-### 1. デスクトップ版のビルドと起動
-Rustツールチェーン（`cargo`）がインストールされている環境で実行します。
-
-```bash
-# リポジトリのクローン
+```sh
 git clone https://github.com/storytold/wordcraft
 cd wordcraft
-
-# サンプルドキュメント付きでデスクトップアプリを起動
-cargo run --release -p wordcraft -- --sample
+cargo run --release -p wordcraft -- --sample        # the desktop app with the sample document
+cargo run --release -p wordcraft -- report.docx     # open a document
 ```
 
-### 2. CLIツールによるヘッドレス変換
-```bash
-# DOCXからPDFへの変換
-cargo run --release -p wordcraft-cli -- convert input.docx output.pdf
-
-# ドキュメント構造をJSONとして解析・ダンプ
-cargo run --release -p wordcraft-cli -- inspect report.docx
+```sh
+wordcraft-cli convert report.docx report.pdf        # docx, pdf, odt, rtf, html, md, tex, txt, png
+wordcraft-cli text report.docx                      # plain text
+wordcraft-cli inspect report.docx                   # structure as JSON
+wordcraft-cli run --template sample \
+  --cmd 'select.text={"text":"Membership"}' --cmd format.bold --save out.docx
+wordcraft-cli run --script job.json                 # the same from a file: commands, then save to docx and pdf
 ```
 
-### 3. Claude Desktop / AIエージェントとの連携（MCP設定）
-※ 導入提案書テンプレート・工数見積表・導入手順は note の有料記事で提供しています（このページには含まれません）。
+## ライセンス
 
----
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/storytold/wordcraft/blob/main/LICENSE-APACHE)
 
-## 商用利用可否 & ライセンス考察
-
-WordCraftは **MIT License または Apache License 2.0 のデュアルライセンス** で提供されています。
-
-- **商用利用**: ソースコードの改変、自社商用SaaSへの組み込み、プロプライエタリ製品のバックエンドとしての同梱・再配布が自由に行えます（著作権表示およびライセンス通知の保持が必要）。
-- **特許・クリーンルーム設計**: Microsoft Officeのバイナリ解析やリバースエンジニアリングではなく、ECMA-376（OOXML仕様書）などの公開仕様に基づいたクリーンルーム実装であるため、法的な知財リスクが極小化されています。
-- **商標に関する注意**: 「ArtCraft」およびそのブランドロゴは保護されているため、フォークして独自のSaaSや再配布パッケージを作成する場合はロゴの差し替えが必要です。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

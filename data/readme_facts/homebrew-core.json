@@ -1,0 +1,26 @@
+{
+  "repo": "Homebrew/homebrew-core",
+  "created_at": "2016-03-01T06:58:36Z",
+  "license": {
+    "spdx": "BSD-2-Clause",
+    "name": "BSD 2-Clause \"Simplified\" License",
+    "url": "https://github.com/Homebrew/homebrew-core/blob/main/LICENSE.txt",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [],
+  "hosts": [
+    "github.com"
+  ],
+  "commands": [
+    "brew",
+    "formula",
+    "install"
+  ],
+  "expansions": [
+    "HC=homebrew core",
+    "MD=more documentation"
+  ],
+  "install_blocks": []
+}

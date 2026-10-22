@@ -1,0 +1,32 @@
+{
+  "repo": "rust-lang/crates.io-index",
+  "created_at": "2014-11-04T23:26:38Z",
+  "license": {
+    "spdx": null,
+    "name": null,
+    "url": "https://github.com/rust-lang/crates.io-index",
+    "status": "none",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [],
+  "hosts": [
+    "crates.io",
+    "doc.rust-lang.org",
+    "github.com",
+    "index.crates.io",
+    "rust-lang.github.io",
+    "rust-lang.org"
+  ],
+  "commands": [
+    "cargo"
+  ],
+  "expansions": [
+    "CB=cargo book",
+    "HA=http api",
+    "HTTPAPI=http api",
+    "TC=the cargo",
+    "TCB=the cargo book"
+  ],
+  "install_blocks": []
+}

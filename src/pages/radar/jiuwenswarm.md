@@ -7,15 +7,19 @@ tags: ["Python", "OSS", "GitHub"]
 repoUrl: "https://github.com/openJiuwen-ai/jiuwenswarm"
 repoCreatedAt: "2026-03-05"
 stars: 5978
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "比較表が当サイトで検証したものではないことを明記し、勧める表現を訂正"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# jiuwenswarm: 概要と革新性
+# jiuwenswarm: 概要
 
-JiuwenSwarmは、オープンソースのAIエージェントシステムであり、大規模言語モデル（LLM）の能力を日常のコミュニケーションアプリを通じて直接利用可能にするインテリジェントなプラットフォームです。GitHubで5900以上のスターを獲得し、その革新的なアプローチが注目されています。
+openJiuwen-ai/jiuwenswarm は 2026-03-05 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 5,978 です。
+
+JiuwenSwarmは、オープンソースのAIエージェントシステムであり、大規模言語モデル（LLM）の能力を日常のコミュニケーションアプリを通じて直接利用可能にするインテリジェントなプラットフォームです。
 
 このプロジェクトの核心は、「マルチエージェントコラボレーション」を現実のものにすること。複雑なタスクを自然言語で指示するだけで、AIエージェントが自律的に分解し、専門エージェントチームを編成、協調してタスクを完遂します。さらに、エージェントの「スキル自己進化」機能により、エラーやユーザーの不満を検知して自動的にスキル定義を最適化し、継続的な改善を実現します。
 
@@ -30,7 +34,6 @@ flowchart TD
     Memory --> Result["高精度な最終納品物自動生成"]
 ```
 
-
 現代のビジネス環境では、複雑なタスクの自動化と効率化が喫緊の課題です。しかし、従来のAIエージェントは単一タスクに特化しがちで、複数のステップや専門知識を要する複雑なプロセスには対応が困難でした。JiuwenSwarmは以下の課題を解決します。
 
 *   **複雑なタスクの分解と実行:** リーダーエージェントが複雑なタスクを分解し、専門エージェントチームを動的に編成。各エージェントが連携し、タスクをエンドツーエンドで実行します。
@@ -39,43 +42,23 @@ flowchart TD
 *   **ヒューマン・イン・ザ・ループ (HITL) の統合:** SwarmflowというPythonスクリプトによる決定論的なマルチステージワークフローを通じて、人間による介入（`human` / `human_session`）を組み込むことができ、AIの自律性と人間の制御のバランスを取ります。
 *   **幅広いAIインフラ互換性:** Huawei Cloud MaaS、OpenAI互換API、ローカルモデルなど、多様なAIプラットフォームに対応し、既存のインフラを最大限に活用できます。
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-README に記載された JiuwenSwarm の機能を、一般的な商用 AI エージェント SaaS などと比べた表です（比較対象側は一般的な傾向で、当サイトで検証したものではありません）。
-
-| 比較項目 | JiuwenSwarm (OSS) | 一般的な商用マルチエージェントSaaS | 単一タスク型AIエージェント |
-|---|---|---|---|
-| **自律的タスク分解** | ◎ リーダーエージェントによる動的編成 | ○ 定型テンプレート依存 | × 単一指示のみ対応 |
-| **スキル自己進化** | ◎ 実行結果・FBからの自動最適化 | × ベンダー側の更新待ち | × なし |
-| **デプロイ環境** | ◎ 完全社内閉域・オンプレミス/VPC対応 | × クラウドSaaS固定（機密漏洩リスク） | △ クラウド依存大 |
-| **HITL (人間介入)** | ◎ Swarmflowによる決定論的制御 | △ 設定柔軟性が低い | × 制御困難 |
-| **導入・運用コスト** | ◎ OSSのためライセンス料ゼロ・API費のみ | × 月額従量課金＋高額シート費用 | △ 機能に対して割高 |
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1.  **社内チャットツール（Slack / Teams / Feishu）連携型マルチエージェント基盤の導入**:
-    *   日常業務で利用しているチャットツールをインターフェースとし、調査・集計・レポート作成・コードレビューを複数の専門エージェントが協調して処理する社内業務支援システムを構築します。
-2.  **Human-in-the-Loop（人間承認ステップ）を組み込んだ業務自動化ワークフロー**:
-    *   Swarmflow を活用し、AIエージェントによる自動処理と人間の最終承認ステップ（`human_session`）を組み合わせた安全な業務オペレーション基盤を設計・構築します。
-3.  **社内固有ナレッジに適応するスキル継続改善（Skill Self-Evolution）運用支援**:
-    *   業務フィードバックをもとにエージェントのスキル定義を継続的に改善する運用体制を整備し、社内DX推進チームの定着化を支援します。
-
-## インストール & クイックスタート手順
-
-### 1. Python パッケージ（workswarm）によるインストールと起動
+以下は [README](https://github.com/openJiuwen-ai/jiuwenswarm#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
 ```bash
-# パッケージのインストール（Python 3.11 以上）
+# Install JiuwenSwarm
 pip install workswarm
 
-# 初回セットアップ（設定ディレクトリの初期化）
+# Use China mirror (recommended)
+pip install workswarm -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# Initialize JiuwenSwarm (first-time setup)
 jiuwenswarm-init
 
-# サーバー＆フロントエンドの起動（http://localhost:5173）
+# Start JiuwenSwarm
 jiuwenswarm-start
 ```
-
-### 2. ソースコードからの開発環境構築（uv 利用）
 
 ```bash
 git clone https://github.com/openJiuwen-ai/jiuwenswarm.git
@@ -84,6 +67,20 @@ uv venv
 uv pip install -e .
 ```
 
-## 商用利用可否 & ライセンス考察
+```yaml
+model_name: deepseek-v4-flash
+api_base: https://api.deepseek.com
+api_key: sk-your-api-key
+model_provider: OpenAI
+```
 
-JiuwenSwarmは **Apache License 2.0** の下で公開されており、商用利用、改変、社内システムや受託開発案件への組み込みが可能です。利用にあたってはリポジトリ内の `LICENSE` ファイルに基づき著作権表示とライセンス通知を保持してください。接続するLLM API（OpenAI互換APIやローカルLLM等）の利用規約・データ取り扱いポリシーもあわせて確認してください。
+```text
+Conduct an in-depth research on the new energy vehicle industry and generate an analysis report.
+```
+
+## ライセンス
+
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/openJiuwen-ai/jiuwenswarm/blob/develop/LICENSE)
+
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

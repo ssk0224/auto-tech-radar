@@ -1,26 +1,30 @@
 ---
 layout: "../../layouts/Layout.astro"
 title: "cadcraft - Pure Rust製オープンソース2D/3D CADエンジンの衝撃とMCPによるAI自律設計"
-description: "AutoCAD互換の操作体系をPure Rustでフルスクラッチ実装。eguiによる爆速ネイティブ描画と、MCP（Model Context Protocol）によるAIエージェント駆動を実現した次世代CAD「cadcraft」を徹底解剖。"
+description: "AutoCAD互換の操作体系をPure Rustでフルスクラッチ実装。eguiによるネイティブ描画と、MCPによるAIエージェント駆動を実現した次世代CAD「cadcraft」を徹底解剖。"
 pubDate: "2026-10-18"
 tags: ["Rust", "OSS", "GitHub", "CAD", "MCP", "AI-Agent"]
 repoUrl: "https://github.com/storytold/cadcraft"
 repoCreatedAt: "2026-10-07"
 stars: 5766
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "採用判定のラベルと導入を勧める表現を削除し、README の開発状況（early development）に基づく記述に訂正"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# cadcraft: 概要と革新性
+# cadcraft: 概要
+
+storytold/cadcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-18 時点のスター数は 5,766 です。
 
 CADソフトウェアの世界は数十年にわたり、Autodesk社のAutoCADをはじめとする独占的な商用プロプライエタリ製品が支配してきました。オープンソースの世界でもLibreCADやFreeCADなどが存在したものの、旧来のC++ベースの重厚なUIフレームワークへの依存や、スクリプト自動化・ヘッドレス運用の難しさが課題でした。
 
 この現状を根本から打破するために登場したのが **「CADCraft」** です。
-CADCraftは、クリーンルーム設計でPure Rustを用いて開発されたAutoCAD互換の2D/3D CADアプリケーションです。ElectronやWebViewを一切使わず、Rustの即時モードGUIフレームワーク「egui」と「wgpu」をダイレクトに駆動させることで、超軽量・瞬時起動・ゼロクラッシュの堅牢性を達成しています。
+CADCraftは、クリーンルーム設計でPure Rustを用いて開発されたAutoCAD互換の2D/3D CADアプリケーションです。ElectronやWebViewを一切使わず、Rustの即時モードGUIフレームワーク「egui」と「wgpu」を使っています。README のバッジは開発状況を early development としており、一部のグラフィックドライバでクラッシュしうることも記載されています。
 
-さらに最大の革新性は、**「AIエージェントによる自律設計（Agent-drivable over MCP）」** を設計思想の中核に据えている点です。コマンドライン、JSONコントロールチャネル、そして業界標準のMCP（Model Context Protocol）サーバーがネイティブ統合されており、LLM（ClaudeやGPTなど）が図面生成・編集・視覚的検証を完全自動で実行可能です。
+さらに最大の革新性は、**「AIエージェントによる自律設計（Agent-drivable over MCP）」** を設計思想の中核に据えている点です。コマンドライン、JSONコントロールチャネル、そして業界標準のMCPサーバーがネイティブ統合されており、LLM（ClaudeやGPTなど）が図面生成・編集・視覚的検証を完全自動で実行可能です。
 
 ## 🎯 成熟度の目安（AI による見立て）
 
@@ -77,52 +81,26 @@ graph TD
     DocDB --> IO
 ```
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 項目 | CADCraft (本OSS) | Autodesk AutoCAD | FreeCAD | LibreCAD |
-|---|---|---|---|---|
-| **コア言語** | Pure Rust | C++ / .NET | C++ / Python | C++ (Qt) |
-| **起動速度 / メモリ** | 即時（< 0.2秒）/ ~50MB | 15〜30秒 / 1GB超 | 5〜10秒 / 400MB超 | 1〜2秒 / 150MB |
-| **ライセンス費用** | 無料（MIT / Apache 2.0） | 約30万円/年/シート | 無料（LGPL） | 無料（GPLv2） |
-| **AutoCAD CLI互換** | 完全準拠（プロンプト・スナップ） | 本家仕様 | なし（独自GUI） | 部分的 |
-| **AI/MCPネイティブ** | **◎ 標準搭載 (MCP / JSON)** | △ アドオン・COM依存 | △ Pythonスクリプト要 | × 非対応 |
-| **Webブラウザ稼働** | **◎ Wasm完全対応** | △ 限定的クラウド版 | × 不可 | × 不可 |
+以下は [README](https://github.com/storytold/cadcraft#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1. **建設・製造業向け「2D図面自動積算・出力SaaS」のコアエンジン**
-   - 顧客が入力したパラメータ（建屋の幅、階高、ドア位置など）から、CADCraft-CLIをバックエンドコンテナで走らせ、数ミリ秒で確認申請用DXFおよび高解像度PDF/PNGを自動出力。
-2. **AIエージェントによる図面修正代行ボット（B2B受託）**
-   - 「この図面の全ボルト穴をM6からM8に変更して中心座標を出力して」という指示をSlackから受領。LLMがMCP経由でCADCraftを操作し、修正後DXFと差分PNGを自動返信。
-
-## インストール & クイックスタート手順
-
-### ビルド前提条件
-- Rust 1.95以上（デスクトップ/Web UI）
-
-### デスクトップアプリのビルドと起動
-```bash
-# リポジトリ取得
-git clone https://github.com/storytold/cadcraft.git
+```sh
+git clone https://github.com/storytold/cadcraft
 cd cadcraft
-
-# サンプル図面を開いて起動
-cargo run --release -p cadcraft -- --sample
+cargo run --release -p cadcraft -- --sample       # opens the sample drawing
 ```
 
-### CLIでのバッチ処理（例: DXFからSVG/PNGへの一括変換）
-```bash
-# 図面情報のダンプ
-cadcraft-cli info drawing.dxf
-
-# ヘッドレスで円を作図してDXF保存 & PNGエクスポート
-cadcraft-cli run --sample --script 'CIRCLE 20,20 5\n' --save out.dxf --export out.png
+```text
+line 0,0 @10,0 @0,5 c          a closed triangle
+circle 5,2 1                    a circle
+offset 0.25                     then pick the circle and a side
+zoom e                          zoom to extents
 ```
 
-## 商用利用可否 & ライセンス考察
+## ライセンス
 
-CADCraftのソースコードは **MIT License または Apache License 2.0 のデュアルライセンス** で提供されています。
-商用利用、ソースコードの改変、プロプライエタリな製品への組み込み、自社SaaSバックエンドとしての利用が無償かつ自由に認められています。
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/storytold/cadcraft/blob/main/LICENSE-APACHE)
 
-**注意点**:
-- `docs/brand/` に含まれる「ArtCraft」のロゴ・商標は除外されているため、自社製品としてリブランディング（フォーク）して再配布する場合は、商標やロゴを独自のものに差し替える必要があります。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

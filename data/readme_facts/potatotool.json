@@ -1,0 +1,53 @@
+{
+  "repo": "potato-security/PotatoTool",
+  "created_at": "2024-05-07T04:02:10Z",
+  "license": {
+    "spdx": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://github.com/potato-security/PotatoTool/blob/main/LICENSE",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [
+    "1 GB",
+    "1.16 KB",
+    "2 GB",
+    "2097152 KB"
+  ],
+  "hosts": [
+    "azul.com",
+    "gitcode.com",
+    "github.com",
+    "i-blog.csdnimg.cn"
+  ],
+  "commands": [
+    "-f",
+    "-version",
+    "AppVersion",
+    "LICENSE",
+    "Manifest-Version",
+    "PotatoTool-",
+    "about.version.value",
+    "clean",
+    "debug",
+    "java",
+    "jdk11+.xml",
+    "jdk8.xml",
+    "messages_en_US.properties",
+    "mvn",
+    "package",
+    "pom.xml",
+    "source",
+    "version"
+  ],
+  "expansions": [
+    "AL=apache license",
+    "AL=arch linux",
+    "CC=china chopper",
+    "FD=form data",
+    "VC=vm could",
+    "VMC=vm could"
+  ],
+  "install_blocks": []
+}

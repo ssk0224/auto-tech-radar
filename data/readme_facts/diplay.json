@@ -1,0 +1,60 @@
+{
+  "repo": "shihabal3amri/DiPlay",
+  "created_at": "2026-09-24T15:36:38Z",
+  "license": {
+    "spdx": "GPL-3.0",
+    "name": "GNU General Public License v3.0",
+    "url": "https://github.com/shihabal3amri/DiPlay/blob/main/LICENSE",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [],
+  "hosts": [
+    "github.com",
+    "shihabal3amri.github.io"
+  ],
+  "commands": [
+    "com.shihab.diplay",
+    "maphost",
+    "mobile"
+  ],
+  "expansions": [
+    "AI=apple inc",
+    "BA=byd android",
+    "BD=byd dilink",
+    "BH=byd hud",
+    "BM=bos mini",
+    "BOSM=bos mini",
+    "BT=byd tang",
+    "BYDA=byd android",
+    "BYDDL=byd dilink",
+    "BYDHUD=byd hud",
+    "BYDT=byd tang",
+    "CC=core carplay",
+    "CCP=core carplay",
+    "EW=existing wi-fi",
+    "EWF=existing wi-fi",
+    "HK=hong kong",
+    "IC=independent carplay",
+    "ICP=independent carplay",
+    "SC=simplified chinese",
+    "SL=same lan",
+    "SLAN=same lan",
+    "TA=the apk",
+    "TAPK=the apk",
+    "TC=traditional chinese",
+    "TG=the git",
+    "TH=the hud",
+    "THUD=the hud",
+    "WC=wired carplay",
+    "WC=wireless carplay",
+    "WCP=wired carplay",
+    "WCP=wireless carplay",
+    "WD=wi-fi direct",
+    "WFD=wi-fi direct",
+    "WU=wired usb",
+    "WUSB=wired usb"
+  ],
+  "install_blocks": []
+}

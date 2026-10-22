@@ -1,0 +1,37 @@
+{
+  "repo": "wikimedia/mediawiki",
+  "created_at": "2012-11-01T19:03:08Z",
+  "license": {
+    "spdx": "GPL-2.0",
+    "name": "GNU General Public License v2.0",
+    "url": "https://github.com/wikimedia/mediawiki/blob/master/COPYING",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": [
+      "一部のファイルは Creative Commons ライセンス（LICENSE ファイルに記載）"
+    ]
+  },
+  "quantities": [],
+  "hosts": [
+    "bugs.mediawiki.org",
+    "gerrit.wikimedia.org",
+    "mediawiki.org"
+  ],
+  "commands": [],
+  "expansions": [
+    "GG=gnu general",
+    "GGP=gnu general public",
+    "GGPL=gnu general public license",
+    "GNUG=gnu general",
+    "GNUGP=gnu general public",
+    "GNUGPL=gnu general public license",
+    "GP=general public",
+    "GPL=general public license",
+    "PL=public license",
+    "TC=the copying",
+    "TC=the credits",
+    "TCOPYING=the copying",
+    "TCREDITS=the credits"
+  ],
+  "install_blocks": []
+}

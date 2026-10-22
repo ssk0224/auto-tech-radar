@@ -1,0 +1,71 @@
+{
+  "repo": "deepseek-ai/DeepInfer",
+  "created_at": "2026-10-16T07:47:23Z",
+  "license": {
+    "spdx": "Apache-2.0",
+    "name": "Apache License 2.0",
+    "url": "https://github.com/deepseek-ai/DeepInfer/blob/main/LICENSE",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [],
+  "hosts": [
+    "github.com",
+    "huggingface.co"
+  ],
+  "commands": [
+    "DEEPINFER_ACCELERATOR",
+    "DEEPINFER_BATCH_INVARIANT",
+    "DEEPINFER_ENABLE_MTP_VARLEN",
+    "DEEPINFER_HF_MODEL_DIR",
+    "DEEPINFER_USE_NEXTN_DECODE",
+    "DEEPINFER_YOCO_PREFILL_KEEP_TOKENS",
+    "DEEPINFER_YOCO_PREFILL_TRUNCATION_MODE",
+    "DeepSeek",
+    "DeepSeek-AI",
+    "GitHub",
+    "High-performance",
+    "SamplingParams",
+    "author",
+    "compact",
+    "deepinfer2026",
+    "export",
+    "for",
+    "framework",
+    "howpublished",
+    "inference",
+    "large-scale",
+    "models",
+    "nvidia",
+    "publisher",
+    "python",
+    "seq_seed",
+    "so_args",
+    "title",
+    "year"
+  ],
+  "expansions": [
+    "AD=attention dp",
+    "ADP=attention dp",
+    "AK=a kv",
+    "AKV=a kv",
+    "AL=apache license",
+    "DS=decoder swa",
+    "DSWA=decoder swa",
+    "HA=huawei ascend",
+    "HF=hugging face",
+    "ME=moe ep",
+    "MEEP=moe ep"
+  ],
+  "install_blocks": [
+    {
+      "lang": "bash",
+      "code": "# Use `ascend` instead for the Ascend platform\n# Keep it exported in the environment where you run DeepInfer\nexport DEEPINFER_ACCELERATOR=nvidia\n./build.sh"
+    },
+    {
+      "lang": "bash",
+      "code": "python examples/offline_inference.py"
+    }
+  ]
+}

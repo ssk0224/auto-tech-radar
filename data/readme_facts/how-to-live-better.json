@@ -1,0 +1,31 @@
+{
+  "repo": "cdyforever/how-to-live-better",
+  "created_at": "2026-09-18T14:35:08Z",
+  "license": {
+    "spdx": null,
+    "name": null,
+    "url": "https://github.com/cdyforever/how-to-live-better",
+    "status": "none",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [],
+  "hosts": [
+    "cdyforever.github.io",
+    "github.com"
+  ],
+  "commands": [
+    "--depth",
+    "--repo",
+    "-o",
+    "HLTB_REPO",
+    "all",
+    "build.py",
+    "clone",
+    "git",
+    "index.html",
+    "python"
+  ],
+  "expansions": [],
+  "install_blocks": []
+}

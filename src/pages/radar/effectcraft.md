@@ -7,13 +7,17 @@ tags: ["Rust", "OSS", "GitHub", "Motion Graphics", "After Effects Alternative", 
 repoUrl: "https://github.com/storytold/effectcraft"
 repoCreatedAt: "2026-10-01"
 stars: 7161
-updatedDate: "2026-10-21"
+updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "採用判定のラベルと根拠のない比較表現を削除し、ライセンスの条件の記述を訂正"
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
 ---
 
-# effectcraft: 概要と革新性
+# effectcraft: 概要
+
+storytold/effectcraft は 2026-10-01 に GitHub で作成されたリポジトリです。2026-10-18 時点のスター数は 7,161 です。
 
 ## 🎯 成熟度の目安（AI による見立て）
 
@@ -90,128 +94,28 @@ graph TD
 *   **Pure Rust Codecs**: FFmpegに依存しない、自社開発のRust製ビデオ/オーディオコーデック。
 *   **Agent Control**: MCPサーバー、コマンドラインインターフェース、コントロールチャンネルを通じて、外部システムやAIエージェントからの操作を可能にする。
 
-## 競合ツール/商用SaaSとの徹底比較
+## インストール（README からの転記）
 
-| 特徴/ツール | EffectCraft (OSS) | Adobe After Effects (商用SaaS) | DaVinci Resolve Fusion (商用/無料版) | Blender Grease Pencil (OSS) |
-| :---------- | :---------------- | :----------------------------- | :---------------------------------- | :-------------------------- |
-| **コスト** | 無料 (OSS) | 高額なサブスクリプション | 無料版あり、Studio版は買い切り | 無料 (OSS) |
-| **ライセンス** | MIT OR Apache-2.0 | プロプライエタリ | プロプライエタリ | GPL |
-| **開発言語** | Rust | C++など | C++など | C/C++, Python |
-| **パフォーマンス** | Rustによる高速処理、メモリ安全性 | 高性能だが、複雑なプロジェクトで重くなることも | 高性能、ノードベースで効率的 | 3D統合、リアルタイム性 |
-| **主要機能** | モーションG、VFX、コンポジット、3D、306エフェクト、Lottie入出力 | モーションG、VFX、コンポジット、3D、豊富なエフェクト、プラグイン | ノードベースコンポジット、VFX、3D、カラーグレーディング | 2Dアニメーション、3D統合、モデリング |
-| **Lottie対応** | **ネイティブ入出力** | プラグインが必要 | 非対応 | 非対応 |
-| **自動化/スクリプト** | **CLI, MCP, JSONコントロールチャンネルで高度に自動化可能** | ExtendScript (JavaScript) で限定的に自動化 | Fusion Script (Python, Lua) | Pythonスクリプトで高度に自動化可能 |
-| **プロジェクトファイル** | `.ecproj` (人間が読めるJSON) | `.aep` / `.aepx` (バイナリ/XML) | `.drp` (バイナリ) | `.blend` (バイナリ) |
-| **FFmpeg依存** | **なし (純粋Rustコーデック)** | あり | あり | あり |
-| **成熟度** | Alpha版、開発初期段階 | 業界標準、非常に成熟 | 高機能、プロフェッショナル向け | 高機能、活発なコミュニティ |
-| **互換性** | After Effectsプロジェクトは開けない | 業界標準、広範な互換性 | 他のResolveモジュールとシームレス | 独自のファイル形式 |
-| **コミュニティ** | 活発なDiscordコミュニティ | 非常に大規模 | 大規模 | 非常に大規模 |
+以下は [README](https://github.com/storytold/effectcraft#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
-**EffectCraftの特徴（README の記載に基づく）:**
+```sh
+eselect repository add snakebyte git https://github.com/switch87/snakebyte-overlay.git
+emaint sync -r snakebyte
+echo 'media-video/effectcraft-bin ~amd64' >> /etc/portage/package.accept_keywords/effectcraft
+emerge --ask media-video/effectcraft-bin
+```
 
-*   **コストとオープンソース性**: MIT License または Apache License 2.0 のデュアルライセンスで、ライセンスの条件（著作権表示など）を守れば利用・改変・再配布ができる。
-*   **Rust 製**: Rust で書かれており、メモリ安全性の面で利点がある（性能・安定性は当サイトでは検証していない）。
-*   **Lottieネイティブ対応**: Webやモバイルアプリ向けアニメーションの形式である Lottie を直接扱える。
-*   **高度な自動化とAI連携**: CLI、MCP、JSONコントロールチャンネルにより、CI/CDやAIエージェントとの統合が容易。
-*   **FFmpegからの脱却**: 純粋なRust製コーデックにより、依存関係の複雑さを排除し、セキュリティとパフォーマンスを向上。
-*   **可読性の高いプロジェクトファイル**: JSON形式のため、バージョン管理システムでの差分管理が容易。
+```sh
+git clone https://github.com/storytold/effectcraft
+cd effectcraft
+cargo run --release -p effectcraft          # the app (add `-- --demo` to open the demo project)
+cargo run --release -p effectcraft-cli -- render --out intro.mp4    # render the demo headless
+cargo xtask web --serve 8765                # the browser build on http://127.0.0.1:8765/ (docs/web.md)
+```
 
-**EffectCraftの課題点:**
+## ライセンス
 
-*   **成熟度**: まだAlpha版であり、After Effectsの完全な代替には至っていない。
-*   **After Effectsプロジェクト互換性**: 既存のAfter Effectsプロジェクトを開けないため、移行には手動での再構築が必要。
-*   **プラグインエコシステム**: After Effectsのような豊富なサードパーティ製プラグインは存在しない。
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/storytold/effectcraft/blob/main/LICENSE-APACHE)
 
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-EffectCraftのオープンソース性、Rustによるパフォーマンス、そしてAI連携の容易さは、多様なビジネスチャンスを生み出します。
-
-1.  **Lottieアニメーション自動生成・変換サービス**:
-    *   **アイデア**: ユーザーがテキストや簡単なパラメータを入力するだけで、EffectCraftがLottieアニメーションを自動生成し、Webサイトやアプリで利用できる形式で提供するSaaS。
-    *   **実践例**: 広告バナー、SNS投稿用アニメーション、Webサイトのローディングアニメーションなどを、AIが自動でデザイン・生成。EffectCraftのLottieエクスポート機能とCLIによる自動化を最大限に活用。
-2.  **CI/CDパイプライン統合型動画コンテンツ生成**:
-    *   **アイデア**: GitHub ActionsなどのCI/CDパイプラインにEffectCraftを組み込み、データソース（例: スプレッドシート、API）の更新をトリガーに、自動で動画コンテンツ（例: 製品紹介動画、ニュース速報、パーソナライズド広告）を生成するソリューション。
-    *   **実践例**: ECサイトの商品データ更新時に、新商品のプロモーション動画を自動生成し、YouTubeやSNSにアップロード。EffectCraftのヘッドレスレンダリング機能とスクリプト可能性が核となる。
-3.  **特定業界向けカスタムモーションテンプレートプラットフォーム**:
-    *   **アイデア**: 教育、不動産、医療など特定の業界に特化したモーショングラフィックスのテンプレートをEffectCraftで作成し、ユーザーが簡単にカスタマイズして利用できるプラットフォームを提供。
-    *   **実践例**: 不動産物件の紹介動画テンプレート。物件情報（画像、テキスト、価格）を入力するだけで、EffectCraftが自動で動画を生成。プロジェクトファイルがJSONであるため、テンプレートの管理やプログラムによる動的なデータ挿入が容易。
-4.  **AI駆動型コンテンツ生成エージェント**:
-    *   **アイデア**: Claude DesktopやCursorなどのAIエージェントにEffectCraftをツールとして統合し、自然言語の指示に基づいてモーショングラフィックスを生成・編集するサービス。
-    *   **実践例**: 「このテキストで、未来的な雰囲気のオープニングアニメーションを作成して、Lottieで出力して」といった指示で、AIがEffectCraftを操作し、アニメーションを生成。MCPサーバー連携がこの中核を担う。
-
-これらのアイデアは、EffectCraftの技術的特性を最大限に活用し、既存のワークフローの効率化や新たな価値創造に貢献します。
-
-## インストール & クイックスタート手順
-
-EffectCraftは、macOS, Windows, Linux, FreeBSD, そしてWebAssembly (ブラウザ) で利用可能です。
-
-### 1. ダウンロードとインストール (推奨)
-
-最も簡単な方法は、公式ウェブサイトまたはGitHubのリリースページからインストーラーをダウンロードすることです。
-
-*   **公式ウェブサイト**: [EffectCraft on getartcraft.com](https://getartcraft.com/apps/effectcraft)
-*   **GitHub Releases**: [https://github.com/storytold/effectcraft/releases](https://github.com/storytold/effectcraft/releases)
-
-各OS向けのインストーラーが提供されています。
-
-*   **Windows**: `.msi` (x64, arm64, x86) またはポータブル版 `.zip`
-*   **macOS**: `.dmg` (Universal App)
-*   **Linux**: `AppImage`, `Flatpak`, `.deb`, `.rpm`, `tar.gz` (x86_64, aarch64, riscv64)
-
-### 2. Rustからのビルドと実行 (開発者向け)
-
-EffectCraftをソースコードからビルドするには、Rust 1.95以降が必要です。
-
-1.  **Rustのインストール**:
-    [rustup.rs](https://rustup.rs/) に従ってRustをインストールします。
-
-    ```sh
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    source "$HOME/.cargo/env"
-    ```
-
-2.  **EffectCraftのリポジトリをクローン**:
-
-    ```sh
-    git clone https://github.com/storytold/effectcraft
-    cd effectcraft
-    ```
-
-3.  **アプリケーションの実行**:
-
-    ```sh
-    cargo run --release -p effectcraft
-    # デモプロジェクトを開く場合
-    # cargo run --release -p effectcraft -- --demo
-    ```
-
-4.  **CLIツールの実行 (ヘッドレスレンダリングなど)**:
-
-    ```sh
-    cargo run --release -p effectcraft-cli -- render --out intro.mp4 # デモをレンダリング
-    ```
-
-5.  **WebAssembly (ブラウザ) 版のビルドと実行**:
-
-    ```sh
-    cargo xtask web --serve 8765
-    # ブラウザで http://127.0.0.1:8765/ にアクセス
-    ```
-
-## 商用利用可否 & ライセンス考察
-
-EffectCraftは、**MITライセンス** または **Apache License 2.0** のデュアルライセンスで提供されています。これは、オープンソースソフトウェアの中でも非常に寛容なライセンスであり、**商用利用、改変、再配布が完全に可能**です。
-
-**ライセンス考察:**
-
-*   **MITライセンス**: 最小限の制約で、著作権表示とライセンス条文を含める限り、自由に利用できます。
-*   **Apache License 2.0**: MITライセンスと同様に寛容ですが、特許権の付与、貢献者の著作権表示、変更点の明記など、より詳細な条項が含まれます。
-
-どちらのライセンスを選択しても、EffectCraftをベースにした製品やサービスを開発し、商用展開することが可能です。これは、企業がEffectCraftを自社製品に組み込んだり、カスタマイズして顧客に提供したりする上で大きなメリットとなります。
-
-**注意点:**
-
-*   **ブランドロゴの利用**: `docs/brand/` にあるArtCraftの名称、ワードマーク、ロゴは、ArtCraft Teamの商標であり、本ライセンスの対象外です。これらは、このリポジトリおよびEffectCraftの一部として、`docs/brand/LICENSE-brand.txt` に基づいてのみ使用できます。フォークや改変バージョンでは、これらのブランドアセットを削除する必要があります。
-*   **クリーンルーム実装**: EffectCraftはAfter Effectsの「クリーンルーム再実装」であり、Adobeのファイル、アイコン、プリセット、コードを一切コピーしていません。これにより、知的財産権に関するリスクを最小限に抑え、安心して利用できる基盤を提供しています。
-
-総じて、EffectCraftは非常にビジネスフレンドリーなライセンスモデルを採用しており、その技術的な革新性と相まって、幅広い商用利用の可能性を秘めていると言えます。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

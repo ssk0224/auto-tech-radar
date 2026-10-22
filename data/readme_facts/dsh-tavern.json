@@ -1,0 +1,90 @@
+{
+  "repo": "flizzywine/dsh-tavern",
+  "created_at": "2026-08-16T13:07:23Z",
+  "license": {
+    "spdx": "AGPL-3.0",
+    "name": "GNU Affero General Public License v3.0",
+    "url": "https://github.com/flizzywine/dsh-tavern/blob/main/LICENSE",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "quantities": [
+    "10 s",
+    "27 B",
+    "3 min",
+    "95 %",
+    "99 %"
+  ],
+  "hosts": [
+    "bilibili.com",
+    "deepseek.com",
+    "discord.gg",
+    "flizzywine.github.io",
+    "github.com",
+    "nodejs.org",
+    "raw.githubusercontent.com"
+  ],
+  "commands": [
+    "-fsSL",
+    "-o",
+    "DSH_TAVERN_HOST",
+    "Invoke-Expression",
+    "Net.WebClient",
+    "New-Object",
+    "Text.Encoding",
+    "cli",
+    "curl",
+    "desktop",
+    "dsh",
+    "dsh-tavern",
+    "sh",
+    "stable",
+    "start",
+    "status",
+    "stop",
+    "tavern",
+    "update"
+  ],
+  "expansions": [
+    "AA=android apk",
+    "AAPK=android apk",
+    "DD=dsh desktop",
+    "DH=deepseek harness",
+    "DN=dsh next",
+    "DSH=deepseek harness",
+    "DSHD=dsh desktop",
+    "DSHNEXT=dsh next",
+    "DSHT=dsh tavern",
+    "DSHTA=dsh tavern android",
+    "DSHTAAPK=dsh tavern android apk",
+    "DT=dsh tavern",
+    "DTA=dsh tavern android",
+    "DTAA=dsh tavern android apk",
+    "GD=github discussions",
+    "GHD=github discussions",
+    "NN=new-object net",
+    "NON=new-object net",
+    "TA=tavern android",
+    "TAA=tavern android apk",
+    "TAAPK=tavern android apk"
+  ],
+  "install_blocks": [
+    {
+      "lang": "powershell",
+      "code": "     $env:DSH_TAVERN_HOST='desktop'; $tavernInstaller=[Text.Encoding]::UTF8.GetString((New-Object Net.WebClient).DownloadData('https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.ps1')); Invoke-Expression $tavernInstaller"
+    },
+    {
+      "lang": "sh",
+      "code": "   curl -fsSL 'https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.sh' -o /tmp/dsh-tavern-install.sh && DSH_TAVERN_HOST=desktop sh /tmp/dsh-tavern-install.sh"
+    },
+    {
+      "lang": "powershell",
+      "code": "$env:DSH_TAVERN_HOST='cli'; $tavernInstaller=[Text.Encoding]::UTF8.GetString((New-Object Net.WebClient).DownloadData('https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.ps1')); Invoke-Expression $tavernInstaller"
+    },
+    {
+      "lang": "sh",
+      "code": "curl -fsSL 'https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.sh' -o /tmp/dsh-tavern-install.sh && DSH_TAVERN_HOST=cli sh /tmp/dsh-tavern-install.sh"
+    }
+  ]
+}
