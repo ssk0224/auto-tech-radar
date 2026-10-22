@@ -45,31 +45,31 @@
     Auto Tech Radar
   </text>
   <text x="100" y="295" fill="url(#brand)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800">
-    海外急上昇OSS日本語解剖 ＆ 収益化メディア
+    海外で注目の OSS を日本語で解説
   </text>
 
   <!-- Subtitle / Value Prop -->
   <text x="100" y="375" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500">
-    毎日自動更新 ｜ README ベースのアーキテクチャ解説 ｜ AI による下書き
+    README ベースのアーキテクチャ解説 ｜ AI による下書き ｜ 自動検査
   </text>
 
   <!-- Feature Pills Footer -->
   <g transform="translate(100, 470)">
     <!-- Pill 1 -->
     <rect x="0" y="0" width="220" height="52" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5" />
-    <text x="110" y="33" fill="#38bdf8" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">GitHub 急上昇OSS</text>
+    <text x="110" y="33" fill="#38bdf8" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">GitHub スター数で選定</text>
 
     <!-- Pill 2 -->
     <rect x="240" y="0" width="220" height="52" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5" />
-    <text x="350" y="33" fill="#10b981" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">note 単発記事(¥980)</text>
+    <text x="350" y="33" fill="#10b981" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">構成図（Mermaid）</text>
 
     <!-- Pill 3 -->
     <rect x="480" y="0" width="220" height="52" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5" />
-    <text x="590" y="33" fill="#a855f7" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">note メンバーシップ</text>
+    <text x="590" y="33" fill="#a855f7" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">ライセンスの確認</text>
 
     <!-- Pill 4 -->
     <rect x="720" y="0" width="260" height="52" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5" />
-    <text x="850" y="33" fill="#f59e0b" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">B2B協賛・受託(¥100k〜)</text>
+    <text x="850" y="33" fill="#f59e0b" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle">有料版は note で販売</text>
   </g>
 
   <!-- Border Frame -->

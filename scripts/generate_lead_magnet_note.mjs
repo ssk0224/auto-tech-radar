@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { renderPngFromSvg } from './generate_og_cards.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { jstDate } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -60,7 +61,7 @@ function getTopRepos() {
 
 export function generateLeadMagnetNote() {
   const repos = getTopRepos().slice(0, 15);
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const today = jstDate();
 
   let md = `# 海外で注目を集めるオープンソース15選 早見表（${today} 時点・GitHub スター数順）\n\n`;
 
@@ -117,7 +118,7 @@ export function generateLeadMagnetNote() {
 }
 
 export function generateLeadMagnetOgCard() {
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const today = jstDate();
   const ogpDir = path.join(rootDir, 'public', 'ogp');
   if (!fs.existsSync(ogpDir)) fs.mkdirSync(ogpDir, { recursive: true });
 
@@ -234,21 +235,8 @@ export function generateLeadMagnetOgCard() {
 
   fs.writeFileSync(svgPath, svgContent, 'utf8');
 
-  try {
-    const chromeCandidates = [
-      process.env.CHROME_BIN,
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      'google-chrome',
-      'chromium',
-      'chromium-browser'
-    ];
-    const chromeBin = chromeCandidates.find(c => c && fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${svgPath}"`, { stdio: 'ignore', timeout: 60000 });
-    console.log(`✓ リードマグネット専用アイキャッチPNGを生成しました: ${pngPath}`);
-  } catch (e) {
-    console.warn(`PNG生成スキップ: ${e.message}`);
-  }
+  // PNG は記事の OGP 画像と同じ方法で作る（元の SVG のハッシュを PNG に記録する。tests/og_text.test.mjs）
+  if (renderPngFromSvg(svgPath, pngPath)) console.log(`✓ リードマグネット専用アイキャッチPNGを生成しました: ${pngPath}`);
 }
 
 // 直接実行された場合
