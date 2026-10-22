@@ -14,6 +14,7 @@ import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims, findWebArticleClaims, WEB_CLAIMS_PROMPT_RULE } from "./utils/claims_check.mjs";
 import { resolveLicense, licensePromptText, licenseStatementProblems, LICENSE_PROMPT_RULE } from "./utils/license_resolver.mjs";
 import { findHype, HYPE_PROMPT_RULE } from "./utils/hype_check.mjs";
+import { paidNoteProblems } from "./utils/owner_checks.mjs";
 import { noteHashtags, applyNoteHashtags } from "./utils/note_hashtags.mjs";
 import { fixMermaidInContent, mermaidProblems } from "./utils/mermaid.mjs";
 import { mermaidParseErrors } from "./utils/mermaid_parse.mjs";
@@ -782,6 +783,11 @@ async function run() {
       // 保存するそのままの本文を、CI の品質ゲート・ビルドと同じ方法で最終検査する（途中の段階だけ検査して、ゲートで落ちる記事を保存しない）
       const finalProblems = await finalWebArticleProblems(result.web);
       if (finalProblems.length) throw new Error(`Web記事が品質ゲートを満たしません（${finalProblems.join(" / ")}）`);
+
+      // 暗号化した後は CI で有料本文を検査できない。owner PC の出品前検査（utils/owner_checks.mjs）と同じ検査を暗号化の前にかける
+      // （表示は規則名だけで、有料本文の文字列は出さない）
+      const paidProblems = paidNoteProblems(noteText);
+      if (paidProblems.length) throw new Error(`note原稿が出品前の検査に通りません（${paidProblems.join(" / ")}）`);
 
       writeSealedNote(noteFile, noteText);
 
