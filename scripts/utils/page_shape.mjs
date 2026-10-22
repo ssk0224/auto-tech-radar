@@ -1,25 +1,27 @@
-// 公開物の形（leakhunt C3、2026-10-22）。Web 記事と note の無料部分は、次のものだけでできている:
-//   - データから決まった形で作る節: リード（作成日・スター数）、成熟度（README の開発段階の記載）、インストール（README のコードブロック）、
-//     ライセンス（LICENSE の判定）、note の価格の案内・有料版の内容一覧（有料部分の節の題）
-//   - 生成モデルが書く、原文つきの文（scripts/utils/anchored.mjs）。構成図は README にある図の転記だけ
-// 生成スクリプトはこの関数で作り（renderWebPage / renderNoteHead）、保存前とテスト（tests/readme_grounding.test.mjs）で
-// 同じ関数で確かめる（webPageProblems / noteHeadProblems）。それ以外の行（比較表・小節・自由な段落）があれば赤
+// 公開物の形（leakhunt C3・C4、2026-10-22）。Web 記事・note の無料部分・note の末尾は、すべてデータから決まった形で作る:
+//   - data/readme_facts/<slug>.json: README の事実（文の指紋・開発段階と利用条件の記載・インストールのコードブロック・README の図）、
+//     LICENSE の判定、掲載時の記録（publication: 公開日・スター数・7 日間の増加数）、GitHub のトピック（note のタグ）
+//   - note_drafts/<slug>_note.paid.json: 有料版の内容一覧（有料部分の節の題から判定したもの）
+//   - 生成モデルが README から選んだ原文（README の文そのもの。scripts/utils/anchored.mjs）。訳は載せない
+// 検査（webPageProblems / noteHeadProblems / noteTailProblems）は語の一覧ではなく、ページから原文と訂正の記録だけを読み取り、
+// 同じデータから作り直したものと 1 文字も違わないことを確かめる。どの節にどんな言い方で文を足しても赤になる
 import { normalizeEol } from "./eol.mjs";
-import { renderStatements, parseStatements, statementProblems, maturitySection, MATURITY_HEADING } from "./anchored.mjs";
+import { renderQuotes, parseQuotes, quoteProblems, maturitySection, MATURITY_HEADING, QUOTE_LINE, sentenceKey } from "./anchored.mjs";
 import { installSection, ledeText, INSTALL_HEADING } from "./readme_facts.mjs";
 import { licenseSection, LICENSE_HEADING } from "./license_section.mjs";
-import { setFrontmatterField } from "./generated_content.mjs";
 import { jstDate } from "./selection.mjs";
 import { RECEIPT_LINE } from "./receipt.mjs";
+import { STANDARD_FOOTER, PAID_FEATURE_RULES } from "./note_vault.mjs";
+import { noteHashtags, HASHTAG_HEADING } from "./note_hashtags.mjs";
 
 export const WEB_H2 = {
   maturity: MATURITY_HEADING,
-  architecture: "## 主な機能と構成（README の要約）",
+  architecture: "## 主な機能と構成（README の原文）",
   install: INSTALL_HEADING,
   license: LICENSE_HEADING,
 };
 export const WEB_TEMPLATE_H2 = Object.values(WEB_H2);
-export const NOTE_H2 = { intro: "## はじめに", features: "## 主な機能とアーキテクチャ概要" };
+export const NOTE_H2 = { intro: "## はじめに", features: "## README の要点（原文）" };
 export const NOTE_FREE_TEMPLATE_H2 = Object.values(NOTE_H2);
 export const NOTE_PAID_LIST_HEADING = "### 🔒 有料エリアの内容";
 export const NOTE_PRICE = 980;
@@ -32,204 +34,184 @@ export const NOTE_PAYWALL = [
 ].join("\n");
 // 無料部分の終わり（公開側は有料ラインの行まで。その後ろの区切り線から先が有料部分）
 const NOTE_HEAD_END = NOTE_PAYWALL.split("\n").slice(0, 2).join("\n");
+export const QUOTE_INTRO = "以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。";
+
+// 訂正の記録に書いてよい文。新しい訂正はここに文を足して使う（ページに自由な文を書かない。訂正の記録も公開される本文のため）。
+// これ以前の個別の訂正の記録は、記事ごとに data/readme_facts/<slug>.json の corrections_keys（文の指紋）に記録してある
+export const CORRECTION_NOTES = {
+  grounded: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました",
+  anchored: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました",
+  quotesOnly: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります",
+};
 
 const repoName = (facts) => String(facts?.repo || "").split("/")[1] || "";
-// 題名は「名前 - 概要の最初の文（句点を除く）」、説明文は概要の最初の文
-export const titleFor = (name, first) => `${name} - ${first.replace(/。$/, "")}`;
-const FM_RE = /^---\n([\s\S]*?)\n---\n?/;
+export const webTitle = (name) => `${name} - README の要点（原文）`;
+export const webDescription = (repo) => `${repo} の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。`;
+// note の題名は名前と有料版の内容一覧（*.paid.json）だけから作る（「商用化」「自社SaaS構築」など内容一覧に無い約束を書かない）
+export const noteTitle = (name, features) => `# 「${name}」README の要点（原文）${features.length ? `｜有料版: ${features.join("、")}` : ""}`;
 
-// 構成図は生成モデルに描かせない（ラベルも矢印も README で確かめられない主張になる。leakhunt C3、2026-10-22）。
-// README に Mermaid の図があれば、それだけをそのまま転記する（data/readme_facts の diagrams）
+// 構成図は生成モデルに描かせない。README に Mermaid の図があれば、それだけをそのまま転記する（data/readme_facts の diagrams）
 export const DIAGRAM_NOTE = "以下は README にある図を、そのまま転記したものです。";
 const diagramLines = (facts) => (facts?.diagrams?.length ? [DIAGRAM_NOTE, "", ...facts.diagrams.flatMap((d) => ["```mermaid", d, "```", ""])] : []);
 
-// ---- 本文を H1・H2 の見出し（コードブロックの外）で分ける。H3 以下の見出しは節の中の行（原文つきの文でないので stray）----
-function sectionsOf(body) {
-  const out = [{ heading: null, lines: [], start: 0 }];
-  let fence = null;
-  body.split("\n").forEach((line, i) => {
-    const f = line.match(/^\s*(`{3,}|~{3,})/);
-    if (fence) {
-      if (f && f[1][0] === fence[0] && f[1].length >= fence.length) fence = null;
-      out.at(-1).lines.push(line);
-      return;
-    }
-    if (f) fence = f[1];
-    if (!f && /^#{1,2} /.test(line)) out.push({ heading: line.trimEnd(), lines: [], start: i + 1 });
-    else out.at(-1).lines.push(line);
-  });
-  return out;
-}
-// Mermaid のコードブロックを取り出し、残りの行（原文つきの文として読む）と分ける
-function splitDiagrams(lines) {
-  const rest = [];
-  const diagrams = [];
-  let notes = 0;
-  for (let i = 0; i < lines.length; i++) {
-    if (/^```mermaid\s*$/.test(lines[i])) {
-      const j = lines.findIndex((l, k) => k > i && /^```\s*$/.test(l));
-      if (j !== -1) {
-        diagrams.push(lines.slice(i + 1, j).join("\n"));
-        rest.push(...Array(j - i + 1).fill(""));
-        i = j;
-        continue;
-      }
-    }
-    if (lines[i] === DIAGRAM_NOTE) {
-      notes++;
-      rest.push("");
-      continue;
-    }
-    rest.push(lines[i]);
-  }
-  return { rest, diagrams, notes };
-}
-const sectionText = (s) => [s.heading, ...s.lines].join("\n").trim();
-const ledeRe = (facts) => {
-  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const created = facts?.created_at ? `${esc(facts.repo)} は ${jstDate(facts.created_at)} に GitHub で作成されたリポジトリです。` : `${esc(facts?.repo || "")} は GitHub で公開されているリポジトリです。`;
-  return new RegExp(`^${created}(?:\\d{4}-\\d{2}-\\d{2} 時点のスター数は [\\d,]+ です。)?(?:Radar Ledger の記録では、直近 7 日間の増加数は [\\d,]+ です。)?$`);
+const ledeOf = (facts) => {
+  const p = facts.publication;
+  return ledeText({ full_name: facts.repo, created_at: facts.created_at, date: p.date, stars: p.stars, gain7d: p.gain7d ?? null });
 };
-
-function statementChecks(statements, facts, where) {
-  const out = [];
-  for (const st of statements) for (const p of statementProblems(st, facts)) out.push({ kind: p.kind, detail: `${where}「${st.ja.slice(0, 24)}」: ${p.detail}` });
-  return out;
-}
-const strayChecks = (lines, stray, where) => stray.map((i) => ({ kind: "stray", detail: `${where}: 原文を伴わない行「${lines[i].trim().slice(0, 40)}」` }));
+const yamlStr = (s) => JSON.stringify(String(s));
 
 // ---- Web 記事 ----
-export function renderWebPage({ frontmatter, name, stars, date, gain7d = null, overview, architecture = [], facts }) {
-  const repoUrl = (frontmatter.match(/^repoUrl:\s*["']?([^"'\n]+)/m) || [])[1] || `https://github.com/${facts.repo}`;
-  const lede = ledeText({ full_name: facts.repo, created_at: facts.created_at, date, stars, gain7d });
+// updatedDate・generatorModel・corrections だけがページごとの値（検査で形と、訂正の文が決まった文であることを確かめる）
+export function renderWebPage({ facts, overview, architecture = [], updatedDate = null, corrections = [], generatorModel = null }) {
+  const name = repoName(facts);
+  const p = facts.publication;
+  const fm = [
+    'layout: "../../layouts/Layout.astro"',
+    `title: ${yamlStr(webTitle(name))}`,
+    `description: ${yamlStr(webDescription(facts.repo))}`,
+    `pubDate: ${yamlStr(p.date)}`,
+    ...(updatedDate ? [`updatedDate: ${yamlStr(updatedDate)}`] : []),
+    `tags: ${JSON.stringify([...new Set([facts.language, "OSS", "GitHub"].filter(Boolean))])}`,
+    `repoUrl: ${yamlStr(`https://github.com/${facts.repo}`)}`,
+    ...(facts.created_at ? [`repoCreatedAt: ${yamlStr(jstDate(facts.created_at))}`] : []),
+    `stars: ${Number(p.stars)}`,
+    ...(generatorModel ? [`generator_model: ${yamlStr(generatorModel)}`] : []),
+    ...(corrections.length ? ["corrections:", ...corrections.flatMap((c) => [`  - date: ${yamlStr(c.date)}`, `    note: ${yamlStr(c.note)}`])] : []),
+  ];
   const body = [
-    `# ${name}: 概要`, "", lede, "", renderStatements(overview), "",
+    `# ${name}: 概要`, "", ledeOf(facts), "", QUOTE_INTRO, "", renderQuotes(overview), "",
     maturitySection(facts).trimEnd(), "",
-    WEB_H2.architecture, "", ...(architecture.length ? [renderStatements(architecture), ""] : []), ...diagramLines(facts),
-    installSection(facts, repoUrl).trimEnd(), "",
-    licenseSection(facts.license).trimEnd(), "",
-  ].join("\n");
-  let out = `---\n${frontmatter.trim()}\n---\n\n${body}`;
-  out = setFrontmatterField(out, "title", JSON.stringify(titleFor(name, overview[0].ja)));
-  out = setFrontmatterField(out, "description", JSON.stringify(overview[0].ja));
-  return out; // 題名・説明文は JSON の文字列（YAML の二重引用符の文字列としてそのまま正しい）で書いている
+    WEB_H2.architecture, "", ...(architecture.length ? [renderQuotes(architecture), ""] : []), ...diagramLines(facts),
+    installSection(facts, `https://github.com/${facts.repo}`).trimEnd(), "",
+    licenseSection(facts.license, facts.usage_lines || []).trimEnd(), "",
+  ];
+  return `---\n${fm.join("\n")}\n---\n\n${body.join("\n")}`;
 }
 
-const fmValue = (fm, key) => {
-  const raw = (fm.match(new RegExp(`^${key}:[ \\t]*(.*)$`, "m")) || [])[1];
-  if (raw === undefined) return undefined;
+const FM_RE = /^---\n([\s\S]*?)\n---\n?/;
+const parseScalar = (raw) => {
   try {
     return JSON.parse(raw);
   } catch {
     return raw.replace(/^["']|["']$/g, "");
   }
 };
-
-export function webPageProblems(md, facts) {
-  const text = normalizeEol(md);
-  const fmm = text.match(FM_RE);
-  const problems = [];
-  const add = (kind, detail) => problems.push({ kind, detail });
-  if (!fmm) return [{ kind: "shape", detail: "frontmatter がありません" }];
-  const fm = fmm[1];
-  const secs = sectionsOf(text.slice(fmm[0].length));
-  const name = repoName(facts);
-  if (secs[0].lines.some((l) => l.trim())) add("stray", "題名より前に本文があります");
-  const headings = secs.slice(1).map((s) => s.heading);
-  const expected = [`# ${name}: 概要`, ...WEB_TEMPLATE_H2];
-  if (headings.join("\n") !== expected.join("\n")) add("shape", `見出しがテンプレートと違います（${headings.filter((h) => !expected.includes(h)).join(" / ") || "順序・欠落"}）`);
-  const sec = (h) => secs.find((s) => s.heading === h);
-  for (const s of secs.slice(1).filter((s) => !expected.includes(s.heading))) {
-    problems.push(...strayChecks([s.heading, ...s.lines], [s.heading, ...s.lines].flatMap((l, i) => (l.trim() ? [i] : [])), "テンプレート外の節"));
-  }
-  const all = [];
-  // 概要（題名の下）: リード + 原文つきの文
-  const top = sec(`# ${name}: 概要`);
-  if (top) {
-    const lines = top.lines;
-    const first = lines.findIndex((l) => l.trim());
-    if (first === -1 || !ledeRe(facts).test(lines[first])) add("lede", "リードが作成日・スター数の記録の形ではありません");
-    const rest = lines.map((l, i) => (i === first ? "" : l));
-    const { statements, stray } = parseStatements(rest);
-    problems.push(...strayChecks(rest, stray, "概要"));
-    if (!statements.length) add("shape", "概要に原文つきの文がありません");
-    problems.push(...statementChecks(statements, facts, "概要"));
-    all.push(...statements);
-    // 題名・説明文は概要の最初の文から作る
-    if (statements.length) {
-      if (fmValue(fm, "description") !== statements[0].ja) add("frontmatter", "description が概要の最初の文と違います");
-      if (fmValue(fm, "title") !== titleFor(name, statements[0].ja)) add("frontmatter", "title が「名前 - 概要の最初の文」と違います");
+const fmValue = (fm, key) => {
+  const raw = (fm.match(new RegExp(`^${key}:[ \\t]*(.*)$`, "m")) || [])[1];
+  return raw === undefined ? undefined : parseScalar(raw);
+};
+function correctionsOf(fm) {
+  const out = [];
+  const lines = fm.split("\n");
+  const at = lines.findIndex((l) => /^corrections:\s*$/.test(l));
+  if (at === -1) return out;
+  for (let i = at + 1; i < lines.length && /^\s/.test(lines[i]); i++) {
+    const d = lines[i].match(/^\s+-\s+date:\s*(.*)$/);
+    const n = (lines[i + 1] || "").match(/^\s+note:\s*(.*)$/);
+    if (d && n) {
+      out.push({ date: parseScalar(d[1]), note: parseScalar(n[1]) });
+      i++;
     }
   }
-  const arch = sec(WEB_H2.architecture);
-  if (arch) {
-    const { rest, diagrams, notes } = splitDiagrams(arch.lines);
-    const { statements, stray } = parseStatements(rest);
-    problems.push(...strayChecks(rest, stray, "主な機能と構成"));
-    problems.push(...statementChecks(statements, facts, "主な機能と構成"));
-    all.push(...statements);
-    // 図は README の図の転記だけ（生成モデルが描いた図・README と違う図は赤）
-    if (JSON.stringify(diagrams) !== JSON.stringify(facts?.diagrams || []) || notes !== (diagrams.length ? 1 : 0)) add("diagram", "図が README の図の転記と違います");
-  }
-  // データから決まった形で作る節は、作り直したものと同じであること
-  const repoUrl = fmValue(fm, "repoUrl") || `https://github.com/${facts?.repo}`;
-  for (const [h, want] of [[WEB_H2.maturity, maturitySection(facts)], [WEB_H2.install, installSection(facts, repoUrl)], [WEB_H2.license, licenseSection(facts?.license)]]) {
-    const s = sec(h);
-    if (s && sectionText(s) !== want.trim()) add("section", `${h} がデータから作った節と違います`);
-  }
-  // タグ: 言語・OSS・GitHub と、README の語だけ
-  const tags = fmValue(fm, "tags");
-  const words = new Set(facts?.words || []);
-  const allowTags = new Set(["oss", "github", String(facts?.language || "").toLowerCase()]);
-  for (const t of Array.isArray(tags) ? tags : []) {
-    const k = String(t).toLowerCase();
-    if (!allowTags.has(k) && !words.has(k)) add("frontmatter", `タグ「${t}」が README の語ではありません`);
+  return out;
+}
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MODEL_RE = /^[A-Za-z0-9._-]{1,64}$/;
+
+// ページからページごとの値（原文・訂正の記録・更新日・モデル名）を読み取る。作り直しと検査に使う
+export function parseWebPage(md) {
+  const text = normalizeEol(md);
+  const m = text.match(FM_RE);
+  const fm = m ? m[1] : "";
+  const body = text.slice(m ? m[0].length : 0).split("\n");
+  const archAt = body.indexOf(WEB_H2.architecture);
+  const firstH2 = body.findIndex((l) => /^## /.test(l));
+  const archEnd = body.findIndex((l, i) => i > archAt && /^## /.test(l));
+  const quotesIn = (lines) => lines.filter((l) => l.startsWith(QUOTE_LINE)).map((l) => l.slice(QUOTE_LINE.length).trim());
+  return {
+    overview: quotesIn(body.slice(0, firstH2 === -1 ? body.length : firstH2)),
+    architecture: archAt === -1 ? [] : quotesIn(body.slice(archAt + 1, archEnd === -1 ? body.length : archEnd)),
+    updatedDate: fmValue(fm, "updatedDate") ?? null,
+    generatorModel: fmValue(fm, "generator_model") ?? null,
+    corrections: correctionsOf(fm),
+    pubDate: fmValue(fm, "pubDate"),
+    stars: fmValue(fm, "stars"),
+  };
+}
+
+const firstDiff = (a, b) => {
+  const x = a.split("\n");
+  const y = b.split("\n");
+  const i = x.findIndex((l, k) => l !== y[k]);
+  return i === -1 ? Math.min(x.length, y.length) + 1 : i + 1;
+};
+const correctionAllowed = (note, facts) => Object.values(CORRECTION_NOTES).includes(note) || (facts?.corrections_keys || []).includes(sentenceKey(note));
+
+export function webPageProblems(md, facts) {
+  const text = normalizeEol(md).replace(/\n+$/, "\n");
+  const problems = [];
+  const add = (kind, detail) => problems.push({ kind, detail });
+  if (!FM_RE.test(text)) return [{ kind: "shape", detail: "frontmatter がありません" }];
+  const p = facts?.publication;
+  if (!p || !DATE_RE.test(String(p.date)) || !Number.isFinite(Number(p.stars))) return [{ kind: "publication", detail: "掲載時の記録（publication）がありません" }];
+  const page = parseWebPage(text);
+  if (page.pubDate !== p.date || Number(page.stars) !== Number(p.stars)) add("publication", "公開日・スター数が掲載時の記録と違います");
+  if (!page.overview.length) add("shape", "概要に README の原文がありません");
+  for (const q of [...page.overview, ...page.architecture]) for (const pr of quoteProblems(q, facts)) add(pr.kind, pr.detail);
+  for (const c of page.corrections) if (!DATE_RE.test(String(c.date)) || !correctionAllowed(c.note, facts)) add("corrections", `訂正の記録（${c.date}）が決まった文ではありません`);
+  if (page.updatedDate !== null && !DATE_RE.test(String(page.updatedDate))) add("frontmatter", "updatedDate が日付ではありません");
+  if (page.generatorModel !== null && !MODEL_RE.test(String(page.generatorModel))) add("frontmatter", "generator_model がモデル名の形ではありません");
+  if (page.overview.length) {
+    const want = renderWebPage({ facts, ...page }).replace(/\n+$/, "\n");
+    if (want !== text) add("render", `データから作り直したページと違います（${firstDiff(text, want)} 行目）`);
   }
   return problems;
 }
 
 // ---- note の無料部分（有料ラインの行まで） ----
-export function renderNoteHead({ title, stars, date, gain7d = null, statements, features, facts }) {
-  const lede = ledeText({ full_name: facts.repo, created_at: facts.created_at, date, stars, gain7d });
+export function renderNoteHead({ facts, quotes, features }) {
   return [
-    title, "", NOTE_H2.intro, "", lede, "", NOTE_H2.features, "", renderStatements(statements), "",
+    noteTitle(repoName(facts), features), "", NOTE_H2.intro, "", ledeOf(facts), "", NOTE_H2.features, "", QUOTE_INTRO, "", renderQuotes(quotes), "",
     ...(features.length ? [NOTE_PAID_LIST_HEADING, ...features.map((f) => `- ${f}`), ""] : []),
     NOTE_PRICE_BOX, "", NOTE_HEAD_END,
   ].join("\n");
+}
+
+// 利用を学習用途・非商用に限る README の記事では、活用・収益化を有料版の売りにしない（leakhunt #57）
+const MONETIZE_LABEL = PAID_FEATURE_RULES.find(([re]) => re.test("収益化"))[1];
+export function paidFeatureProblems(features, facts) {
+  return (facts?.usage_lines || []).length && features.includes(MONETIZE_LABEL) ? [{ kind: "usage", detail: "README が利用を限っているのに、活用・収益化を有料版の売りにしています" }] : [];
 }
 
 export function noteHeadProblems(head, facts, features) {
   const text = normalizeEol(head).replace(/\n+$/, "");
   const problems = [];
   const add = (kind, detail) => problems.push({ kind, detail });
-  const secs = sectionsOf(text);
-  if (secs[0].lines.some((l) => l.trim())) add("stray", "題名より前に本文があります");
-  const headings = secs.slice(1).map((s) => s.heading);
-  const h1 = headings[0] || "";
-  const expected = [h1, ...NOTE_FREE_TEMPLATE_H2];
-  if (!/^# \S/.test(h1) || headings.join("\n") !== expected.join("\n")) add("shape", `見出しがテンプレートと違います（${headings.filter((h) => !expected.includes(h)).join(" / ") || "順序・欠落"}）`);
-  if (secs[1]?.lines.some((l) => l.trim())) add("stray", "題名の下に本文があります");
-  for (const s of secs.slice(2).filter((s) => !expected.includes(s.heading))) {
-    problems.push(...strayChecks([s.heading, ...s.lines], [s.heading, ...s.lines].flatMap((l, i) => (l.trim() ? [i] : [])), "テンプレート外の節"));
-  }
-  const intro = secs.find((s) => s.heading === NOTE_H2.intro);
-  if (intro) {
-    const body = intro.lines.filter((l) => l.trim());
-    if (body.length !== 1 || !ledeRe(facts).test(body[0])) add("lede", "はじめにが作成日・スター数の記録だけになっていません");
-  }
-  // 主な機能: 原文つきの文のあとに、有料版の内容一覧（あれば）・価格の案内・有料ラインが決まった形で続く
-  const feat = secs.find((s) => s.heading === NOTE_H2.features);
-  const tailWant = [...(features.length ? [NOTE_PAID_LIST_HEADING, ...features.map((f) => `- ${f}`), ""] : []), NOTE_PRICE_BOX, "", NOTE_HEAD_END].join("\n").trim();
-  let tailHave = "";
-  if (feat) {
-    const at = feat.lines.findIndex((l) => l === NOTE_PAID_LIST_HEADING || l.startsWith("> 💡"));
-    const lines = at === -1 ? feat.lines : feat.lines.slice(0, at);
-    tailHave = at === -1 ? "" : feat.lines.slice(at).join("\n").trim();
-    const { statements, stray } = parseStatements(lines);
-    problems.push(...strayChecks(lines, stray, "主な機能"));
-    if (!statements.length) add("shape", "主な機能に原文つきの文がありません");
-    problems.push(...statementChecks(statements, facts, "主な機能"));
-  }
-  if (tailHave !== tailWant) add("section", "有料版の内容一覧・価格の案内・有料ラインが決まった形と違います");
+  if (!facts?.publication) return [{ kind: "publication", detail: "掲載時の記録（publication）がありません" }];
+  const { quotes } = parseQuotes(text.split("\n").filter((l) => l.startsWith(QUOTE_LINE)));
+  if (!quotes.length) add("shape", "README の原文がありません");
+  for (const q of quotes) for (const pr of quoteProblems(q, facts)) add(pr.kind, pr.detail);
+  problems.push(...paidFeatureProblems(features, facts));
+  const want = renderNoteHead({ facts, quotes, features });
+  if (want !== text) add("render", `データから作り直した無料部分と違います（${firstDiff(text, want)} 行目）`);
   return problems;
+}
+
+// ---- note の末尾（有料部分の後ろの、公開されたまま暗号化しない部分） ----
+// メンバーシップの案内（定型文）と、GitHub の言語・トピックから作ったタグだけ。生成モデルの出力は 1 行も入れない
+export function noteFooter(facts) {
+  const tags = noteHashtags({ language: facts?.language, topics: facts?.topics || [] }).join(" ");
+  const lines = STANDARD_FOOTER.trim().split("\n");
+  const h = lines.findIndex((l) => l.startsWith("**【note出品時用 推奨ハッシュタグ】**"));
+  return [...lines.slice(0, h), HASHTAG_HEADING, tags].join("\n");
+}
+// note 原稿全体: データから作った無料部分 + 生成モデルが書いた有料部分（末尾の案内・タグに見える行も含めて全部） + データから作った末尾。
+// 生成モデルの出力はどんな形でも有料ラインと末尾の間（暗号化される側）に入る（leakhunt #81、2026-10-22）
+export function renderNoteDraft({ facts, quotes, features, paid }) {
+  return [renderNoteHead({ facts, quotes, features }), NOTE_PAYWALL.split("\n")[2], paid.trim(), "", noteFooter(facts), ""].join("\n");
+}
+export function noteTailProblems(tail, facts) {
+  const text = normalizeEol(Array.isArray(tail) ? tail.join("\n") : tail).trim();
+  const want = noteFooter(facts);
+  return text === want ? [] : [{ kind: "render", detail: `末尾がデータから作った形と違います（${firstDiff(text, want)} 行目）` }];
 }

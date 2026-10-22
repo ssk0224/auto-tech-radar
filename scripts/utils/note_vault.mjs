@@ -20,17 +20,18 @@ const ALG = "RSA-OAEP-256+A256GCM";
 const PAYWALL_MARKERS = ["【有料ライン", "有料会員限定", "ここから先は有料"];
 // 有料ライン以降でも、出品時に必要な案内・ハッシュタグは有料コンテンツではないので公開側に残す
 const TAIL_RE = /^(### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*)/;
-// 末尾フッター（公開されたまま暗号化されない部分）に置いてよい行。これ以外の行があれば有料本文が混ざっている
-// 案内の文は標準の末尾（STANDARD_FOOTER）の行と完全に一致するものだけ（「メンバーシップ」に触れた任意の文を許すと、
-// 生成モデルが案内の見出しの後に書いた有料本文が暗号化されずに公開される。leakhunt #81、2026-10-22）
-// ハッシュタグの行は、句読点・括弧を含まない短い語（# + 15 文字まで）を並べたものだけ（# で始まる有料本文の文を公開側に入れない）
-const FOOTER_LINE_RE = /^(\s*|-{3,}|### 🎁 【メンバーシップのご案内】|\*\*【note出品時用 推奨ハッシュタグ】\*\*(（出品時にタグ欄へ貼り付けてください）)?|(#[^\s#。、，,.!！?？「」『』()（）:：]{1,15}\s*)+)$/;
+// 末尾フッター（公開されたまま暗号化されない部分）は、行の種類ではなく形全体で決める（leakhunt #81・C4、2026-10-22）:
+// 区切り線・メンバーシップの見出し・標準の案内文（STANDARD_FOOTER と同じ文）・空行・区切り線・ハッシュタグの見出し・タグ 1 行、の並びだけ。
+// 行ごとの形（「# で始まる短い語」など）で許すと、その形をした有料本文（#受託単価は人日8万円）が公開側に残る。
+// タグの行の中身は生成スクリプトが GitHub の言語・トピックから作り、tests/readme_grounding.test.mjs が記事ごとに作り直して一致を確かめる
+const HASHTAG_HEADING_RE = /^\*\*【note出品時用 推奨ハッシュタグ】\*\*(（出品時にタグ欄へ貼り付けてください）)?$/;
+const TAG_LINE_RE = /^#[^\s#]+(?: #[^\s#]+)*$/;
 export function isFooterOnly(lines) {
-  const standard = new Set(STANDARD_FOOTER.split("\n").map((l) => l.trim()).filter(Boolean));
-  return lines.every((l) => {
-    const line = l.replace(/\r$/, "");
-    return FOOTER_LINE_RE.test(line) || standard.has(line.trim());
-  });
+  const ls = lines.map((l) => l.replace(/\r$/, ""));
+  while (ls.length && !ls.at(-1).trim()) ls.pop();
+  while (ls.length && (!ls[0].trim() || /^-{3,}$/.test(ls[0]))) ls.shift();
+  const std = STANDARD_FOOTER.trim().split("\n");
+  return ls.length === 6 && ls[0] === std[1] && ls[1] === std[2] && !ls[2].trim() && /^-{3,}$/.test(ls[3]) && HASHTAG_HEADING_RE.test(ls[4]) && TAG_LINE_RE.test(ls[5]);
 }
 export const SEALED_PLACEHOLDER_RE = /^<!-- PAID_SEALED: (\S+) .*-->\r?$/m;
 export const MIN_PAID_CHARS = 1500;

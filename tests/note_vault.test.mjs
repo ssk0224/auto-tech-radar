@@ -7,7 +7,7 @@ import os from "os";
 import path from "path";
 import {
   splitPaid, writeSealedNote, assembleNote, noteDraftProblems, withStandardFooter, isSealed,
-  sealedFileFor, decryptText, encryptText, keyId,
+  sealedFileFor, decryptText, encryptText, keyId, STANDARD_FOOTER,
 } from "../scripts/utils/note_vault.mjs";
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
@@ -19,7 +19,8 @@ const PAID = "## 有料の中身\n" + "SECRET_PAID_BODY ".repeat(120);
 const draft = (eol = "\n") => [
   "# タイトル", "無料の導入。経費精算にも使えます。", "---",
   "【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】", "---", PAID,
-  "---", "### 🎁 【メンバーシップのご案内】", "メンバーシップの案内", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS",
+  // 末尾は標準の案内文とタグ 1 行の決まった形（それ以外の行は有料部分に入る。leakhunt #81）
+  ...STANDARD_FOOTER.trim().split("\n").slice(0, -1), "#AI #OSS",
 ].join(eol);
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "vault-"));
 

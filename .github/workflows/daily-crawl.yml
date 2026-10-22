@@ -68,6 +68,8 @@ jobs:
         timeout-minutes: 60
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # note の有料部分の作り方（節の構成と分量）。公開リポジトリに置かない（leakhunt #51）。無ければ Web 記事と X だけを作る
+          NOTE_PAID_RECIPE: ${{ secrets.NOTE_PAID_RECIPE }}
           GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
           # 実行結果の記録（data/run_status/）にどの便かを残す
           RUN_SCHEDULE: ${{ github.event.schedule }}

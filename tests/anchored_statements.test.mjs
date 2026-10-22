@@ -1,12 +1,12 @@
-// 公開物に生成モデルが書く文は、1 文ずつ README の原文（README の文そのもの）を伴う（leakhunt C3、2026-10-22）。
-// 原文が README の文であることは README の文の指紋（data/readme_facts の sentences）で、訳文が原文に無い固有名・数値・ホストを
-// 足していないことはトークンの包含で、訳文に評価・比較・利用条件・費用・評判の語が無いことは語の類で確かめる。
-// 原文を伴わない行（比較表・H3 の小節・自由な段落・インラインのコマンド）は、記事の形の検査で赤にする
+// 公開物に生成モデルが選んで載せてよいのは、README の文そのもの（原文）だけ（leakhunt C3、2026-10-22）。
+// 訳は README と機械的に照合できない（語の一覧で評価・比較・採用実績を止めても、一覧に無い言い方が通る）ので、公開物に置かない。
+// 原文が README の文であることは README の文の指紋（data/readme_facts の sentences）で確かめ、原文の行でないもの（訳・比較表・
+// H3 の小節・自由な段落・インラインのコマンド）は記事の形の検査（ページ全体をデータから作り直したものとの一致）で赤にする
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  readmeSentences, sentenceKey, readmeSentenceKeys, parseStatements, renderStatements,
-  statementProblems, statusLines, maturitySection, QUOTE_PREFIX,
+  readmeSentences, sentenceKey, readmeSentenceKeys, parseQuotes, renderQuotes,
+  quoteProblems, usageLines, statusLines, maturitySection, QUOTE_LINE, QUOTE_LABEL,
 } from "../scripts/utils/anchored.mjs";
 
 const README = [
@@ -45,61 +45,41 @@ test("README の文: Markdown の記法・リンク先・画像・HTML・コー�
   assert.doesNotMatch(sentenceKey("x y z w"), /^[0-9a-f]+$/);
 });
 
-const ok = { ja: "GridCraft は、純粋な Rust で書かれたオープンソースのスプレッドシートです。", quote: "GridCraft is an open-source spreadsheet written in pure Rust." };
+const ok = "GridCraft is an open-source spreadsheet written in pure Rust.";
 
-test("原文つきの文の Markdown は、書き出して読み戻すと同じ文になり、原文の無い行は stray として返す", () => {
-  const md = renderStatements([ok, { ja: "513 個のワークシート関数を実装しています。", quote: "Implements 513 of 523 worksheet functions." }]);
-  assert.ok(md.includes(`${QUOTE_PREFIX}GridCraft is an open-source spreadsheet written in pure Rust.`), md);
-  const back = parseStatements(md.split("\n"));
-  assert.deepEqual(back.statements.map(({ ja, quote }) => ({ ja, quote })), [ok, { ja: "513 個のワークシート関数を実装しています。", quote: "Implements 513 of 523 worksheet functions." }]);
+test("原文の Markdown は、書き出して読み戻すと同じ文になり、原文の行でないもの（訳・箇条書き・段落・表・小節）は stray として返す", () => {
+  const md = renderQuotes([ok, "Implements 513 of 523 worksheet functions."]);
+  assert.ok(md.split("\n").includes(`${QUOTE_LINE}${ok}`), md);
+  const back = parseQuotes(md.split("\n"));
+  assert.deepEqual(back.quotes, [ok, "Implements 513 of 523 worksheet functions."]);
   assert.deepEqual(back.stray, []);
-  const mixed = parseStatements(["- 原文の無い箇条書きです。", "", "自由な段落です。", "| 比較 | 表 |", "### 小節"]);
-  assert.equal(mixed.statements.length, 0);
-  assert.equal(mixed.stray.length, 4);
+  // 生成モデルが書く訳（日本語の文）は公開物に置かない: 原文の上に訳を書くと、その行は stray
+  const translated = parseQuotes(["- GridCraft は純粋な Rust で書かれた、ジェミニより賢いスプレッドシートです。", `${QUOTE_LINE}${ok}`]);
+  assert.deepEqual(translated.quotes, [ok]);
+  assert.deepEqual(translated.stray, [0]);
+  const mixed = parseQuotes(["- 原文の無い箇条書きです。", "", "自由な段落です。", "| 比較 | 表 |", "### 小節", `  - ${QUOTE_LABEL}${ok}`]);
+  assert.equal(mixed.quotes.length, 0);
+  assert.equal(mixed.stray.length, 5);
 });
 
-test("README の文に忠実な訳は問題なし", () => {
-  assert.deepEqual(statementProblems(ok, facts), []);
-  assert.deepEqual(statementProblems({ ja: "macOS・Windows・Linux と、WebAssembly によりブラウザで動作します。", quote: "It runs on macOS, Windows and Linux, and in the browser via WebAssembly." }, facts), []);
-  // 原文に複数の文を並べてもよい（それぞれが README の文）
-  assert.deepEqual(statementProblems({ ja: "GridCraft は alpha のソフトウェアです。", quote: "GridCraft is alpha software. Expect rough edges." }, facts), []);
-  // リポジトリの説明文（GitHub の description）も原文にできる
-  assert.deepEqual(statementProblems({ ja: "エージェント向けのスプレッドシートエンジンです。", quote: "A spreadsheet engine for agents." }, facts), []);
+test("原文は README（と GitHub の説明文）の文そのものであること。複数の文を並べてもよい", () => {
+  assert.deepEqual(quoteProblems(ok, facts), []);
+  assert.deepEqual(quoteProblems("GridCraft is alpha software. Expect rough edges.", facts), []);
+  assert.deepEqual(quoteProblems("A spreadsheet engine for agents.", facts), []);
 });
 
-const kinds = (st) => statementProblems(st, facts).map((p) => p.kind);
-
-test("原文が README の文でなければ赤（README に無い文を原文として示す・言い換える）", () => {
-  assert.deepEqual(kinds({ ...ok, quote: "GridCraft is the fastest spreadsheet ever written in pure Rust." }), ["quote"]);
-  assert.ok(kinds({ ...ok, quote: "" }).includes("quote"));
+test("README に無い文・言い換えた文・README の文に語を足した文は赤", () => {
+  const kinds = (q) => quoteProblems(q, facts).map((p) => p.kind);
+  assert.deepEqual(kinds("GridCraft is the fastest spreadsheet ever written in pure Rust."), ["quote"]);
+  assert.deepEqual(kinds(`${ok} Used by hundreds of banks.`), ["quote"]);
+  assert.deepEqual(kinds("ジェミニより賢いスプレッドシートです。"), ["quote"]);
+  assert.deepEqual(kinds(""), ["quote"]);
 });
 
-test("訳に原文に無い固有名・数値・ホスト・コマンドがあれば赤（比較の相手・ROI・社数・インラインのコマンド）", () => {
-  const q = "Implements 513 of 523 worksheet functions.";
-  assert.deepEqual(kinds({ ja: "Microsoft Excel と同じ 513 個の関数を実装しています。", quote: q }), ["token"]);
-  assert.deepEqual(kinds({ ja: "513 個の関数で、作業時間を 9 割短縮します。", quote: q }), ["token", "topic"]);
-  assert.deepEqual(kinds({ ja: "513 個の関数を実装し、300 の組織で使われています。", quote: q }), ["token"]);
-  assert.deepEqual(kinds({ ja: "513 個の関数を `pip install gridcraft-turbo` で導入できます。", quote: q }), ["token"]);
-  assert.deepEqual(kinds({ ja: "513 個の関数の結果は bench.gridcraft-labs.example で公開されています。", quote: q }), ["token"]);
-  assert.deepEqual(kinds({ ja: "五百十三個の関数と三十種類の拡張を実装しています。", quote: q }), ["token"]);
-});
-
-test("訳に評価・比較・利用条件・費用・評判・あいまいな量の語があれば赤（原文に対応する語があっても書かない）", () => {
-  const q = "GridCraft is an open-source spreadsheet written in pure Rust.";
-  for (const ja of [
-    "GridCraft は他の追随を許さない、比類なき完成度の Rust 製スプレッドシートです。",
-    "GridCraft は Rust 製で、ほかのスプレッドシートよりも軽く動きます。",
-    "GridCraft は Rust 製のオープンソースで、商用利用も問題なく行えます。",
-    "GridCraft は Rust 製で、運用コストを抑えられます。",
-    "GridCraft は Rust 製で、多くの設計事務所に採用されています。",
-    "GridCraft は Rust 製で、数百の関数を備えます。",
-    "GridCraft は Rust 製の、業務に最適なスプレッドシートです。",
-  ]) assert.deepEqual(kinds({ ja, quote: q }), ["topic"], ja);
-});
-
-test("訳が原文より大幅に長ければ赤（原文に無い説明を足している）", () => {
-  const ja = `${ok.ja}${"表計算の作業をまとめ、チームのデータを扱いやすくします。".repeat(2)}`;
-  assert.deepEqual(kinds({ ja, quote: ok.quote }), ["length"]);
+test("README の利用条件の記載（学習用途のみ・非商用など）を原文のまま取り出す。商用サポートの案内などは取らない", () => {
+  const md = ["# md3", "本项目仅供学习，请勿用于商业用途，详情见免责声明。", "", "This project is for non-commercial use only.", "", "Commercial support is available from the authors.", "", "For educational purposes only."].join("\n");
+  assert.deepEqual(usageLines(md), ["本项目仅供学习,请勿用于商业用途,详情见免责声明。", "This project is for non-commercial use only.", "For educational purposes only."]);
+  assert.deepEqual(usageLines("MIT licensed. Free for commercial use."), []);
 });
 
 test("成熟度の節は README の開発段階の記載（alpha・beta など）を原文のまま示すだけで、記載が無ければその旨だけを書く", () => {

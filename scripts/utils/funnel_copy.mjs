@@ -14,7 +14,7 @@ export function zennCta(slug) {
 本記事は Auto Tech Radar の無料解説の抜粋です。
 
 - 📖 **無料**: アーキテクチャ・README から転記したインストール手順・ライセンスの確認先 → [Auto Tech Radar で読む](${articleUrl(slug)})
-- 🔒 **有料（note）**: 導入提案書テンプレート・工数見積表 → [note の有料記事・メンバーシップ](${NOTE_URL})
+- 🔒 **有料（note）**: 導入提案書テンプレート（Markdown）と工数・見積表 → [note の有料記事・メンバーシップ](${NOTE_URL})
 `;
 }
 

@@ -20,22 +20,23 @@ isolateGitConfig();
 const SKIP = new Set(["node_modules", "dist", ".git", ".astro", ".claude"]);
 
 const PAID = "## 有料の中身 SECRET_PAID_TEXT\n" + "提案書と見積の本文。".repeat(200);
-// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は見出し 2 つと原文つきの文（tests/fixtures/mock_readme.mjs の README の文とその訳）だけ、
-// note は有料部分の本文だけ。リード・成熟度・インストール・ライセンス・図・note の無料部分・X は生成スクリプトがデータから作る
-// overview: Web 記事の出力の原文つきの文（既定は README の文を正しく訳したもの）。web: その後ろに足す行（原文を伴わない行の検査用）
+// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は見出し 2 つと README の原文の行（tests/fixtures/mock_readme.mjs の README の文そのもの）だけ、
+// note は有料部分の本文だけ。訳は書かせない（README と照合できない）。リード・成熟度・インストール・ライセンス・図・note の無料部分と末尾・X は
+// 生成スクリプトがデータから作る
+// overview: Web 記事の出力（既定は README の文を選んだもの）。web: その後ろに足す行（原文でない行の検査用）
 // diagram: 生成モデルが描いた Mermaid 図（描かせない。描いていれば採用しない）
 // free / hype: 生成モデルが書いた note の無料部分（書かせない。書いていれば採用しない）
 const FREE = "この記事では、公式 README に沿って導入の流れと注意点を説明します。".repeat(15);
+const Q = "- 原文（README）: ";
 const STATEMENTS = [
   "## 概要",
-  "- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。",
-  "  - 原文（README）: testtool is a command-line tool for checking deployment pipelines.",
-  "- Linux・macOS・Windows で動作します。",
-  "  - 原文（README）: It runs on Linux, macOS and Windows.",
-  "## 主な機能と構成（README の要約）",
-  "- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。",
-  "  - 原文（README）: testtool reads a YAML file and reports each failed step.",
+  `${Q}testtool is a command-line tool for checking deployment pipelines.`,
+  `${Q}It runs on Linux, macOS and Windows.`,
+  "## 主な機能と構成（README の原文）",
+  `${Q}testtool reads a YAML file and reports each failed step.`,
 ].join("\n");
+// note の有料部分の作り方（公開リポジトリに置かない。CI の秘密 NOTE_PAID_RECIPE）のテスト用の値
+const RECIPE = "TEST_RECIPE_SENTINEL の節を書くこと";
 const PAYWALL = "--------------------------------------------------\n【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】\n--------------------------------------------------";
 const output = ({ overview = STATEMENTS, diagram = null, footer = true, image = "", hype = "", paidExtra = "", web = "", free = "" } = {}) => `=== WEB ARTICLE ===
 ${overview}
@@ -67,7 +68,7 @@ function run(mockOut, extraEnv = {}, { keepDates = false, timeout, prepare } = {
     }
   }
   if (prepare) prepare(dir); // 生成スクリプトを動かす前に複製を整える（git の履歴を作るなど）
-  const env = { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...(keepDates ? { MOCK_NOW: String(Date.now() + 3 * 24 * 3600 * 1000) } : {}), ...extraEnv };
+  const env = { ...process.env, GEMINI_API_KEY: "dummy", NOTE_PAID_RECIPE: RECIPE, MOCK_OUT: mockOut, ...(keepDates ? { MOCK_NOW: String(Date.now() + 3 * 24 * 3600 * 1000) } : {}), ...extraEnv };
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], {
     cwd: dir, encoding: "utf8", env, timeout,
   });
@@ -134,18 +135,25 @@ test("保存した記事の見出しはテンプレートの見出しだけで�
     const facts = JSON.parse(fs.readFileSync(path.join(dir, "data/readme_facts/testtool.json"), "utf8"));
     assert.equal(facts.repo, "acme/testtool");
     assert.equal(facts.created_at, "2026-01-15T00:00:00Z");
-    assert.deepEqual(Object.keys(facts).sort(), ["commands", "created_at", "diagrams", "expansions", "hosts", "install_blocks", "language", "license", "quantities", "repo", "sentences", "status_lines", "words"]);
-    // 公開物の形（決まった節と原文つきの文だけ）を、テストと同じ検査で満たす
-    const { webPageProblems, noteHeadProblems } = await import("../scripts/utils/article_template.mjs");
+    assert.deepEqual(Object.keys(facts).sort(), ["commands", "created_at", "diagrams", "expansions", "hosts", "install_blocks", "language", "license", "publication", "quantities", "repo", "sentences", "status_lines", "topics", "usage_lines", "words"]);
+    // 掲載時の記録（リード・スター数の元）と GitHub のトピック（note のタグの元）
+    assert.deepEqual(facts.publication, { date: fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8").match(/^pubDate: "(.*)"$/m)[1], stars: 1234, gain7d: null });
+    assert.deepEqual(facts.topics, ["cli", "devops", "hacktoberfest"]);
+    // 公開物（Web 記事・note の無料部分と末尾・X）は、テストと同じ検査（データから作り直したものとの一致）を満たす
+    const { webPageProblems, noteHeadProblems, noteTailProblems, webTitle } = await import("../scripts/utils/page_shape.mjs");
+    const { splitPaid } = await import("../scripts/utils/note_vault.mjs");
     assert.deepEqual(webPageProblems(web, facts), []);
-    assert.deepEqual(noteHeadProblems(head.trimEnd() + "\n【有料ライン" + pub.split("【有料ライン")[1].split("\n")[0], facts, ["導入提案書テンプレート（Markdown）", "導入時の想定問答"]), []);
-    assert.ok(web.includes("- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。\n  - 原文（README）: testtool is a command-line tool for checking deployment pipelines."), web);
-    assert.match(web, /^title: "testtool - testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです"$/m);
-    // note の無料部分の主な機能は、Web 記事と同じ原文つきの文
-    assert.ok(head.includes("- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。\n  - 原文（README）: testtool reads a YAML file and reports each failed step."), head);
-    // X の投稿文は生成モデルの出力（hello）ではなく、概要の最初の原文つきの文から作る
+    const parts = splitPaid(pub);
+    assert.deepEqual(noteHeadProblems(parts.head.join("\n"), facts, ["導入提案書テンプレート（Markdown）", "導入時の想定問答"]), []);
+    assert.deepEqual(noteTailProblems(parts.tail, facts), []);
+    // 公開物に生成モデルが書いた訳は無く、README の文そのものだけ
+    assert.ok(web.split("\n").includes("- 原文（README）: testtool is a command-line tool for checking deployment pipelines."), web);
+    assert.ok(web.split("\n").includes(`title: ${JSON.stringify(webTitle("testtool"))}`), web);
+    assert.ok(head.split("\n").includes("- 原文（README）: testtool reads a YAML file and reports each failed step."), head);
+    // X の投稿文は生成モデルの出力（hello）ではなく、データと最初の原文から作る
     const x = fs.readFileSync(path.join(dir, "x_posts/testtool_x.txt"), "utf8");
-    assert.ok(x.includes("testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。"), x);
+    const { xThreadText } = await import("../scripts/utils/x_thread.mjs");
+    assert.equal(x, xThreadText({ facts, slug: "testtool", quote: "testtool is a command-line tool for checking deployment pipelines.", features: ["導入提案書テンプレート（Markdown）", "導入時の想定問答"] }));
     assert.doesNotMatch(x, /\bhello\b/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -176,19 +184,20 @@ test("末尾の案内・ハッシュタグが欠けた生成物は標準の末�
 
 for (const [name, opts, why] of [
   // 図は生成モデルに描かせない（README にある図だけを転記する。leakhunt C3、2026-10-22）
-  ["Web記事に生成モデルが描いた構成図を含む", { diagram: 'graph TD\n  A["CLI"] --> B["Core"]' }, /Web記事に README の原文を伴わない行があります/],
+  ["Web記事に生成モデルが描いた構成図を含む", { diagram: 'graph TD\n  A["CLI"] --> B["Core"]' }, /Web記事に README の原文でない行があります/],
   ["実在しないイメージを含む", { image: "ghcr.io/acme/does-not-exist:latest" }, /実在を確認できない参照/],
   ["無料部分に誇張表現（一発起動）を含む", { hype: "コピペで本番一発起動できます。" }, /誇張・結果保証の表現/],
   ["有料部分に収入の金額を含む", { paidExtra: "このSaaSでMRR 50万円を見込めます。" }, /誇張・結果保証の表現/],
   // note の無料部分は生成モデルに書かせない（データから作る）。書いていれば採用しない
   ["生成モデルが note の無料部分を書いている", { free: FREE }, /生成モデルが note の無料部分を書いています/],
-  ["Web記事の概要に原文つきの文が無い", { overview: "## 概要\n## 主な機能と構成（README の要約）" }, /Web記事の概要に原文つきの文がありません/],
+  ["Web記事の概要に README の原文が無い", { overview: "## 概要\n## 主な機能と構成（README の原文）" }, /Web記事の概要に README の原文がありません/],
   ["Web記事に有料キットの見出しを含む（品質ゲートの有料本文の検査に落ちる）", { web: "## 💰 【クライアント提示用】詳細工数・見積シミュレーション表\n| 項目 | 人日 |\n|---|---|\n| 要件定義 | 2 |" }, /有料キットの内容が含まれています/],
   ["無料部分でインボイス対応をうたう", { hype: "インボイス制度にも対応しています。" }, /生成モデルが note の無料部分を書いています/],
-  // 原文つきの文の検査（scripts/utils/anchored.mjs）: 原文が README の文でない・訳が原文を超える
-  ["原文が README の文ではない", { web: "- testtool は最速のツールです。\n  - 原文（README）: testtool is the fastest tool ever built." }, /公開物の形を満たしません（quote）/],
-  ["訳に原文に無い社数を足す", { web: "- testtool は YAML ファイルを読み、300 の組織で使われています。\n  - 原文（README）: testtool reads a YAML file and reports each failed step." }, /公開物の形を満たしません（token）/],
-  ["訳に利用条件の結論を足す", { web: "- testtool は Linux・macOS・Windows で動き、商用利用も問題なく行えます。\n  - 原文（README）: It runs on Linux, macOS and Windows." }, /公開物の形を満たしません（topic）/],
+  // README の原文の検査（scripts/utils/anchored.mjs）: 原文が README の文でない。訳（日本語の文）は README と照合できないので、どんな内容でも載せない
+  ["原文が README の文ではない", { web: "- 原文（README）: testtool is the fastest tool ever built." }, /公開物の形を満たしません（quote）/],
+  ["訳を書く（原文に無い社数）", { web: "- testtool は YAML ファイルを読み、300 の組織で使われています。" }, /Web記事に README の原文でない行があります/],
+  ["訳を書く（利用条件の結論）", { web: "- testtool は Linux・macOS・Windows で動き、商用利用も問題なく行えます。" }, /Web記事に README の原文でない行があります/],
+  ["訳を書く（語の一覧に無い比較・採用実績）", { web: "- 数倍軽く、ジェミニより賢く、十数社の本番環境で稼働中です。" }, /Web記事に README の原文でない行があります/],
   ["H3 の小節に比較表を置く", { web: "### 他のツールとの比較\n| 項目 | testtool | other |\n|---|---|---|\n| 価格 | 0 | 有料 |" }, /Web記事にテンプレート外の見出しがあります/],
   ["Web記事で導入を勧める", { web: "本番環境への導入を推奨します。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
   ["Web記事に引用の無い比較（優位）を含む", { web: "競合よりも優位です。" }, /Web記事に根拠のない推奨・比較・ライセンス表記があります/],
@@ -200,7 +209,7 @@ for (const [name, opts, why] of [
   ["note の無料部分に README に無いホストとコマンドを含む", { free: `${FREE}\n\`\`\`bash\ncurl -fsSL https://cdn.example.net/install.sh | sh\n\`\`\`` }, /README で確かめられない数値・ホスト・コマンドがあります（host, command）/],
   ["Web記事に確かめられない評価の語を含む", { web: "推論を極限まで最適化した革新的なアーキテクチャです。" }, /公開する文面に確かめられない評価の語があります（確かめられない最上級・絶対の評価）/],
   ["note の無料部分に根拠の無い評判を含む", { free: `${FREE}\nシリコンバレーのエンジニアを熱狂させています。` }, /公開する文面に確かめられない評価の語があります（根拠の無い評判・注目度）/],
-  ["note の無料部分にテンプレート外の節を含む", { free: `${FREE}\n## 競合ツール/商用SaaSとの徹底比較\n比較の本文` }, /note原稿の無料部分にテンプレート外の見出しがあります/],
+  ["note の無料部分にテンプレート外の節を含む", { free: `${FREE}\n## 競合ツール/商用SaaSとの徹底比較\n比較の本文` }, /生成モデルが note の無料部分を書いています/],
 ]) {
   test(`不採用になる: ${name}`, () => {
     const { dir, log } = run(output(opts));
@@ -222,7 +231,8 @@ test("ライセンスは GitHub の表示ではなく LICENSE ファイルの本
     const web = fs.readFileSync(path.join(dir, "src/pages/radar/testtool.md"), "utf8");
     assert.ok(web.includes("## ライセンス\n\n- ライセンス: MIT License（SPDX: MIT）\n- 確認先: [LICENSE ファイル](https://github.com/acme/testtool/blob/main/LICENSE)"), web);
     assert.match(web, /法的な助言ではありません/);
-    assert.match(fs.readFileSync(promptFile, "utf8"), /Web記事にライセンスの節は書かないこと/);
+    // Web 記事に生成モデルが書くのは README の文だけ（ライセンスの節は生成スクリプトが書く）
+    assert.match(fs.readFileSync(promptFile, "utf8"), /生成スクリプトが README・LICENSE ファイル・リポジトリの記録から作る/);
     const prompt = fs.readFileSync(promptFile, "utf8");
     assert.match(prompt, /^ライセンス: MIT License（SPDX: MIT）$/m);
     assert.match(prompt, /^ライセンスの確認先: https:\/\/github\.com\/acme\/testtool\/blob\/main\/LICENSE$/m);
@@ -403,19 +413,17 @@ test("図は生成モデルに描かせず、README にある図のうち描画�
   }
 });
 
-// 説明文に \ や " や $$ を含むリポジトリ（Windows のパス・LaTeX・料金など）。題名・説明文は概要の最初の原文つきの文（ここでは説明文の訳）から作る
+// 説明文に \ や " や $ を含むリポジトリ（Windows のパス・LaTeX・料金など）。説明文を README の原文として載せても、frontmatter と本文が化けない
 const TRICKY_DESC = String.raw`Sync configs under C:\Users\you with "profiles" and save $$ on hosting`;
-const TRICKY_OVERVIEW = `## 概要\n- ${String.raw`C:\Users\you`} の設定を "profiles" で同期し、ホスティングの $$ を抑えます。\n  - 原文（README）: ${TRICKY_DESC}\n## 主な機能と構成（README の要約）`;
-test("説明文に \\ \" $$ を含むリポジトリでも、その訳から作る題名・説明文は、サイトのビルドと同じ方法で読め、文字が化けない", () => {
+const TRICKY_OVERVIEW = `## 概要\n${Q}${TRICKY_DESC}\n## 主な機能と構成（README の原文）`;
+test("説明文に \\ \" $ を含むリポジトリでも、原文として載せた説明文と題名・説明文は、サイトのビルドと同じ方法で読め、文字が化けない", () => {
   const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }) });
   try {
     assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
     const { frontmatter: fm } = parseFrontmatter(readWeb(dir));
-    for (const k of ["title", "description"]) {
-      assert.ok(fm[k].includes(String.raw`C:\Users\you`), `${k}: ${fm[k]}`);
-      assert.ok(fm[k].includes("$$"), `${k}: ${fm[k]}`);
-      assert.match(fm[k], /["']profiles["']/);
-    }
+    assert.equal(fm.title, "testtool - README の要点（原文）");
+    assert.equal(fm.description, "acme/testtool の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。");
+    assert.ok(readWeb(dir).split("\n").includes(`${Q}${TRICKY_DESC}`), readWeb(dir));
     assert.equal(fm.stars, 1234);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

@@ -1,97 +1,93 @@
-// 掲載中の Web 記事と note 原稿の無料部分を、公開物の形（scripts/utils/page_shape.mjs）で作り直す（leakhunt C3・C4、2026-10-22）。
-// - 本文は原文つきの文（README の文とその訳）だけ。リード・成熟度・インストール・ライセンス・README の図の転記は data/readme_facts/<slug>.json から作る
-// - note の無料部分は、題名・リード・原文つきの文・有料版の内容一覧（*.paid.json）・価格の案内だけ。暗号化した有料部分と末尾は変えない
-// 原文つきの文は、--statements に渡した JSON（{ slug: { overview: [{ ja, quote }], architecture: [...], note: [...] } }。note は記事ページの無い原稿用）
-// から取る。渡さない slug は、記事に今ある原文つきの文をそのまま使う（README の事実の集合を作り直したあとに、決まった節だけを作り直す）。
-// 作り直した結果は、テストと同じ検査（webPageProblems / noteHeadProblems）を通らなければ書き込まない。
-//   node scripts/reground_pages.mjs [--statements file.json] [slug ...]
+// 掲載中の Web 記事・note 原稿の公開部分（無料部分と末尾）・X の投稿文を、データから決まった形（scripts/utils/page_shape.mjs）で
+// 作り直す（leakhunt C3・C4、2026-10-22）。生成スクリプトが新しい記事を書くときと同じ関数を使う。
+// - 本文に載せるのは、記事に今ある README の原文だけ（訳は載せない）。原文以外はすべて data/readme_facts/<slug>.json と *.paid.json から作る
+// - data/readme_facts/<slug>.json に、掲載時の記録（publication: 記事の公開日・スター数）、GitHub のトピック（--topics の JSON）、
+//   README の利用条件の記載（--readmes のディレクトリにある README から。README の本文はリポジトリに置かない）、
+//   これまでの個別の訂正の記録の指紋（corrections_keys）を足す
+// - note 原稿は、暗号化した有料部分（プレースホルダの行）を変えず、無料部分と末尾だけを書き直す
+// 作り直した結果は、テストと同じ検査を通らなければ書き込まない。
+//   node scripts/reground_pages.mjs [--topics topics.json] [--readmes dir] [slug ...]
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
 import { normalizeEol } from "./utils/eol.mjs";
 import { factsFileFor } from "./utils/readme_facts.mjs";
-import { parseStatements } from "./utils/anchored.mjs";
-import { renderWebPage, webPageProblems, renderNoteHead, noteHeadProblems, WEB_H2, NOTE_H2, NOTE_PAID_LIST_HEADING } from "./utils/page_shape.mjs";
-import { splitPaid } from "./utils/note_vault.mjs";
+import { usageLines, sentenceKey } from "./utils/anchored.mjs";
+import {
+  renderWebPage, webPageProblems, renderNoteHead, noteHeadProblems, noteFooter, noteTailProblems, parseWebPage, CORRECTION_NOTES,
+} from "./utils/page_shape.mjs";
+import { splitPaid, SEALED_PLACEHOLDER_RE } from "./utils/note_vault.mjs";
+import { xThreadText } from "./utils/x_thread.mjs";
 
 export const CORRECTION_DATE = "2026-10-22";
-export const CORRECTION_NOTE = "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました";
+const LEGACY_QUOTE_RE = /^\s*- 原文（README）: (.*)$/;
+const quotesIn = (lines) => lines.map((l) => l.match(LEGACY_QUOTE_RE)).filter(Boolean).map((m) => m[1].trim());
 
-const field = (fm, k) => (fm.match(new RegExp(`^${k}:\\s*["']?([^"'\\n]*)["']?\\s*$`, "m")) || [])[1]?.trim() || null;
-const DROP_KEYS = /^(?:title|description):/;
-
-function withCorrection(fm) {
-  if (fm.includes(CORRECTION_NOTE)) return fm;
-  const item = [`  - date: "${CORRECTION_DATE}"`, `    note: "${CORRECTION_NOTE}"`];
-  const lines = fm.split("\n");
-  const at = lines.findIndex((l) => /^corrections:\s*$/.test(l));
-  if (at === -1) return [...lines, "corrections:", ...item].join("\n");
-  let end = at + 1;
-  while (end < lines.length && /^\s+/.test(lines[end])) end++;
-  lines.splice(end, 0, ...item);
-  return lines.join("\n");
-}
-
-// タグ: 言語・OSS・GitHub と README の語だけを残す
-function keptTags(fm, facts) {
-  const m = fm.match(/^tags:\s*(\[.*\])\s*$/m);
-  let tags = [];
-  try {
-    tags = m ? JSON.parse(m[1]) : [];
-  } catch {
-    tags = [];
-  }
-  const words = new Set(facts.words || []);
-  const allow = (t) => ["oss", "github", String(facts.language || "").toLowerCase()].includes(t.toLowerCase()) || words.has(t.toLowerCase());
-  return [...new Set(tags.map(String).filter(allow))];
-}
-
-// 記事に今ある原文つきの文（概要・主な機能と構成）
-export function pageStatements(md) {
-  const body = normalizeEol(md).replace(/^---\n[\s\S]*?\n---\n?/, "");
-  const lines = body.split("\n");
-  const h1 = lines.findIndex((l) => /^# /.test(l));
-  const firstH2 = lines.findIndex((l, i) => i > h1 && /^## /.test(l));
-  const arch = lines.findIndex((l) => l === WEB_H2.architecture);
-  const archEnd = lines.findIndex((l, i) => i > arch && /^## /.test(l));
-  const strip = (ss) => ss.map(({ ja, quote }) => ({ ja, quote }));
+// 記事に今ある README の原文（概要 = 題名と最初の H2 の間、主な機能と構成 = その節）
+export function pageQuotes(md) {
+  const body = normalizeEol(md).replace(/^---\n[\s\S]*?\n---\n?/, "").split("\n");
+  const firstH2 = body.findIndex((l) => /^## /.test(l));
+  const arch = body.findIndex((l) => /^## 主な機能と構成/.test(l));
+  const archEnd = body.findIndex((l, i) => i > arch && /^## /.test(l));
   return {
-    overview: strip(parseStatements(lines.slice(h1 + 1, firstH2)).statements),
-    architecture: arch === -1 ? [] : strip(parseStatements(lines.slice(arch + 1, archEnd === -1 ? lines.length : archEnd)).statements),
+    overview: quotesIn(body.slice(0, firstH2 === -1 ? body.length : firstH2)),
+    architecture: arch === -1 ? [] : quotesIn(body.slice(arch + 1, archEnd === -1 ? body.length : archEnd)),
   };
 }
 
-export function regroundWeb(md, facts, statements) {
-  const text = normalizeEol(md);
-  let fm = text.match(/^---\n([\s\S]*?)\n---/)[1];
-  fm = fm.split("\n").filter((l) => !DROP_KEYS.test(l)).join("\n");
-  fm = fm.replace(/^tags:.*$/m, `tags: ${JSON.stringify(keptTags(fm, facts))}`);
-  fm = /^updatedDate:/m.test(fm) ? fm.replace(/^updatedDate:.*$/m, `updatedDate: "${CORRECTION_DATE}"`) : `${fm}\nupdatedDate: "${CORRECTION_DATE}"`;
-  fm = withCorrection(fm);
-  const name = String(facts.repo).split("/")[1];
-  return renderWebPage({ frontmatter: fm, name, stars: field(fm, "stars"), date: field(fm, "pubDate"), overview: statements.overview, architecture: statements.architecture, facts });
-}
-
-// note 原稿の無料部分に今ある原文つきの文（記事ページの無い原稿用）
-export function noteStatements(md) {
+// note 原稿の無料部分に今ある README の原文（有料版の内容一覧・価格の案内より前）
+export function noteQuotes(md) {
   const head = splitPaid(normalizeEol(md)).head;
-  const at = head.findIndex((l) => l === NOTE_H2.features);
-  if (at === -1) return [];
-  const end = head.findIndex((l, i) => i > at && (l === NOTE_PAID_LIST_HEADING || l.startsWith("> 💡")));
-  return parseStatements(head.slice(at + 1, end === -1 ? head.length : end)).statements.map(({ ja, quote }) => ({ ja, quote }));
+  const end = head.findIndex((l) => l.startsWith("### 🔒") || l.startsWith("> 💡"));
+  return quotesIn(head.slice(0, end === -1 ? head.length : end));
 }
 
-export function regroundNote(md, { facts, features, stars, date, statements }) {
-  const parts = splitPaid(normalizeEol(md));
-  const title = parts.head.find((l) => /^# \S/.test(l));
-  const head = renderNoteHead({ title, stars, date, statements, features, facts });
-  return [head, ...parts.paid, ...parts.tail].join("\n");
+// 記事ページの無い原稿の掲載時の記録は、原稿のリードから読む
+function publicationFromNote(md) {
+  const m = normalizeEol(md).match(/(\d{4}-\d{2}-\d{2}) 時点のスター数は ([\d,]+) です。/);
+  return { date: m ? m[1] : null, stars: m ? Number(m[2].replace(/,/g, "")) : null, gain7d: null };
+}
+
+export function enrichFacts(facts, { page, noteMd, topics, readme }) {
+  const out = { ...facts };
+  if (!out.publication) out.publication = page ? { date: page.pubDate, stars: Number(page.stars), gain7d: null } : publicationFromNote(noteMd || "");
+  if (topics) out.topics = topics;
+  if (!out.topics) out.topics = [];
+  const keys = new Set(out.sentences || []);
+  // README の利用条件の記載は、事実の集合を作った時点の README にもあった文だけ（指紋が一致するもの）
+  if (readme !== undefined) out.usage_lines = usageLines(readme).filter((u) => keys.has(sentenceKey(u)));
+  if (!out.usage_lines) out.usage_lines = [];
+  const legacy = (page?.corrections || []).map((c) => c.note).filter((n) => !Object.values(CORRECTION_NOTES).includes(n));
+  out.corrections_keys = [...new Set([...(out.corrections_keys || []), ...legacy.map(sentenceKey)])].sort();
+  return out;
+}
+
+export function regroundWeb(md, facts) {
+  const page = parseWebPage(md);
+  const quotes = pageQuotes(md);
+  const corrections = page.corrections.some((c) => c.note === CORRECTION_NOTES.quotesOnly) ? page.corrections : [...page.corrections, { date: CORRECTION_DATE, note: CORRECTION_NOTES.quotesOnly }];
+  return renderWebPage({ facts, ...quotes, updatedDate: CORRECTION_DATE, corrections, generatorModel: page.generatorModel });
+}
+
+export function regroundNote(md, facts, features, quotes) {
+  const lines = normalizeEol(md).split("\n");
+  const placeholder = lines.find((l) => SEALED_PLACEHOLDER_RE.test(l));
+  if (!placeholder) throw new Error("暗号化済みの原稿ではありません");
+  return `${[renderNoteHead({ facts, quotes, features }), placeholder, noteFooter(facts)].join("\n")}\n`;
+}
+
+function args(argv) {
+  const opt = (k) => {
+    const i = argv.indexOf(k);
+    return i === -1 ? null : argv[i + 1];
+  };
+  const skip = new Set(["--topics", "--readmes"].flatMap((k) => (argv.includes(k) ? [argv.indexOf(k), argv.indexOf(k) + 1] : [])));
+  return { topics: opt("--topics"), readmes: opt("--readmes"), only: argv.filter((_, i) => !skip.has(i)) };
 }
 
 function main(argv) {
-  const at = argv.indexOf("--statements");
-  const given = at === -1 ? {} : JSON.parse(fs.readFileSync(argv[at + 1], "utf8"));
-  const only = argv.filter((a, i) => a !== "--statements" && i !== at + 1);
+  const { topics: topicsFile, readmes, only } = args(argv);
+  const topics = topicsFile ? JSON.parse(fs.readFileSync(topicsFile, "utf8")) : {};
   const radar = "src/pages/radar";
   const slugs = new Set(only.length ? only : [
     ...fs.readdirSync(radar).filter((f) => f.endsWith(".md")).map((f) => f.replace(/\.md$/, "")),
@@ -99,38 +95,49 @@ function main(argv) {
   ]);
   let failed = 0;
   for (const slug of slugs) {
-    const facts = JSON.parse(fs.readFileSync(factsFileFor(slug), "utf8"));
-    const page = path.join(radar, `${slug}.md`);
-    const note = path.join("note_drafts", `${slug}_note.md`);
+    const pageFile = path.join(radar, `${slug}.md`);
+    const noteFile = path.join("note_drafts", `${slug}_note.md`);
+    const pageMd = fs.existsSync(pageFile) ? fs.readFileSync(pageFile, "utf8") : null;
+    const noteMd = fs.existsSync(noteFile) ? fs.readFileSync(noteFile, "utf8") : null;
+    const readmeFile = readmes ? path.join(readmes, `${slug}.md`) : null;
+    const facts = enrichFacts(JSON.parse(fs.readFileSync(factsFileFor(slug), "utf8")), {
+      page: pageMd ? parseWebPage(pageMd) : null,
+      noteMd,
+      topics: topics[slug]?.topics,
+      readme: readmeFile && fs.existsSync(readmeFile) ? fs.readFileSync(readmeFile, "utf8") : undefined,
+    });
     const problems = [];
-    let fm = "";
-    let st = given[slug] || null;
+    const summary = noteFile.replace(/\.md$/, ".paid.json");
+    const features = fs.existsSync(summary) ? JSON.parse(fs.readFileSync(summary, "utf8")).features : [];
     let web = null;
-    if (fs.existsSync(page)) {
-      const src = fs.readFileSync(page, "utf8");
-      fm = normalizeEol(src).match(/^---\n([\s\S]*?)\n---/)[1];
-      st = st || pageStatements(src);
-      web = regroundWeb(src, facts, st);
+    let x = null;
+    if (pageMd) {
+      web = regroundWeb(pageMd, facts);
       problems.push(...webPageProblems(web, facts).map((p) => `web ${p.kind}: ${p.detail}`));
+      x = xThreadText({ facts, slug, quote: pageQuotes(pageMd).overview[0], features: noteMd ? features : [] });
     }
     let noteText = null;
-    if (fs.existsSync(note)) {
-      const summary = note.replace(/\.md$/, ".paid.json");
-      const features = fs.existsSync(summary) ? JSON.parse(fs.readFileSync(summary, "utf8")).features : [];
-      const src = fs.readFileSync(note, "utf8");
-      const statements = st?.note || (st ? [...st.overview, ...st.architecture] : noteStatements(src));
-      // スター数と日付は記事の記録（記事ページの frontmatter）。記事ページの無い原稿は作成日だけを書く
-      noteText = regroundNote(src, { facts, features, statements, stars: fm ? field(fm, "stars") : null, date: fm ? field(fm, "pubDate") : null });
-      problems.push(...noteHeadProblems(splitPaid(noteText).head.join("\n"), facts, features).map((p) => `note ${p.kind}: ${p.detail}`));
+    if (noteMd) {
+      const quotes = pageMd ? [...pageQuotes(pageMd).overview, ...pageQuotes(pageMd).architecture] : noteQuotes(noteMd);
+      try {
+        noteText = regroundNote(noteMd, facts, features, quotes);
+        const parts = splitPaid(noteText);
+        problems.push(...noteHeadProblems(parts.head.join("\n"), facts, features).map((p) => `note ${p.kind}: ${p.detail}`));
+        problems.push(...noteTailProblems(parts.tail, facts).map((p) => `note tail ${p.kind}: ${p.detail}`));
+      } catch (e) {
+        problems.push(`note: ${e.message}`);
+      }
     }
     if (problems.length) {
       failed++;
       console.error(`✖ ${slug}\n  ${problems.join("\n  ")}`);
       continue;
     }
-    if (web) fs.writeFileSync(page, web, "utf8");
-    if (noteText) fs.writeFileSync(note, noteText, "utf8");
-    console.log(`✓ ${slug}`);
+    fs.writeFileSync(factsFileFor(slug), JSON.stringify(facts, null, 2) + "\n", "utf8");
+    if (web) fs.writeFileSync(pageFile, web, "utf8");
+    if (x) fs.writeFileSync(path.join("x_posts", `${slug}_x.txt`), x, "utf8");
+    if (noteText) fs.writeFileSync(noteFile, noteText, "utf8");
+    console.log(`✓ ${slug}${facts.usage_lines.length ? `（利用条件の記載 ${facts.usage_lines.length} 件）` : ""}`);
   }
   if (failed) process.exitCode = 1;
 }

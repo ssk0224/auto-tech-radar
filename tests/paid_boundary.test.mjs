@@ -15,6 +15,9 @@ import { PAID_FEATURE_RULES, STANDARD_FOOTER, paidContentSummary, splitPaid, loa
 import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, sectionLabels, paidHeadingLines } from "../scripts/utils/article_template.mjs";
 import { normalizeEol } from "../scripts/utils/eol.mjs";
 import { INSTALL_TOPIC_RE } from "../scripts/utils/readme_facts.mjs";
+import { unapprovedPaidFragments, OFFER_FRAGMENTS, PAID_LABELS } from "../scripts/utils/paid_copy.mjs";
+import { zennCta } from "../scripts/utils/funnel_copy.mjs";
+import { xThreadText } from "../scripts/utils/x_thread.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (p) => normalizeEol(fs.readFileSync(p, "utf8"));
@@ -63,18 +66,18 @@ function runGenerator(mockOut, extraEnv = {}, prepare = null) {
     fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/^pubDate:.*$/m, 'pubDate: "2000-01-01"'));
   }
   if (prepare) prepare(dir);
-  const env = { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...extraEnv };
+  const env = { ...process.env, GEMINI_API_KEY: "dummy", NOTE_PAID_RECIPE: RECIPE, MOCK_OUT: mockOut, ...extraEnv };
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], { cwd: dir, encoding: "utf8", env });
   return { dir, log: r.stdout + r.stderr };
 }
-// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は原文つきの文（tests/fixtures/mock_readme.mjs の README の文）だけ、note は有料部分の本文だけ
+// note の有料部分の作り方（公開リポジトリに置かない。CI の秘密 NOTE_PAID_RECIPE）のテスト用の値
+const RECIPE = "TEST_RECIPE_SENTINEL の節を書くこと";
+// 生成モデルの出力（leakhunt C3、2026-10-22 から）: Web 記事は README の原文（tests/fixtures/mock_readme.mjs の README の文）だけ、note は有料部分の本文だけ
 const mock = (paid) => `=== WEB ARTICLE ===
 ## 概要
-- testtool は、デプロイのパイプラインを確かめるコマンドラインのツールです。
-  - 原文（README）: testtool is a command-line tool for checking deployment pipelines.
-## 主な機能と構成（README の要約）
-- testtool は YAML ファイルを読み、失敗した手順をそれぞれ報告します。
-  - 原文（README）: testtool reads a YAML file and reports each failed step.
+- 原文（README）: testtool is a command-line tool for checking deployment pipelines.
+## 主な機能と構成（README の原文）
+- 原文（README）: testtool reads a YAML file and reports each failed step.
 === NOTE ARTICLE ===
 ${paid}
 ---
@@ -161,6 +164,17 @@ test("末尾の案内（公開されたまま暗号化しない部分）に置�
     const p2 = splitPaid(note.replace("#AI #OSS", `#AI #OSS\n${prose}`));
     assert.ok(p2.paid.some((l) => l === prose), `ハッシュタグの形の有料本文が公開側（末尾）に入った: ${prose}`);
   }
+  // タグの形の短い有料本文（句読点なし・15 文字以内）も、末尾の形（定型文 + タグ 1 行）に合わなければ有料部分に入る
+  const tagShaped = ["# t", "無料", "【有料ライン ここから先は有料会員限定】", "**有料の節**", "有料の本文。",
+    "---", "### 🎁 【メンバーシップのご案内】", "#受託単価は人日8万円", "#本番はポート8080", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS"].join("\n");
+  const p3 = splitPaid(tagShaped);
+  for (const frag of ["#受託単価は人日8万円", "#本番はポート8080"]) {
+    assert.ok(p3.paid.includes(frag), `タグの形の有料本文が公開側（末尾）に入った: ${frag}`);
+    assert.ok(!p3.tail.includes(frag));
+  }
+  // 標準の末尾の後ろにタグの形の行を足しても、末尾にはならない（タグは 1 行だけ）
+  const p4 = splitPaid(["# t", "無料", "【有料ライン ここから先は有料会員限定】", "有料", STANDARD_FOOTER.trim(), "#受託単価は人日8万円"].join("\n"));
+  assert.ok(!p4.tail.includes("#受託単価は人日8万円"));
   // 標準の末尾はそのまま公開側に残る
   const std = splitPaid(["# t", "無料", "【有料ライン ここから先は有料会員限定】", "有料", STANDARD_FOOTER.trim()].join("\n"));
   assert.ok(std.hasTail);
@@ -190,4 +204,76 @@ test("サイト・スクリプトの案内文は、無料の Web 記事に READM
     });
   }
   assert.deepEqual(bad, []);
+});
+
+// ---- (d) サイト・送客文の有料版の案内は、決まった文だけ（scripts/utils/paid_copy.mjs。語の一覧ではなく、決まった文以外を赤にする） ----
+const copySources = () => {
+  const files = [];
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) walk(p);
+    else if (/\.(astro|txt|md|js|mjs|ts)$/.test(e.name)) files.push(p);
+  });
+  ["src/pages", "src/layouts", "src/components", "public"].filter((d) => fs.existsSync(d)).forEach(walk);
+  return files.filter((f) => !f.startsWith(path.join("src", "pages", "radar"))).map((f) => [f, read(f)]);
+};
+
+test("サイトのページ・レイアウト・llms.txt と送客文・X の投稿文で有料版に触れた文は、決まった文（有料版の内容はラベルだけ）に限る", () => {
+  const rendered = [
+    ["zennCta", zennCta("testtool")],
+    ["xThreadText", xThreadText({ facts: { repo: "o/testtool", publication: { date: "2026-10-22", stars: 1 } }, slug: "testtool", quote: "q", features: ["工数・見積表", "導入時の想定問答"] })],
+  ];
+  const bad = [];
+  for (const [f, text] of [...copySources(), ...rendered]) for (const frag of unapprovedPaidFragments(text)) bad.push(`${f}: ${frag}`);
+  assert.deepEqual(bad, []);
+});
+
+test("決まった文以外の有料版の案内は、導入手順の言い換え（語の一覧に無い言い方）でも赤になる", () => {
+  for (const s of [
+    "<p>導入提案書テンプレート・工数見積表・デプロイ手順と起動方法の解説などの実務キットは note の有料記事で提供しています。</p>",
+    "<p>初期設定と動かし方の完全版は有料記事でどうぞ。</p>",
+    "- 🔒 **有料（note）**: 本番運用のコツ → [note](x)",
+  ]) assert.ok(unapprovedPaidFragments(s).length, s);
+  // 決まった文の有料版の中身は、有料版の売りの規則のラベルだけ（README から作れる題材を含まない）
+  for (const f of OFFER_FRAGMENTS) {
+    const rest = PAID_LABELS.reduce((t, l) => t.replaceAll(l, ""), f);
+    assert.doesNotMatch(rest, INSTALL_TOPIC_RE, f);
+    for (const h of [...WEB_TEMPLATE_H2, ...NOTE_FREE_TEMPLATE_H2]) assert.ok(!rest.includes(h.replace(/^#+\s*/, "")), `${f} ↔ ${h}`);
+  }
+});
+
+// ---- (e) 有料版の作り方（節の構成・分量）は公開リポジトリに置かない（leakhunt #51） ----
+test("有料部分の作り方（NOTE_PAID_RECIPE）が無いと、プロンプトに有料版の売りの題材を入れず、note 原稿を作らない。あるときだけ、その内容を渡す", () => {
+  const promptFile = path.join(os.tmpdir(), `atr-recipe-${process.pid}`);
+  try {
+    const none = runGenerator(mock("**有料の節**\n" + "本文。".repeat(600)), { NOTE_PAID_RECIPE: "", MOCK_PROMPT: promptFile });
+    try {
+      const prompt = fs.readFileSync(promptFile, "utf8");
+      const hits = PAID_FEATURE_RULES.filter(([re]) => re.test(prompt)).map(([, l]) => l);
+      assert.deepEqual(hits, [], "プロンプトに有料版の売りの題材がある（有料版の作り方が公開リポジトリにある）");
+      assert.doesNotMatch(prompt, /=== NOTE ARTICLE ===/);
+      assert.ok(fs.existsSync(path.join(none.dir, "src/pages/radar/testtool.md")), none.log);
+      assert.ok(!fs.existsSync(path.join(none.dir, "note_drafts/testtool_note.md")), "作り方が無いのに note 原稿を作った");
+    } finally { fs.rmSync(none.dir, { recursive: true, force: true }); }
+    const given = runGenerator(mock("**有料の節**\n" + "本文。".repeat(600)), { MOCK_PROMPT: promptFile });
+    try {
+      assert.ok(fs.readFileSync(promptFile, "utf8").includes(RECIPE));
+    } finally { fs.rmSync(given.dir, { recursive: true, force: true }); }
+  } finally { fs.rmSync(promptFile, { force: true }); }
+});
+
+// ---- (f) 生成モデルが書いた末尾の形をした有料本文は、生成スクリプトが保存する公開側の原稿に残らない（leakhunt #81） ----
+test("生成モデルの出力の末尾にある、タグや案内の形をした有料本文は、公開側の note 原稿に残らず暗号化される", () => {
+  const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", { modulusLength: 2048, publicKeyEncoding: { type: "spki", format: "pem" }, privateKeyEncoding: { type: "pkcs8", format: "pem" } });
+  const paid = ["**有料の節**", "本文。".repeat(600), "---", "### 🎁 【メンバーシップのご案内】", "#受託単価は人日8万円", "#本番はポート8080"].join("\n");
+  const { dir, log } = runGenerator(mock(paid), {}, (d) => fs.writeFileSync(path.join(d, "keys/note_vault_public.pem"), publicKey));
+  try {
+    const noteFile = path.join(dir, "note_drafts/testtool_note.md");
+    assert.ok(fs.existsSync(noteFile), log);
+    const pub = fs.readFileSync(noteFile, "utf8");
+    for (const frag of ["受託単価は人日8万円", "本番はポート8080"]) {
+      assert.ok(!pub.includes(frag), `公開側の原稿に有料本文が残った: ${frag}`);
+      assert.ok(decryptText(fs.readFileSync(sealedFileFor(noteFile), "utf8"), [privateKey], "testtool_note.md").includes(frag));
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

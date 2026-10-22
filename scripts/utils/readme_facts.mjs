@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { normalizeEol } from "./eol.mjs";
 import { jstDate } from "./selection.mjs";
-import { readmeSentenceKeys, statusLines, readmeWords } from "./anchored.mjs";
+import { readmeSentenceKeys, statusLines, readmeWords, usageLines } from "./anchored.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const FACTS_DIR = path.join(rootDir, "data", "readme_facts");
@@ -182,6 +182,8 @@ export function readmeFacts(readme, meta = {}) {
     // 原文つきの文の照合に使う README の文の指紋（scripts/utils/anchored.mjs）・開発段階の記載・英字の語
     sentences: readmeSentenceKeys(md, meta.description || ""),
     status_lines: statusLines(md, String(meta.repo || "").split("/")[1] || ""),
+    // 利用条件の記載（学習用途のみ・非商用など）。ライセンスの節に原文のまま示す
+    usage_lines: usageLines(md, meta.description || ""),
     words: readmeWords(md, meta.description || ""),
     // README にある Mermaid の図（記事にはこれだけをそのまま転記する。生成モデルには図を描かせない）
     diagrams: codeBlocks(md).filter((b) => b.lang === "mermaid" && b.code.trim() && b.code.split("\n").length <= MAX_DIAGRAM_LINES).slice(0, MAX_DIAGRAMS).map((b) => b.code),

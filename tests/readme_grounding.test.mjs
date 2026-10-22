@@ -13,6 +13,8 @@ import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, NOTE_FIXED_TEXT, h2Headings, we
 import { licenseStatementProblems } from "../scripts/utils/license_resolver.mjs";
 import { licenseSection } from "../scripts/utils/license_section.mjs";
 import { splitPaid } from "../scripts/utils/note_vault.mjs";
+import { noteTailProblems, parseWebPage } from "../scripts/utils/page_shape.mjs";
+import { xThreadText } from "../scripts/utils/x_thread.mjs";
 import { normalizeEol } from "../scripts/utils/eol.mjs";
 
 const read = (p) => normalizeEol(fs.readFileSync(p, "utf8"));
@@ -152,26 +154,50 @@ test("Web 記事と note の無料部分の H2 見出しは、生成スクリプ
   assert.deepEqual(bad, []);
 });
 
-// ---- 公開物の形: 決まった節と原文つきの文だけ（scripts/utils/page_shape.mjs、leakhunt C3 の再発防止） ----
-// 原文を伴わない行（比較表・H3 の小節・自由な段落・インラインのコマンド・素のホスト名）や、訳が原文を超える文
-// （原文に無い固有名・数値、評価・比較・利用条件・費用・評判の語）は、どの節に入れても赤になる
+// ---- 公開物の形: データと README の原文だけから作ったものと一致すること（scripts/utils/page_shape.mjs、leakhunt C3・C4 の再発防止） ----
+// ページから README の原文と訂正の記録だけを読み取り、data/readme_facts と *.paid.json から作り直したものと 1 文字でも違えば赤。
+// 訳・比較表・H3 の小節・自由な段落・題名やリードやスター数の書き換え・訂正の記録の自由な文は、どの節にどんな言い方で入れても赤になる
 const fmtProblems = (slug, ps) => ps.map((p) => `${slug}: ${p.kind}: ${p.detail}`);
 const paidFeatures = (slug) => {
   const f = path.join("note_drafts", `${slug}_note.paid.json`);
   return fs.existsSync(f) ? JSON.parse(read(f)).features : [];
 };
 
-test("掲載中のすべての Web 記事は、決まった節と原文つきの文（README の文とその訳）と構成図だけでできている", () => {
+test("掲載中のすべての Web 記事は、データと README の原文だけから作り直したものと一致する", () => {
   const bad = [];
   for (const slug of pages) bad.push(...fmtProblems(slug, webPageProblems(read(path.join(radarDir, `${slug}.md`)), factsOf(slug))));
   assert.deepEqual(bad, []);
 });
 
-test("すべての note 原稿の無料部分は、題名・リード・原文つきの文・有料版の内容一覧・価格の案内だけでできている", () => {
+test("すべての note 原稿の無料部分は、データと README の原文だけから作り直したものと一致する", () => {
   const bad = [];
   for (const slug of notes) {
     const head = splitPaid(read(path.join("note_drafts", `${slug}_note.md`))).head.join("\n");
     bad.push(...fmtProblems(slug, noteHeadProblems(head, factsOf(slug), paidFeatures(slug))));
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("すべての note 原稿の末尾（暗号化しない公開部分）は、データ（言語・トピック）から作った決まった形と一致する", () => {
+  const bad = [];
+  for (const slug of notes) {
+    const parts = splitPaid(read(path.join("note_drafts", `${slug}_note.md`)));
+    if (!parts.hasTail) bad.push(`${slug}: 末尾がありません`);
+    else bad.push(...fmtProblems(slug, noteTailProblems(parts.tail, factsOf(slug))));
+  }
+  assert.deepEqual(bad, []);
+});
+
+// X の投稿文（x_posts/<slug>_x.txt。1 本目は auto_tweet_x.mjs が X に投稿する）も、データと記事の最初の原文だけから作る（leakhunt #64）
+test("掲載中のすべての記事の X の投稿文は、データと記事の最初の README の原文から作り直したものと一致する", () => {
+  const bad = [];
+  for (const slug of pages) {
+    const f = path.join("x_posts", `${slug}_x.txt`);
+    if (!fs.existsSync(f)) continue; // 投稿文の無い記事はある（掲載前に作った記事）。あれば一致すること
+    const page = parseWebPage(read(path.join(radarDir, `${slug}.md`)));
+    const features = fs.existsSync(path.join("note_drafts", `${slug}_note.md`)) ? paidFeatures(slug) : [];
+    const want = xThreadText({ facts: factsOf(slug), slug, quote: page.overview[0], features });
+    if (read(f) !== want) bad.push(slug);
   }
   assert.deepEqual(bad, []);
 });

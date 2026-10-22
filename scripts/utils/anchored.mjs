@@ -1,19 +1,13 @@
-// 原文つきの文（leakhunt C3、2026-10-22）。公開物（Web 記事・note の無料部分）に生成モデルが書いてよいのは、
-// README の文 1 つ以上（原文）と、その日本語訳の組だけ。ページには訳の下に原文をそのまま表示する。
-//   - 訳
-//     - 原文（README）: README の文
+// README の原文（leakhunt C3、2026-10-22）。公開物（Web 記事・note の無料部分）に生成モデルが選んで載せてよいのは、README の文そのもの
+// （原文）だけ。訳は載せない（訳は README と機械的に照合できず、語の一覧で評価・比較・採用実績を止めても一覧に無い言い方が通るため）。
 // 確かめること（生成スクリプトが保存前に、tests/readme_grounding.test.mjs が掲載中の全ページに）:
-//   quote  原文の各文が README の文（data/readme_facts/<slug>.json の sentences にある指紋）であること
-//   token  訳の英字の語（固有名・コマンド・ホスト）と数値が、原文にあること（比較の相手・ROI・社数・インラインのコマンドを足せない）
-//   topic  訳に評価・比較・利用条件・費用・評判・あいまいな量の語が無いこと（scripts/utils/hype_check.mjs の STATEMENT_TOPIC_RULES）
-//   length 訳が原文より大幅に長くないこと（原文に無い説明を足していない）
-// README の本文はリポジトリに置かない（文の指紋と、成熟度の節に示す開発段階の記載だけを置く）
+//   原文の各文が README の文（data/readme_facts/<slug>.json の sentences にある指紋）であること。ページのそれ以外の部分は
+//   scripts/utils/page_shape.mjs がデータから作り直したものと一致すること
+// README の本文はリポジトリに置かない（文の指紋と、成熟度・利用条件の節に示す記載だけを置く）
 import crypto from "crypto";
 import { normalizeEol } from "./eol.mjs";
-import { findStatementTopics } from "./hype_check.mjs";
 
 export const QUOTE_LABEL = "原文（README）: ";
-export const QUOTE_PREFIX = `  - ${QUOTE_LABEL}`;
 const MIN_SENTENCE = 8;
 
 // ---- README の文 ----
@@ -122,121 +116,43 @@ export function maturitySection(facts) {
   return [MATURITY_HEADING, "", ...body, ""].join("\n");
 }
 
-// ---- 原文つきの文の Markdown ----
-export function renderStatements(statements) {
-  return statements.map(({ ja, quote }) => `- ${ja}\n${QUOTE_PREFIX}${quote}`).join("\n");
+// ---- README の利用条件の記載（学習用途のみ・非商用など） ----
+// ライセンスの節に原文のまま示し、活用・収益化を有料版の売りにしない判定に使う（leakhunt #57、2026-10-22）
+const USAGE_RE = [
+  /\bnon-?commercial\b|\bnot (?:be )?(?:used )?for commercial\b|\bno commercial use\b|\bcommercial use (?:is )?(?:not permitted|prohibited|forbidden)\b/i,
+  /\bfor (?:educational|study|learning|research|personal)(?: (?:and|or) (?:educational|study|learning|research|personal))* (?:purposes? |use )?only\b/i,
+  /仅供学习|仅供研究|仅供个人|请勿用于商业|禁止(?:用于)?商用|不得用于商业|非商用|商用禁止|商用利用(?:は|を)?禁止|学習目的(?:のみ|に限)/,
+];
+export function usageLines(markdown, description = "") {
+  return readmeSentences(markdown, description).filter((s) => s.length <= MAX_STATUS_CHARS && USAGE_RE.some((re) => re.test(s))).slice(0, MAX_STATUS_LINES);
 }
 
-// 行の並びから原文つきの文を読み取る。空行以外で、原文つきの文の形になっていない行は stray（行番号）として返す
-export function parseStatements(lines, offset = 0) {
-  const statements = [];
+// ---- 原文（README の文そのもの）の Markdown ----
+// 生成モデルが公開物に載せてよいのは、README の文を選んだものだけ。訳は README と機械的に照合できないので載せない（leakhunt C3、2026-10-22）
+export const QUOTE_LINE = `- ${QUOTE_LABEL}`;
+export const renderQuotes = (quotes) => quotes.map((q) => `${QUOTE_LINE}${q}`).join("\n");
+
+// 行の並びから原文を読み取る。空行以外で原文の行でないもの（訳・段落・表・見出し）は stray（行番号）として返す
+export function parseQuotes(lines, offset = 0) {
+  const quotes = [];
   const stray = [];
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i];
-    if (!l.trim()) continue;
-    const m = l.match(/^- (?!原文（README）)(\S.*)$/);
-    const q = (lines[i + 1] || "").startsWith(QUOTE_PREFIX) ? lines[i + 1].slice(QUOTE_PREFIX.length) : null;
-    if (m && q !== null) {
-      statements.push({ ja: m[1].trim(), quote: q.trim(), line: offset + i });
-      i++;
-    } else stray.push(offset + i);
-  }
-  return { statements, stray };
+  lines.forEach((l, i) => {
+    if (!l.trim()) return;
+    if (l.startsWith(QUOTE_LINE) && l.slice(QUOTE_LINE.length).trim()) quotes.push(l.slice(QUOTE_LINE.length).trim());
+    else stray.push(offset + i);
+  });
+  return { quotes, stray };
 }
 
-// ---- 訳と原文の照合 ----
-const LATIN_RE = /[A-Za-z][A-Za-z0-9]*(?:[._+#'’/-][A-Za-z0-9]+)*/g;
-const NUM_RE = /(?<![A-Za-z0-9_.])\d+(?:,\d{3})*(?:\.\d+)?/g;
-const KANJI_DIGIT = { 〇: 0, 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
-const KANJI_UNIT = { 十: 10, 百: 100, 千: 1000 };
-const KANJI_BIG = { 万: 1e4, 億: 1e8, 亿: 1e8 };
-function kanjiNumber(s) {
-  let total = 0;
-  let section = 0;
-  let digit = null;
-  for (const c of s) {
-    if (c in KANJI_DIGIT) digit = KANJI_DIGIT[c];
-    else if (c in KANJI_UNIT) {
-      section += (digit ?? 1) * KANJI_UNIT[c];
-      digit = null;
-    } else if (c in KANJI_BIG) {
-      total += (section + (digit ?? 0) || 1) * KANJI_BIG[c];
-      section = 0;
-      digit = null;
-    }
-  }
-  return total + section + (digit ?? 0);
-}
-const KANJI_RUN = "[〇零一二两三四五六七八九十百千万億亿]+";
-// 訳の側: 助数詞の付いた漢数字（「三十種類」「五百十三個」）を数として読む。「一部」「一般」などの語は数にしない
-const JA_KANJI_RE = new RegExp(`${KANJI_RUN}(?=\\s*(?:つ|個|件|倍|割|社|人|名|種|台|回|年|か月|ヶ月|ヵ月|カ月|日|時間|分|秒|週|段階|層|言語|カ国|か国|%|％|パーセント|行|ファイル|ステップ))`, "g");
-const QUOTE_KANJI_RE = new RegExp(KANJI_RUN, "g");
-const NUMBER_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 100, thousand: 1000, million: 1e6, billion: 1e9, dozen: 12, single: 1, double: 2, twice: 2, triple: 3, january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 }; // 月の名前は日付の訳（October → 10 月）のため。may は語と区別できないので入れない
-const numStr = (n) => String(Math.round(Number(n) * 1e6) / 1e6);
-
-function tokensOf(text, { quote = false } = {}) {
-  const t = cleanText(text);
-  const words = new Set();
-  for (const m of t.matchAll(LATIN_RE)) {
-    const w = m[0].toLowerCase().replace(/[’]/g, "'");
-    words.add(w);
-    if (quote) {
-      words.add(w.replace(/'s$/, ""));
-      words.add(w.replace(/s$/, "")); // 原文の複数形（TVs）に対する訳の単数形（TV）
-      words.add(w.replace(/es$/, ""));
-      for (const part of w.split(/[._+#'/-]+/)) if (part) words.add(part);
-    }
-  }
-  const numbers = new Set([...t.matchAll(NUM_RE)].map((m) => numStr(m[0].replace(/,/g, ""))));
-  for (const m of t.matchAll(quote ? QUOTE_KANJI_RE : JA_KANJI_RE)) numbers.add(numStr(kanjiNumber(m[0])));
-  if (quote) for (const w of words) if (w in NUMBER_WORDS) numbers.add(numStr(NUMBER_WORDS[w]));
-  return { words, numbers };
-}
-const singular = (w) => [w, w.replace(/'s$/, ""), w.replace(/es$/, ""), w.replace(/s$/, "")];
-
-// 訳の長さの上限: 原文の文字ごとの重み（CJK の文字は日本語訳とほぼ同じ長さ、英字は日本語訳で短くなる）の和 + 余裕
-const LEN_WEIGHT = { cjk: 1.6, other: 1.0 };
-const LEN_SLACK = 15;
-const maxLength = (quote) => Math.ceil([...quote].reduce((n, c) => n + (/[぀-ヿ㐀-鿿]/.test(c) ? LEN_WEIGHT.cjk : LEN_WEIGHT.other), 0)) + LEN_SLACK;
-
-// facts: { repo, sentences }。返り値: [{ kind: "quote" | "token" | "topic" | "length", detail }]
-export function statementProblems({ ja, quote }, facts) {
-  const problems = [];
+// 原文の各文が README の文（data/readme_facts/<slug>.json の sentences にある指紋）であること
+export function quoteProblems(quote, facts) {
   const keys = new Set(facts?.sentences || []);
   const parts = quote ? splitSentences(quote) : [];
-  if (!parts.length || parts.some((p) => !keys.has(sentenceKey(p)))) problems.push({ kind: "quote", detail: "原文が README の文ではありません" });
-  const q = tokensOf(quote || "", { quote: true });
-  const nameWords = String(facts?.repo || "").toLowerCase().split(/[/._-]+/).filter(Boolean);
-  const own = tokensOf(ja);
-  const extraWords = [...own.words].filter((w) => !singular(w).some((v) => q.words.has(v) || nameWords.includes(v)) && !q.words.has(w.replace(/[^a-z0-9]/g, "")));
-  const extraNumbers = [...own.numbers].filter((n) => !q.numbers.has(n));
-  if (extraWords.length || extraNumbers.length) problems.push({ kind: "token", detail: [...extraWords, ...extraNumbers].join(", ") });
-  const topics = findStatementTopics(ja);
-  if (topics.length) problems.push({ kind: "topic", detail: topics.join(" / ") });
-  if ([...ja].length > maxLength(quote || "")) problems.push({ kind: "length", detail: `${[...ja].length} > ${maxLength(quote || "")}` });
-  return problems;
+  if (!parts.length || parts.some((p) => !keys.has(sentenceKey(p)))) return [{ kind: "quote", detail: "原文が README の文ではありません" }];
+  return [];
 }
 
-// 図（Mermaid）やタグのように原文を伴えない部分は、そのページの原文の語と数値だけを使う
-export function quoteVocabulary(statements) {
-  const words = new Set();
-  const numbers = new Set();
-  for (const s of statements) {
-    const t = tokensOf(s.quote, { quote: true });
-    t.words.forEach((w) => words.add(w));
-    t.numbers.forEach((n) => numbers.add(n));
-  }
-  return { words, numbers };
-}
-export function extraTokens(text, vocab, allowWords = []) {
-  const own = tokensOf(text);
-  const allow = new Set(allowWords.map((w) => w.toLowerCase()));
-  return [
-    ...[...own.words].filter((w) => !allow.has(w) && !singular(w).some((v) => vocab.words.has(v))),
-    ...[...own.numbers].filter((n) => !vocab.numbers.has(n)),
-  ];
-}
-
+const LATIN_RE = /[A-Za-z][A-Za-z0-9]*(?:[._+#'’/-][A-Za-z0-9]+)*/g;
 // README の英字の語（コードブロックも含む。小文字・区切りで分けた部分も含む）。図のラベルとタグの照合に使う
 export function readmeWords(markdown, description = "") {
   const words = new Set();

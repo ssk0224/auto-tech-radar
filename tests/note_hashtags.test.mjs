@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
 import { noteHashtags, applyNoteHashtags } from "../scripts/utils/note_hashtags.mjs";
+import { renderNoteDraft } from "../scripts/utils/page_shape.mjs";
 import { splitPaid, noteDraftProblems, withStandardFooter, isFooterOnly, STANDARD_FOOTER } from "../scripts/utils/note_vault.mjs";
 
 const UNRELATED = ["#副業", "#受託開発"];
@@ -32,7 +33,10 @@ const doc = (footer) => [
   "【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】", "---", PAID, ...footer,
 ].join("\n") + "\n";
 
-test("末尾のハッシュタグ行を記事のタグに置き換え、フッター判定と出品要件を満たす", () => {
+// 生成モデルが書いた末尾（タグ・案内のどんな形でも）は有料部分に入り、公開側の末尾はデータ（言語・トピック）から作った決まった形になる。
+// 以前は生成モデルの末尾のタグ行を置き換えて公開側に残していたため、タグや案内の形をした有料本文が公開された（leakhunt #81、2026-10-22）
+test("生成モデルが書いた末尾は有料部分に入り、公開側の末尾はデータから作ったタグと定型の案内だけになる", () => {
+  const facts = { repo: "o/cadtool", language: "Rust", topics: ["cad"], created_at: null, publication: { date: "2026-10-22", stars: 1, gain7d: null } };
   const tags = noteHashtags({ language: "Rust", topics: ["cad"] });
   const cases = [
     // 生成モデルの出力（固定タグ）
@@ -41,17 +45,19 @@ test("末尾のハッシュタグ行を記事のタグに置き換え、フッ�
     ["---", "**【note出品時用 推奨ハッシュタグ】** #副業", "", "#受託開発 #AI", "#OSS"],
     // ハッシュタグの見出しが無い
     ["---", "### 🎁 【メンバーシップのご案内】", "メンバーシップの案内"],
+    // タグの形をした短い有料本文
+    ["---", "### 🎁 【メンバーシップのご案内】", "#受託単価は人日8万円", "#本番はポート8080", "---", "**【note出品時用 推奨ハッシュタグ】**", "#AI #OSS"],
   ];
   for (const footer of cases) {
-    const out = applyNoteHashtags(doc(footer), tags);
-    const tagLines = out.split("\n").filter((l) => /^(#[^\s#]\S*\s*)+$/.test(l));
-    assert.deepEqual(tagLines, [tags.join(" ")], out);
-    for (const u of UNRELATED) assert.ok(!out.includes(u), out);
+    const out = renderNoteDraft({ facts, quotes: [], features: [], paid: [PAID, ...footer].join("\n") });
     const parts = splitPaid(out);
     assert.ok(parts.hasTail, out);
     assert.ok(isFooterOnly(parts.tail), out);
+    assert.deepEqual(parts.tail.filter((l) => /^(#[^\s#]\S*\s*)+$/.test(l)), [tags.join(" ")], out);
+    // 生成モデルが書いた行（区切り線以外）は、すべて有料部分にある
+    for (const l of footer.filter((x) => x.trim() && !/^-{3,}$/.test(x))) assert.ok(parts.paid.includes(l), "生成モデルの末尾の行が有料部分に無い: " + l);
+    for (const u of UNRELATED) assert.ok(!parts.tail.join("\n").includes(u), out);
     assert.ok(!parts.tail.join("\n").includes("SECRET_PAID_BODY"));
-    assert.deepEqual(noteDraftProblems(out), [], out);
     assert.ok(out.endsWith("\n"));
   }
 });
@@ -79,6 +85,6 @@ test("既存の note 原稿・リードマグネットのハッシュタグ行�
   for (const u of UNRELATED) assert.ok(!gen.includes(u), `generate_lead_magnet_note.mjs: ${u}`);
   const crawl = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
   for (const u of UNRELATED) assert.ok(!crawl.includes(u), `crawl_and_generate.mjs: ${u}`);
-  // 生成スクリプトは原稿の末尾のタグ行を、記事の対象から作ったタグ（noteHashtags）で置き換える（プロンプトにはタグを書かせない。leakhunt C3、2026-10-22）
-  assert.match(crawl, /applyNoteHashtags\([\s\S]*?, noteHashtags\(repo\)\)/);
+  // 生成スクリプトは原稿の末尾を、記事の対象（言語・トピック）から作った決まった形（renderNoteDraft → noteFooter）で書く（leakhunt #81、2026-10-22）
+  assert.match(crawl, /renderNoteDraft\(\{/);
 });
