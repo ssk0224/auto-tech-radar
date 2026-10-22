@@ -4,11 +4,16 @@
 import fs from "fs";
 
 const [, , , oursPath, theirsPath] = process.argv;
-const read = (p) => {
+// 読めない・壊れた入力を空（{}）として合わせると、片側の記録がすべて消える。失敗で終わり、git に衝突として止めさせる（結果は書かない）。
+// 共通の祖先（%O）だけは、両側で新しく作ったファイルのとき空なので {} として扱う
+const read = (p, { emptyOk = false } = {}) => {
+  const text = fs.readFileSync(p, "utf8");
+  if (emptyOk && !text.trim()) return {};
   try {
-    return JSON.parse(fs.readFileSync(p, "utf8"));
+    return JSON.parse(text);
   } catch (e) {
-    return null;
+    console.error(`${p} を JSON として読めないため、自動では合わせません（${e.message}）`);
+    process.exit(1);
   }
 };
 export function newerStatus(a, b) {

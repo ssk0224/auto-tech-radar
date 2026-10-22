@@ -6,11 +6,16 @@
 import fs from "fs";
 
 const [, , basePath, oursPath, theirsPath] = process.argv;
-const read = (p) => {
+// 読めない・壊れた入力を空（{}）として合わせると、片側の記録がすべて消える。失敗で終わり、git に衝突として止めさせる（結果は書かない）。
+// 共通の祖先（%O）だけは、両側で新しく作ったファイルのとき空なので {} として扱う
+const read = (p, { emptyOk = false } = {}) => {
+  const text = fs.readFileSync(p, "utf8");
+  if (emptyOk && !text.trim()) return {};
   try {
-    return JSON.parse(fs.readFileSync(p, "utf8"));
+    return JSON.parse(text);
   } catch (e) {
-    return {};
+    console.error(`${p} を JSON として読めないため、自動では合わせません（${e.message}）`);
+    process.exit(1);
   }
 };
 const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
@@ -31,5 +36,5 @@ export function mergeNoteUrls(base, ours, theirs) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith("merge_note_urls.mjs")) {
-  fs.writeFileSync(oursPath, JSON.stringify(mergeNoteUrls(read(basePath), read(oursPath), read(theirsPath)), null, 2) + "\n", "utf8");
+  fs.writeFileSync(oursPath, JSON.stringify(mergeNoteUrls(read(basePath, { emptyOk: true }), read(oursPath), read(theirsPath)), null, 2) + "\n", "utf8");
 }
