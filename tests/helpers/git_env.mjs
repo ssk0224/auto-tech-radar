@@ -14,6 +14,7 @@ export function isolateGitConfig() {
   fs.writeFileSync(empty, "");
   process.env.GIT_CONFIG_GLOBAL = empty;
   process.env.GIT_CONFIG_NOSYSTEM = "1";
+  process.env.GIT_CONFIG_SYSTEM = empty; // GIT_CONFIG_NOSYSTEM だけを消されても、system の設定（Git for Windows は core.autocrlf=true）を読まない
   process.env.ATR_GIT_ISOLATED = "1";
   process.on("exit", () => fs.rmSync(dir, { recursive: true, force: true }));
 }

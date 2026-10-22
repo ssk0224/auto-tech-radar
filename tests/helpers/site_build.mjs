@@ -30,7 +30,7 @@ export function prepareBuildRoot(prefix, extra) {
 const astroBin = () => path.join(repoRoot, "node_modules", "astro", JSON.parse(fs.readFileSync(path.join(repoRoot, "node_modules/astro/package.json"), "utf8")).bin.astro);
 
 export function astroBuild(cwd, outDir) {
-  return spawnSync(process.execPath, [astroBin(), "build", "--outDir", outDir], { cwd, encoding: "utf8", timeout: 240000, env: { ...process.env, ATR_SITE_BUILD_COPY: "1" } });
+  return spawnSync(process.execPath, [astroBin(), "build", "--outDir", outDir], { cwd, encoding: "utf8", timeout: 240000 });
 }
 
 // 一時ディレクトリを消す（Windows では直前まで使っていたファイルが少しの間つかまれていることがあるので、繰り返す）

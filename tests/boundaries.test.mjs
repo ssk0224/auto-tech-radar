@@ -10,6 +10,7 @@ import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/u
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
 import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
 import { fixMermaidInContent, mermaidProblems } from "../scripts/utils/mermaid.mjs";
+import { noPrivateKey } from "./helpers/skips.mjs";
 
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 const list = (dir, re) => fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(dir, f));
@@ -142,7 +143,7 @@ test("復号可能な環境では有料本文に禁止表現・根拠なき固�
     keys = loadPrivateKeys();
   } catch {}
   // 秘密鍵の無い環境（CI）では「合格」ではなく「未実施」と表示する（黙って通ったように見せない）
-  if (keys.length === 0) return t.skip("秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）");
+  if (keys.length === 0) return t.skip(noPrivateKey());
 
   const hits = [];
   for (const f of list("note_drafts", /_note\.md$/)) {

@@ -171,7 +171,10 @@ console.log(JSON.stringify(res));`
 
 test("skip: Windows の CI（ATR_FORBID_SKIP=1）は、許可していない理由の skip が 1 件でもあれば失敗にする（Chrome の探し方をどう書いても同じ）", () => {
   assert.equal(unexpectedSkips([{ skip: "Chrome が無い環境では未実施" }, { skip: "Chromium が無い環境" }, { skip: true }, { skip: "何かの理由" }]).length, 4);
-  assert.deepEqual(unexpectedSkips([{ skip: "秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）" }, { skip: "xvfb-run が無い環境では未実施" }]), []);
+  // 許可は理由の文言でなく、この実行の印（helpers/skips.mjs が、本当に無いと確かめてから付ける）で決める
+  assert.equal(unexpectedSkips([{ skip: "秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）" }, { skip: "xvfb-run が無い環境では未実施" }], "0123abcd").length, 2);
+  assert.deepEqual(unexpectedSkips([{ skip: "秘密鍵が無いため未実施 [atr-skip:0123abcd]" }], "0123abcd"), []);
+  assert.equal(unexpectedSkips([{ skip: "秘密鍵が無いため未実施 [atr-skip:ffff0000]" }], "0123abcd").length, 1, "別の実行の印は通さない");
   const reporter = pathToFileURL(path.join(testsDir, "helpers/skip_gate_reporter.mjs")).href;
   const run = (reason, forbid) => {
     const dir = fs.mkdtempSync(path.join(tmp, "skip-"));
@@ -185,7 +188,7 @@ test("skip: Windows の CI（ATR_FORBID_SKIP=1）は、許可していない理�
   const bad = run("Chrome が無い環境では未実施", true);
   assert.notEqual(bad.status, 0, "ATR_FORBID_SKIP=1 で Chrome 無しの skip を失敗にしていない");
   assert.match(bad.stdout, /許可していない理由で skip/);
-  assert.equal(run("秘密鍵が無いため未実施", true).status, 0, "許可した理由（秘密鍵が無い）は通る");
+  assert.notEqual(run("秘密鍵が無いため未実施", true).status, 0, "許可した理由の文言を書いただけの skip が通る（印のある理由は、下の「skip の理由」のテストで確かめる）");
 });
 
 // ---- 2 回目の敵対検証（2026-10-22）ですり抜けた書き方 ----
@@ -504,8 +507,10 @@ delete process.env.ATR_OWNER_DIR;
 const { ownerDir } = await import(${JSON.stringify(pathToFileURL(path.join(root, "scripts/utils/owner_dir.mjs")).href)});
 console.log(JSON.stringify({ ownerDir, home: os.homedir(), userInfoHome: os.userInfo().homedir }));`
   );
+  // このプロセスの環境はすでにテスト用のホームを指すので、対照は OS のアカウントの本物のホームで始める（子は表示するだけ）
+  const realHome = unguarded.userInfo.call(os).homedir;
   const env = cleanEnv({ fakeGitHome: false });
-  const control = runProbe(f, { withPreload: false, env });
+  const control = runProbe(f, { withPreload: false, env: { ...env, HOME: realHome, USERPROFILE: realHome } });
   assert.equal(control.status, 0, control.stderr);
   const c = JSON.parse(control.stdout);
   assert.equal(c.ownerDir, path.join(c.home, ".auto-tech-radar"), "対照: 仕組みなしなら本物のホームの下を見る");
@@ -552,4 +557,127 @@ test("作業ツリーの改行: Windows の CI の各回は、名乗った改行
   assert.equal(r.status, 0, r.stderr);
   const other = r.stdout.split("\0").filter(Boolean).filter((rec) => /^i\/lf\s/.test(rec) && !new RegExp(`\\sw/(${want}|none)\\s`).test(rec));
   assert.deepEqual(other.slice(0, 5), [], `作業ツリーが ${want} でない`);
+});
+
+// ---- 4 回目の敵対検証（2026-10-22）ですり抜けた書き方 ----
+// 隔離を関数（os.homedir・child_process）の差し替えだけで作ると、環境変数（HOME・USERPROFILE・LOCALAPPDATA）を直接読む・
+// 値を undefined にして渡す・シェルで消す、で外れる。プロセスの環境そのものを、テスト用のホームに向ける。
+test("owner のホーム（環境変数）: HOME・USERPROFILE・LOCALAPPDATA・APPDATA を直接読んでも、git の隔離を undefined・シェルで外しても、本物のホームに届かない", () => {
+  const ownerHome = fakeHome; // owner PC を再現したホーム（.gitconfig に autocrlf=true）
+  const f = probeFile(
+    "home_env_probe.mjs",
+    `import { spawnSync } from "node:child_process"; import fs from "fs"; import os from "os"; import path from "path";
+const ownerHome = process.argv[2];
+const key = (p) => path.resolve(p).toLowerCase();
+const under = (p) => Boolean(p) && (key(p) + path.sep).startsWith(key(ownerHome) + path.sep);
+const out = { env: ["HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "XDG_CONFIG_HOME"].filter((k) => under(process.env[k])) };
+const d = fs.mkdtempSync(path.join(os.tmpdir(), "homeenv-"));
+spawnSync("git", ["init", "-q", d]);
+const get = ["-C", d, "config", "--get", "core.autocrlf"];
+out.undef = spawnSync("git", get, { env: { ...process.env, GIT_CONFIG_GLOBAL: undefined, GIT_CONFIG_NOSYSTEM: undefined, GIT_CONFIG_SYSTEM: undefined }, encoding: "utf8" }).stdout.trim();
+const unset = process.platform === "win32" ? 'set "GIT_CONFIG_GLOBAL=" && git ' : "unset GIT_CONFIG_GLOBAL; git ";
+out.shell = spawnSync(unset + get.map((a) => JSON.stringify(a)).join(" "), { shell: true, encoding: "utf8" }).stdout.trim();
+out.rebuilt = spawnSync("git", get, { env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, GIT_CONFIG_NOSYSTEM: "1", HOME: process.env.USERPROFILE || process.env.HOME }, encoding: "utf8" }).stdout.trim();
+console.log(JSON.stringify(out));`
+  );
+  const env = { ...cleanEnv(), LOCALAPPDATA: path.join(ownerHome, "AppData", "Local"), APPDATA: path.join(ownerHome, "AppData", "Roaming") };
+  // 対照: 仕組みなしなら、環境変数がそのまま owner のホームを指し、git は owner の .gitconfig を読む
+  const control = runProbe(f, { withPreload: false, env, args: [ownerHome] });
+  assert.equal(control.status, 0, control.stderr);
+  const c = JSON.parse(control.stdout);
+  assert.deepEqual(c.env, ["HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "XDG_CONFIG_HOME"]);
+  assert.equal(c.rebuilt, "true", "対照: 仕組みなしなら、USERPROFILE から組み立てた HOME で owner の .gitconfig が見える");
+  const guarded = runProbe(f, { withPreload: true, env, args: [ownerHome] });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  assert.deepEqual(JSON.parse(guarded.stdout), { env: [], undef: "", shell: "", rebuilt: "" }, "test_env.mjs の下で、環境変数・git の既定の置き場所から owner のホームに届く");
+});
+
+test("astro: テストのプロセスの中で ATR_TEST_RUN を消してから読み込んでも、リポ本体の astro 設定は拒否される", () => {
+  const f = probeFile(
+    "astro_inproc_probe.mjs",
+    `delete process.env.ATR_TEST_RUN;
+import(${JSON.stringify(astroCfgUrl)}).then(() => console.log("LOADED"), (e) => console.log(/site_build/.test(e.message) ? "BLOCKED" : "ERR " + e.message));`
+  );
+  const guarded = runProbe(f, { withPreload: true, cwd: root });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  assert.equal(guarded.stdout.trim(), "BLOCKED");
+  // ビルド用コピーの印（ATR_SITE_BUILD_COPY=1）を自分で立てても、リポ本体（git の作業ツリー）の設定は拒否される
+  const forged = runProbe(f, { withPreload: true, cwd: root, env: { ...cleanEnv(), ATR_SITE_BUILD_COPY: "1" } });
+  assert.equal(forged.status, 0, forged.stderr);
+  assert.equal(forged.stdout.trim(), "BLOCKED", "ATR_SITE_BUILD_COPY=1 を立てるだけで、リポ本体の astro 設定が読み込める");
+});
+
+test("空振り（ファイル全体）: テストを登録する前・走らせ終える前にプロセスを終えたファイルは、緑にしない", () => {
+  for (const exit of ["process.exit(0);", "process.reallyExit(0);"]) {
+    const body = `${exit}\ntest("Windows では走らない", () => { assert.equal(1, 2); });`;
+    assert.equal(runTestFile(body, { withPreload: false }).status, 0, `対照: 仕組みなしなら ${exit} のファイルは緑`);
+    const r = runTestFile(body);
+    assert.notEqual(r.status, 0, `${exit} でテストを走らせずに終えたファイルが緑のまま`);
+    assert.match(r.stderr + r.stdout, /走らせ終える前に/);
+  }
+  const midway = runTestFile(`test("一つ目", () => { assert.ok(true); });\ntest("二つ目", () => { process.exit(0); });\ntest("三つ目", () => { assert.equal(1, 2); });`);
+  assert.notEqual(midway.status, 0, "テストの途中で process.exit(0) したファイルが緑のまま");
+  const none = runTestFile(`if (process.env.ATR_NO_SUCH_ENV) test("条件つき", () => { assert.ok(true); });`);
+  assert.notEqual(none.status, 0, "テストが一つも登録されなかったファイルが緑のまま");
+  assert.match(none.stdout + none.stderr, /一つも登録されなかった/);
+});
+
+test("空振り（並行）: 並行に走るテストでも、アサーションを実行しなかったテストを、隣のテストのアサーションで緑にしない", () => {
+  const body = `test.describe("並行", { concurrency: true }, () => {
+  test("検証する", async () => { await new Promise((r) => setTimeout(r, 50)); assert.ok(true); await new Promise((r) => setTimeout(r, 300)); });
+  test("何もしない", async () => { await new Promise((r) => setTimeout(r, 200)); });
+});`;
+  const r = runTestFile(body);
+  assert.notEqual(r.status, 0, "並行のテストで、空振りのテストが隣のアサーションで緑になる");
+  assert.match(r.stdout, /アサーションを一つも実行していない/);
+  const fine = `test.describe("並行", { concurrency: true }, () => {
+  test("a", async () => { await new Promise((r) => setTimeout(r, 30)); assert.ok(true); });
+  test("a", async () => { assert.ok(true); await new Promise((r) => setTimeout(r, 10)); });
+});
+test("t.assert だけ", (t) => { t.assert.strictEqual(1 + 1, 2); });
+test("コールバックの中", async () => { await new Promise((ok) => setTimeout(() => { assert.ok(true); ok(); }, 10)); });`;
+  const ok = runTestFile(fine);
+  assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+});
+
+test("skip の理由: 許可した理由の文言を書いただけの skip は、Windows の CI で通らない（理由は、実際に無いことを確かめた helpers/skips.mjs だけが出す）", () => {
+  const skips = JSON.stringify(pathToFileURL(path.join(testsDir, "helpers/skips.mjs")).href);
+  const forged = runTestFile(`test("Chrome の確認", { skip: "Chrome 未検出（秘密鍵が無い環境と同じ扱い）" }, () => { assert.equal(1, 2); });`, { forbid: true });
+  assert.notEqual(forged.status, 0, "許可した理由の文言を含むだけの skip が ATR_FORBID_SKIP=1 で通る");
+  assert.match(forged.stdout, /許可していない理由で skip/);
+  const real = runTestFile(`const { noPrivateKey } = await import(${skips});\ntest("有料本文", (t) => { t.skip(noPrivateKey()); });`, { forbid: true });
+  assert.equal(real.status, 0, "鍵が実際に無いことを確かめた skip が通らない: " + real.stdout + real.stderr);
+});
+
+test("リポの状態: テストが作業ツリーの外（.git/config・ブランチ・タグ・hooks）を書き換えたら、npm test を失敗にする", () => {
+  const reporter = pathToFileURL(path.join(testsDir, "helpers/skip_gate_reporter.mjs")).href;
+  const run = (body) => {
+    const repo = fs.mkdtempSync(path.join(tmp, "repo-"));
+    const git = (...a) => spawnSync("git", ["-C", repo, ...a], { encoding: "utf8" });
+    git("init", "-q");
+    git("-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "--allow-empty", "-m", "init");
+    fs.writeFileSync(path.join(repo, ".git", "info", "exclude"), "*.test.mjs\n");
+    fs.writeFileSync(path.join(repo, "w.test.mjs"), `import test from "node:test"; import fs from "fs"; import { spawnSync } from "node:child_process";\n${body}\ntest("t", () => {});\n`);
+    return spawnRaw(process.execPath, ["--test", "--test-reporter", reporter, "w.test.mjs"], { cwd: repo, env: cleanEnv({ fakeGitHome: false }), encoding: "utf8", timeout: 60000 });
+  };
+  assert.equal(run("").status, 0, "何も書き換えないテストは通る");
+  for (const [body, what] of [
+    [`spawnSync("git", ["config", "--local", "atr.injected", "yes"]);`, /\.git\/config/],
+    [`spawnSync("git", ["tag", "atr-injected"]);`, /refs/],
+    [`spawnSync("git", ["branch", "atr-injected"]);`, /ブランチの一覧/],
+    [`fs.writeFileSync(".git/hooks/pre-commit", "#!/bin/sh\\n");`, /\.git\/hooks\/pre-commit/],
+  ]) {
+    const r = run(body);
+    assert.notEqual(r.status, 0, `作業ツリーの外のリポの状態を書き換えたのに失敗にならない: ${body}`);
+    assert.match(r.stdout, what);
+  }
+});
+
+test("一時ディレクトリ（実行全体で共有）: os.tmpdir() の親（npm test 全体の一時ディレクトリ）に書いたら、消しても失敗にする（並列のテストファイルが同じ場所を取り合う）", () => {
+  const body = `import fs from "fs"; import os from "os"; import path from "path";
+test("隣の一時ディレクトリ", () => { const d = path.join(os.tmpdir(), "..", "atr-shared"); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "x"), "1"); fs.rmSync(d, { recursive: true, force: true }); assert.ok(true); });`;
+  assert.equal(runTestFile(body, { withPreload: false }).status, 0, "対照: 仕組みなしなら緑");
+  const r = runTestFile(body);
+  assert.notEqual(r.status, 0, "テストファイルのプロセスの外（実行全体の一時ディレクトリ）に書いたのに緑");
+  assert.match(r.stdout + r.stderr, /atr-shared/);
 });

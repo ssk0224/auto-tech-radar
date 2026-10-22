@@ -10,6 +10,7 @@ import { PAID_HEAD_HTML, RICH_MD } from "./fixtures/note_mock.mjs";
 import { applyNoteRules, hasNoteTextIssue, noteHtmlText } from "../scripts/utils/note_pending.mjs";
 import { mdToNoteHtml } from "../scripts/utils/note_html.mjs";
 import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
+import { noXvfb } from "./helpers/skips.mjs";
 
 const skip = !chrome && "Chrome が無い環境では未実施";
 
@@ -145,7 +146,7 @@ test("[E] の実行記録に入る値（steps・失敗の理由）に、本文�
 // 専用プロファイルの Chrome の窓（[U] などで開いた note の画面）が開いたままだと、自動操作の Chrome はそのプロファイルで起動できない。
 // 画面のある Chrome が要る（画面なしの Chrome はプロファイルを占有しない）ので、仮想ディスプレイ（xvfb-run）がある環境だけで確かめる
 const xvfb = ["/usr/bin/xvfb-run"].find((p) => fs.existsSync(p));
-test("note 用の Chrome の窓が開いたままなら、閉じるよう案内して待ち、閉じたら続ける（「Chrome をインストール」と誤って案内しない）", { skip: skip || (!xvfb && "xvfb-run が無い環境では未実施") }, () => {
+test("note 用の Chrome の窓が開いたままなら、閉じるよう案内して待ち、閉じたら続ける（「Chrome をインストール」と誤って案内しない）", { skip: skip || (!xvfb && noXvfb()) }, () => {
   const urls = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "atr-nbs-"));
   const driver = path.join(home, "driver.mjs");
