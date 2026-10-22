@@ -15,6 +15,7 @@ import { dependencyProblems } from './utils/deps.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
+import { jstDate } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -296,23 +297,19 @@ function loadMaintainLog() {
   }
 }
 
+// 記事の URL は scripts/note_urls.json（CI が note の公開一覧から作る）だけを正とする。
+// ここに URL を書き足すと、note 側で削除・非公開にした記事（404）を指したまま残る。URL が無い記事は記事一覧を開く
 function loadNoteUrls() {
-  const knownNoiseUrls = {
-    'crates-io-index': { url: 'https://note.com/vast_ixora7005/n/na4995221c9ec', price: 980 },
-    'homebrew-core': { url: 'https://note.com/vast_ixora7005/n/n78b928e2598d', price: 980 },
-    'internships-2027': { url: 'https://note.com/vast_ixora7005/n/n8b1178d06273', price: 980 },
-    'mediawiki': { url: 'https://note.com/dashboard/contents', price: 980 },
-  };
   try {
-    return { ...knownNoiseUrls, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8')) };
+    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'));
   } catch (e) {
-    return knownNoiseUrls;
+    return {};
   }
 }
 
 function recordNoteUpdated(slug, deduped) {
   const history = loadHistory();
-  const today = new Date().toISOString().split('T')[0];
+  const today = jstDate();
   // 時刻まで残す（CI の確認時刻と比べて、押し忘れで直っていない記事を再び一覧に出すため）
   history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString(), ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
@@ -1038,7 +1035,7 @@ function runCloudSync() {
     console.log('\n2. 変更ファイルをステージング (git add)...');
     execSync('git add .', { cwd: rootDir, stdio: 'inherit' });
     console.log('\n3. コミットを作成中...');
-    const today = new Date().toISOString().split('T')[0];
+    const today = jstDate();
     try {
       execSync(`git commit -m "feat(radar): auto-sync intelligence, drafts, and assets (${today})"`, { cwd: rootDir, stdio: 'inherit' });
     } catch (e) {
