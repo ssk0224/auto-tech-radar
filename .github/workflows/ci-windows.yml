@@ -21,6 +21,12 @@ jobs:
   test-windows:
     runs-on: windows-latest
     timeout-minutes: 40
+    # 作業ツリーの改行を 2 通り回す。lf: owner PC の実際の状態（.gitattributes の eol=lf で checkout は LF。os.EOL で split するコードはここで落ちる）。
+    # crlf: エディタの保存・古い checkout で CRLF になったファイル（\n だけを前提に読むコードはここで落ちる）
+    strategy:
+      fail-fast: false
+      matrix:
+        eol: [lf, crlf]
     steps:
       # owner PC と同じ git 設定にしてから checkout する（この設定は checkout より前でないと効かない）
       - name: Match the owner PC git settings
@@ -38,15 +44,19 @@ jobs:
           Set-Culture ja-JP
           tzutil /s "Tokyo Standard Time"
       - run: npm ci
-      # リポは .gitattributes で LF に固定されているが、owner PC の作業ツリーには CRLF のファイル（古い checkout・エディタの保存）が残る。
-      # 同じ状態（追跡しているテキストを全部 CRLF）にして、改行に依存するコードを見つける
-      - name: Make the working tree CRLF like the owner PC
-        run: node tests/helpers/worktree_eol.mjs crlf
+      # 追跡しているテキストを全部 matrix.eol にそろえる（どちらで走ったかは、テストの中で実際の作業ツリーで確かめる。ATR_WORKTREE_EOL）
+      - name: Align the working tree line endings
+        run: node tests/helpers/worktree_eol.mjs ${{ matrix.eol }}
       # 鍵が無いので有料本文の検査（復号）は skip になる。Chrome が見つからないことなど、許可していない理由の skip は失敗にする（緑のまま何も検証しない事故を防ぐ。tests/helpers/skip_gate_reporter.mjs）
+      # runner は管理者で、権限の要る symlink を作れる（owner PC は作れない）。同じシェルの中でその権限を外してから npm test を起動する（子孫はこのトークンを受け継ぐ）
       - name: Run all tests
+        shell: pwsh
         env:
           ATR_REQUIRE_CHROME: "1"
           ATR_FORBID_SKIP: "1"
           ATR_OWNER_MIRROR: "1"
+          ATR_WORKTREE_EOL: ${{ matrix.eol }}
           TZ: Asia/Tokyo
-        run: npm test
+        run: |
+          . ./tests/helpers/drop_symlink_privilege.ps1
+          npm test

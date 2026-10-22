@@ -1,5 +1,6 @@
 {
   "node": 24,
   "locale": "ja-JP",
-  "timeZone": "Asia/Tokyo"
+  "timeZone": "Asia/Tokyo",
+  "canCreateSymlink": false
 }

@@ -1,4 +1,5 @@
-// `npm test` の報告係。表示は標準の spec と同じ。ATR_FORBID_SKIP=1（Windows の CI）のときだけ、許可していない理由の skip を 1 件でも見つけたら失敗にする。
+// `npm test` の報告係。表示は標準の spec と同じ。ATR_FORBID_SKIP=1（Windows の CI）のときだけ、許可していない理由の skip・todo を 1 件でも見つけたら失敗にする。
+// todo の本体が失敗したときは、どの環境でも失敗にする。
 // 「Chrome・Chromium・実行ファイルが見つからないので skip」は、環境に依存する書き方（固定のパス・自前の探し方）をどう書いても同じ形で現れる。
 // 書き方を文字列で探すのでなく、結果（緑のまま何も検証しなかったテスト）で止める。
 // もう一つ、常に（どの環境でも）: テストの実行中にリポの作業ツリーへ新しく現れた変更・ファイルがあれば失敗にする。
@@ -29,10 +30,14 @@ export const unexpectedSkips = (skipped) => skipped.filter((s) => !ALLOWED_SKIP_
 
 export default async function* skipGateReporter(source) {
   const skipped = [];
+  const todoFailed = [];
   const tapped = Readable.from(
     (async function* () {
       for await (const ev of source) {
+        // todo は skip と同じく「緑のまま検証しない」書き方（本体が失敗しても全体は通る）。理由の検査は skip と同じ
         if (ev.type === "test:pass" && ev.data.skip) skipped.push({ file: ev.data.file, name: ev.data.name, skip: ev.data.skip });
+        if ((ev.type === "test:pass" || ev.type === "test:fail") && ev.data.todo) skipped.push({ file: ev.data.file, name: ev.data.name, skip: ev.data.todo });
+        if (ev.type === "test:fail" && ev.data.todo) todoFailed.push({ file: ev.data.file, name: ev.data.name });
         yield ev;
       }
     })(),
@@ -45,10 +50,16 @@ export default async function* skipGateReporter(source) {
     yield "\nテストの実行中に、リポの作業ツリーに新しい変更・ファイルが現れた（テストはリポの中に書かない。os.tmpdir() を使う。実行中に自分で編集したなら走らせ直す）:\n";
     for (const e of written) yield `  - ${e}\n`;
   }
+  // todo の本体の失敗は、どの環境でも失敗にする（node:test は todo の失敗を全体の合否に数えない）
+  if (todoFailed.length) {
+    process.exitCode = 1;
+    yield "\ntodo にしたテストの本体が失敗している（todo は失敗を隠す。環境が無くて実行できないなら skip(理由)、直すべきなら直す）:\n";
+    for (const s of todoFailed) yield `  - ${s.name} (${String(s.file).split(/[\\/]/).pop()})\n`;
+  }
   if (process.env.ATR_FORBID_SKIP !== "1") return;
   const bad = unexpectedSkips(skipped);
   if (bad.length === 0) return;
   process.exitCode = 1;
-  yield "\n許可していない理由で skip されたテストがある（緑のまま何も検証していない）:\n";
+  yield "\n許可していない理由で skip・todo にされたテストがある（緑のまま何も検証していない）:\n";
   for (const s of bad) yield `  - ${s.name} (${String(s.file).split(/[\\/]/).pop()}): ${s.skip === true ? "(理由なし)" : s.skip}\n`;
 }

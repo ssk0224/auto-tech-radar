@@ -4,8 +4,8 @@
 //   1. 全テストプロセスの先頭で読み込む tests/helpers/test_env.mjs・astro.config.mjs の拒否・tests/helpers/skip_gate_reporter.mjs（Linux の CI でも動く）:
 //      git の global 設定を外す・junction 以外の symlink を拒否・テストからのリポ本体の astro build を拒否・許可していない理由の skip を失敗にする。
 //      この検査は、それぞれを別々の書き方で実際に試して、拒否される／無害になることを確かめる。
-//   2. .github/workflows/ci-windows.yml: 実際に Windows・CRLF の作業ツリーで全テストを走らせる（書き方では見つけられない種類を止める）。
-//      その手順（autocrlf を checkout の前に設定・全ファイルを CRLF にする・Chrome が無ければ失敗・許可外の skip は失敗）が崩れていないかもここで確かめる。
+//   2. .github/workflows/ci-windows.yml: 実際に Windows で、作業ツリーが LF（owner PC の実際の状態）と CRLF の両方で全テストを走らせる（書き方では見つけられない種類を止める）。
+//      その手順（autocrlf を checkout の前に設定・改行の行列・symlink の権限を外す・Chrome が無ければ失敗・許可外の skip / todo は失敗）が崩れていないかもここで確かめる。
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
@@ -49,7 +49,7 @@ fs.writeFileSync(path.join(fakeHome, ".gitconfig"), "[core]\n\tautocrlf = true\n
 const cleanEnv = ({ fakeGitHome = true } = {}) => {
   const env = { ...process.env, TMPDIR: tmp, TMP: tmp, TEMP: tmp };
   if (fakeGitHome) Object.assign(env, { HOME: fakeHome, USERPROFILE: fakeHome, XDG_CONFIG_HOME: path.join(fakeHome, "xdg") });
-  for (const k of ["GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "ATR_GIT_ISOLATED", "ATR_TEST_RUN", "ATR_SITE_BUILD_COPY", "ATR_FORBID_SKIP", "NODE_TEST_CONTEXT"]) delete env[k];
+  for (const k of ["GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "ATR_GIT_ISOLATED", "ATR_TEST_RUN", "ATR_SITE_BUILD_COPY", "ATR_FORBID_SKIP", "NODE_TEST_CONTEXT", "NODE_OPTIONS", "ATR_FAKE_HOME", "ATR_OWNER_DIR", "NOTE_VAULT_PRIVATE_KEY_FILE"]) delete env[k];
   return env;
 };
 const probeFile = (name, body) => {
@@ -58,11 +58,12 @@ const probeFile = (name, body) => {
   return f;
 };
 const runProbe = (file, { withPreload, cwd = tmp, env = cleanEnv(), args = [] }) =>
-  spawnRaw(process.execPath, [...(withPreload ? ["--import", pathToFileURL(preload).href] : []), file, ...args], { cwd, env, encoding: "utf8", timeout: 180000 });
+  spawnRaw(process.execPath, [...(withPreload ? ["--require", preload] : []), file, ...args], { cwd, env, encoding: "utf8", timeout: 180000 });
 
 test("npm test は全テストプロセスで helpers/test_env.mjs を先に読み込み、skip を検査する報告係を使う", () => {
   const script = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).scripts.test;
-  assert.match(script, /--import\s+\.?\/?tests\/helpers\/test_env\.mjs/, "package.json の test に `--import ./tests/helpers/test_env.mjs` が必要");
+  // --import でなく --require: --import は、CommonJS の eval で起動した worker_threads の Worker では読み込まれない（--require はどの Worker でも読み込まれる）
+  assert.match(script, /--require\s+\.?\/?tests\/helpers\/test_env\.mjs/, "package.json の test に `--require ./tests/helpers/test_env.mjs` が必要");
   assert.match(script, /--test-reporter[= ]\.?\/?tests\/helpers\/skip_gate_reporter\.mjs/, "package.json の test に skip_gate_reporter が必要");
   assert.match(script, /tests\/\*\.test\.mjs/, "tests/*.test.mjs を全部走らせる");
   // npm test から走っているとき、この検査自身がその仕組みの下にあること（直接 node --test したときは確かめない）
@@ -312,11 +313,27 @@ test("サイトのビルド用コピーは、ビルド中に書かれる node_mo
 // owner PC の Node・ロケール・時間帯（tests/helpers/owner_host.json）。Windows の CI はこれに合わせて走る。
 // owner PC（CI でない）と、合わせているはずの Windows の CI（ATR_OWNER_MIRROR=1）では、実際の値がこれと一致することを確かめる（合わせ損ねたら赤になる）
 const ownerHost = JSON.parse(fs.readFileSync(path.join(testsDir, "helpers/owner_host.json"), "utf8"));
-test("owner PC の Node・ロケール・時間帯を宣言し、owner PC と Windows の CI の実際の値がそれと一致する", () => {
+// 権限の要る symlink（junction でないもの）を、このプロセスが実際に作れるか。test_env.mjs の拒否を通さない元の関数で試す
+const canCreateSymlink = () => {
+  const d = fs.mkdtempSync(path.join(tmp, "symcap-"));
+  fs.mkdirSync(path.join(d, "t"));
+  try {
+    unguarded.symlinkSync(path.join(d, "t"), path.join(d, "l"), "dir");
+    return true;
+  } catch (e) {
+    if (e.code === "EPERM") return false;
+    throw e;
+  } finally {
+    fs.rmSync(d, { recursive: true, force: true });
+  }
+};
+test("owner PC の Node・ロケール・時間帯・symlink の権限を宣言し、owner PC と Windows の CI の実際の値がそれと一致する", () => {
   assert.ok(Number.isInteger(ownerHost.node) && ownerHost.locale && ownerHost.timeZone, "owner_host.json に node（メジャー）・locale・timeZone が必要");
+  assert.equal(typeof ownerHost.canCreateSymlink, "boolean", "owner_host.json に canCreateSymlink（権限の要る symlink を作れるか）が必要");
   if (process.env.CI && process.env.ATR_OWNER_MIRROR !== "1") return; // Linux の CI（本番と同じ環境）は owner PC に合わせない
-  const actual = { node: Number(process.versions.node.split(".")[0]), locale: Intl.DateTimeFormat().resolvedOptions().locale, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
-  assert.deepEqual(actual, { node: ownerHost.node, locale: ownerHost.locale, timeZone: ownerHost.timeZone }, "この環境は owner PC の宣言（tests/helpers/owner_host.json）と違う。owner PC が変わったなら宣言と ci-windows.yml を直す");
+  const actual = { node: Number(process.versions.node.split(".")[0]), locale: Intl.DateTimeFormat().resolvedOptions().locale, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, canCreateSymlink: canCreateSymlink() };
+  // Windows の CI は管理者で動き、symlink を作れる（owner PC は作れない）。ci-windows.yml がテストの前にその権限を外す。外せたかをここで実際に確かめる
+  assert.deepEqual(actual, { node: ownerHost.node, locale: ownerHost.locale, timeZone: ownerHost.timeZone, canCreateSymlink: ownerHost.canCreateSymlink }, "この環境は owner PC の宣言（tests/helpers/owner_host.json）と違う。owner PC が変わったなら宣言と ci-windows.yml を直す");
 });
 
 test("HANDOFF.md にテストの件数・合否の数字を手で書かない（書いた時点の数字は古くなり、Windows で落ちているのに「通る」と読める）", () => {
@@ -340,11 +357,18 @@ test("Windows の CI（ci-windows.yml）は、owner PC と同じ条件で全テ�
   const idx = (re) => steps.findIndex((s) => re.test(`${s.run || ""} ${s.uses || ""}`));
   const autocrlf = idx(/core\.autocrlf true/);
   const checkout = idx(/actions\/checkout/);
-  const crlf = idx(/worktree_eol\.mjs crlf/);
+  const eol = idx(/worktree_eol\.mjs \$\{\{ *matrix\.eol *\}\}/);
   const tests = idx(/npm test/);
-  for (const [name, i] of Object.entries({ autocrlf, checkout, crlf, tests })) assert.ok(i >= 0, `${name} の手順がありません`);
+  for (const [name, i] of Object.entries({ autocrlf, checkout, eol, tests })) assert.ok(i >= 0, `${name} の手順がありません`);
   assert.ok(autocrlf < checkout, "core.autocrlf=true は checkout より前に設定する（owner PC と同じ条件で作業ツリーを作る）");
-  assert.ok(checkout < crlf && crlf < tests, "checkout → 作業ツリーを CRLF にする → テスト、の順");
+  assert.ok(checkout < eol && eol < tests, "checkout → 作業ツリーの改行をそろえる → テスト、の順");
+  // owner PC の作業ツリーは LF（.gitattributes の eol=lf）。CRLF だけで回すと「Windows で LF のファイル」（owner PC の実際の状態）がどこでも走らない。両方を回す
+  assert.deepEqual([...(job.strategy?.matrix?.eol ?? [])].sort(), ["crlf", "lf"], "作業ツリーの改行 lf と crlf の両方で走らせる（strategy.matrix.eol）");
+  assert.equal(job.strategy?.["fail-fast"], false, "片方が落ちても、もう片方の結果も見る");
+  assert.match(String(steps[tests].env?.ATR_WORKTREE_EOL), /\$\{\{ *matrix\.eol *\}\}/, "各回が名乗った改行で走っていることをテストの中で確かめる");
+  // Windows の CI は管理者で動き、権限の要る symlink を作れる（owner PC は作れない）。テストと同じプロセスの中で、その権限を外してから npm test する
+  assert.match(steps[tests].run, /drop_symlink_privilege\.ps1[\s\S]*npm test/, "テストの前に、同じシェルの中で symlink の権限を外す");
+  assert.equal(steps[tests].shell, "pwsh");
   assert.equal(steps[tests].env?.ATR_REQUIRE_CHROME, "1", "Chrome が見つからないときに skip で緑にしない");
   assert.equal(steps[tests].env?.ATR_FORBID_SKIP, "1", "許可していない理由の skip（環境依存で何も検証しない）を失敗にする");
   // owner PC と同じ Node・ロケール・時間帯（owner_host.json）。合わせたことはテストの中で実際の値で確かめる（ATR_OWNER_MIRROR=1）
@@ -362,4 +386,170 @@ test("Windows の CI（ci-windows.yml）は、owner PC と同じ条件で全テ�
   }
   assert.ok(Number(job["timeout-minutes"]) > 0, "timeout-minutes が必要");
   assert.doesNotMatch(text, /secrets\./, "Windows の CI は秘密情報を使わない（有料本文の復号をしない）");
+});
+
+// ---- 3 回目の敵対検証（2026-10-22）ですり抜けた書き方 ----
+// worker_threads の Worker に env を渡す・テストが起動した素の node（孫）が env を一から作る・skip の代わりに todo・skip せずに return・
+// owner のホーム（~/.auto-tech-radar）を見る・OS のコマンドで権限の要る symlink を一時ディレクトリの外に作る・owner PC の LF の作業ツリー。
+const astroCfgUrl = pathToFileURL(path.join(root, "astro.config.mjs")).href;
+// 実体のパス（もう消えた部分は、残っている親を実体に解決してつなぐ。プロセスの終了で一時ディレクトリは消える）
+const real = (p) => {
+  try {
+    return fs.realpathSync.native(p);
+  } catch {
+    const parent = path.dirname(p);
+    return parent === p ? p : path.join(real(parent), path.basename(p));
+  }
+};
+const under = (dir, p) => {
+  const rel = path.relative(real(dir), real(p));
+  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+};
+
+test("worker_threads: env・execArgv を指定した Worker（CommonJS の eval を含む）でも、git の隔離・astro の拒否・一時ディレクトリが外れない", () => {
+  const f = probeFile(
+    "worker_probe.mjs",
+    `import { Worker } from "node:worker_threads";
+const code = \`const cp = require("child_process"), fs = require("fs"), os = require("os"), path = require("path"), { parentPort } = require("worker_threads");
+const env = { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+const d = fs.mkdtempSync(path.join(os.tmpdir(), "atr-wk-"));
+cp.spawnSync("git", ["init", "-q", d], { env });
+const auto = cp.spawnSync("git", ["-C", d, "config", "--get", "core.autocrlf"], { encoding: "utf8", env }).stdout.trim();
+import(${JSON.stringify(astroCfgUrl)}).then(() => "LOADED", (e) => (/site_build/.test(e.message) ? "BLOCKED" : "ERR " + e.message)).then((astro) => parentPort.postMessage({ auto, astro, tmp: os.tmpdir() }));\`;
+const bare = { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+const run = (opts) => new Promise((ok, ng) => { const w = new Worker(code, { eval: true, ...opts }); w.once("message", ok); w.once("error", ng); });
+console.log(JSON.stringify({ explicitEnv: await run({ env: bare }), emptyExecArgv: await run({ env: bare, execArgv: [] }) }));`
+  );
+  const shape = (r) => Object.fromEntries(Object.entries(JSON.parse(r.stdout)).map(([k, v]) => [k, { auto: v.auto, astro: v.astro, testTmp: under(tmp, v.tmp) }]));
+  const control = runProbe(f, { withPreload: false, cwd: root });
+  assert.equal(control.status, 0, control.stderr);
+  const off = { auto: "true", astro: "LOADED", testTmp: false };
+  assert.deepEqual(shape(control), { explicitEnv: off, emptyExecArgv: off }, "対照: 仕組みなしの Worker では、マシンの git 設定・リポ本体の astro 設定・共有の一時ディレクトリが見える");
+  const guarded = runProbe(f, { withPreload: true, cwd: root });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  const on = { auto: "", astro: "BLOCKED", testTmp: true };
+  assert.deepEqual(shape(guarded), { explicitEnv: on, emptyExecArgv: on }, "Worker の中で test_env.mjs の隔離・拒否が外れる");
+});
+
+test("孫プロセス: テストが起動した素の node が env を一から作って git・node を起動しても、隔離・拒否が外れない", () => {
+  const child = `const cp = require("child_process"), fs = require("fs"), os = require("os"), path = require("path");
+const env = { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+const d = fs.mkdtempSync(path.join(os.tmpdir(), "atr-gc-"));
+cp.spawnSync("git", ["init", "-q", d], { env });
+const auto = cp.spawnSync("git", ["-C", d, "config", "--get", "core.autocrlf"], { encoding: "utf8", env }).stdout.trim();
+const load = "import(" + JSON.stringify(${JSON.stringify(astroCfgUrl)}) + ").then(() => console.log('LOADED'), (e) => console.log(/site_build/.test(e.message) ? 'BLOCKED' : 'ERR ' + e.message))";
+const astro = cp.spawnSync(process.execPath, ["--input-type=module", "-e", load], { encoding: "utf8", env }).stdout.trim();
+console.log(JSON.stringify({ auto, astro }));`;
+  const f = probeFile(
+    "grandchild_probe.mjs",
+    `import { spawnSync } from "node:child_process";
+// --import / --require なしの素の node（本番のスクリプトをテストから起動する形）。env は受け継ぐ
+const r = spawnSync(process.execPath, ["-e", ${JSON.stringify(child)}], { encoding: "utf8" });
+process.stdout.write(r.stdout); process.stderr.write(r.stderr);`
+  );
+  const control = runProbe(f, { withPreload: false, cwd: root });
+  assert.equal(control.status, 0, control.stderr);
+  assert.deepEqual(JSON.parse(control.stdout), { auto: "true", astro: "LOADED" }, "対照: 仕組みなしなら孫からマシンの git 設定・リポ本体の astro 設定が見える");
+  const guarded = runProbe(f, { withPreload: true, cwd: root });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  assert.deepEqual(JSON.parse(guarded.stdout), { auto: "", astro: "BLOCKED" }, "孫プロセスで test_env.mjs の隔離・拒否が外れる");
+});
+
+// テストファイルを、npm test と同じ形（preload・報告係）で一時ディレクトリの中で走らせる
+const runTestFile = (body, { forbid = false, withPreload = true } = {}) => {
+  const dir = fs.mkdtempSync(path.join(tmp, "tf-"));
+  fs.writeFileSync(path.join(dir, "x.test.mjs"), `import test from "node:test";\nimport assert from "node:assert/strict";\n${body}\n`);
+  const env = cleanEnv({ fakeGitHome: false });
+  if (forbid) env.ATR_FORBID_SKIP = "1";
+  const reporter = path.join(testsDir, "helpers/skip_gate_reporter.mjs");
+  return spawnRaw(process.execPath, [...(withPreload ? ["--require", preload] : []), "--test", "--test-reporter", pathToFileURL(reporter).href, "x.test.mjs"], { cwd: dir, env, encoding: "utf8", timeout: 60000 });
+};
+
+test("todo: 環境で実行できないテストを skip でなく todo にしても、失敗を隠さない（本体の失敗は常に・todo そのものは Windows の CI で失敗にする）", () => {
+  const failing = `test("Chrome の確認", { todo: "Chrome が見つからない環境" }, () => { assert.ok(false, "Chrome が無い"); });`;
+  const r1 = runTestFile(failing);
+  assert.notEqual(r1.status, 0, "todo にした本体の失敗が隠れて緑になる");
+  assert.match(r1.stdout, /todo/);
+  const passing = `test("Chrome の確認", { todo: "Chrome が見つからない環境" }, () => { assert.ok(true); });`;
+  assert.equal(runTestFile(passing).status, 0, "ふだんは、本体が通る todo では失敗にしない");
+  const r2 = runTestFile(passing, { forbid: true });
+  assert.notEqual(r2.status, 0, "ATR_FORBID_SKIP=1 で、許可していない理由の todo を失敗にしていない");
+  assert.match(r2.stdout, /Chrome が見つからない環境/);
+});
+
+test("空振り: 一つもアサーションを実行せずに通ったテスト（環境が無いので return した等）を失敗にする", () => {
+  const vacuous = `test("ブラウザの確認", (t) => { const chrome = process.env.ATR_NO_SUCH_BROWSER; if (!chrome) { t.diagnostic("Chrome が無い"); return; } assert.ok(chrome); });`;
+  const control = runTestFile(vacuous, { withPreload: false });
+  assert.equal(control.status, 0, "対照: 仕組みなしなら空振りのテストは緑");
+  const r = runTestFile(vacuous);
+  assert.notEqual(r.status, 0, "アサーションを一つも実行しなかったテストが緑のまま");
+  assert.match(r.stdout, /アサーションを一つも実行していない/);
+  const fine = `import { equal } from "node:assert";
+test("名前で import した assert", () => { equal(1, 1); });
+test("strict", () => { assert.deepEqual([1], [1]); });
+test("throws", () => { assert.throws(() => { throw new Error("x"); }); });
+test("rejects", async () => { await assert.rejects(Promise.reject(new Error("x"))); });
+test("skip の宣言", { skip: "秘密鍵が無い" }, () => {});
+test("中で t.skip", (t) => { t.skip("秘密鍵が無い"); });
+test("親は子のアサーションで足りる", async (t) => { await t.test("子", () => assert.ok(true)); });`;
+  const ok = runTestFile(fine);
+  assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+});
+
+test("owner のホーム: テストは本物の ~/.auto-tech-radar（秘密鍵・Chrome のプロファイル・復号した原稿）を見ない（ATR_OWNER_DIR を消しても）", () => {
+  const f = probeFile(
+    "ownerdir_probe.mjs",
+    `import os from "os";
+delete process.env.ATR_OWNER_DIR;
+const { ownerDir } = await import(${JSON.stringify(pathToFileURL(path.join(root, "scripts/utils/owner_dir.mjs")).href)});
+console.log(JSON.stringify({ ownerDir, home: os.homedir(), userInfoHome: os.userInfo().homedir }));`
+  );
+  const env = cleanEnv({ fakeGitHome: false });
+  const control = runProbe(f, { withPreload: false, env });
+  assert.equal(control.status, 0, control.stderr);
+  const c = JSON.parse(control.stdout);
+  assert.equal(c.ownerDir, path.join(c.home, ".auto-tech-radar"), "対照: 仕組みなしなら本物のホームの下を見る");
+  assert.equal(c.userInfoHome, c.home, "対照: os.userInfo().homedir も本物のホーム");
+  const guarded = runProbe(f, { withPreload: true, env });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  const g = JSON.parse(guarded.stdout);
+  assert.notEqual(g.ownerDir, c.ownerDir, "test_env.mjs の下でも本物の owner ディレクトリを見る");
+  assert.ok(under(tmp, g.home), "テストのホームは、テストの一時ディレクトリの中");
+  assert.equal(g.userInfoHome, g.home, "os.userInfo().homedir から本物のホームが見える");
+});
+
+test("子プロセス: テストが process.env を置き換えても・GIT_CONFIG_GLOBAL などを消しても、env を指定せずに起動した子で隔離・拒否が外れない", () => {
+  const f = probeFile(
+    "env_tamper_probe.mjs",
+    `import { spawnSync, execSync, execFile } from "node:child_process"; import fs from "fs"; import os from "os"; import path from "path";
+const base = os.tmpdir(); let n = 0;
+const mk = () => { const d = path.join(base, "tamper-" + n++); fs.mkdirSync(d); return d; };
+const cfg = (d) => spawnSync("git", ["-C", d, "config", "--get", "core.autocrlf"], { encoding: "utf8" }).stdout.trim();
+const load = "import(" + JSON.stringify(${JSON.stringify(astroCfgUrl)}) + ").then(() => console.log('LOADED'), (e) => console.log(/site_build/.test(e.message) ? 'BLOCKED' : 'ERR ' + e.message))";
+const out = {};
+const saved = { ...process.env };
+for (const k of ["GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "ATR_TEST_RUN", "NODE_OPTIONS"]) delete process.env[k];
+{ const d = mk(); execSync("git init -q " + JSON.stringify(d)); out.deleted = cfg(d); }
+process.env = { PATH: saved.PATH, SystemRoot: saved.SystemRoot, HOME: saved.HOME, USERPROFILE: saved.USERPROFILE };
+{ const d = mk(); spawnSync("git", ["init", "-q", d]); out.replaced = cfg(d); }
+{ const d = mk(); await new Promise((ok) => execFile("git", ["init", "-q", d], ok)); out.callback = cfg(d); }
+out.astro = spawnSync(process.execPath, ["--input-type=module", "-e", load], { encoding: "utf8" }).stdout.trim();
+console.log(JSON.stringify(out));`
+  );
+  const control = runProbe(f, { withPreload: false, cwd: root });
+  assert.equal(control.status, 0, control.stderr);
+  assert.deepEqual(JSON.parse(control.stdout), { deleted: "true", replaced: "true", callback: "true", astro: "LOADED" }, "対照: 仕組みなしなら、マシンの git 設定・リポ本体の astro 設定が見える");
+  const guarded = runProbe(f, { withPreload: true, cwd: root });
+  assert.equal(guarded.status, 0, guarded.stderr);
+  assert.deepEqual(JSON.parse(guarded.stdout), { deleted: "", replaced: "", callback: "", astro: "BLOCKED" }, "process.env を書き換えたテストの子で、test_env.mjs の隔離・拒否が外れる");
+});
+
+test("作業ツリーの改行: Windows の CI の各回は、名乗った改行（lf / crlf）の作業ツリーで実際に走っている", (t) => {
+  const want = process.env.ATR_WORKTREE_EOL;
+  if (!want) return t.skip("Windows の CI の行列（ATR_WORKTREE_EOL）の外");
+  assert.match(want, /^(lf|crlf)$/);
+  const r = spawnSync("git", ["ls-files", "--eol", "-z"], { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(r.status, 0, r.stderr);
+  const other = r.stdout.split("\0").filter(Boolean).filter((rec) => /^i\/lf\s/.test(rec) && !new RegExp(`\\sw/(${want}|none)\\s`).test(rec));
+  assert.deepEqual(other.slice(0, 5), [], `作業ツリーが ${want} でない`);
 });
