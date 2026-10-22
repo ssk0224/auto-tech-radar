@@ -10,6 +10,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
+import http from "http";
 import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
@@ -19,8 +20,21 @@ const root = path.resolve(import.meta.dirname, "..");
 const rel = (p) => path.relative(root, p).split(path.sep).join("/");
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 
-// 外部に問い合わせるスクリプト（fetch / fetchImpl を呼ぶもの）
-const NETWORK_CALL = /\bfetch(?:Impl)?\s*\(/;
+// 外部とやり取りするスクリプト。呼び出しの形で見つける: fetch / fetchImpl の呼び出し・fetch の別名、
+// http・https・net などの組み込みモジュールの読み込み（https.get もサーバーも含む）、XMLHttpRequest・WebSocket、HTTP クライアントの包み。
+// fetch の呼び出しだけを見ていると、https.get で取得して失敗を空にする新しいスクリプトが対象から漏れる（2026-10-22 の検証）
+const NET_MODULE = String.raw`["'](?:node:)?(?:https?|http2|net|tls|dgram)["']`;
+export const NETWORK_CALL = new RegExp(
+  [
+    String.raw`\bfetch(?:Impl)?\s*\(`,
+    String.raw`\bglobalThis\.fetch\b`,
+    String.raw`=\s*fetch\b`,
+    String.raw`\bfrom\s+${NET_MODULE}`,
+    String.raw`\b(?:require|import)\(\s*${NET_MODULE}\s*\)`,
+    String.raw`\bnew\s+(?:XMLHttpRequest|WebSocket|EventSource)\b`,
+    String.raw`["'](?:undici|axios|node-fetch|got|ky|superagent)["']`,
+  ].join("|"),
+);
 export function networkScripts() {
   return walk(path.join(root, "scripts")).filter((f) => /\.(mjs|js)$/.test(f) && NETWORK_CALL.test(fs.readFileSync(f, "utf8"))).map(rel);
 }
@@ -36,7 +50,12 @@ export function auditScripts() {
 const TARGETS = [...new Set([...networkScripts(), ...mergeDrivers(), ...auditScripts()])].sort();
 
 const res = (status, body = "") => new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
-const FAULTS_HTTP = [429, 403, 500, 503];
+// 故障として試す HTTP の状態: 4xx・5xx のすべて（Node が知っている状態コード全部）。代表の数個（429・500 など）だけを試すと、
+// 502・504 などを「確定した結果」に潰すスクリプトを見逃す（2026-10-22 の検証: 502/504 を live:false にしても緑だった）。
+// 確定した結果として扱ってよい状態（404＝存在しない など）は、各スクリプトの行で理由と一緒に definitive に書いて除く
+export const ERROR_STATUSES = Object.keys(http.STATUS_CODES).map(Number).filter((s) => s >= 400 && s <= 599);
+const FAULTS_HTTP = ERROR_STATUSES;
+const faultStatuses = (definitive = {}) => ERROR_STATUSES.filter((s) => !(s in definitive));
 const throwing = async () => {
   throw new Error("fetch failed");
 };
@@ -88,14 +107,17 @@ const FAULTS = {
   },
   "scripts/check_zenn.mjs": async () => {
     const { zennArticleResult, zennWarnings } = await import("../scripts/check_zenn.mjs");
-    for (const f of [...FAULTS_HTTP.map((s) => async () => res(s)), throwing, async () => res(200, { article: {} }), async () => res(200, "not json")]) {
+    // 404 は「記事が無い」と確定してよい（Zenn の API が記事の不在を返す状態）
+    for (const s of faultStatuses({ 404: "記事が無い" })) assert.equal((await zennArticleResult("a", false, async () => res(s))).live, null, `HTTP ${s}`);
+    for (const f of [throwing, async () => res(200, { article: {} }), async () => res(200, "not json")]) {
       assert.equal((await zennArticleResult("a", false, f)).live, null);
     }
     assert.ok(zennWarnings([{ slug: "a", published: false, live: false }, { slug: "b", published: false, live: null, status: 429 }]).length > 0);
   },
   "scripts/auto_tweet_x.mjs": async () => {
     const { classifyXResponse, postLatestTweet } = await import("../scripts/auto_tweet_x.mjs");
-    for (const s of [402, 408, 425, 429, 500, 503]) assert.equal(classifyXResponse(s, ""), "retry", String(s));
+    // 確定してよい状態: 400・422（投稿内容の誤り＝記事の失敗）、401・403（認証の失敗。重複の 403 は記事の失敗）。ほかは再試行（成功・確定失敗にしない）
+    for (const s of faultStatuses({ 400: "内容の誤り", 401: "認証", 403: "認証・重複", 422: "内容の誤り" })) assert.equal(classifyXResponse(s, ""), "retry", String(s));
     const dir = tmp("atr-fc-x-");
     try {
       fs.mkdirSync(path.join(dir, "scripts"));
@@ -111,7 +133,8 @@ const FAULTS = {
   },
   "scripts/utils/reference_check.mjs": async () => {
     const { checkReferences } = await import("../scripts/utils/reference_check.mjs");
-    for (const f of [...FAULTS_HTTP.map((s) => async () => res(s)), throwing]) {
+    // 404 は「レジストリに無い」と確定してよい
+    for (const f of [...faultStatuses({ 404: "レジストリに無い" }).map((s) => async () => res(s)), throwing]) {
       const r = await checkReferences("FROM node:20\nnpx -y some-pkg\npip install requests\n", { fetchImpl: f });
       assert.deepEqual(r.missing, []);
       assert.equal(r.unverified.length, 3);
@@ -119,7 +142,7 @@ const FAULTS = {
   },
   "scripts/snapshot_ledger.mjs": async () => {
     const { snapshotLedger } = await import("../scripts/snapshot_ledger.mjs");
-    for (const f of [throwing, async () => res(429), async () => res(200, { incomplete_results: true, items: [] }), async () => res(500)]) {
+    for (const f of [throwing, ...FAULTS_HTTP.map((s) => async () => res(s)), async () => res(200, { incomplete_results: true, items: [] })]) {
       const dir = tmp("atr-fc-ledger-");
       try {
         const r = await snapshotLedger({ rootDir: dir, now: Date.parse("2026-10-21T03:00:00Z"), fetchImpl: f, delayMs: 0 });
@@ -151,7 +174,8 @@ const FAULTS = {
   },
   "scripts/utils/license_resolver.mjs": async () => {
     const { resolveLicense } = await import("../scripts/utils/license_resolver.mjs");
-    for (const f of [...FAULTS_HTTP.map((s) => async () => res(s)), throwing]) assert.equal((await resolveLicense("a", "b", { fetchImpl: f })).status, "unknown");
+    // 404 は「リポジトリにライセンスの情報が無い」と確定してよい（status: none。「ライセンス未指定」と表示し、ok にはしない）
+    for (const f of [...faultStatuses({ 404: "ライセンス情報が無い" }).map((s) => async () => res(s)), throwing]) assert.equal((await resolveLicense("a", "b", { fetchImpl: f })).status, "unknown");
   },
   // 生成スクリプトは読み込むと実行されるので、模擬の GitHub で動かすテスト（tests/generator.test.mjs）で確かめる
   "scripts/crawl_and_generate.mjs": coveredBy("tests/generator.test.mjs", /upstream_unavailable/),
@@ -165,6 +189,17 @@ const FAULTS = {
   "scripts/merge_note_urls.mjs": mergeDriverRejectsBrokenInput("scripts/merge_note_urls.mjs"),
   "scripts/merge_note_status.mjs": mergeDriverRejectsBrokenInput("scripts/merge_note_status.mjs"),
   "scripts/audit_quality.mjs": coveredBy("tests/gates.test.mjs", /出品履歴.*壊れて読めない/),
+  // ローカルの中継サーバー（ブラウザの自動処理の結果を受け取る）。読めない結果を「ok」として受け流さない
+  "scripts/note_api_server.mjs": async () => {
+    const { eyecatchCompleteReport } = await import("../scripts/note_api_server.mjs");
+    for (const body of ["", "{broken", "null", '{"set": []}', '{"set": 1, "skipped": [], "failed": []}']) {
+      const r = eyecatchCompleteReport(body);
+      assert.equal(r.ok, false, body);
+      assert.ok(r.lines.some((l) => l.includes("✕")), body);
+    }
+    assert.equal(eyecatchCompleteReport('{"set": ["a"], "skipped": [], "failed": []}').ok, true);
+    assert.equal(eyecatchCompleteReport('{"set": [], "skipped": [], "failed": ["b"]}').ok, false);
+  },
   "scripts/audit_dist.mjs": () => {
     const dir = tmp("atr-fc-dist-");
     try {
