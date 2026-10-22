@@ -588,6 +588,20 @@ const REDIRECT_RES = [
   new RegExp(String.raw`(?:^|\s)--?(?:[\w-]*(?:output|outfile|screenshot|print-to-pdf|dest(?:ination)?|log-file)|out|o)(?:=|\s+)${TOKEN}`, "gi"),
 ];
 const DISCARD = /^(?:\/dev\/null|nul|\$null|&\d)$/i;
+// コピー・移動・リンクのプログラム（書き先は最後の引数。robocopy は 2 つ目）
+const COPY_PROGRAMS = /^(?:cp|mv|install|ln|rsync|scp|copy|move|xcopy|robocopy|Copy-Item|Move-Item|cpi|mi)(?:\.exe)?$/i;
+function copyDestinations(text) {
+  const out = [];
+  for (const seg of text.split(/&&|\|\||[;&|\n]/)) {
+    const words = seg.trim().match(/"[^"]*"|'[^']*'|\S+/g) || [];
+    const prog = (words[0] || "").replace(/^["']|["']$/g, "").split(/[\\/]/).pop();
+    if (!COPY_PROGRAMS.test(prog)) continue;
+    const positional = words.slice(1).filter((w) => !/^-/.test(w)).map((w) => w.replace(/^(["'])(.*)\1$/, "$2"));
+    const dest = /^robocopy/i.test(prog) ? positional[1] : positional.length > 1 ? positional[positional.length - 1] : null;
+    if (dest && !DISCARD.test(dest)) out.push(dest);
+  }
+  return out;
+}
 export function commandWriteTokens(text) {
   const out = [];
   for (const re of REDIRECT_RES) {
@@ -596,7 +610,7 @@ export function commandWriteTokens(text) {
       if (t && !DISCARD.test(t)) out.push(t);
     }
   }
-  return out;
+  return [...new Set([...out, ...copyDestinations(text)])];
 }
 
 // トークン（穴を含みうる）→ 書き先の候補。穴そのものなら穴の式をたどる。cwd は呼び出しの cwd（既定はリポのルート）
@@ -617,7 +631,7 @@ export function importRanges(src) {
 }
 export const inRanges = (ranges, i) => ranges.some(([a, b]) => i >= a && i < b);
 
-const CHILD_CALLS = new Set(["exec", "execSync", "spawn", "spawnSync", "execFile", "execFileSync"]);
+const CHILD_CALLS = new Set(["exec", "execSync", "spawn", "spawnSync", "execFile", "execFileSync", "fork"]);
 // このファイルで child_process の関数を指す名前: 名前空間（cp.execSync）と、関数の別名（run → execSync）
 function childBindingsOf(src) {
   const ns = new Set();
@@ -653,7 +667,8 @@ export function commandsOf(r) {
     const holes = [];
     const isExec = call === "exec" || call === "execSync";
     const opts = (isExec ? args[1] : args.find((a, i) => i > 0 && a.startsWith("{"))) || "";
-    const progs = r.str(args[0] || "''", m.index, holes);
+    // fork(モジュール, 引数) は node でそのモジュールを起動する
+    const progs = r.str(args[0] || "''", m.index, holes).map((p) => (call === "fork" ? `node ${p.replace(/^<repo>\//, "")}` : p));
     const texts = isExec || !(args[1] || "").startsWith("[") ? progs : progs.flatMap((p) => r.str(args[1], m.index, holes).map((a) => `${p} ${a}`));
     const cwdExpr = opts.match(/\bcwd\s*:\s*([^,}]+)/)?.[1];
     const cwdBases = cwdExpr ? r.eval(cwdExpr, m.index) : ["<repo>"];
@@ -697,6 +712,10 @@ export function writeTargetsOf(repoRoot, file) {
     if (at === "open" && !opensForWrite(args[1])) continue;
     const dest = at === "open" ? args[0] : args[at];
     out.push(entry(file, src, m.index, api, dest ? r.eval(dest, m.index) : [UNKNOWN]));
+  }
+  // fs の関数を名前で選ぶ（fs[name](...)・fs.promises[name]）と、書き出しかどうか・書き先をたどれない
+  for (const m of masked.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*(?:\.promises)?)\s*\[/g)) {
+    if (isFsRecv(m[1])) out.push(entry(file, src, m.index, `${m[1]}[]`, [], [`fs の関数を名前で選んでいる（${m[1]}[...]）`]));
   }
   // 書き出し API を値として渡す・しまう（forEach(fs.writeFileSync) など）は、書き先をたどれない
   const imports = importRanges(src);

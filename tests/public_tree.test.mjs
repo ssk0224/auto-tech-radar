@@ -297,18 +297,25 @@ test("(b) 書き方を変えた書き出しもたどる: 別名の import・分�
       "await fsp.writeFile('p/q.txt', '');",
       "await fs.promises.appendFile('p/r.txt', '');",
       "[1].forEach(fs.writeFileSync);",
+      // 名前で選んだ fs の関数・別のプログラムでのコピーと移動（最後の引数が書き先）
+      "const how = 'writeFileSync';",
+      "fs[how]('q/computed.txt', '');",
+      "execFileSync('cp', [path.join(here, 'a.json'), 'src/owner_state4.css']);",
+      "execSync('mv -f scripts/a.json docs/moved.json && echo ok');",
+      "execFileSync('pwsh', ['-Command', 'Copy-Item -Path a.json -Destination ps_copy/b.json']);",
     ].join("\n"));
     put("scripts/tools/dump.cjs", 'const fs = require("fs");\nfs.writeFileSync("docs/private_state.json", "");\n');
     put("scripts/run.sh", "#!/bin/sh\necho x > sh_out/a.txt\n");
     put("scripts/run.py", "open('py_out.txt', 'w').write('x')\n");
     const got = allWriteTargets(dir, codeFiles(dir, { all: true }));
     const paths = new Set(got.flatMap((w) => w.repoPaths));
-    for (const p of ["scripts/issue_list.json", "notes/kept.txt", "data/full.json", "logs/add.txt", "w/x.txt", "scripts/dump.json", "scripts/run_dump.json", "logs/tee.log", "scripts/shot.png", "ps_out/date.txt", "p/q.txt", "p/r.txt", "docs/private_state.json", "sh_out/a.txt"]) {
+    for (const p of ["scripts/issue_list.json", "notes/kept.txt", "data/full.json", "logs/add.txt", "w/x.txt", "scripts/dump.json", "scripts/run_dump.json", "logs/tee.log", "scripts/shot.png", "ps_out/date.txt", "p/q.txt", "p/r.txt", "docs/private_state.json", "sh_out/a.txt", "src/owner_state4.css", "docs/moved.json", "ps_copy/b.json"]) {
       assert.ok(paths.has(p), `たどれなかった: ${p}（得た書き先: ${[...paths].join(", ")}）`);
     }
     assert.ok(!paths.has("scripts/read.json"), "読むだけの openSync を書き出しにした");
     const unresolved = got.filter((w) => w.unresolved.length).map((w) => `${rel2(dir, w.file)}:${w.line}`);
     assert.ok(unresolved.includes("scripts/a.mjs:26"), `関数として渡した書き出しを見逃した: ${unresolved}`);
+    assert.ok(unresolved.includes("scripts/a.mjs:28"), `名前で選んだ fs の関数を見逃した: ${unresolved}`);
     assert.ok(unresolved.some((u) => u.startsWith("scripts/run.py")), "検査できない種類のスクリプトを見逃した");
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
