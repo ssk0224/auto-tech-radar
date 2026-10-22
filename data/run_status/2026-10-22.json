@@ -21,6 +21,13 @@
       "generated": 0,
       "reason": "cap_reached",
       "model": null
+    },
+    {
+      "at": "2026-10-22T08:40:57.408Z",
+      "event": "schedule (17 3 * * *)",
+      "generated": 0,
+      "reason": "cap_reached",
+      "model": null
     }
   ]
 }
