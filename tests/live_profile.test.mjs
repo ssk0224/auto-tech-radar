@@ -1,46 +1,98 @@
 // リポジトリの外にある公開文面（note のクリエイター紹介・メンバーシップの説明・X の自己紹介・GitHub の About）の正本は
-// data/profile_copy.json。公開中の文面がそれと同じか、正本自体が事実どおりか（毎朝・全記事読み放題などを言わないか）を確かめる。
+// data/profile_copy.json。公開中の文面がそれと同じか、正本自体が裏付けのある語だけで書かれているかを確かめる。
 // note・X・GitHub には接続しない（取得した値は fixture）。取得できない面は unknown で、ok にしない
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
-import { PROFILE_SURFACES, copyProblems, liveProfileVerdicts, liveProfileReport, normalizeCopy, membershipClaimProblems } from "../scripts/live_profile_check.mjs";
+import { PROFILE_SURFACES, copyProblems, liveProfileVerdicts, liveProfileReport, normalizeCopy, membershipClaimProblems, renderSurface } from "../scripts/live_profile_check.mjs";
+import { TERMS, placeholders, termEvidenceProblems, vocabularyProblems } from "../scripts/utils/profile_vocabulary.mjs";
 
 const COPY = JSON.parse(fs.readFileSync("data/profile_copy.json", "utf8"));
+const withStatement = (id, text) => ({ ...COPY, statements: { ...COPY.statements, [id]: text } });
 
-// 公開中の値が正本どおりの状態（note の API は説明文の改行の後に空白を入れて返す）
+// 公開中の値が正本どおりの状態（note の API は説明文の改行の後に空白を入れて返す。X は URL を t.co に置き換える）
 function liveFromCopy(copy, over = {}) {
+  const r = (id) => renderSurface(copy, PROFILE_SURFACES.find((s) => s.id === id).path);
   return {
-    noteProfile: copy.note.creatorProfile.replace(/\n/g, "\n    "),
-    circleName: copy.note.circle.name,
-    circleDescription: copy.note.circle.description.replace(/\n/g, "\n  "),
-    planName: copy.note.plan.name,
-    planDescription: copy.note.plan.description,
-    xBio: copy.x.bio.replace(/https?:\/\/\S+/g, "https://t.co/abc123"),
-    githubDescription: copy.github.description,
-    githubHomepage: copy.github.homepage,
+    noteProfile: r("noteProfile").replace(/\n/g, "\n    "),
+    circleName: r("circleName"),
+    circleDescription: r("circleDescription").replace(/\n/g, "\n  "),
+    planName: r("planName"),
+    planDescription: r("planDescription"),
+    xBio: r("xBio").replace(/https?:\/\/\S+/g, "https://t.co/abc123"),
+    githubDescription: r("githubDescription"),
+    githubHomepage: r("githubHomepage"),
     paidNotes: 36,
     membershipConnected: 3,
     ...over,
   };
 }
 
-test("正本 data/profile_copy.json はすべての面の文面を持ち、それ自体が事実どおり（毎朝・毎日・全記事読み放題・誇張・禁止表現が無い）", () => {
-  for (const s of PROFILE_SURFACES) assert.ok(String(s.copy(COPY) || "").trim(), `${s.id} の文面が正本に無い`);
+test("正本 data/profile_copy.json はすべての面を、登録された文の組み合わせとして持ち、正本自体に問題が無い", () => {
+  for (const s of PROFILE_SURFACES) assert.ok(String(renderSurface(COPY, s.path) || "").trim(), `${s.id} の文面が正本に無い`);
   assert.deepEqual(copyProblems(COPY), []);
 });
 
-test("正本の検査は、毎朝・毎日の配信、根拠の無い最上級、全記事読み放題、GitHub Trending 由来とする文面を見つける", () => {
-  const bad = structuredClone(COPY);
-  bad.note.creatorProfile = "海外の急上昇OSSを毎朝徹底解剖";
-  bad.x.bio = "世界最速のOSSメディア";
-  bad.note.plan.description = "毎朝配信される全有料技術レポートの読み放題";
-  bad.github.description = "GitHub Trending 直結の解説";
-  const p = copyProblems(bad).join("\n");
-  assert.match(p, /note\.creatorProfile.*毎朝/);
-  assert.match(p, /x\.bio.*世界最速/);
-  assert.match(p, /note\.plan\.description.*読み放題/);
-  assert.match(p, /github\.description.*Trending/);
+test("語の裏付け: 登録した語はすべて、その語の根拠になるコード・設定の中に根拠が実在する", () => {
+  assert.deepEqual(termEvidenceProblems(), []);
+  // 根拠のファイルから根拠が消えたら（機能が変わったら）、その語を使う文面は正本に置けない
+  const gone = termEvidenceProblems(() => "");
+  assert.equal(gone.length, TERMS.length, gone.join("\n"));
+});
+
+test("面の形: 面は登録された文の id の並びだけ。面に直接書いた文・知らない id は問題", () => {
+  const free = structuredClone(COPY);
+  free.surfaces["note.plan.description"] = "有料記事はどれでも追加料金なしで読めます";
+  assert.match(copyProblems(free).join("\n"), /note\.plan\.description/);
+  const unknownId = structuredClone(COPY);
+  unknownId.surfaces["x.bio"] = [...unknownId.surfaces["x.bio"], "hype"];
+  assert.match(copyProblems(unknownId).join("\n"), /x\.bio.*hype/);
+});
+
+// 2026-10-22 の検証で、語の一覧（毎朝・読み放題・最速 など）を言い換えるとすり抜けた文。
+// 裏付けの無い語・数字・記号を使う文は、どんな言い回しでも正本に置けない（既知の言い回しを並べて止めるのではない）
+test("正本の文: 裏付けの無い語・数字・記号を含む文は、言い回しによらず問題（言い換えた全記事・頻度・誇張の主張）", () => {
+  for (const [id, text] of [
+    ["membership", "これまでの有料記事（36本）をまるごと読めます。"],
+    ["membership", "有料記事はどれでも追加料金なしで読めます。"],
+    ["subject", "平日は朝7時に新着を配信。GitHub で注目を集めているオープンソースを、README などの公開情報をもとに日本語で解説しています。"],
+    ["subject", "業界トップクラスの速さで GitHub で注目を集めているオープンソースを解説しています。"],
+    ["subject", "GitHub で注目を集めているオープンソースを、すべて日本語で解説しています。"],
+    ["aiMade", "記事は AI が生成したもので、動作は検証していません🥇"],
+  ]) {
+    const p = copyProblems(withStatement(id, text));
+    assert.ok(p.some((x) => x.startsWith(`statements.${id}:`)), `${text}\n${p.join("\n")}`);
+  }
+});
+
+// 性質の検査: 記事の生成に使っている指示文（scripts/crawl_and_generate.mjs）の語のうち、登録していない語は、
+// どれを正本の文に足しても問題になる（誇張・宣伝の語を多く含む実在の語彙から作る。手で並べた例ではない）
+test("正本の文: 生成の指示文に出てくる未登録の語は、どれを文に足しても問題になる", () => {
+  const src = fs.readFileSync("scripts/crawl_and_generate.mjs", "utf8");
+  const seg = new Intl.Segmenter("ja", { granularity: "word" });
+  const words = new Set();
+  for (const m of src.matchAll(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu)) {
+    for (const s of seg.segment(m[0])) if (s.isWordLike && s.segment.length >= 2) words.add(s.segment);
+  }
+  const unregistered = [...words].filter((w) => vocabularyProblems(w).length > 0);
+  assert.ok(unregistered.length >= 50, `試せる語が少ない: ${unregistered.length}`);
+  const missed = unregistered.filter((w) => copyProblems(withStatement("subject", `${COPY.statements.subject}${w}。`)).length === 0);
+  assert.deepEqual(missed, []);
+});
+
+test("語の検査: 登録した語・文法の語・句読点・差し込み（{site} など）だけの文は問題なし。数字・記号は問題", () => {
+  for (const t of Object.values(COPY.statements)) assert.deepEqual(vocabularyProblems(t, placeholders(COPY.names)), [], t);
+  assert.ok(vocabularyProblems("記事は 100 本あります").length > 0, "数字は差し込みでしか書けない");
+  assert.ok(vocabularyProblems("+30% の記事").length > 0);
+  assert.ok(vocabularyProblems("記事は {unknown} です").length > 0, "知らない差し込み");
+});
+
+test("名前（プラン名）: カタカナ・ラテン文字だけの短い名前。漢字・数字・長い文は問題", () => {
+  for (const plan of ["最強プラン", "全記事読み放題プラン", "プラン 2026", "毎日更新されるメンバーシッププランの名前がとても長い"]) {
+    const bad = structuredClone(COPY);
+    bad.names.plan = plan;
+    assert.ok(copyProblems(bad).length > 0, plan);
+  }
 });
 
 test("公開中の文面が正本と同じなら全部 ok（改行の後の空白・X の短縮 URL の違いは無視）", () => {
@@ -62,25 +114,20 @@ test("取得できなかった面は unknown（ok にしない）", () => {
   assert.equal(v.membership.status, "unknown");
 });
 
-test("メンバーシップで「全記事・全アーカイブ読み放題」と言えるのは、有料記事がすべて特典に入っているときだけ", () => {
+test("メンバーシップで「全記事・全アーカイブ読み放題」と言えるのは、有料記事がすべて特典に入っているときだけ（どの面でも確かめる）", () => {
   const claim = "毎朝配信される全有料技術レポートの読み放題\n過去の全アーカイブ閲覧権";
   assert.ok(membershipClaimProblems(claim, { paidNotes: 36, membershipConnected: 3 }).length > 0);
   assert.deepEqual(membershipClaimProblems(claim, { paidNotes: 36, membershipConnected: 36 }), []);
-  // note の API は説明文を途中で改行して返す（「すべて読み\n  放題」2026-10-22 の実測）。改行・空白で分かれていても見つける
+  // note の API は説明文を途中で改行して返す（「すべて読み\n  放題」2026-10-22 の実測）
   assert.ok(membershipClaimProblems("レポートがすべて読み\n  放題になります", { paidNotes: 36, membershipConnected: 3 }).length > 0);
-  assert.match(copyProblems({ ...COPY, x: { ...COPY.x, bio: "毎\n 朝 お届け" } }).join(), /x\.bio.*毎朝/);
-  // 言い回しを変えた全記事の主張も見つける
-  for (const s of ["全ての有料記事が読めます", "すべての有料記事を読めます", "有料記事が見放題", "有料記事を全部読めます"]) {
-    assert.ok(membershipClaimProblems(s, { paidNotes: 36, membershipConnected: 3 }).length > 0, s);
-  }
-  // 本数が分からないときは言えるかどうかも分からない（問題として扱う）
   assert.ok(membershipClaimProblems(claim, { paidNotes: 36, membershipConnected: undefined }).length > 0);
-  // 限定した言い方（特典に追加した記事）は本数によらず問題ない
-  assert.deepEqual(membershipClaimProblems("メンバーシップ特典に追加した有料記事を読めます", { paidNotes: 36, membershipConnected: 3 }), []);
-  // 公開中の説明が「全有料レポート読み放題」で、3 / 36 本しか特典に入っていない状態（2026-10-22 の実測）は bad
-  const v = liveProfileVerdicts(COPY, liveFromCopy(COPY, { circleDescription: `${COPY.note.circle.description}\n${claim}` }));
-  assert.equal(v.circleDescription.status, "bad");
-  assert.match(v.circleDescription.reason, /読み放題|全/);
+  // 公開中の説明が「全有料レポート読み放題」で、3 / 36 本しか特典に入っていない状態（2026-10-22 の実測）は bad。
+  // 面に印を付けて選ぶのではなく、すべての面で確かめる
+  for (const id of PROFILE_SURFACES.map((s) => s.id)) {
+    const v = liveProfileVerdicts(COPY, liveFromCopy(COPY, { [id]: `${liveFromCopy(COPY)[id]}\n${claim}` }));
+    assert.equal(v[id].status, "bad", id);
+    assert.match(v[id].reason, /読み放題|全/, id);
+  }
 });
 
 test("報告: bad / unknown が 1 つでもあれば ::error を出して終了コード 1。全部 ok なら 0", () => {
