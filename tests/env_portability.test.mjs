@@ -291,6 +291,24 @@ test("リポへの書き込み: テストが作業ツリーにファイルを残
   assert.match(inTest.stdout, /out\/f\.json/);
 });
 
+test("サイトのビルド用コピーは、ビルド中に書かれる node_modules のキャッシュ（.vite・.astro）をリポ本体・ほかのコピーと共有しない", async () => {
+  // node_modules を丸ごとリンクすると、並列の astro build が同じ node_modules/.vite/deps を作り直し合い、Windows で rename が EPERM になる（site_dist が 4 件落ちた）
+  const { prepareBuildRoot, removeDir } = await import("./helpers/site_build.mjs");
+  const [a, b] = [prepareBuildRoot("atr-cache-a-"), prepareBuildRoot("atr-cache-b-")];
+  try {
+    for (const cache of [".vite", ".astro"]) {
+      fs.mkdirSync(path.join(a, "node_modules", cache, "probe"), { recursive: true });
+      assert.ok(!fs.existsSync(path.join(b, "node_modules", cache, "probe")), `${cache}: ほかのビルド用コピーと共有している`);
+      assert.ok(!fs.existsSync(path.join(root, "node_modules", cache, "probe")), `${cache}: リポ本体の node_modules と共有している`);
+    }
+    assert.ok(fs.existsSync(path.join(a, "node_modules", "astro", "package.json")), "パッケージはコピーから解決できる");
+  } finally {
+    for (const cache of [".vite", ".astro"]) fs.rmSync(path.join(root, "node_modules", cache, "probe"), { recursive: true, force: true }); // 共有していた場合の後始末
+    removeDir(a);
+    removeDir(b);
+  }
+});
+
 // owner PC の Node・ロケール・時間帯（tests/helpers/owner_host.json）。Windows の CI はこれに合わせて走る。
 // owner PC（CI でない）と、合わせているはずの Windows の CI（ATR_OWNER_MIRROR=1）では、実際の値がこれと一致することを確かめる（合わせ損ねたら赤になる）
 const ownerHost = JSON.parse(fs.readFileSync(path.join(testsDir, "helpers/owner_host.json"), "utf8"));
