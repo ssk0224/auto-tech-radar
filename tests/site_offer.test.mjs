@@ -213,7 +213,9 @@ test("サイトのページに計算していない最上級・お得の表現�
   }
 });
 
-test("新着の本数の表示は 1 日 1 本（生成は 1 日 1 本）", () => {
+// 「新着は1日最大1本」のような上限の約束は書かない（まとめて掲載した日・掲載の無い日があった）。
+// 本数は掲載データから数えた「直近30日の掲載」だけを出す（値の一致は tests/dist_claims.test.mjs が確かめる）
+test("新着の本数の表示は、掲載データから数えた値（Cadence）だけで、1日あたりの本数を約束しない", () => {
   assertBuilt();
   const htmlFiles = [];
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((e) => {
@@ -222,9 +224,9 @@ test("新着の本数の表示は 1 日 1 本（生成は 1 日 1 本）", () =>
     else if (e.name.endsWith(".html")) htmlFiles.push(p);
   });
   walk(outDir);
-  for (const f of htmlFiles) assert.doesNotMatch(read(f), /1日(最大)?2本/, path.relative(outDir, f));
-  assert.match(page("index.html"), /新着は1日最大1本/);
-  assert.match(page(`radar/${slugs[0]}/index.html`), /新着は1日最大1本/);
+  for (const f of htmlFiles) assert.doesNotMatch(read(f), /1日(?:最大|に)?\s*[\d０-９]+\s*本/, path.relative(outDir, f));
+  assert.match(page("index.html"), /data-cadence-count="\d+"[^>]*>直近30日の掲載: \d+本/);
+  assert.match(page(`radar/${slugs[0]}/index.html`), /data-cadence-count="\d+"[^>]*>直近30日の掲載: \d+本/);
 });
 
 // ---- 配信物の監査（audit_dist）が購入導線・B2B 導線の崩れを本当に止めるか（わざと崩した HTML で確かめる） ----

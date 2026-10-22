@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { getArticles, hrefOf, starTier, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+import { categoryOf } from "../utils/categories.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
 const sortedPosts = posts;
@@ -70,7 +71,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
             <th style="padding: 1rem; white-space: nowrap;">OSS リポジトリ</th>
             <th style="padding: 1rem; white-space: nowrap;">技術領域 / 言語</th>
             <th style="padding: 1rem; white-space: nowrap;">GitHub Stars</th>
-            <th style="padding: 1rem; white-space: nowrap;">活用領域（簡易分類）</th>
+            <th style="padding: 1rem; white-space: nowrap;">タグによる分類</th>
             <th style="padding: 1rem; text-align: right; white-space: nowrap;">レポート</th>
           </tr>
         </thead>
@@ -84,13 +85,8 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
             const stars = starsNum > 0 ? starsNum.toLocaleString("en-US") : '—';
             const desc = post.frontmatter?.description || '';
 
-            // 活用領域の簡易分類（タイトル・タグに基づく。単価は根拠が無いため表示しない）
-            let modelTier = "業務自動化・受託開発";
-            if (tags.some((t: string) => /agent|ai|llm/i.test(t)) || /agent|model/i.test(title)) {
-              modelTier = "AIエージェント・DX統合";
-            } else if (tags.some((t: string) => /rust|perf|speed/i.test(t))) {
-              modelTier = "高速バックエンド基盤";
-            }
+            // タグによる分類（src/utils/categories.js。タグに当てはまらなければ「未分類」）
+            const modelTier = categoryOf(tags).label;
 
             // GitHub スター数の区分（共通定義: src/utils/articles.js）
             const tierInfo = starTier(post.frontmatter?.stars);
@@ -122,7 +118,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
                   ★ {stars}
                 </td>
                 <td style="padding: 1rem; vertical-align: top;">
-                  <span style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600;">
+                  <span data-category style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600;">
                     {modelTier}
                   </span>
                 </td>
@@ -206,7 +202,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
       const origMdText = copyMdBtn.innerHTML;
       let mdTimer = null;
       copyMdBtn.addEventListener('click', () => {
-        let md = '| OSS | スター数区分 | 技術領域 | Stars | 活用領域（簡易分類） | 記事URL |\n';
+        let md = '| OSS | スター数区分 | 技術領域 | Stars | タグによる分類 | 記事URL |\n';
         md += '| :--- | :--- | :--- | :--- | :--- | :--- |\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
@@ -240,7 +236,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
     const exportCsvBtn = document.getElementById('export-cheatsheet-csv');
     if (exportCsvBtn) {
       exportCsvBtn.addEventListener('click', () => {
-        let csv = 'OSS,スター数区分,技術領域,Stars,活用領域（簡易分類）,記事URL\n';
+        let csv = 'OSS,スター数区分,技術領域,Stars,タグによる分類,記事URL\n';
         rows.forEach(row => {
           if (row.style.display !== 'none') {
             const tds = row.querySelectorAll('td');
@@ -259,7 +255,7 @@ const cheatSheetNoteUrl = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url || "https://note
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `auto-tech-radar-cheatsheet-${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `auto-tech-radar-cheatsheet-${new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date())}.csv`; // 日本時間の日付
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

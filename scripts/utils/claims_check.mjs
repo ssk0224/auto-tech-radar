@@ -1,5 +1,6 @@
 // 禁止表現・誇張表現の統一バリデーター（クローラー生成時とテスト・監査で同一定義を共用）
 import { normalizeEol } from "./eol.mjs";
+import { HYPE_RULES } from "./hype_check.mjs";
 
 export const FORBIDDEN = [
   [/想定受託単価|推奨受託単価/, "スター数・カテゴリから機械的に決めた受託単価"],
@@ -11,7 +12,7 @@ export const FORBIDDEN = [
   [/100%経費精算可能/, "所属先規定に依存する断定"],
   [/専任エンジニアチーム/, "運営実態と異なる表現"],
   [/月収[\d,]+万|月[\d,]+万円(?:以上)?(?:を)?(?:稼|の収入|の利益|の売上|達成)|誰でも稼げる|確実に稼げる|確実に儲かる/, "根拠のない収益保証・誇張"],
-  [/案件単価|単価[\d,]+万/, "根拠のない案件単価の表示"],
+  [/案件単価|単価[\d,]+万/, "根拠のない案件の単価の表示"],
   [/★\s?[\d,]+\+?(超え)?急増/, "累計スター数を「急増」と表示（増加数ではない）"],
   [/(コスト|費用|料金)[^\n。]{0,8}1\/\d+/, "根拠のないコスト比較"],
   [/全編読み放題|全記事読み放題|全レポート読み放題/, "メンバーシップで全記事が読めるかのような表現（特典に追加した記事のみ）"]
@@ -40,15 +41,17 @@ export const WEB_ADOPTION_RULES = [
   [/(?:導入|採用|活用|利用|投入)を(?:強く|積極的に)?推奨/, "導入・採用を勧める表現"],
   [/即座に(?:導入|採用|TRIAL)|今すぐ(?:導入|採用)/, "即時の導入を勧める表現"],
   [/(?:導入|採用)(?:を検討)?すべき/, "導入・採用を勧める表現"],
-  [/本番環境への導入(?!には|に(?:は|あたって|際して|向けて)|前|の前|の際)/, "本番環境への導入を勧める表現"],
+  [/本番環境への導入(?!には|に(?:は|あたって|際して|向けて)|前|の前|の際)/, "本番環境で使うことを勧める表現"],
   [/(?:導入|採用|活用|移行|検討)(?:は|が|こそ)?(?:もはや)?必須(?:です|と言え|でしょう)/, "導入を必須とする助言"],
-  [/判定[^\n]{0,8}?(?:ADOPT|TRIAL|ASSESS|HOLD)|推奨(?:活用)?フェーズ/, "採用判定（ADOPT/TRIAL 等）・推奨フェーズの表示"],
+  [/判定[^\n]{0,8}?(?:ADOPT|TRIAL|ASSESS|HOLD)|推奨(?:活用)?フェーズ/, "ADOPT・TRIAL などの採用判定・推奨の段階の表示"],
 ];
 
 // 比較・最上級の表現。同じ段落に README 等をリンク付きで引用（> の行）している場合だけ認める
+export const WEB_SUPERLATIVE_WHY = "引用の無い比較・最上級の表現";
 export const WEB_SUPERLATIVE_RE = /優位|最速|上回る|上回り|上回っ|圧倒的|凌駕/;
 
 // ライセンスの推測（禁止の記載が無いことを利用できる根拠にする）
+export const WEB_LICENSE_REASONING_WHY = "禁止の記載が無いことを根拠にしたライセンスの推測";
 export const WEB_LICENSE_REASONING_RE =
   /明示的(?:に|な)?(?:禁止|制限)[^\n。]{0,12}?(?:されていない|されておらず|がない|が無い|は見当たら)|許容されることが多い|慣例として|(?:禁止|制限)(?:する)?(?:記述|記載|条項)(?:は|が)?(?:見当たらない|見当たりません|ない|無い|ありません)/g;
 
@@ -71,11 +74,25 @@ export function findWebArticleClaims(text) {
     const m = para.match(WEB_SUPERLATIVE_RE);
     if (!m) continue;
     const quotedWithLink = para.split("\n").some((l) => /^\s*>/.test(l) && /\]\(https?:\/\/|https?:\/\//.test(l));
-    if (!quotedWithLink) hits.push(`引用の無い比較・最上級の表現 ("${m[0]}")`);
+    if (!quotedWithLink) hits.push(`${WEB_SUPERLATIVE_WHY} ("${m[0]}")`);
   }
   for (const m of body.matchAll(WEB_LICENSE_REASONING_RE)) {
     const near = body.slice(Math.max(0, m.index - 300), m.index + m[0].length + 300);
-    if (/ライセンス|商用利用/.test(near)) hits.push(`禁止の記載が無いことを根拠にしたライセンスの推測 ("${m[0]}")`);
+    if (/ライセンス|商用利用/.test(near)) hits.push(`${WEB_LICENSE_REASONING_WHY} ("${m[0]}")`);
   }
   return hits;
 }
+
+// ---- 公開している「自動で検査していること」の一覧（src/pages/about.astro が表示する） ----
+// 一覧は上の規則（と hype_check.mjs の HYPE_RULES）から作る。手で書くと、規則より広い範囲を保証する文になる
+// （「誇張表現は公開しません」と書いていたが、規則に無い「革新的」「極限」は検出されず残った。2026-10-22）。
+// 検出する語そのものはページに載せない（載せると、そのページ自体が配信物の検査に当たる）。定義はリポジトリのソースを示す
+const uniqueWhys = (rules, whyAt = 1) => [...new Set(rules.map((r) => r[whyAt]))].map((why) => ({ why }));
+
+export const PUBLIC_CHECK_GROUPS = [
+  { name: "禁止表現", source: "scripts/utils/claims_check.mjs", scope: "生成時に当たった原稿は公開しません。掲載中の記事とサイトの配信物もテストで検査します。", rules: uniqueWhys(FORBIDDEN) },
+  { name: "誇張・結果保証の表現", source: "scripts/utils/hype_check.mjs", scope: "生成時に当たった原稿は公開しません。掲載中の Web 記事とサイトの配信物もテストで検査します。", rules: uniqueWhys(HYPE_RULES, 2) },
+  { name: "導入・採用を勧める表現", source: "scripts/utils/claims_check.mjs", scope: "生成時に当たった Web 記事は公開しません。掲載中の Web 記事とサイトの配信物もテストで検査します。", rules: uniqueWhys(WEB_ADOPTION_RULES) },
+  { name: "比較・最上級の表現", source: "scripts/utils/claims_check.mjs", scope: "同じ段落に README の該当箇所をリンク付きで引用していない Web 記事は公開しません。", rules: [{ why: WEB_SUPERLATIVE_WHY }] },
+  { name: "ライセンスの推測", source: "scripts/utils/claims_check.mjs", scope: "ライセンス・商用利用の文脈で当たった Web 記事は公開しません。", rules: [{ why: WEB_LICENSE_REASONING_WHY }] },
+];

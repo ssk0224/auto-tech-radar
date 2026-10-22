@@ -1,6 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { getCorrections, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+// 「自動で検査していること」の表現の検査は、検査の定義そのものから一覧を作る（手で書くと定義より広い範囲を保証してしまう）
+import { PUBLIC_CHECK_GROUPS } from "../../scripts/utils/claims_check.mjs";
+import { siteConfig } from "../config/site.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 // 訂正履歴は記事の frontmatter の corrections から作る（新しい訂正から順）
 const corrections = getCorrections();
@@ -16,10 +19,17 @@ const shortTitle = (t: string) => String(t || "").split(" - ")[0].trim();
     <p>記事は導入や採用を勧めるものではありません。性能・対応状況などの記述は README などの記載に基づくもので、当サイトで計測したものではありません。</p>
 
     <h2 style="color: #fff;">自動で検査していること</h2>
+    <p>文の表現は、次の規則に当たるかを機械的に検査しています。規則に無い言い回しは検出できません（検出する語の定義は <a href={`${siteConfig.githubUrl}/blob/main/scripts/utils/claims_check.mjs`}>claims_check.mjs</a>・<a href={`${siteConfig.githubUrl}/blob/main/scripts/utils/hype_check.mjs`}>hype_check.mjs</a> で公開しています）。</p>
+    <ul id="public-checks">
+      {PUBLIC_CHECK_GROUPS.map((g) => (
+        <li><strong>{g.name}</strong>: {g.scope}
+          <ul>{g.rules.map((r) => <li>{r.why}</li>)}</ul>
+        </li>
+      ))}
+    </ul>
     <ul>
-      <li><strong>禁止表現</strong>: 根拠のない収益・成果の保証、誇張表現、導入・採用を勧める表現、README の引用が無い比較・最上級の表現、「禁止の記載が無いので利用できる」のようなライセンスの推測。該当する記事は公開しません。</li>
       <li><strong>ライセンス</strong>: GitHub の表示ではなく、リポジトリの LICENSE ファイルの本文からライセンスを判定します。判定できない場合は「要確認」、LICENSE ファイルが無い場合は「ライセンス未指定（利用許諾なし）」とし、記事のライセンスの記述が判定結果と食い違う場合は公開しません。</li>
-      <li><strong>参照・リンク</strong>: 記事に書かれた Docker イメージやパッケージ名がレジストリに実在するか、構成図（Mermaid）が描画できるか、サイト内のリンクが実在するページを指しているかを確認します。</li>
+      <li><strong>参照・リンク</strong>: 記事に書かれた Docker イメージ（Docker Hub・GHCR）とパッケージ名（npm・PyPI）がレジストリに実在するか、構成図（Mermaid）が描画できるか、サイト内のリンクが実在するページを指しているかを確認します。レジストリが応答しないなどで判定できなかった参照は、確認できないまま公開することがあります。それ以外のレジストリは確認していません。</li>
     </ul>
 
     <h2 style="color: #fff;">検査していないこと</h2>

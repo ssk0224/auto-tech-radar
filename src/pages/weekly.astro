@@ -4,11 +4,10 @@ import { siteConfig } from "../config/site.js";
 import { getArticles, hrefOf, pubTime } from "../utils/articles.js";
 import { dateLabel, withinLastWeek } from "../utils/dates.js";
 
-// 直近7日（ビルド時点の日本時間で今日を含む 7 日間）に公開された記事のみ。pubDate 降順・ノイズ除外は getArticles 側
+// 直近7日（ビルド時点の日本時間で今日を含む 7 日間）に公開された記事をすべて。pubDate 降順・ノイズ除外は getArticles 側。
+// 件数では切らない（「直近7日間の一覧」と書いて上位 7 件だけを出すと、同じ週の他の記事が抜ける）
 const nowMs = Date.now();
-const topPosts = (getArticles() as any[])
-  .filter((p) => withinLastWeek(pubTime(p), nowMs))
-  .slice(0, 7);
+const topPosts = (getArticles() as any[]).filter((p) => withinLastWeek(pubTime(p), nowMs));
 ---
 
 <Layout
@@ -36,9 +35,6 @@ const topPosts = (getArticles() as any[])
         <button id="copy-summary-btn" style="background: #1e293b; border: 1px solid #334155; color: #93c5fd; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
           📋 社内チャット・週報用にコピー
         </button>
-        <a href="https://x.com/AutoTechRadar" target="_blank" rel="noopener noreferrer" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none;">
-          𝕏 @AutoTechRadar 速報
-        </a>
       </div>
     </div>
 
@@ -95,14 +91,14 @@ const topPosts = (getArticles() as any[])
     <div style="margin-top: 2.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; text-align: center;">
       <h3 style="margin: 0 0 0.5rem; color: #fff; font-size: 1.2rem;">社内DX・AIエージェントの受託開発・導入をご検討の企業様へ</h3>
       <p style="color: #94a3b8; font-size: 0.9rem; margin: 0 0 1.2rem;">
-        本ページに掲載のOSSを用いた社内導入・クラウド配備・UIカスタマイズなどについて、導入支援のご相談を受け付けています。
+        本ページに掲載の OSS の環境構築などのご相談は、お問い合わせフォームから受け付けています（個人で運営しているため、ご返信までお時間をいただく場合があります）。
       </p>
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
         <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/estimate/`} style="background: #10b981; color: #042f2e; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 800; font-size: 0.88rem; text-decoration: none;">
-          ⚡ 開発費用の即時試算シミュレーター
+          ⚡ 開発費用の目安を試算（概算）
         </a>
         <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: #2563eb; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none;">
-          📩 受託開発・AI導入の無料相談
+          📩 お問い合わせフォーム
         </a>
       </div>
     </div>

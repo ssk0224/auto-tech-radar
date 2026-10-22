@@ -1,10 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
+import Cadence from "../components/Cadence.astro";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<Layout title="企業の研修・スキルアップ経費精算ガイド | Auto Tech Radar PRO" description="Auto Tech Radar PROの月額購読料・単発レポート購入費について、経費として精算できるかどうかは所属先の規定によります。会社の研修費・スキルアップ支援制度などの利用を検討する際のガイドです。">
+<Layout title="企業の研修・スキルアップ経費精算ガイド | Auto Tech Radar" description="Auto Tech Radar の note 有料記事・メンバーシップの購入費について、経費として精算できるかどうかは所属先の規定によります。会社の研修費・スキルアップ支援制度などの利用を検討する際のガイドです。">
   <div style="max-width: 760px; margin: 0 auto; padding: 1rem 0 3rem;">
     <!-- Breadcrumb -->
     <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem;">
@@ -18,7 +19,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
       <h1 style="font-size: 2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.35;">
         企業の研修費・スキルアップ制度で<br/>
-        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Auto Tech Radar PRO を経費精算する方法</span>
+        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Auto Tech Radar の有料記事を経費精算する方法</span>
       </h1>
       <p style="font-size: 0.98rem; color: #cbd5e1; margin: 0 auto; max-width: 620px; line-height: 1.7;">
         技術情報の購読費は、会社の研修費・自己啓発制度の対象になることがあります。対象になるかは所属先の規程をご確認ください。購入・領収書の発行は note で行われます。
@@ -62,23 +63,23 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
           📋 テンプレートをコピー
         </button>
       </div>
-      <div style="background: #030712; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #e2e8f0; line-height: 1.7; white-space: pre-wrap;" id="template-text">件名：技術調査・スキルアップ研修費用の経費精算申請（Auto Tech Radar PRO）
+      <div style="background: #030712; border: 1px solid #1f2937; border-radius: 10px; padding: 1.3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #e2e8f0; line-height: 1.7; white-space: pre-wrap;" id="template-text">件名：技術調査・スキルアップ研修費用の経費精算申請（Auto Tech Radar の note 有料記事）
 
 〇〇さん（上長名、または経理部ご担当者様）
 
 お疲れ様です、〇〇です。
 
-今後の自社開発およびプロダクトのアーキテクチャ設計・商用OSS活用力向上のため、海外の急上昇オープンソースを日本語で技術解剖・商用分析する専門メディア「Auto Tech Radar PRO」の購読を申請いたしたくご連絡いたしました。
+今後の自社開発およびプロダクトのアーキテクチャ設計の参考とするため、海外で注目されているオープンソースを日本語で解説する「Auto Tech Radar」の note 有料記事（メンバーシップ）の購読を申請いたしたくご連絡いたしました。
 
 ■ 媒体概要
-・名称：Auto Tech Radar PRO（世界の急上昇OSS徹底解剖メディア）
+・名称：Auto Tech Radar（note で販売している有料記事・メンバーシップ）
 ・URL：https://ssk0224.github.io/auto-tech-radar/
-・内容：GitHub急上昇OSSのアーキテクチャ分析、セキュリティ・商用利用リスク評価、自社サービスへの導入手順書
+・内容：GitHub でスター数が伸びている OSS について、README などの公開情報をもとに AI が下書きした日本語の解説。有料記事には導入提案書テンプレート・工数見積表・導入手順（動作未検証の例を含む）が含まれます（セキュリティ評価・法的な判断は含みません）
 
 ■ 業務上の導入メリット
 1. 海外で注目されている AI・クラウド基盤 OSS の概要と公式情報（README）を日本語で確認できる
-2. 自社プロダクトの設計工数削減および競合SaaS代替によるコスト最適化
-3. 毎日更新されるため、新しい OSS の情報を継続的に確認できる
+2. 導入を検討する際の提案書・見積表の雛形として使える
+3. 掲載状況はサイトで確認できる（<Cadence />）
 
 ■ 費用
 ・月額 1,980円（税込）

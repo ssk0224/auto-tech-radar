@@ -1,5 +1,6 @@
 import rss from '@astrojs/rss';
 import { getArticles, hrefOf, slugOf, pubTime } from '../utils/articles.js';
+import { SITE_DESCRIPTION } from '../utils/site_copy.js';
 
 export async function GET(context) {
   // ノイズ除外・新しい順は getArticles 側。pubDate が無い記事は日付を偽らず除外する
@@ -7,7 +8,7 @@ export async function GET(context) {
 
   return rss({
     title: 'Auto Tech Radar | 海外急上昇OSS日本語インデックス',
-    description: '世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。',
+    description: SITE_DESCRIPTION,
     site: 'https://ssk0224.github.io/auto-tech-radar/',
     items: posts.map((post) => {
       const slug = slugOf(post);
