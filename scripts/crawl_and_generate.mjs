@@ -8,7 +8,7 @@ import { stripProSection } from "./utils/pro_boundary.mjs";
 import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, publicNoteProblems, sealedFileFor } from "./utils/note_vault.mjs";
 import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 
-import { findMissingReferences } from "./utils/reference_check.mjs";
+import { checkReferences } from "./utils/reference_check.mjs";
 import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims, findWebArticleClaims, WEB_CLAIMS_PROMPT_RULE } from "./utils/claims_check.mjs";
@@ -50,7 +50,8 @@ function withTimeout(promise, ms, what) {
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
-  console.warn("⚠️ Warning: GEMINI_API_KEY is not set. Skipping crawl and generation gracefully.");
+  // 鍵が無いと 1 本も生成できない。サイトの公開は止めないが、警告に埋もれないよう ::error で知らせる
+  console.log("::error title=GEMINI_API_KEY::GEMINI_API_KEY が設定されていないため、記事の収集と生成をしていません（リポジトリの Secrets を確認してください）");
   // 定期実行で鍵が消えていた場合も「記事 0 本」の理由として残す（scripts/alert_if_no_article.mjs が拾う）
   recordRunStatus({ generated: 0, reason: "error" });
   process.exit(0);
@@ -83,10 +84,13 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
   const queries = trendingSearchQueries();
 
   const candidateMap = new Map();
+  // 失敗した検索の数（レート制限・障害・通信の失敗）。すべて失敗した日を「候補なし」と区別するため
+  let failedQueries = 0;
 
   for (const q of queries) {
     const url = searchReposUrl(q);
     let attempts = 0;
+    let succeeded = false;
     const maxAttempts = 2;
 
     while (attempts < maxAttempts) {
@@ -104,6 +108,7 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
               candidateMap.set(item.full_name, item);
             }
           }
+          succeeded = true;
           break; // 成功
         }
 
@@ -133,10 +138,11 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
         if (attempts < maxAttempts) await sleep(2000);
       }
     }
+    if (!succeeded) failedQueries++;
   }
 
   // 厳格なフィルタリング ＆ 既存記事重複の事前排除
-  return Array.from(candidateMap.values()).filter((r) => {
+  const repos = Array.from(candidateMap.values()).filter((r) => {
     if (!r.name || !r.description || r.fork) return false;
     if (!r.language) return false; // 言語不明・単なるマークダウン集は除外
     if (r.description.length < 20) return false; // 説明が短すぎるものは除外
@@ -153,6 +159,7 @@ async function fetchTrendingRepos(existingUrls = new Set(), existingSlugs = new 
 
     return true;
   });
+  return { repos, failedQueries, totalQueries: queries.length };
 }
 
 // README の取得（最大30,000文字まで広域取得、タイムアウト ＆ レートリミット保護付き）
@@ -166,16 +173,17 @@ async function getReadme(owner, repo) {
       },
       signal: AbortSignal.timeout(15000),
     });
-    if (res.status === 403 || res.status === 429) {
-      console.warn(`[GitHub Rate Limit] Failed to fetch README for ${owner}/${repo} (HTTP ${res.status})`);
-      return "";
+    // README が無い（404）だけが「README が無い」。レート制限・障害（403 / 429 / 5xx など）は取得できなかった（null）として区別する
+    if (res.status === 404) return "";
+    if (!res.ok) {
+      console.warn(`Failed to fetch README for ${owner}/${repo} (HTTP ${res.status})`);
+      return null;
     }
-    if (!res.ok) return "";
     const text = await res.text();
     return text.slice(0, 30000);
   } catch (err) {
     console.warn(`Failed to fetch README for ${owner}/${repo}: ${err.message}`);
-    return "";
+    return null;
   }
 }
 
@@ -576,7 +584,10 @@ function getExistingIndexedData(webDir) {
       if (m && m[1]) {
         existingUrls.add(m[1].trim().toLowerCase().replace(/\/$/, ""));
       }
-    } catch (e) {}
+    } catch (e) {
+      // 読めない記事があると重複の確認から漏れる（同じリポジトリの記事をもう一度作りうる）ので、黙らない
+      console.log(`::warning title=既存記事を読めません::${f}: ${e.code || "読めません"}`);
+    }
   }
   return { existingUrls, existingSlugs };
 }
@@ -592,7 +603,9 @@ function getFeaturedRepos(webDir) {
       const full = (field("repoUrl") || "").match(/github\.com\/([^/]+\/[^/#?]+)/)?.[1];
       if (!full) continue;
       out.push({ full_name: full, pubDate: field("pubDate"), stars: Number(field("stars")) || 0, created_at: field("repoCreatedAt") });
-    } catch (e) {}
+    } catch (e) {
+      console.log(`::warning title=既存記事を読めません::${f}: ${e.code || "読めません"}（選定の上限・集中の判定から漏れます）`);
+    }
   }
   return out;
 }
@@ -644,7 +657,9 @@ async function run() {
     for (const f of fs.readdirSync(webDir).filter((x) => x.endsWith(".md"))) {
       try {
         if (isPublishedOn(fs.readFileSync(path.join(webDir, f), "utf8"), today)) todaySlugs.add(f.replace(/\.md$/, ""));
-      } catch (e) {}
+      } catch (e) {
+        console.log(`::warning title=既存記事を読めません::${f}: ${e.code || "読めません"}（本日分の本数から漏れます）`);
+      }
     }
   }
   const todayCount = todaySlugs.size;
@@ -656,7 +671,15 @@ async function run() {
   }
 
   // 急上昇OSSの探索（既存記事のURL/スラグは除外済み）。検索は候補集めだけに使い、並べ替えは selection.mjs で行う
-  const candidates = await fetchTrendingRepos(existingUrls, existingSlugs);
+  const search = await fetchTrendingRepos(existingUrls, existingSlugs);
+  // 検索がすべて失敗した日は「候補なし」ではない（GitHub のレート制限・障害）。理由を分けて記録し、::error で知らせる
+  if (search.failedQueries === search.totalQueries) {
+    console.log(`::error title=GitHub search::GitHub の検索が ${search.totalQueries} 件すべて失敗しました（レート制限・障害・通信の失敗）。候補が無いのではなく、確かめられていません`);
+    recordRunStatus({ generated: 0, reason: "upstream_unavailable" });
+    return;
+  }
+  if (search.failedQueries) console.log(`::warning title=GitHub search::GitHub の検索 ${search.totalQueries} 件中 ${search.failedQueries} 件が失敗しました。候補は残りの検索結果だけから選びます`);
+  const candidates = search.repos;
   if (candidates.length === 0) {
     console.log("ℹ️ 新規候補リポジトリが見つかりませんでした（全件インデックス済み、または一時的なGitHub検索制限）。安全に終了します。");
     recordRunStatus({ generated: 0, reason: "no_candidates" });
@@ -684,6 +707,8 @@ async function run() {
 
   let generatedCount = 0;
   let attempts = 0;
+  // README を取得できなかった候補の数（レート制限・障害。「README が不十分」とは区別する）
+  let upstreamFailures = 0;
   const rejections = [];
   // 実行全体を止めた理由（"quota" | "model_unavailable"）と、実際に記事を生成したモデル
   let stopReason = null;
@@ -715,7 +740,15 @@ async function run() {
     attempts++;
     console.log(`\n[${generatedCount + 1}/${TARGET_NEW_COUNT}] Processing: ${repo.full_name}`);
     const readme = await getReadme(repo.owner.login, repo.name);
-    if (!readme || readme.length < 50) {
+    if (readme === null) {
+      // 取得できなかった候補は試行回数に数えない（README の中身を見ていないので、不採用の理由にもしない）
+      attempts--;
+      upstreamFailures++;
+      console.log(`::warning title=GitHub README::${repo.full_name} の README を取得できないため飛ばします（レート制限・障害。「README が不十分」とは扱いません）`);
+      rejections.push(`${repo.full_name}: README を取得できない（一時的な障害）`);
+      continue;
+    }
+    if (readme.length < 50) {
       console.log(`Skip (no readme or too short): ${repo.full_name}`);
       rejections.push(`${repo.full_name}: READMEが不十分`);
       continue;
@@ -736,7 +769,11 @@ async function run() {
         throw new Error(`note原稿が要件を満たしません（${problems.join(" / ")}）`);
       }
       // 実在しないイメージ・パッケージを購入者に渡さない
-      const missing = await findMissingReferences(`${noteText}\n${result.web}`);
+      const refs = await checkReferences(`${noteText}\n${result.web}`);
+      const missing = refs.missing;
+      // 確認できなかった参照（レート制限・対象外のレジストリなど）は採用を止めないが、「実在を確かめた」とは扱わず件数を知らせる
+      // （参照の名前は出さない: 有料部分の文面を含みうる）
+      if (refs.unverified.length) console.log(`::warning title=参照の実在確認::${slug}: 実在を確認できなかった参照が ${refs.unverified.length} 件あります（レート制限・通信の失敗・確認の対象外のレジストリ）`);
       if (missing.length) {
         throw new Error(`実在を確認できない参照があります（${missing.join(", ")}）`);
       }
@@ -915,7 +952,12 @@ ${zennCta(slug)}
         path.join(path.resolve("public/ogp"), `${slug}.svg`)
       ];
       for (const f of cleanupTargets) {
-        try { if (f && fs.existsSync(f)) fs.unlinkSync(f); } catch {}
+        try {
+          if (f && fs.existsSync(f)) fs.unlinkSync(f);
+        } catch (e) {
+          // 不採用の生成物が残ると、そのまま commit・公開されうる
+          console.log(`::warning title=不採用の生成物を消せません::${path.basename(f)}: ${e.code || "削除に失敗"}`);
+        }
       }
       if (err instanceof GeminiStopError && err.reason === "quota") {
         console.log(`::warning title=Gemini quota exhausted::Gemini API の利用枠を使い切ったため、残りの候補の生成を中止しました（枠が戻る次回の実行で再開します）。`);
@@ -941,7 +983,8 @@ ${zennCta(slug)}
     // GitHub Actions の実行結果に警告として表示する（無言で記事ゼロの日を作らない）
     console.log(`::warning title=No new article::候補 ${attempts} 件をすべて不採用にしました: ${rejections.join(" | ").slice(0, 900)}`);
   }
-  const reason = generatedCount > 0 ? "ok" : (stopReason || (attempts === 0 ? "no_candidates" : "error"));
+  // 候補はあったが README を 1 本も読めずに終わった日は、候補なしではなく upstream_unavailable
+  const reason = generatedCount > 0 ? "ok" : (stopReason || (attempts === 0 ? (upstreamFailures > 0 ? "upstream_unavailable" : "no_candidates") : "error"));
   recordRunStatus({ generated: generatedCount, reason, model: usedModel });
 }
 

@@ -3,9 +3,9 @@
 
 const TIMEOUT_MS = 10000;
 
-async function exists(url, headers = {}) {
+async function exists(url, headers = {}, fetchImpl = globalThis.fetch) {
   try {
-    const res = await fetch(url, { headers: { "User-Agent": "Auto-Tech-Radar/2.0", ...headers }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const res = await fetchImpl(url, { headers: { "User-Agent": "Auto-Tech-Radar/2.0", ...headers }, signal: AbortSignal.timeout(TIMEOUT_MS) });
     if (res.status === 200) return true;
     if (res.status === 404) return false;
     return null; // レート制限・障害など判定不能
@@ -14,14 +14,14 @@ async function exists(url, headers = {}) {
   }
 }
 
-async function ghcrImageExists(name, tag) {
+async function ghcrImageExists(name, tag, fetchImpl) {
   try {
-    const t = await fetch(`https://ghcr.io/token?scope=repository:${name}:pull`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const t = await fetchImpl(`https://ghcr.io/token?scope=repository:${name}:pull`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
     // 匿名で取得できない（非公開または存在しない）イメージは、トークン発行の段階で拒否される
     if (t.status === 401 || t.status === 403) return false;
     if (!t.ok) return null;
     const { token } = await t.json();
-    const res = await fetch(`https://ghcr.io/v2/${name}/manifests/${tag}`, {
+    const res = await fetchImpl(`https://ghcr.io/v2/${name}/manifests/${tag}`, {
       method: "HEAD",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -45,14 +45,14 @@ function parseImage(ref) {
   return { name: hasTag ? clean.slice(0, lastColon) : clean, tag: hasTag ? clean.slice(lastColon + 1) : "latest" };
 }
 
-async function imageExists(ref) {
+async function imageExists(ref, fetchImpl = globalThis.fetch) {
   if (/\$\{|<|>/.test(ref)) return null; // 変数入りは判定しない
   const { name, tag } = parseImage(ref);
-  if (name.startsWith("ghcr.io/")) return ghcrImageExists(name.slice("ghcr.io/".length), tag);
+  if (name.startsWith("ghcr.io/")) return ghcrImageExists(name.slice("ghcr.io/".length), tag, fetchImpl);
   const first = name.split("/")[0];
   if (name.includes("/") && (first.includes(".") || first.includes(":"))) return null; // その他のレジストリは判定しない
   const repo = name.includes("/") ? name : `library/${name}`;
-  return exists(`https://hub.docker.com/v2/repositories/${repo}/tags/${encodeURIComponent(tag)}`);
+  return exists(`https://hub.docker.com/v2/repositories/${repo}/tags/${encodeURIComponent(tag)}`, {}, fetchImpl);
 }
 
 // docker-compose のサービスで build: と同じ階層にある image: は、自分でビルドしたイメージに付ける名前（レジストリから取得しない）
@@ -91,12 +91,23 @@ export function extractReferences(text) {
   return { images: [...images], npm: [...npm], pypi: [...pypi] };
 }
 
-// 実在しないと確認できた参照の一覧を返す（判定不能なものは含めない）
-export async function findMissingReferences(text) {
+// 参照ごとの実在確認。missing: 実在しないと確認できたもの、unverified: 確認できなかったもの（レート制限・障害・通信の失敗・
+// 判定の対象外のレジストリ・変数入り）。unverified を「実在する」と同じに扱わない（呼び出し側が件数を知らせる）
+export async function checkReferences(text, { fetchImpl = globalThis.fetch } = {}) {
   const { images, npm, pypi } = extractReferences(text);
   const missing = [];
-  for (const ref of images) if ((await imageExists(ref)) === false) missing.push(`image ${ref}`);
-  for (const pkg of npm) if ((await exists(`https://registry.npmjs.org/${pkg.replace("/", "%2F")}`)) === false) missing.push(`npm ${pkg}`);
-  for (const pkg of pypi) if ((await exists(`https://pypi.org/pypi/${pkg}/json`)) === false) missing.push(`pypi ${pkg}`);
-  return missing;
+  const unverified = [];
+  const put = (found, label) => {
+    if (found === false) missing.push(label);
+    else if (found !== true) unverified.push(label);
+  };
+  for (const ref of images) put(await imageExists(ref, fetchImpl), `image ${ref}`);
+  for (const pkg of npm) put(await exists(`https://registry.npmjs.org/${pkg.replace("/", "%2F")}`, {}, fetchImpl), `npm ${pkg}`);
+  for (const pkg of pypi) put(await exists(`https://pypi.org/pypi/${pkg}/json`, {}, fetchImpl), `pypi ${pkg}`);
+  return { missing, unverified };
+}
+
+// 実在しないと確認できた参照の一覧（確認できなかったものは checkReferences の unverified）
+export async function findMissingReferences(text, opts) {
+  return (await checkReferences(text, opts)).missing;
 }

@@ -5,7 +5,8 @@ import path from "path";
 import { pathToFileURL } from "url";
 
 // rejected: 生成した記事が CI の品質ゲート（npm test）に通らず、取り除いた（workflow の Post-Crawl Quality Test Gate が記録する）
-export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "error", "cap_reached", "rejected"];
+// upstream_unavailable: GitHub の検索・README をレート制限・障害で取得できず、記事を作れなかった（「候補なし」と区別する）
+export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "upstream_unavailable", "error", "cap_reached", "rejected"];
 
 export function jstDate(now = Date.now()) {
   return new Date(new Date(now).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
