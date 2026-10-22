@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import { PROFILE_SURFACES, copyProblems, liveProfileVerdicts, liveProfileReport, normalizeCopy, membershipClaimProblems, renderSurface } from "../scripts/live_profile_check.mjs";
-import { TERMS, placeholders, termEvidenceProblems, vocabularyProblems } from "../scripts/utils/profile_vocabulary.mjs";
+import { FUNCTION_WORDS, TERMS, placeholders, termEvidenceProblems, vocabularyProblems } from "../scripts/utils/profile_vocabulary.mjs";
 
 const COPY = JSON.parse(fs.readFileSync("data/profile_copy.json", "utf8"));
 const withStatement = (id, text) => ({ ...COPY, statements: { ...COPY.statements, [id]: text } });
@@ -38,6 +38,11 @@ test("語の裏付け: 登録した語はすべて、その語の根拠になる
   // 根拠のファイルから根拠が消えたら（機能が変わったら）、その語を使う文面は正本に置けない
   const gone = termEvidenceProblems(() => "");
   assert.equal(gone.length, TERMS.length, gone.join("\n"));
+  // 根拠のファイルを読めないときも、黙って飛ばさず問題にする（未計測は ok ではない）
+  const unreadable = termEvidenceProblems(() => {
+    throw Object.assign(new Error("EACCES"), { code: "EACCES" });
+  });
+  assert.equal(unreadable.length, TERMS.length, unreadable.join("\n"));
 });
 
 test("面の形: 面は登録された文の id の並びだけ。面に直接書いた文・知らない id は問題", () => {
@@ -74,24 +79,55 @@ test("正本の文: 生成の指示文に出てくる未登録の語は、どれ
   for (const m of src.matchAll(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu)) {
     for (const s of seg.segment(m[0])) if (s.isWordLike && s.segment.length >= 2) words.add(s.segment);
   }
-  const unregistered = [...words].filter((w) => vocabularyProblems(w).length > 0);
+  // 試す語の一覧は、検査する関数（vocabularyProblems）を使わずに作る（関数を緩めると一覧も縮んで緑のままになるため。2026-10-22 の検証）:
+  // 登録した語の形を含まず、文法の語でもない語
+  const forms = TERMS.flatMap((t) => t.forms);
+  const unregistered = [...words].filter((w) => !FUNCTION_WORDS.has(w) && !forms.some((f) => w.includes(f) || f.includes(w)));
   assert.ok(unregistered.length >= 50, `試せる語が少ない: ${unregistered.length}`);
   const missed = unregistered.filter((w) => copyProblems(withStatement("subject", `${COPY.statements.subject}${w}。`)).length === 0);
   assert.deepEqual(missed, []);
 });
 
 test("語の検査: 登録した語・文法の語・句読点・差し込み（{site} など）だけの文は問題なし。数字・記号は問題", () => {
-  for (const t of Object.values(COPY.statements)) assert.deepEqual(vocabularyProblems(t, placeholders(COPY.names)), [], t);
+  for (const t of Object.values(COPY.statements)) assert.deepEqual(vocabularyProblems(t, placeholders()), [], t);
   assert.ok(vocabularyProblems("記事は 100 本あります").length > 0, "数字は差し込みでしか書けない");
   assert.ok(vocabularyProblems("+30% の記事").length > 0);
   assert.ok(vocabularyProblems("記事は {unknown} です").length > 0, "知らない差し込み");
 });
 
-test("名前（プラン名）: カタカナ・ラテン文字だけの短い名前。漢字・数字・長い文は問題", () => {
-  for (const plan of ["最強プラン", "全記事読み放題プラン", "プラン 2026", "毎日更新されるメンバーシッププランの名前がとても長い"]) {
-    const bad = structuredClone(COPY);
-    bad.names.plan = plan;
-    assert.ok(copyProblems(bad).length > 0, plan);
+// プラン名も文として語の検査を受ける（以前は「カタカナ・ラテン文字の 16 文字以内」という形だけを見ていて、
+// 「オールアクセスプラン」「Unlimited Pass」が通った。2026-10-22 の検証）。正本に文以外の自由な名前の欄（names）は置かない
+test("名前（プラン名）: プラン名も登録した語と差し込みだけ。全部読める・無制限を名乗る名前は問題、names の欄も問題", () => {
+  for (const plan of ["オールアクセスプラン", "Unlimited Pass", "最強プラン", "全記事読み放題プラン", "プラン 2026", "スタンダードプラン"]) {
+    const p = copyProblems(withStatement("planName", plan));
+    assert.ok(p.some((x) => x.startsWith("statements.planName:")), `${plan}\n${p.join("\n")}`);
+  }
+  const named = { ...COPY, names: { plan: "オールアクセスプラン" } };
+  assert.match(copyProblems(named).join("\n"), /names/);
+});
+
+// 根拠と逆の向きの文: 「検証」の根拠は「動作未検証」（検証していない）、「生成」「購入」の根拠は、そうしていること。
+// 登録した語だけで書いても、根拠と逆の向き（検証している・生成していない・購入しなくても）を言う文は問題（2026-10-22 の検証: M5）
+test("正本の文: 登録した語だけでも、根拠と逆の向きのことを言う文は問題", () => {
+  for (const [id, text] of [
+    ["aiMade", "記事は動作を検証しています。"],
+    ["aiMade", "記事は AI が生成したもので、動作は検証しています。"],
+    ["aiMade", "記事は AI が生成していません。動作は検証していません。"],
+    ["aiMade", "記事は AI が生成したもので、動作は未検証ではありません。"],
+    ["aiMade", "記事は AI が生成したものではなく、動作は検証していません。"],
+    ["membership", "メンバーシップ特典に入っていない有料記事も、購入しないで読めます。"],
+  ]) {
+    const p = copyProblems(withStatement(id, text));
+    assert.ok(p.some((x) => x.startsWith(`statements.${id}:`) && /向き/.test(x)), `${text}\n${p.join("\n")}`);
+  }
+});
+
+// メンバーシップの面で記事に触れるときは、必ず「特典に入っている／入っていない」で限定する（有料記事は一部しか特典に入っていない）。
+// 登録した語だけで「有料記事はメンバーシップ特典で読めます」と書くと、全部読めるかのように読める（2026-10-22 の検証: M1・M2）
+test("正本の文: メンバーシップ・特典に触れる面で、記事を「特典に入っている／入っていない」で限定しない文は問題", () => {
+  for (const text of ["有料記事はメンバーシップ特典で読めます。", "メンバーシップに入って有料記事を読めます。", "記事はメンバーシップ特典で読めます。", "メンバーシップ特典で記事を読めます。"]) {
+    const p = copyProblems(withStatement("membership", text));
+    assert.ok(p.some((x) => /限定/.test(x)), `${text}\n${p.join("\n")}`);
   }
 });
 
@@ -121,6 +157,13 @@ test("メンバーシップで「全記事・全アーカイブ読み放題」�
   // note の API は説明文を途中で改行して返す（「すべて読み\n  放題」2026-10-22 の実測）
   assert.ok(membershipClaimProblems("レポートがすべて読み\n  放題になります", { paidNotes: 36, membershipConnected: 3 }).length > 0);
   assert.ok(membershipClaimProblems(claim, { paidNotes: 36, membershipConnected: undefined }).length > 0);
+  // 全部とは書かず、限定もしない言い方（2026-10-22 の検証: M1・M2）も、全部が特典に入っているときだけ
+  for (const loose of ["有料記事はメンバーシップ特典で読めます。", "メンバーシップに入って有料記事を読めます。"]) {
+    assert.ok(membershipClaimProblems(loose, { paidNotes: 36, membershipConnected: 3 }).length > 0, loose);
+    assert.ok(membershipClaimProblems(loose, { paidNotes: 36, membershipConnected: undefined }).length > 0, loose);
+    assert.deepEqual(membershipClaimProblems(loose, { paidNotes: 36, membershipConnected: 36 }), [], loose);
+  }
+  assert.deepEqual(membershipClaimProblems(renderSurface(COPY, "note.plan.description"), { paidNotes: 36, membershipConnected: 3 }), []);
   // 公開中の説明が「全有料レポート読み放題」で、3 / 36 本しか特典に入っていない状態（2026-10-22 の実測）は bad。
   // 面に印を付けて選ぶのではなく、すべての面で確かめる
   for (const id of PROFILE_SURFACES.map((s) => s.id)) {

@@ -17,6 +17,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const readRepo = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 
 // forms: 文に現れる形。file: 根拠のファイル。evidence: そのファイルに実在すべき記述（省略時は forms の各語がそのファイルに現れること）
+// polarity: 根拠が示す向き。true = そうしている（否定して書けない）、false = そうしていない（否定でしか書けない）。
+//   登録した語だけで逆の事実（「動作を検証しています」「AI が生成していません」「購入しないで読めます」）を作れないようにする（2026-10-22 の検証）
 export const TERMS = [
   { forms: ["GitHub"], file: "scripts/utils/github_queries.mjs", evidence: /api\.github\.com\/search\/repositories/ },
   { forms: ["注目", "集め"], file: "scripts/utils/github_queries.mjs", evidence: /sort=stars/ },
@@ -25,12 +27,13 @@ export const TERMS = [
   { forms: ["日本語"], file: "src/layouts/Layout.astro", evidence: /<html lang="ja">/ },
   { forms: ["解説"], file: "src/config/site.js", evidence: /tagline: ".*解説/ },
   { forms: ["記事"], file: "scripts/crawl_and_generate.mjs", evidence: /=== NOTE ARTICLE ===/ },
-  { forms: ["AI", "生成"], file: "scripts/crawl_and_generate.mjs", evidence: /GEMINI_API_KEY/ },
-  { forms: ["動作", "検証"], file: "scripts/crawl_and_generate.mjs", evidence: /動作未検証/ },
+  { forms: ["AI", "生成"], file: "scripts/crawl_and_generate.mjs", evidence: /GEMINI_API_KEY/, polarity: true },
+  { forms: ["動作", "検証"], file: "scripts/crawl_and_generate.mjs", evidence: /動作未検証/, polarity: false },
   { forms: ["有料"], file: "src/config/site.js", evidence: /singleArticlePrice/ },
   { forms: ["提案書テンプレート", "工数見積表", "導入手順", "まとめ"], file: "scripts/crawl_and_generate.mjs" },
   { forms: ["メンバーシップ", "特典", "入っ"], file: "scripts/sync_note_urls.mjs", evidence: /isMembershipConnected/ },
-  { forms: ["購入", "読め"], file: "src/config/site.js", evidence: /購入者だけが読める/ },
+  { forms: ["購入", "読め"], file: "src/config/site.js", evidence: /購入者だけが読める/, polarity: true },
+  { forms: ["個別"], file: "src/config/site.js", evidence: /singleArticlePrice/ },
   { forms: ["公式", "サイト"], file: "src/config/site.js", evidence: /url: "https:/ },
   { forms: ["X"], file: "src/config/site.js", evidence: /xHandle:/ },
   { forms: ["note"], file: "src/config/site.js", evidence: /noteProfileUrl:/ },
@@ -39,14 +42,14 @@ export const TERMS = [
 // 文法の語（助詞・助動詞・活用語尾など、事実を述べない閉じた語の類）。Intl.Segmenter（ja）が切り出す単位で持つ
 export const FUNCTION_WORDS = new Set(["は", "が", "を", "に", "で", "と", "の", "も", "へ", "や", "など", "では", "て", "た", "いる", "てい", "し", "した", "ます", "ま", "せん", "ない", "もの", "ごと", "です"]);
 
-// 差し込み。値は設定（src/config/site.js）と正本の names から作り、文の語の検査には含めない
-export function placeholders(names = {}) {
+// 差し込み。値は設定（src/config/site.js）から作り、文の語の検査には含めない。
+// 正本に自由な名前の欄は置かない（以前の names.plan は形だけの検査で「オールアクセスプラン」が通った）。名前も文として書く
+export function placeholders() {
   return {
     site: `${siteConfig.url}/`,
     x: siteConfig.xHandle,
     note: siteConfig.noteProfileUrl,
     name: siteConfig.name,
-    ...Object.fromEntries(Object.entries(names).map(([k, v]) => [`names.${k}`, v])),
   };
 }
 
@@ -92,5 +95,23 @@ export function vocabularyProblems(text, known = placeholders()) {
   return [...new Set(out)];
 }
 
-// 名前（プラン名など）: カタカナ・ラテン文字・空白・中点だけの短い名前（文・数字・漢字の宣伝を名前に入れない）
-export const NAME_RE = /^[\p{Script=Katakana}ー・\p{Script=Latin} ]{1,16}$/u;
+// 向きのある語（polarity）が、根拠と逆の向きで書かれている所。語の直前の「未」と、語の後ろから句読点までの否定
+// （ない・なく・ません・ず・なし・なかっ）を数え、奇数なら否定とみなす（「未検証ではありません」は二重否定で、検証していると言っている）。空なら問題なし
+const NEGATION_RE = /ない|なく|ません|ず|なし|なかっ/g;
+const CLAUSE_END_RE = /[、。，．,.!！?？\n]/;
+export function polarityProblems(text) {
+  const t = String(text ?? "").normalize("NFKC");
+  const out = [];
+  for (const term of TERMS.filter((x) => typeof x.polarity === "boolean")) {
+    for (const form of term.forms) {
+      for (let i = t.indexOf(form); i >= 0; i = t.indexOf(form, i + form.length)) {
+        const rest = t.slice(i + form.length);
+        const end = rest.search(CLAUSE_END_RE);
+        const negations = (t[i - 1] === "未" ? 1 : 0) + ((end < 0 ? rest : rest.slice(0, end)).match(NEGATION_RE) || []).length;
+        const negated = negations % 2 === 1;
+        if (negated === term.polarity) out.push(`「${form}」の向きが根拠と逆（根拠 ${term.file} は${term.polarity ? "そうしている" : "そうしていない"}ことを示す）`);
+      }
+    }
+  }
+  return [...new Set(out)];
+}

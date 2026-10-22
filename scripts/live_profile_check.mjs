@@ -11,7 +11,7 @@ import { pathToFileURL } from 'url';
 import { siteConfig } from '../src/config/site.js';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { findHype } from './utils/hype_check.mjs';
-import { NAME_RE, placeholders, termEvidenceProblems, vocabularyProblems } from './utils/profile_vocabulary.mjs';
+import { placeholders, polarityProblems, termEvidenceProblems, vocabularyProblems } from './utils/profile_vocabulary.mjs';
 import { BAD, UNKNOWN, annotation, bad, ok, readJsonStrict, tally, unknown } from './utils/verdict.mjs';
 import { fetchAllNotes } from './sync_note_urls.mjs';
 
@@ -40,22 +40,36 @@ const CLAIM_CLASSES = [
 const MEMBERSHIP_ALL_RE = /(?:読み|見)放題|全て|すべて|全部|全(?:有料)?(?:技術)?(?:記事|レポート|アーカイブ)|過去の全/;
 
 export const normalizeCopy = (s) => String(s ?? '').normalize('NFKC').replace(/\s+/g, '');
+
+// メンバーシップ・特典に触れる文面で、記事を「特典に入っている／入っていない」で限定していない所。
+// 有料記事は一部しか特典に入っていないので、限定しない「有料記事はメンバーシップ特典で読めます」は全部読めるかのように読める
+// （全部・読み放題と書かなくても。2026-10-22 の検証）。決まった言い回しを並べて止めるのではなく、記事に触れるたびに限定を求める
+const MEMBERSHIP_WORD_RE = /メンバーシップ|特典/;
+const QUALIFIER_RE = /入ってい(?:る|ない)(?:有料)?$/;
+export function unqualifiedArticleMentions(text) {
+  const t = normalizeCopy(text);
+  if (!MEMBERSHIP_WORD_RE.test(t)) return [];
+  return [...t.matchAll(/記事/g)].filter((m) => !QUALIFIER_RE.test(t.slice(0, m.index))).map((m) => t.slice(Math.max(0, m.index - 10), m.index + 2));
+}
 const comparable = (s, surface) => normalizeCopy(surface.opaqueUrls ? String(s ?? '').replace(/https?:\/\/\S+/g, 'URL') : s);
 
 // 正本から面 surfacePath の文面を作る（文を改行でつなぎ、差し込みを埋める）。作れなければ null
 export function renderSurface(copy, surfacePath) {
   const ids = copy?.surfaces?.[surfacePath];
   if (!Array.isArray(ids) || !ids.length || !ids.every((id) => typeof copy.statements?.[id] === 'string')) return null;
-  const values = placeholders(copy.names);
+  const values = placeholders();
   return ids.map((id) => copy.statements[id].replace(/\{([\w.]+)\}/g, (m, k) => values[k] ?? m)).join('\n');
 }
 
 // 「全記事・全アーカイブ読み放題」は、有料記事がすべてメンバーシップ特典に入っているときだけ言える。本数が分からなければ言えない
+// 限定しない言い方（unqualifiedArticleMentions）も同じ: 有料記事がすべて特典に入っているときだけ言える
 export function membershipClaimProblems(text, { paidNotes, membershipConnected } = {}) {
-  const m = normalizeCopy(text).match(MEMBERSHIP_ALL_RE);
-  if (!m) return [];
-  if (!Number.isInteger(paidNotes) || !Number.isInteger(membershipConnected)) return [`「${m[0]}」と書いているが、メンバーシップ特典に入っている有料記事の本数が分からない`];
-  if (paidNotes === 0 || membershipConnected < paidNotes) return [`「${m[0]}」と書いているが、メンバーシップ特典に入っている有料記事は ${membershipConnected} / ${paidNotes} 本`];
+  const all = normalizeCopy(text).match(MEMBERSHIP_ALL_RE)?.[0];
+  const loose = unqualifiedArticleMentions(text)[0];
+  const said = all ? `「${all}」` : loose ? `記事を特典に入っているものに限定せず「${loose}」` : null;
+  if (!said) return [];
+  if (!Number.isInteger(paidNotes) || !Number.isInteger(membershipConnected)) return [`${said}と書いているが、メンバーシップ特典に入っている有料記事の本数が分からない`];
+  if (paidNotes === 0 || membershipConnected < paidNotes) return [`${said}と書いているが、メンバーシップ特典に入っている有料記事は ${membershipConnected} / ${paidNotes} 本`];
   return [];
 }
 
@@ -70,17 +84,19 @@ function claimProblems(raw) {
   return hits;
 }
 
-// 正本そのものの問題: 面の形（登録した文の id の並びだけ）、文の語（根拠つきの語と文法の語だけ）、名前の形、語の根拠の実在、
-// 使っていない文（どの面にも出ない文は見直されないまま残る）、組み立てた文面の補助の検査
+// 正本そのものの問題: 欄（_about・statements・surfaces だけ。自由な名前の欄は置かない）、面の形（登録した文の id の並びだけ）、
+// 文の語（根拠つきの語と文法の語だけ）、語の向き（根拠と逆の向きで書かない）、語の根拠の実在、
+// 使っていない文（どの面にも出ない文は見直されないまま残る）、メンバーシップに触れる面での記事の限定、組み立てた文面の補助の検査
+const COPY_KEYS = new Set(['_about', 'statements', 'surfaces']);
 export function copyProblems(copy) {
   const out = [];
+  for (const k of Object.keys(copy || {})) if (!COPY_KEYS.has(k)) out.push(`${k}: 正本に置けない欄（文は statements に、登録した語で書く）`);
   const statements = copy?.statements && typeof copy.statements === 'object' ? copy.statements : {};
-  const known = placeholders(copy?.names);
+  const known = placeholders();
   for (const [id, text] of Object.entries(statements)) {
     if (typeof text !== 'string' || !text.trim()) out.push(`statements.${id}: 文が空`);
-    else for (const p of vocabularyProblems(text, known)) out.push(`statements.${id}: ${p}`);
+    else for (const p of [...vocabularyProblems(text, known), ...polarityProblems(text)]) out.push(`statements.${id}: ${p}`);
   }
-  for (const [k, v] of Object.entries(copy?.names || {})) if (typeof v !== 'string' || !NAME_RE.test(v)) out.push(`names.${k}: 名前はカタカナ・ラテン文字だけの 16 文字以内（"${v}"）`);
   const used = new Set();
   for (const s of PROFILE_SURFACES) {
     const ids = copy?.surfaces?.[s.path];
@@ -95,6 +111,7 @@ export function copyProblems(copy) {
     const text = renderSurface(copy, s.path);
     if (text === null) continue;
     for (const p of claimProblems(text)) out.push(`${s.path}: ${p}`);
+    for (const m of unqualifiedArticleMentions(text)) out.push(`${s.path}: メンバーシップに触れる面で、記事を「特典に入っている／入っていない」で限定していない（"${m}"）`);
     const all = normalizeCopy(text).match(MEMBERSHIP_ALL_RE);
     if (all) out.push(`${s.path}: メンバーシップで全記事が読み放題かのような表現 ("${all[0]}")`);
   }
