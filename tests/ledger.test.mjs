@@ -221,3 +221,36 @@ test("記事ページの 1 行と API の値: 記録がある記事だけ現在�
   // 因果関係（掲載で伸びた等）を表す言葉を使わない
   assert.doesNotMatch(trackRecordLine(fm, velocity), /おかげ|効果|により|貢献|伸ばし/);
 });
+
+test("検索結果が incomplete_results: true（GitHub が途中までしか探せなかった）なら完了にせず .partial にする", async () => {
+  const dir = tmpRoot([]);
+  try {
+    const { fetchImpl } = mockFetch((url) => (url.includes("/search/repositories") ? json({ incomplete_results: true, items: [item("acme/cand", 10)] }) : undefined));
+    const r = await snapshotLedger({ rootDir: dir, now: NOW, fetchImpl, delayMs: 0 });
+    assert.equal(r.status, "partial");
+    assert.equal(r.reason, "incomplete");
+    assert.ok(!fs.existsSync(ledgerPaths(dir, DATE).file));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("途中までの日は ::warning、完了していない日が続いたら ::error で知らせる（console.warn だけで黙らない）", async () => {
+  const { ledgerAnnotations, consecutivePartialDays, PARTIAL_ALERT_DAYS } = await import("../scripts/snapshot_ledger.mjs");
+  const dir = tmpRoot([]);
+  try {
+    // 10/19・10/20・10/21 が .partial だけ、10/18 は完了
+    for (const d of ["2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21"]) {
+      const { file, partial } = ledgerPaths(dir, d);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(d === "2026-10-18" ? file : partial, "{}\n");
+    }
+    assert.equal(consecutivePartialDays(dir, "2026-10-21"), 3);
+    assert.equal(consecutivePartialDays(dir, "2026-10-18"), 0);
+    assert.ok(PARTIAL_ALERT_DAYS <= 3);
+    const one = ledgerAnnotations({ status: "partial", date: "2026-10-21", reason: "rate_limit", rows: 5 }, 1);
+    assert.ok(one.some((l) => l.startsWith("::warning") && /rate_limit/.test(l)), one.join("\n"));
+    assert.ok(!one.some((l) => l.startsWith("::error")));
+    const many = ledgerAnnotations({ status: "partial", date: "2026-10-21", reason: "rate_limit", rows: 5 }, 3);
+    assert.ok(many.some((l) => l.startsWith("::error") && /3 日/.test(l)), many.join("\n"));
+    assert.deepEqual(ledgerAnnotations({ status: "complete", date: "2026-10-21", rows: 5 }, 0), []);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
