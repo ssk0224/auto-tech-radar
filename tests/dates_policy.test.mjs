@@ -21,13 +21,22 @@ function nineHourProducts(line) {
   return hits;
 }
 
+// Date の暦日・時刻・文字列の API は、手書きの一覧でなく実行環境の Date.prototype から導く:
+// Date だけが持つメソッド（getYear・toGMTString・toTemporalInstant のような古い・新しい名前も含む）は、getTime 以外すべて止める
+const SHARED_PROTOS = [Object, Number, String, Array, Function, BigInt, Boolean, Symbol, RegExp].flatMap((c) => Object.getOwnPropertyNames(c.prototype));
+const DATE_ONLY_METHODS = Object.getOwnPropertyNames(Date.prototype).filter((n) => n !== "getTime" && !SHARED_PROTOS.includes(n));
+// 他の型と同じ名前のメソッド（toString・toLocaleString）は、受け手が日付を表す名前のときに止める（数の toLocaleString は区切りの書式で、時刻帯に依らない）
+const SHARED_DATE_METHODS = Object.getOwnPropertyNames(Date.prototype).filter((n) => SHARED_PROTOS.includes(n) && /^to/.test(n));
+const DATE_LIKE_NAME = String.raw`(?:\w*(?:Date|Day|Time|Stamp|At|When)|(?:date|day|time|now|stamp|today|when|then)\w*)`;
+
 // Date を暦日・時刻・文字列に変える API と、時差・時刻帯をその場で書くこと
 export const CALENDAR_APIS = [
-  [/\.\s*(?:toISOString|toJSON|toUTCString|toGMTString|toDateString|toTimeString)\s*\(/, "Date を文字列にする（utcStamp・jstDate を使う）"],
-  [/\.\s*(?:toLocaleDateString|toLocaleTimeString)\s*\(|\bIntl\s*\.\s*DateTimeFormat\b/, "時刻帯で変わる日付の書式（jstDate・jstClock を使う）"],
-  [/\.\s*toLocaleString\s*\([^)]*\b(?:timeZone|year|month|day|hour|minute|dateStyle|timeStyle)\b|new\s+Date\([^)]*\)\s*\.\s*toLocaleString\s*\(/, "Date の toLocaleString（時刻帯で変わる）"],
-  [/\.\s*(?:get|set)(?:UTC)?(?:FullYear|Month|Date|Day|Hours|Minutes|Seconds)\s*\(|\.\s*getTimezoneOffset\s*\(/, "Date の暦日・時刻の部品を直接読む・書く"],
-  [/\bnew\s+Date\(\s*[^()\s,]+\s*,|\bDate\s*\.\s*UTC\s*\(/, "暦日の部品から Date を作る（実行するマシンの時刻帯・UTC を暗に選ぶ）"],
+  [new RegExp(String.raw`\.\s*(?:${DATE_ONLY_METHODS.join("|")})\s*\(`), "Date の暦日・時刻・文字列のメソッド（src/utils/dates.js の関数を使う）"],
+  [new RegExp(String.raw`(?<![\w$.])${DATE_LIKE_NAME}\s*\.\s*(?:${SHARED_DATE_METHODS.join("|")})\s*\(`), "日付の toString・toLocaleString（時刻帯で変わる）"],
+  // Date を作れるのは dates.js だけ（作った Date を文字列にする・テンプレートに埋める書き方を一つずつ止めるより確実）。Date.now()・Date.parse() は数を返すので使ってよい
+  [/\bnew\s+Date\b|(?<![\w$.])Date\s*\(/, "Date を作る（ms の数のまま扱い、暦日・時刻は dates.js の関数で作る）"],
+  [/\bIntl\s*\.\s*(?:DateTimeFormat|RelativeTimeFormat)\b|\bTemporal\b|\.\s*toTemporal\w*\s*\(/, "時刻帯で変わる日付の書式・別の日付 API（jstDate・jstClock を使う）"],
+  [/\bprocess\.env\.TZ\b|\bTZ\s*[:=]/, "実行環境の時刻帯を書き換える（どの時刻帯で動いても同じ結果にする）"],
   [/Asia\/Tokyo|[+-]0?9:?00\b|\b(?:UTC|GMT)\s*\+\s*0?9\b/, "時刻帯・時差をその場で書く"],
   [/["'`][^"'`\n]*T\d{2}:\d{2}|T\$\{/, "日時を文字列で組み立てる"],
   [/\.\s*(?:slice|substring|substr)\(\s*0\s*,\s*(?:10|19)\s*\)|\.\s*split\(\s*["'`]T["'`]\s*\)/, "日時の文字列から暦日・時刻を切り出す"],
@@ -71,10 +80,22 @@ test("書き方を変えた UTC/JST の手計算・実行環境の時刻帯に�
     "const s = new Date().toLocaleString('ja-JP', { month: 'long' });",
     "const off = new Date().getTimezoneOffset();",
     "const day = stamp.split('T')[0];",
+    "const s = now.toLocaleString('ja-JP');",
+    "const y = now.getYear() + 1900;",
+    "const s = String(new Date()).slice(4, 15);",
+    "process.env.TZ = 'Japan';",
+    "const s = new Date().toString();",
+    "const d = Temporal.Now.plainDateISO();",
+    "const s = `${new Date()}`;",
+    "const s = Date();",
+    "const label = pubDate.toString();",
+    "const t = d.toTemporalInstant();",
+    "const s = updatedAt.toLocaleString();",
+    "env: { ...process.env, TZ: 'UTC' }",
   ]) {
     assert.ok(calendarMath(ng).length > 0, ng);
   }
-  for (const ok of ["const d = jstDate(now);", "const s = stars.toLocaleString();", "const top = items.slice(0, 7);", "// toISOString().slice(0, 10) はここでは使わない", "const w = 540;"]) {
+  for (const ok of ["const d = jstDate(now);", "const s = stars.toLocaleString();", "const t = Date.now();", "const t = Date.parse(s);", "const h = n.toString(16);", "const s = (numPrice || 0).toLocaleString();", "const top = items.slice(0, 7);", "// toISOString().slice(0, 10) はここでは使わない", "const w = 540;"]) {
     assert.deepEqual(calendarMath(ok), [], ok);
   }
 });

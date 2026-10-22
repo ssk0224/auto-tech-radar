@@ -14,7 +14,7 @@ export async function GET(context) {
       const slug = slugOf(post);
       return {
         title: post.frontmatter?.title || slug,
-        pubDate: new Date(pubTime(post)),
+        pubDate: pubTime(post), // ms の数（@astrojs/rss が日時に変える）
         description: post.frontmatter?.description || '',
         link: hrefOf(post),
         // enclosure は実ファイルサイズを取得できないため付けない（length の偽装を避ける）

@@ -11,7 +11,7 @@ const SITE = 'https://ssk0224.github.io/auto-tech-radar';
 const KEY = '3f9a7b21e84c40d99a5e2f7b8c1d3e5a';
 const RECENT_DAYS = 2;
 
-export function recentArticleUrls(radarDir, now = new Date(), days = RECENT_DAYS) {
+export function recentArticleUrls(radarDir, now = Date.now(), days = RECENT_DAYS) {
   // 記事の pubDate は日本時間の暦日。直近 days 日（日本時間・今日を含む）だけを送る（UTC の日付と比べると 3〜4 日分になっていた）
   const since = jstDaysAgo(days - 1, now);
   return fs.readdirSync(radarDir)

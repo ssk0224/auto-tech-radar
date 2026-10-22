@@ -8,8 +8,8 @@ export const NOTE_LISTING_PER_WEEK = 3;
 export const jstDay = (ms = Date.now()) => jstDate(ms);
 
 // 出品できるなら null、できないなら理由（オーナーにそのまま見せる文）を返す
-export function noteListingBlock(history, now = new Date()) {
-  const today = jstDay(now.getTime());
+export function noteListingBlock(history, now = Date.now()) {
+  const today = jstDay(Number(now)); // ms の数（Date を渡されても Number で ms になる）
   const weekStart = addDays(today, -6);
   const dates = Object.values(history || {})
     .map((h) => h?.noteAt)
