@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import { stripProSection, findProLeaks } from "../scripts/utils/pro_boundary.mjs";
 import { extractReferences } from "../scripts/utils/reference_check.mjs";
-import { zennCta } from "../scripts/utils/funnel_copy.mjs";
 import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/utils/note_vault.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
 import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
@@ -33,18 +32,6 @@ test("note 原稿は有料ライン以降がすべて暗号化されている", 
   }
 });
 
-test("Zenn 記事の送客文は共通の文面（funnel_copy）と一致する", () => {
-  for (const f of [...list("articles", /\.md$/), ...list("zenn_drafts", /\.md$/)]) {
-    const c = read(f);
-    // zenn_drafts は <slug>_zenn.md、articles は <slug>.md または <slug>-tech-radar.md
-    // 記事の slug はファイル名ではなく本文中の記事 URL から取る（ファイル名の読み違いに合わせて中身を壊した前例があるため、両方が一致することも確かめる）
-    const linked = [...c.matchAll(/auto-tech-radar\/radar\/([a-z0-9_.-]+)\//g)].map((m) => m[1]);
-    const slug = path.basename(f).replace(/_zenn\.md$|-tech-radar\.md$|\.md$/, "");
-    assert.ok(linked.length > 0 && linked.every((x) => x === slug), `${f}: 記事 URL の slug (${[...new Set(linked)].join(",")}) がファイル名 (${slug}) と一致しない`);
-    assert.ok(c.includes(zennCta(slug)), `${f}: 送客文が古い`);
-  }
-});
-
 // 公開される文面に出してはいけない表現（存在しない機能・架空の実績・根拠のない保証）
 const FORBIDDEN = [
   [/アンロック/, "サイトに有料本文は無いのに「アンロック」をうたっている"],
@@ -67,13 +54,10 @@ function publicTexts() {
     if (e.isDirectory()) walk(p);
     else if (/\.(astro|md|js|ts|txt)$/.test(e.name)) out.push([p, read(p)]);
   });
-  ["src", "articles", "zenn_drafts", "public"].forEach(walk);
+  ["src", "public"].forEach(walk);
   for (const f of list("note_drafts", /\.md$/)) out.push([f, read(f)]);
-  for (const f of list("x_posts", /\.txt$/)) {
-    const text = read(f).replace(/intent\/tweet\?text=([^\s&]+)/g, (m, q) => { try { return decodeURIComponent(q); } catch (e) { return m; } });
-    out.push([f, text]);
-  }
-  for (const f of ["scripts/note_urls.json", "scripts/note_updates.json", "scripts/launcher.mjs", "scripts/publish_helper.mjs", "README.md"]) {
+
+  for (const f of ["scripts/note_urls.json", "scripts/launcher.mjs", "scripts/publish_helper.mjs", "README.md"]) {
     if (fs.existsSync(f)) out.push([f, read(f)]);
   }
   return out;
@@ -218,7 +202,7 @@ test("scripts/note_urls.json は note 公開済みの全非ノイズ記事を含
 
 test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォート特殊文字ラベルを含まない", () => {
   const problems = [];
-  for (const dir of ["src/pages/radar", "articles"]) {
+  for (const dir of ["src/pages/radar"]) {
     for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".md"))) {
       for (const p of mermaidProblems(read(path.join(dir, f)))) problems.push(`${dir}/${f}: ${p}`);
     }
@@ -226,10 +210,10 @@ test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォー
   assert.deepEqual(problems, []);
 });
 
-test("Web・Zenn の全 Mermaid 図が、サイトと同じ版の Mermaid で描画（構文解析）できる", async () => {
+test("Web の全 Mermaid 図が、サイトと同じ版の Mermaid で描画（構文解析）できる", async () => {
   const { mermaidParseErrors } = await import("../scripts/utils/mermaid_parse.mjs");
   const errors = [];
-  for (const dir of ["src/pages/radar", "articles", "zenn_drafts"]) {
+  for (const dir of ["src/pages/radar"]) {
     for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".md"))) {
       for (const e of await mermaidParseErrors(read(path.join(dir, f)))) errors.push(`${dir}/${f}: ${e}`);
     }
@@ -280,21 +264,9 @@ test("全Astroテンプレート内のtarget=_blankリンクには必ずrel=noop
 });
 
 
-test("Zenn・X の記事リンクはすべて実在する Web 記事を指す", () => {
-  const broken = [];
-  for (const dir of ["zenn_drafts", "articles", "x_posts"]) {
-    for (const f of fs.readdirSync(dir)) {
-      for (const m of read(path.join(dir, f)).matchAll(/auto-tech-radar\/radar\/([a-z0-9_.-]+)\//g)) {
-        if (!fs.existsSync(`src/pages/radar/${m[1]}.md`)) broken.push(`${dir}/${f}: ${m[1]}`);
-      }
-    }
-  }
-  assert.deepEqual(broken, []);
-});
-
-test("X 投稿文・note 無料部分に共通の禁止表現（claims_check）が無い", () => {
+test("note 無料部分に共通の禁止表現（claims_check）が無い", () => {
   const hits = [];
-  const files = [...list("x_posts", /\.txt$/), ...list("note_drafts", /\.md$/)];
+  const files = list("note_drafts", /\.md$/);
   for (const f of files) {
     const text = read(f).replace(/intent\/tweet\?text=([^\s&]+)/g, (m, q) => { try { return decodeURIComponent(q); } catch (e) { return m; } });
     for (const h of findForbiddenClaims(text)) hits.push(`${f}: ${h}`);
@@ -313,17 +285,6 @@ test("note_urls.json の各リンクは、その記事のプロジェクト名�
     assert.ok(fs.existsSync(`src/pages/radar/${slug}.md`), `${slug}: 対応する Web 記事が無い`);
     const draftTitle = (read(`note_drafts/${slug}_note.md`).match(/^#\s+(.+)$/m) || [, ""])[1];
     assert.equal(normalizeTitle(projectNameOf(v.title)), normalizeTitle(projectNameOf(draftTitle)), `${slug}: note のタイトル「${v.title}」が原稿と別のプロジェクト`);
-  }
-});
-
-test("Zenn 用の 2 つの原稿（zenn_drafts と articles）のトピックが一致し、Zenn の形式に合う", () => {
-  for (const f of list("zenn_drafts", /_zenn\.md$/)) {
-    const slug = path.basename(f).replace(/_zenn\.md$/, "");
-    const a = [`articles/${slug}.md`, `articles/${slug}-tech-radar.md`].find((p) => fs.existsSync(p));
-    if (!a) continue;
-    const topics = (p) => JSON.parse((read(p).match(/^topics:\s*(\[.*\])$/m) || [, "[]"])[1]);
-    assert.deepEqual(topics(f), topics(a), slug);
-    for (const t of topics(a)) assert.match(t, /^[a-z0-9_-]+$/, `${a}: ${t}`);
   }
 });
 

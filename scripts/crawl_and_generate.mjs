@@ -9,7 +9,7 @@ import { splitPaid, writeSealedNote, withStandardFooter, noteDraftProblems, publ
 import { normalizeReceiptLine, receiptProblems } from "./utils/receipt.mjs";
 
 import { findMissingReferences } from "./utils/reference_check.mjs";
-import { zennCta, X_LINK_LABEL } from "./utils/funnel_copy.mjs";
+import { X_LINK_LABEL } from "./utils/funnel_copy.mjs";
 import { NOISE_FILTER_REGEX } from "./utils/noise_filter.mjs";
 import { findForbiddenClaims, findWebArticleClaims, WEB_CLAIMS_PROMPT_RULE } from "./utils/claims_check.mjs";
 import { resolveLicense, licensePromptText, licenseStatementProblems, LICENSE_PROMPT_RULE } from "./utils/license_resolver.mjs";
@@ -24,6 +24,7 @@ import { recordRunStatus as writeRunStatus, jstDate as jstToday } from "./utils/
 import { rankCandidates, watchlistDocument, pubDateProblem, jstDate, SELECTION_CONFIG, REJECTION_REASONS } from "./utils/selection.mjs";
 import { slugForRepoName } from "./utils/blocklist.mjs";
 import { isPublishedOn, radarArticlesOnRef, fetchOriginMain } from "./utils/published_articles.mjs";
+import { watchlistFile } from "./utils/owner_dir.mjs";
 import { setFrontmatterField, quoteFrontmatterStrings, unwrapMarkdownFence, closeOpenFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
 
 // 実行結果（data/run_status）は、どの終わり方でも必ず 1 回記録する（記録の無い日は、アラートが理由を示せない）
@@ -437,16 +438,6 @@ async function callGemini(prompt, systemInstruction) {
   throw lastError || new Error("All Gemini models failed");
 }
 
-// Zennトピック規格（半角英数字・ハイフン・アンダースコアのみ）サニタイザー
-function sanitizeZennTopic(topic) {
-  if (!topic) return "tech";
-  let t = String(topic).toLowerCase().trim();
-  if (t === "c++") return "cpp";
-  if (t === "c#") return "csharp";
-  t = t.replace(/[^a-z0-9_-]/g, "");
-  return t || "programming";
-}
-
 // 出力テキストを各ファイル用にパース
 async function parseGeneratedOutput(rawText, repo, today, model = null, slug = slugOf(repo)) {
   let webContent = "";
@@ -611,11 +602,8 @@ async function run() {
 
   const webDir = path.resolve("src/pages/radar");
   const noteDir = path.resolve("note_drafts");
-  const xDir = path.resolve("x_posts");
-  const zennDir = path.resolve("zenn_drafts");
-  const articlesDir = path.resolve("articles");
 
-  [webDir, noteDir, xDir, zennDir, articlesDir].forEach((dir) => {
+  [webDir, noteDir].forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
 
@@ -668,10 +656,12 @@ async function run() {
   for (const r of selection.rejected) {
     console.log(`選定から除外: ${r.full_name}（${REJECTION_REASONS[r.reason] || r.reason}）`);
   }
+  // 2〜10 位（次の記事の候補）は公開リポに置かない（記事より先に候補を公開しない）。ownerDir に書き、CI では実行の終わりに消える
   try {
-    fs.mkdirSync(path.resolve("data"), { recursive: true });
-    fs.writeFileSync(path.resolve("data/watchlist.json"), JSON.stringify(watchlistDocument(selection, Date.now()), null, 2) + "\n", "utf8");
-    console.log(`✓ ウォッチリスト（2〜${selection.watchlist.length + 1} 位）を保存: data/watchlist.json`);
+    const watchlist = watchlistFile();
+    fs.mkdirSync(path.dirname(watchlist), { recursive: true });
+    fs.writeFileSync(watchlist, JSON.stringify(watchlistDocument(selection, Date.now()), null, 2) + "\n", "utf8");
+    console.log(`✓ ウォッチリスト（2〜${selection.watchlist.length + 1} 位）を保存しました（公開リポの外）`);
   } catch (e) {
     console.warn(`ウォッチリストの保存をスキップ: ${e.message}`);
   }
@@ -702,8 +692,6 @@ async function run() {
     const slug = slugOf(repo);
     const webFile = path.join(webDir, `${slug}.md`);
     const noteFile = path.join(noteDir, `${slug}_note.md`);
-    const xFile = path.join(xDir, `${slug}_x.txt`);
-    const zennFile = path.join(zennDir, `${slug}_zenn.md`);
 
     // 二重チェック
     const normUrl = (repo.html_url || "").toLowerCase().replace(/\/$/, "");
@@ -790,80 +778,6 @@ async function run() {
       fs.writeFileSync(webFile, result.web, "utf8");
       console.log(`✓ Web記事保存: ${webFile}`);
 
-      fs.writeFileSync(xFile, result.x, "utf8");
-      console.log(`✓ X投稿文（ワンクリックURL付）保存: ${xFile}`);
-
-      // Zenn / Qiita 送客用ドラフト自動生成（アーキテクチャまでで確実にカットし、自社サイトへ完全送客）
-      const cleanBody = result.web.replace(/^---[\s\S]*?---\n*/, "").trim();
-      let teaserBody = cleanBody;
-      const cutRegex = /##\s*(?:[💡🛠️📋💰⚡]\s*)?(?:【Auto Tech Radar PRO限定】|商用化マニュアル|1-Click MCP|MCP|ビジネス|マネタイズ|収益化|インストール|クイックスタート|社内DX|詳細工数|即時本番)/i;
-      const cutMatch = teaserBody.match(cutRegex);
-      if (cutMatch && cutMatch.index > 200) {
-        teaserBody = teaserBody.substring(0, cutMatch.index).trim();
-      } else {
-        const cutMarkers = [
-          "## 🛠️ 【Auto Tech Radar PRO限定】",
-          "## ⚡ 1-Click MCP",
-          "## 💡 ビジネス・マネタイズ活用アイデア",
-          "## 💡 このOSSを活用した具体的なマネタイズ戦略",
-          "## インストール & クイックスタート手順",
-        ];
-        for (const m of cutMarkers) {
-          const idx = teaserBody.indexOf(m);
-          if (idx !== -1) {
-            teaserBody = teaserBody.substring(0, idx).trim();
-            break;
-          }
-        }
-      }
-
-      // 構文不変条件保証: コードブロックが途中で切れていれば確実に閉じる
-      const backtickCount = (teaserBody.match(/```/g) || []).length;
-      if (backtickCount % 2 !== 0) {
-        teaserBody += "\n```";
-      }
-
-      // Zenn公式トピック規格（半角英数字・ハイフン・アンダースコアのみ、1〜5個）厳格適合
-      const langTopic = sanitizeZennTopic(repo.language);
-      const repoTopics = Array.isArray(repo.topics) ? repo.topics.map(sanitizeZennTopic) : [];
-      const topicCandidates = [langTopic, ...repoTopics, "oss", "github", "architecture", "programming"];
-      const zennTopics = Array.from(new Set(topicCandidates.filter((t) => /^[a-z0-9_-]+$/.test(t)))).slice(0, 5);
-
-      // Zenn への自動公開は停止（2026-10-21）。Zenn の規約（機械生成の文章・宣伝目的のコンテンツの禁止）に沿わないため、
-      // 原稿は残すが published: false（下書き）で書き、articles/ に置いても Zenn の GitHub 連携で公開されないようにする
-      const zennDraft = `---
-title: "【徹底解剖】海外急上昇OSS「${repo.name}」のアーキテクチャと商用展開"
-emoji: "⚡"
-type: "tech"
-topics: ${JSON.stringify(zennTopics)}
-published: false
----
-
-${teaserBody}
-
----
-
-${zennCta(slug)}
-`;
-      fs.writeFileSync(zennFile, zennDraft, "utf8");
-      console.log(`✓ Zenn/Qiita送客ドラフト保存: ${zennFile}`);
-
-      // 📘 Zenn公式GitHub連携の形式 (articles/*.md) で保存（文字数12〜50文字厳格保証）。published: false のため公開はされない
-      let zennSlug = slug;
-      if (zennSlug.length < 12) zennSlug = `${zennSlug}-tech-radar`;
-      if (zennSlug.length > 50) zennSlug = zennSlug.slice(0, 50).replace(/[-_]+$/, "");
-      if (zennSlug.length < 12) zennSlug = (zennSlug + "-radar").slice(0, 50);
-
-      let finalZennSlug = zennSlug;
-      let collisionIdx = 1;
-      while (fs.existsSync(path.join(articlesDir, `${finalZennSlug}.md`))) {
-        finalZennSlug = `${zennSlug.slice(0, 45)}-${collisionIdx}`;
-        collisionIdx++;
-      }
-      const zennArticleFile = path.join(articlesDir, `${finalZennSlug}.md`);
-      fs.writeFileSync(zennArticleFile, zennDraft, "utf8");
-      console.log(`✓ Zenn原稿を下書き（published: false）で保存 (articles/): ${zennArticleFile}`);
-
       try {
         const topics = Array.isArray(repo.topics) ? repo.topics : [];
         const combinedTags = [repo.language, ...topics, "OSS"].filter(Boolean);
@@ -907,10 +821,6 @@ ${zennCta(slug)}
         noteFile,
         sealedFileFor(noteFile),
         noteFile.replace(/\.md$/, ".paid.json"),
-        xFile,
-        zennFile,
-        path.join(articlesDir, `${slug}.md`),
-        path.join(articlesDir, `${slug}-tech-radar.md`),
         path.join(path.resolve("public/ogp"), `${slug}.png`),
         path.join(path.resolve("public/ogp"), `${slug}.svg`)
       ];

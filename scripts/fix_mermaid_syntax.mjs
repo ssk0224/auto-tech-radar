@@ -53,7 +53,7 @@ function fixMermaidInContent(content) {
   });
 }
 
-const dirs = ['src/pages/radar', 'articles'];
+const dirs = ['src/pages/radar'];
 let totalFixedFiles = 0;
 
 for (const dirName of dirs) {

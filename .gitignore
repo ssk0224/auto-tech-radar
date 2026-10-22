@@ -15,3 +15,8 @@ CLAUDE.md
 !keys/note_vault_public.pem
 note_full/
 *.paid.md
+
+# 止めた出力（X の投稿文・Zenn の原稿。scripts/utils/public_tree.mjs の RETIRED_OUTPUTS）。手元に残ったファイルを誤ってコミットしない
+x_posts/
+zenn_drafts/
+articles/

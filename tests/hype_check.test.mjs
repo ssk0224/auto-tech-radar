@@ -67,12 +67,15 @@ test("生成スクリプトのプロンプトの雛形そのものに禁止表�
   }
 });
 
-test("公開している原稿（note の無料部分・Web 記事・Zenn 原稿・X 投稿文）にも、生成時に禁止した誇張・結果保証の表現が無い", () => {
+test("公開している原稿（note の無料部分・Web 記事）にも、生成時に禁止した誇張・結果保証の表現が無い", () => {
   // 公開中の note に残っていた決まった言い回しは [E] の規則（note_pending.mjs の NOTE_TEXT_RULES）で直し、原稿も同じ文にそろえてある
-  const files = ["note_drafts", "src/pages/radar", "articles", "zenn_drafts", "x_posts"].flatMap((d) =>
+  const files = ["note_drafts", "src/pages/radar"].flatMap((d) =>
     fs.readdirSync(d).filter((f) => /\.(md|txt)$/.test(f)).map((f) => path.join(d, f)),
   );
-  assert.ok(files.length > 100);
+  // 検査が空振りしない: 掲載中の Web 記事すべてと、note の原稿の両方を読んでいる（件数は実データから導く）
+  const radar = fs.readdirSync("src/pages/radar").filter((f) => f.endsWith(".md"));
+  assert.ok(radar.length > 0 && radar.every((f) => files.includes(path.join("src/pages/radar", f))));
+  assert.ok(files.some((f) => f.startsWith("note_drafts")));
   for (const f of files) assert.deepEqual(findHype(fs.readFileSync(f, "utf8")), [], f);
   // aihot・opendots の箇条書きは、公開中の文に [E] の規則を当てた結果と同じ（「実稼働」を「動作未検証」と並べない）
   for (const slug of ["aihot", "opendots"]) {

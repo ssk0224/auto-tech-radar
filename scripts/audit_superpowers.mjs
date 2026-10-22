@@ -64,7 +64,7 @@ function auditDirectory(dirName) {
 }
 
 const rIssues = auditDirectory('src/pages/radar');
-const aIssues = auditDirectory('articles');
+const aIssues = 0; // Zenn 用の原稿（articles/）は置かない
 
 if (rIssues === 0 && aIssues === 0) {
   console.log('🎉 Superpowers content integrity audit: 100% PERFECT PASS!');
