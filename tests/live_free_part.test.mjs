@@ -144,3 +144,84 @@ test("購入リンクの対応表: 新しい一覧が前回の 8 割未満なら
   assert.equal(ok.replace, true);
   assert.equal(nextNoteUrlMap({}, small).replace, true);
 });
+
+// 比較の正規化が消してよいのは、空白（改行・字下げ）と、NFKC で同じになる全角・半角の揺れだけ。
+// 数字・符号・記号・句読点は意味を運ぶ（+30% と -30%、○ と ×、$ と €）。以前は記号と句読点をすべて消してから比べていたため、
+// 逆の事実を書いた公開中の本文も「原稿どおり」と判定していた（2026-10-22 の検証）
+const SYMBOL_DRAFT = DRAFT.replace(
+  "さらに無料の説明が続き、最後の無料の文で終わります。",
+  "| 項目 | demo | 競合 |\n|---|---|---|\n| **Linux** | ○ 対応 | × 非対応 |\n| 速度 | +30% | $5/月 |\n\nさらに無料の説明が続き、最後の無料の文で終わります。",
+);
+const SYMBOL_LIVE = parseDraftToNotePayload(SYMBOL_DRAFT, true).freeBody;
+
+test("無料部分の検査: 数字の符号・○×・通貨記号が原稿と逆なら bad（記号を消して比べない）", () => {
+  assert.equal(freePartVerdict(SYMBOL_LIVE, SYMBOL_DRAFT).status, "ok");
+  for (const [from, to] of [["+30%", "-30%"], ["○ 対応", "× 対応"], ["$5", "€5"], ["30%", "80%"]]) {
+    assert.ok(SYMBOL_LIVE.includes(from), from);
+    const v = freePartVerdict(SYMBOL_LIVE.replace(from, to), SYMBOL_DRAFT);
+    assert.equal(v.status, "bad", `${from} → ${to}`);
+  }
+});
+
+// 実際の原稿（note_drafts/ の全記事）から作る性質の検査: 原稿の無料部分に現れる文字の種類（文字・数字・句読点・記号）ごとに、
+// 本文の 1 文字を同じ種類の別の文字に変えると、必ず bad になる（正規化が、その種類の文字を比較から消していない）
+const CATEGORIES = { L: /\p{L}/u, N: /\p{N}/u, P: /\p{P}/u, S: /\p{S}/u };
+const SWAP = { L: ["あ", "い"], N: ["1", "2"], P: ["、", "。"], S: ["○", "×"] };
+// HTML のタグ・実体参照の外にある、種類 cat の最初の文字の位置
+function firstTextChar(html, re) {
+  let inTag = false;
+  let inEntity = false;
+  for (let i = 0; i < html.length; i++) {
+    const c = html[i];
+    if (inTag) inTag = c !== ">";
+    else if (inEntity) inEntity = c !== ";";
+    else if (c === "<") inTag = true;
+    else if (c === "&") inEntity = true;
+    else if (re.test(c) && c.normalize("NFKC") === c) return i;
+  }
+  return -1;
+}
+test("無料部分の検査: 実際の原稿すべてで、文字・数字・句読点・記号のどれを 1 文字変えても bad になる", async () => {
+  const fs = await import("fs");
+  const path = await import("path");
+  const dir = "note_drafts";
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith("_note.md"));
+  assert.ok(files.length >= 10, files.join());
+  const seen = new Set();
+  for (const f of files) {
+    const draft = fs.readFileSync(path.join(dir, f), "utf8");
+    const html = renderDraftFree(draft);
+    if (!html) continue;
+    assert.equal(freePartVerdict(html, draft).status, "ok", f);
+    for (const [cat, re] of Object.entries(CATEGORIES)) {
+      const i = firstTextChar(html, re);
+      if (i < 0) continue;
+      seen.add(cat);
+      const [a, b] = SWAP[cat];
+      const to = html[i] === a ? b : a;
+      const mutated = html.slice(0, i) + to + html.slice(i + 1);
+      assert.equal(freePartVerdict(mutated, draft).status, "bad", `${f}: ${cat} の 1 文字を変えても bad にならない`);
+    }
+  }
+  assert.deepEqual([...seen].sort(), ["L", "N", "P", "S"], "原稿に 4 種類の文字が揃っていない（検査の前提が崩れた）");
+});
+
+test("無料部分の検査: 文言が違い、しかも原稿より大きく長い本文は past（末尾が一致しなくても有料部分が見えている恐れ）", () => {
+  const longer = `${LIVE_OK.replace("最後の無料の文で終わります", "最後の古い文で終わります")}<p>${"有料の本文です。".repeat(40)}</p>`;
+  const v = freePartVerdict(longer, DRAFT);
+  assert.equal(v.status, "bad");
+  assert.equal(v.kind, "past");
+});
+
+test("公開中の note の検査: 原稿と対応づかない note の取得に失敗したら未計測として ::warning に数え、終了コードを失敗にする", async () => {
+  const r = await inspectPublishedNotes(MAP, {
+    fetchDetail: detailFrom({ n0001: LIVE_OK, n0002: LIVE_OK, n0003: LIVE_OK, n0009: 503 }),
+    readDraft: drafts,
+    unlinked: [{ name: "古い版", noteUrl: "https://note.com/u/n/n0009", price: 980, publishAt: "" }],
+    delayMs: 0,
+  });
+  assert.equal(r.unlinked.length, 1);
+  assert.ok(r.unlinked[0].issues.some((i) => /未計測/.test(i)), JSON.stringify(r.unlinked[0]));
+  assert.equal(r.exitCode, 1);
+  assert.ok(r.lines.some((l) => /未計測 1 本/.test(l)), r.lines.join("\n"));
+});

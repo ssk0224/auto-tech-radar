@@ -10,7 +10,7 @@ import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
 import { NOTE_FIX_MAX, normBlocks, planFreePartReplace, planFreePartFixes, noteFixBudget } from "./utils/note_pending.mjs";
-import { draftFileFor, isPaidSlug, renderDraftFree } from "./utils/free_part.mjs";
+import { draftFileFor, isPaidSlug, plainText, renderDraftFree } from "./utils/free_part.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = NOTE_PROFILE;
@@ -227,8 +227,8 @@ function blockDiff(want, got) {
   return null;
 }
 
-// 比較用に、記号・空白・HTML の書式を除く
-const plain = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
+// 字数の記録用（無料部分の検査と同じ正規化）
+const plain = plainText;
 
 const uploadEyecatch = (page, args) =>
   inPage(page, async ({ id, width, height, b64, name }) => {

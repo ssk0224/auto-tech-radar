@@ -9,7 +9,7 @@ import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { splitPaid } from './utils/note_vault.mjs';
 import { noteTextIssues, noteHtmlText, autoFixableByMaintain } from './utils/note_pending.mjs';
-import { draftFileFor, freePartVerdict, isPaidSlug, renderDraftFree, PAST_MARGIN_CHARS } from './utils/free_part.mjs';
+import { draftFileFor, freePartVerdict, isPaidSlug, plainText, renderDraftFree, PAST_MARGIN_CHARS } from './utils/free_part.mjs';
 import { BAD, UNKNOWN, annotation, readJsonStrict, tally, unknown } from './utils/verdict.mjs';
 
 const NOTE_URLNAME = new URL(siteConfig.noteProfileUrl).pathname.replace(/\//g, '');
@@ -113,8 +113,8 @@ export function publishedNoteIssues(d) {
   return issues;
 }
 
-// 比較用に、記号・空白・Markdown/HTML の書式を除いた本文にする
-const plain = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').normalize('NFKC').replace(/[\s\p{P}\p{S}]/gu, '');
+// 比較用の本文（無料部分の検査 freePartVerdict と同じ正規化。記号・数字は消さない）
+const plain = plainText;
 
 // 公開中の無料部分が、原稿で決めた有料ラインのどこで終わっているか。
 // note の API はログインなしだと有料ラインより前（無料部分）だけを返すので、その終わりが原稿の無料部分のどこにあたるかを見る。
