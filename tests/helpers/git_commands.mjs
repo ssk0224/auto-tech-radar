@@ -272,6 +272,8 @@ export function entrypointWriterProblems(repoRoot, entries) {
       }
       for (const c of commandsOf(new Resolver(repoRoot, file))) {
         for (const text of c.texts) {
+          // node に渡すスクリプトが値の分からない式（穴）なら、何を起動するかをたどれない
+          if (/(?:^|\s)node(?:\.exe)?\s+(?:--?[\w-]+(?:=\S+)?\s+)*\u0001\d+\u0001/.test(text)) problems.push(`${via}${script}: 起動するスクリプトをたどれない（${text.replace(/\u0001\d+\u0001/g, "*")}）`);
           for (const s of launchedScripts(repoRoot, text)) {
             if (HOLE_RE.test(s.script) || s.script.includes("*")) problems.push(`${via}${script}: 起動するスクリプトをたどれない（${s.script.replace(/\u0001\d+\u0001/g, "*")}）`);
             else visit(s.script, s.args, `${via}${script} → `, depth + 1);

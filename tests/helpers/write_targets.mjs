@@ -497,6 +497,11 @@ export class Resolver {
       if (plus.length > 1) return plus.reduce((acc, p) => acc.flatMap((a) => this.str(p, pos, holes).map((x) => a + x)), [""]);
       if ((m = expr.match(/^\[([\s\S]*)\]$/))) return [splitTop(m[1], ",").filter(Boolean).map((p) => (p.startsWith("...") ? HOLE(holes.push(p.slice(3)) - 1) : this.str(p, pos, holes)[0])).join(" ")];
       if (expr === "process.execPath") return ["node"];
+      // path.join('scripts', 'x.mjs') などのパスは、たどれた候補（<repo>/ は外す）
+      if (/^path\.(?:join|resolve)\s*\(/.test(expr)) {
+        const v = this.eval(expr, pos);
+        if (v.length && v.every((x) => x === "<repo>" || x.startsWith("<repo>/") || !x.startsWith("<"))) return v.map((x) => x.replace(/^<repo>\/?/, ""));
+      }
       if (IDENT.test(expr) && !this.bindings.has(expr)) {
         const defs = definitionsOf(this.src, expr, pos).filter((d) => d.kind === "value" && d.expr);
         if (defs.length) return defs.flatMap((d) => this.str(d.expr, d.index, holes));

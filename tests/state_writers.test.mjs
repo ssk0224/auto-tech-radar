@@ -164,6 +164,8 @@ test("入口の検査は、ランチャーが CI だけが書く記録を書く�
       spawnArray: "import { spawnSync } from 'child_process';\nspawnSync(process.execPath, ['scripts/utils/run_status.mjs', 'rejected']);",
       template: "import { execSync } from 'child_process';\nconst s = 'run_status';\nexecSync(`node scripts/utils/${s}.mjs`);",
       flagMissing: "import { execSync } from 'child_process';\nexecSync('node scripts/flagged.mjs');",
+      pathJoin: "import path from 'path';\nimport { spawnSync } from 'child_process';\nspawnSync(process.execPath, [path.join('scripts', 'utils', 'run_status.mjs')]);",
+      opaque: "import { spawnSync } from 'child_process';\nconst pick = () => 'x';\nspawnSync(process.execPath, [pick()]);",
     };
     for (const [name, src] of Object.entries(variants)) {
       fs.writeFileSync(path.join(dir, "scripts/launcher.mjs"), src);
