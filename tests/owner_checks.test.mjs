@@ -175,3 +175,77 @@ test("note 用 HTML の検査（tests/note_html から移した 9 項目）は�
   ];
   for (const [md, re] of cases) assert.ok(paidNoteProblems(md).some((p) => re.test(p)), String(re));
 });
+
+// ---- 2026-10-22: 書き方を変えた禁止表現・金額・予告のすり抜け（検証役が見つけたもの）を、読者に見える形で塞ぐ ----
+
+test("有料本文の禁止表現: 改行・Markdown リンク・見えない文字・異体字セレクタ・漢数字・分数表記で書き方を変えても検出する", () => {
+  const variants = [
+    "この構成は受注に\n直結します。",
+    "この構成は受注に[直結](https://example.com)します。",
+    "世界‎最速の推論基盤です。",
+    "驚️異的な性能です。",
+    "お問い合わせには一営業日以内に返信します。",
+    "運用コストを5分の1に削減できます。",
+    "完全⁣保存版です。",
+  ];
+  for (const phrase of variants) {
+    assert.ok(paidNoteProblems(withPaid(phrase)).some((p) => /禁止表現/.test(p)), JSON.stringify(phrase));
+  }
+});
+
+test("有料本文の金額: 円の有無・桁区切り・漢数字・括弧書きに関係なく、根拠表が無ければ検出する", () => {
+  const noTable = PAID_BODY.split("\n").filter((l) => !l.startsWith("|")).join("\n");
+  assert.deepEqual(paidNoteProblems(note(noTable)), [], "金額も根拠表も無い原稿は通る（基準）");
+  for (const amount of ["導入費用は80万程度です。", "導入費用は1,200,000円です。", "導入費用は百二十万円です。", "導入費用は120万（税別）です。"]) {
+    assert.ok(paidNoteProblems(note(`${noTable}\n${amount}`)).some((p) => /積算根拠/.test(p)), amount);
+  }
+  assert.ok(!paidNoteProblems(note(`${noTable}\nGitHub のスターは 1.2万 スターを超えています。`)).some((p) => /積算根拠/.test(p)), "件数（スター数）は金額ではない");
+});
+
+test("無料部分の予告: どの分類にも当たらない予告・見出しを変えた予告・番号付きの予告も、有料本文に無ければ検出する", () => {
+  const teaser = ["- そのまま出せる「提案書 Markdown完全版」", "- 「詳細工数・見積シミュレーション表」", "- 公式READMEに基づく「導入手順」", "- 懸念への「想定問答集」"];
+  const cases = [
+    ["FAQ を予告したが有料本文に無い", note(PAID_BODY.replace("## ❓ 導入検討で出る懸念への想定問答", "## まとめ"), [...teaser.slice(0, 3), "- 導入時によくある質問（FAQ）集"])],
+    ["分類に無い予告", note(PAID_BODY, [...teaser, "- 本番運用前のセキュリティ点検チェックリスト"])],
+    ["予告の見出しを変えた", note(PAID_BODY.replace("## ❓ 導入検討で出る懸念への想定問答", "## まとめ"), teaser).replace("### 🔒 有料エリアで完全公開する実践ナレッジ", "### このあと読める内容")],
+    ["番号付きの予告", note(PAID_BODY, [...teaser.map((t, i) => t.replace(/^- /, `${i + 1}. `)), "5. 本番運用前のセキュリティ点検チェックリスト"])],
+    ["＆ でつないだ予告の片方が無い", note(PAID_BODY, [...teaser, "- 「提案書 ＆ セキュリティ点検チェックリスト」"])],
+  ];
+  for (const [name, md] of cases) assert.ok(paidNoteProblems(md).some((p) => /予告/.test(p)), name);
+});
+
+test("有料本文の禁止表現: 書き方を揃えても、金額の後の「稼働」を収入の表現と取り違えない", () => {
+  assert.deepEqual(paidNoteProblems(withPaid("- **エンタープライズ**: 月額298,000円（オンプレミス稼働用の構成）")), []);
+});
+
+test("無料部分の予告: 「」でくくった項目を「と」「、」でつないでも、1 つずつ有料本文と照合する", () => {
+  const teaser = ["- 公式READMEに基づく「導入手順」", "- 懸念への「想定問答集」"];
+  for (const joined of ["- 「提案書」と「障害対応ランブック」", "- 『工数見積表』、『障害対応ランブック』"]) {
+    assert.ok(paidNoteProblems(note(PAID_BODY, [...teaser, joined])).some((p) => /照合できない/.test(p)), joined);
+  }
+});
+
+test("無料部分の予告: コードブロックの中の「# 〜」（コメント）は有料本文の見出しとして数えない", () => {
+  const noQa = PAID_BODY.replace("## ❓ 導入検討で出る懸念への想定問答", "## まとめ");
+  assert.ok(paidNoteProblems(note(`${noQa}\n\`\`\`bash\n# 想定問答\necho ok\n\`\`\``)).some((p) => /想定問答/.test(p)));
+});
+
+test("無料部分の予告: 見出しは note で読者に見えるもの（コードブロックに飲み込まれていないもの）だけを数える", () => {
+  const qa = "## ❓ 導入検討で出る懸念への想定問答";
+  const swallowed = PAID_BODY.replace(qa, `\`\`\`\n閉じていないコードブロック\n${qa}`);
+  assert.ok(paidNoteProblems(note(swallowed)).some((p) => /想定問答/.test(p)), "閉じ忘れたコードブロックに飲み込まれた見出し");
+  const visible = PAID_BODY.replace(qa, `\`\`\`\n例: 中に言語つきの行がある\n\`\`\`yaml\n\`\`\`\n${qa}`);
+  assert.ok(!paidNoteProblems(note(visible)).some((p) => /予告/.test(p)), "コードブロックの外にある見出し");
+});
+
+test("無料部分の予告: 有料版の内容一覧（PAID_FEATURES）が同じ分類とみなす見出し（カスタマイズ・実装の勘所など）は予告を満たす", () => {
+  const custom = PAID_BODY.replace("## 🛠️ 公式READMEに基づく導入手順", "## 商用カスタマイズ・実装の勘所");
+  assert.ok(!paidNoteProblems(note(custom)).some((p) => /予告/.test(p)));
+});
+
+test("入れ子のつもりのコードブロック（外側と同じ長さの ``` の中に ```yaml などがある）は、note で以降が崩れるので検出する", () => {
+  const broken = "```markdown\n# 提案書の雛形\n図の説明\n```\n## 4. 効果\n```\n\n## 追加の見出し\n```yaml\nkey: v\n```";
+  assert.ok(paidNoteProblems(withPaid(broken)).some((p) => /入れ子/.test(p)), "閉じ方がずれて見出しがコードになる");
+  const ok = "````markdown\n# 提案書の雛形\n```yaml\nkey: v\n```\n````";
+  assert.ok(!paidNoteProblems(withPaid(ok)).some((p) => /入れ子/.test(p)), "外側を長くした正しい入れ子");
+});

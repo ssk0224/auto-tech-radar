@@ -36,15 +36,68 @@ export const COPY_FORBIDDEN = [
 // 有料本文に使う規則: 上の一覧・生成時の一覧（claims_check）・誇張表現（hype_check）をすべて合わせる（一覧を別々に持たない）
 export const PAID_RULES = [...COPY_FORBIDDEN, ...CLAIMS_FORBIDDEN, ...HYPE_RULES.map(([re, , why]) => [re, why])];
 
-// 書き方の違い（全角英数・全角空白・空白・ゼロ幅文字・強調記法）で規則をすり抜けないよう、比べる前に揃える
-export const normalizeForRules = (text) =>
-  normalizeEol(text)
-    .normalize("NFKC")
-    .replace(/[\t  ­​-‍⁠﻿]/g, "")
-    .replace(/\*\*|__|`/g, "");
+// 書き方の違いで規則をすり抜けないよう、規則は「読者に見える文字の並び」に対して当てる。
+// 以前は消す文字を 1 つずつ並べていたため、並べていない見えない文字・改行・Markdown リンク・漢数字・分数表記ですり抜けた。
+// ここでは Unicode の性質（表示されない文字・制御文字・空白・結合記号）でまとめて消し、Markdown / HTML の記法を外し、
+// 数の書き方（漢数字・桁区切り・「N分の1」）を算用数字にそろえる。
+const INVISIBLE_OR_SPACE = /[\p{Default_Ignorable_Code_Point}\p{Cf}\p{Cc}\p{Z}\p{Mn}\p{Me}\s]/gu;
+const KANJI_DIGIT = { 〇: 0, 零: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+const KANJI_UNIT = { 十: 10, 百: 100, 千: 1000 };
+const kanjiToArabic = (run) => {
+  if (![...run].some((c) => c in KANJI_UNIT)) return [...run].map((c) => KANJI_DIGIT[c]).join("");
+  let total = 0;
+  let digit = 0;
+  for (const c of run) {
+    if (c in KANJI_DIGIT) digit = KANJI_DIGIT[c];
+    else {
+      total += (digit || 1) * KANJI_UNIT[c];
+      digit = 0;
+    }
+  }
+  return String(total + digit);
+};
+const decodeEntities = (s) =>
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&(lt|gt|quot|apos|nbsp|amp);/g, (_, n) => ({ lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", amp: "&" })[n]);
 
-// 万円単位の金額（数字の書き方を問わない）。有料本文で示すときは積算根拠表が必須
-const AMOUNT_RE = /\d[\d,.]*万(?:円|[〜~～-])/;
+export const normalizeForRules = (text) =>
+  decodeEntities(normalizeEol(text))
+    .normalize("NFKC")
+    .replace(/!?\[([^\]\n]*)\]\([^)\n]*\)/g, "$1") // [文字](URL) → 文字
+    .replace(/!?\[([^\]\n]*)\]\[[^\]\n]*\]/g, "$1")
+    .replace(/<[^>\n]*>/g, "") // HTML タグ
+    .replace(/[*_~`\\]/g, "") // 強調・取り消し線・コード・エスケープ
+    .replace(INVISIBLE_OR_SPACE, "") // 改行も消す（行をまたいだ表現も 1 つの並びとして見る）
+    .replace(/[〇零一二三四五六七八九十百千]+/g, kanjiToArabic)
+    .replace(/(\d),(?=\d{3})/g, "$1")
+    .replace(/(\d+(?:\.\d+)?)分の(\d+(?:\.\d+)?)/g, "$2/$1");
+// 飾りの記号（かっこ・引用符・中黒・ダッシュ・絵文字など）を挟んでもすり抜けないよう、それを外した並び。
+// 「:」「。」「|」のような区切りは残す（表の「単価: 5万円」を「単価5万円」とつなげて誤検出しないため）
+const withoutDecoration = (normalized) => normalized.replace(/[\p{Ps}\p{Pe}\p{Pi}\p{Pf}\p{Pd}\p{So}\p{Sk}・]/gu, "");
+// note に載せたときに読者が読む有料部分の文字（note 用 HTML の有料部分からタグを外したもの）
+const readerText = (payBodyHtml) => payBodyHtml.replace(/<[^>]*>/g, "\n");
+// 読者に見出しとして見えるもの（note 用 HTML の h1〜h6）。コードブロックに飲み込まれた「## 〜」は見出しにならない
+const readerHeadings = (payBodyHtml) =>
+  (payBodyHtml.match(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/g) || []).map((h) => decodeEntities(h.replace(/<[^>]*>/g, "")));
+// 規則を当てる並び: 原稿そのまま（行頭・行末を見る規則のため）と、原稿・読者に見える文字それぞれを揃えたもの
+export function ruleViews(paidRaw, payBodyHtml) {
+  const views = [paidRaw];
+  for (const src of [paidRaw, readerText(payBodyHtml)]) {
+    const n = normalizeForRules(src);
+    views.push(n, withoutDecoration(n));
+  }
+  return views;
+}
+
+// 金額（揃えた並びで見る: 円の有無・桁区切り・漢数字・括弧書きを問わない）。有料本文で示すときは積算根拠表が必須。
+// 「万・億」の後が件数の単位（スター・件・人など）なら金額ではない。それ以外は金額とみなす（知らない書き方は止める側に倒す）
+const NON_MONEY_COUNTER = /^(?:行|件|人|回|個|台|社|語|字|文字|ページ|PV|DL|ダウンロード|スター|stars?|★|トークン|tokens?|リクエスト|ユーザー|名|時間|秒|ステップ|パラメータ|ファイル|枚|本|曲|点|部|エキスパート|MAU|DAU)/i;
+export function hasMoneyAmount(normalized) {
+  for (const m of normalized.matchAll(/\d+(?:\.\d+)?[万億](.{0,8})/gu)) if (!NON_MONEY_COUNTER.test(m[1])) return true;
+  return /\d{5,}円|[¥￥]\d|\$\d{3,}|\d{3,}(?:ドル|USD)/i.test(normalized);
+}
 const isBasisRow = (l) =>
   l.includes("|") &&
   /工程|項目|業務/.test(l) &&
@@ -53,16 +106,104 @@ const isBasisRow = (l) =>
   l.includes("小計") &&
   /作業|詳細|内訳|成果物/.test(l);
 
-// 無料部分の「有料エリアで公開する」予告の箇条書きが約束した項目（有料版の内容一覧と同じ分類）
-function promisedFeatures(headLines) {
-  const i = headLines.findIndex((l) => /^#{2,4} .*有料エリア/.test(l));
-  if (i === -1) return [];
+// 無料部分の予告（有料エリアで読めると約束した項目）の分類と、それを満たす有料本文の見出し。
+// どの分類にも当たらない予告は「照合できない」として止める（以前は分類に当たらない予告を黙って見逃していた）
+// 有料版の内容一覧（PAID_FEATURES・.paid.json）と同じ分類の見出しは、同じ規則で数える（2 つの一覧をずらさない）
+function withFeature(extra, featureLabel) {
+  const feature = PAID_FEATURES.find(([, label]) => label === featureLabel);
+  if (!feature) throw new Error(`PAID_FEATURES に「${featureLabel}」が無い`);
+  return new RegExp(`${feature[0].source}|${extra.source}`);
+}
+export const PROMISE_CATEGORIES = [
+  [/提案書/, withFeature(/提案書/, "導入提案書テンプレート（Markdown）"), "提案書"],
+  [/見積|工数/, withFeature(/見積|工数/, "工数・見積表"), "工数・見積表"],
+  [/導入手順|インストール|セットアップ|環境構築|設定|Docker|コンテナ|サーブ|本番導入|デプロイ|起動|カスタマイズ|実装の勘所/, withFeature(/手順|環境構築|デプロイ|コンテナ/, "導入手順"), "導入手順"],
+  [/想定問答|Q&A|FAQ|質問/, withFeature(/FAQ|質問/, "導入時の想定問答"), "想定問答"],
+  [/トーク|フレーズ/, /トーク|フレーズ/, "営業トーク"],
+  [/SaaS|プロダクト|設計図|仕様書|設計モデル/, /SaaS|プロダクト|設計/, "SaaS 設計"],
+  [/受託|シナリオ/, /受託|シナリオ/, "受託開発シナリオ"],
+  [/MCP|cursorrules/, /MCP|cursorrules/, "MCP 連携"],
+  [/比較|コスト削減/, /比較|コスト|削減/, "比較・コスト削減"],
+  [/コード|スクリプト|ラッパー/, /コード|スクリプト|ラッパー|実装/, "コード"],
+  [/マネタイズ|活用|収益化/, withFeature(/収益化/, "活用・収益化の考え方"), "活用・収益化"],
+];
+const PROMISE_CONTEXT = /有料|購入|特典|会員限定|メンバー限定|収録/;
+const LIST_ITEM = /^(\s*)(?:[-*+•]|\d+[.)．])\s+(.*)$/;
+// コードブロックの中の行を空にした行の並び（コード中の「# コメント」や「- 」を見出し・箇条書きとして数えない）
+function outsideFences(lines) {
+  let fence = false;
+  return lines.map((l) => {
+    const marker = /^\s*(```|~~~)/.test(l);
+    if (marker) fence = !fence;
+    return fence || marker ? "" : l;
+  });
+}
+const isSkippable = (l) => !l.trim() || /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(l) || /^\s*>/.test(l);
+
+// 無料部分から予告を取り出す。見出しの言い回しに頼らないよう、次の 3 つを予告とみなす:
+// (1) 見出しか直前の行が有料エリアに触れている箇条書き (2) 有料ラインの直前（区切り線・引用だけを挟む）にある箇条書き
+// (3) 有料エリアに触れた行の『』で囲んだ項目
+export function teaserPromises(headLines) {
+  const lines = outsideFences(headLines);
   const promised = new Set();
-  for (let j = i + 1; j < headLines.length && !/^#{1,4} /.test(headLines[j]); j++) {
-    if (!/^\s*[-*] /.test(headLines[j])) continue;
-    for (const [re, label] of PAID_FEATURES) if (re.test(headLines[j])) promised.add(label);
+  let context = "";
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (/^#{1,6} /.test(l)) context = l;
+    else if (LIST_ITEM.test(l)) {
+      if (PROMISE_CONTEXT.test(context)) promised.add(i);
+    } else if (l.trim()) context = l;
+    if (PROMISE_CONTEXT.test(l)) for (const m of l.matchAll(/『([^』]+)』/g)) promised.add(m[1]);
   }
-  return [...promised];
+  let end = lines.length - 2; // head の最後の行は有料ラインそのもの（splitPaid）
+  while (end >= 0 && isSkippable(lines[end])) end--;
+  const last = end >= 0 ? lines[end].match(LIST_ITEM) : null;
+  if (last && last[1].length < 2) {
+    for (let i = end; i >= 0 && (LIST_ITEM.test(lines[i]) || !lines[i].trim() || /^\s{2,}\S/.test(lines[i])); i--) {
+      if (LIST_ITEM.test(lines[i])) promised.add(i);
+    }
+  }
+  return [...promised].map((x) => (typeof x === "number" ? lines[x].match(LIST_ITEM)[2] : x));
+}
+
+// 1 つの予告に複数の項目をつないだ書き方（＆・＋、かっこでくくった項目どうしの「と」「、」「や」など）は分けて照合する
+const PROMISE_JOINER = /\s*[＆＋]\s*|\s+[&+]\s+|(?<=[」』）)])\s*(?:と|や|および|及び|、|,|／|\/)\s*(?=[「『（(])/;
+// 予告の各項目が、有料本文の見出しのどれかで満たされているか
+function promiseProblems(headLines, payBodyHtml) {
+  const headings = readerHeadings(payBodyHtml);
+  const missing = new Set();
+  let unmapped = 0;
+  for (const item of teaserPromises(headLines)) {
+    for (const part of item.split(PROMISE_JOINER).filter((x) => x && x.trim())) {
+      const cats = PROMISE_CATEGORIES.filter(([re]) => re.test(part));
+      if (cats.length === 0) unmapped++;
+      for (const [, paidRe, label] of cats) if (!headings.some((h) => paidRe.test(h))) missing.add(label);
+    }
+  }
+  const problems = [...missing].map((label) => `無料部分の予告にある「${label}」が有料本文の見出しに無い`);
+  if (unmapped) problems.push(`無料部分の予告に、有料本文と照合できない項目が ${unmapped} 件ある（予告を有料本文の見出しに合わせる）`);
+  return problems;
+}
+
+// コードブロックを note_html と同じ規則（同じ記号で同じ長さ以上の、言語名の無い行で閉じる）で読み、
+// 中に「```yaml」のような開き行があれば、入れ子のつもりで書いて閉じ方がずれている（以降の見出しや表がコードとして表示される）
+export function nestedFenceProblems(lines) {
+  let broken = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const open = lines[i].trim().match(/^(`{3,}|~{3,})(.*)$/);
+    if (!open) continue;
+    const fence = open[1];
+    const close = new RegExp(`^${fence[0]}{${fence.length},}\\s*$`);
+    let j = i + 1;
+    let innerOpen = false;
+    for (; j < lines.length && !close.test(lines[j].trim()); j++) {
+      const inner = lines[j].trim().match(/^(`{3,}|~{3,})\S/);
+      if (inner && inner[1][0] === fence[0] && inner[1].length >= fence.length) innerOpen = true;
+    }
+    if (innerOpen) broken++;
+    i = j;
+  }
+  return broken ? [`コードブロックの入れ子が崩れている箇所が ${broken} か所ある（外側を \`\`\`\` のように長くする）`] : [];
 }
 
 // note 用 HTML へ変換した結果の検査（以前は tests/note_html.test.mjs の中にだけあった）
@@ -89,18 +230,18 @@ export function paidNoteProblems(fullMd, { summary } = {}) {
   const parts = splitPaid(text);
   if (!parts) return ["有料ラインが分割できない"];
   const paid = parts.paid.join("\n");
-  const normalized = normalizeForRules(paid);
+  const payBody = parseDraftToNotePayload(text, true).payBody;
+  const views = ruleViews(paid, payBody);
   const problems = [];
   for (const [re, why] of PAID_RULES) {
-    if (re.test(paid) || re.test(normalized)) problems.push(`有料本文の禁止表現: ${why}`);
+    if (views.some((v) => re.test(v))) problems.push(`有料本文の禁止表現: ${why}`);
   }
-  if (AMOUNT_RE.test(normalized) && !parts.paid.some(isBasisRow)) {
+  if (views.slice(1).some(hasMoneyAmount) && !parts.paid.some(isBasisRow)) {
     problems.push("有料本文の金額に積算根拠表（工程・工数・単価・小計）が無い");
   }
+  problems.push(...promiseProblems(parts.head, payBody));
+  problems.push(...nestedFenceProblems(text.split("\n")));
   const have = paidContentSummary(paid);
-  for (const label of promisedFeatures(parts.head)) {
-    if (!have.features.some((f) => f.startsWith(label))) problems.push(`無料部分の予告にある「${label}」が有料本文に無い`);
-  }
   if (summary && JSON.stringify(summary) !== JSON.stringify(have)) {
     problems.push("公開中の有料版の内容一覧（.paid.json）と有料本文が一致しない");
   }
