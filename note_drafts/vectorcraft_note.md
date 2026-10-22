@@ -6,12 +6,20 @@ storytold/vectorcraft は 2026-09-30 に GitHub で作成されたリポジト�
 
 ## 主な機能とアーキテクチャ概要
 
-VectorCraftは、Adobe Illustratorの全ワークフローを徹底研究して再実装されたプロジェクトです。
-
-- **20,000シェイプを27msで描画**: Rust + SIMD並列処理により、超高解像度Retina環境でも120fpsの滑らかな操作性を実現。
-- **MCPサーバー標準内包**: Claude CodeなどのLLMエージェントから、標準入力/出力経由でパスの描画、整列、色変更、エクスポートを全自動制御。
-- **WebAssembly対応**: デスクトップ（Mac/Win/Linux）だけでなく、Webブラウザ上でも同一のRustバイナリが完全動作。
-- **広範なファイル対応**: SVG、PDF、Illustrator互換ファイル、さらにはAffinity Designerデータまでネイティブ読み込みに対応。
+- 純粋な Rust で作られた、オープンソースのベクターイラストのアプリケーションです。
+  - 原文（README）: Vector illustration; an open-source, modern vector art application, built in pure Rust.
+- macOS・Windows・Linux・FreeBSD でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- デスクトップアプリとブラウザで、1 つのコードベースと同じ UI を使います。
+  - 原文（README）: One codebase for the desktop apps and the same UI in the browser.
+- 描画はマルチスレッドの SIMD で、UI のスレッドとは別に行います。
+  - 原文（README）: Multithreaded SIMD rendering off the UI thread.
+- ネイティブの形式（.vectorcraft、JSON）は文書化されており、SVG と PDF（PDF 互換の .ai を含む）の読み書き、PNG/JPEG/WebP の書き出しに対応します。
+  - 原文（README）: A documented native format (.vectorcraft, JSON), first-class SVG, PDF (and PDF-compatible .ai) import and export, PNG/JPEG/WebP export, Export for Screens, and SVGZ, templates, GIF, TIFF and BMP on open.
+- メニューの項目・ツールの操作・パネル・ダイアログはすべて JSON の制御チャネルと MCP サーバーから操作でき、Claude などのエージェントが人と同じように描画・編集・書き出しを行えます。
+  - 原文（README）: Every menu item, tool gesture, panel and dialog can be driven over a JSON control channel and an MCP server, so Claude and other agents can draw, edit and export the way a person does.
+- VectorCraft のコマンド API は、MCP サーバーがエージェントに公開しているものと同じです。
+  - 原文（README）: Every piece below was built entirely through VectorCraft's command API, the same one the MCP server exposes to agents, and exported by VectorCraft's own renderer.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

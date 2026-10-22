@@ -6,11 +6,22 @@ tangency-labs/solidcraft は 2026-10-08 に GitHub で作成されたリポジ�
 
 ## 主な機能とアーキテクチャ概要
 
-SolidCraftは、現代のCADに必要な機能をフルセットで備えています。
-- **幾何拘束スケッチ**: 同一円弧、接線、寸法駆動など完全な幾何ソルバーを独自内蔵。
-- **パラメトリックタイムライン**: 過去の押し出しやフィレットの寸法を変更すれば、モデル全体が破綻なく再計算。
-- **板金加工（Sheet Metal）＆ アセンブリ**: 展開図DXF出力、干渉チェック、URDF（ロボット記述形式）出力対応。
-- **GPUテッセレーション**: Compute Shaderを活用して3Dメッシュを生成。
+- 純粋な Rust で作られた、オープンソースのパラメトリック 3D CAD アプリケーションです。
+  - 原文（README）: An open-source parametric 3D CAD application built in pure Rust.
+- スケッチと拘束からパラメトリックなフィーチャーのタイムラインでソリッドを作り、寸法を変えるとモデルが作り直されます。
+  - 原文（README）: Sketch, constrain, and build solids with a parametric feature timeline. Change a dimension and watch your model rebuild.
+- デスクトップ・ブラウザで動かせるほか、内蔵の MCP サーバーを通じて AI エージェントにモデリングさせることもできます。
+  - 原文（README）: Run it on your desktop, in your browser, or let AI agents model through the built-in MCP server.
+- 初期段階ですが単純な部品には使えます。公開された参照部品 76 個のうち 75 個で、体積・面積・重心・外接箱が解析値または FreeCAD の計算値と一致します。
+  - 原文（README）: Early but usable for simple parts: 75 of 76 public reference parts match their analytic or FreeCAD-computed volume, area, centre of mass and bounding box (oracle); the other is a tracked bug.
+- フィーチャー: 押し出し・回転・スイープ・ロフト・フィレット・面取り・シェル・抜き勾配・穴・ねじ・パターン・ミラー・分割・結合を、編集できるパラメトリックなタイムライン上で扱います。
+  - 原文（README）: Features: extrude, revolve, sweep, loft, fillet, chamfer, shell, draft, holes, threads, patterns, mirror, split and combine on an editable parametric timeline.
+- ファイル: STEP・IGES・3MF・STL・OBJ・glTF の読み書き（対応する範囲）、URDF の書き出し、.solidcraft 形式の設計に対応します。
+  - 原文（README）: Files: STEP, IGES, 3MF, STL, OBJ and glTF in and out where supported, URDF export, .solidcraft designs.
+- デスクトップアプリ・ブラウザアプリ・画面なしの CLI・MCP サーバーは、すべて同じコマンドで動きます。
+  - 原文（README）: Desktop app, browser app, headless CLI and MCP server, all running the same commands.
+- スクリプトは UI が実行するのと同じコマンドを並べた JSON の一覧で、solidcraft-cli run で実行します。
+  - 原文（README）: A script is a JSON list of the same commands the UI runs, executed with solidcraft-cli run.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

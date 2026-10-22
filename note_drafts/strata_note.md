@@ -6,12 +6,20 @@ Niko1221/Strata は 2026-09-25 に GitHub で作成されたリポジトリで�
 
 ## 主な機能とアーキテクチャ概要
 
-Strataは、3階層のオフロードと投機的デコーディングで、12GB GPU で大規模な MoE モデルを動かすことを目指しています。
-
-1. **MoE（Mixture of Experts）最適配置**: 24,576エキスパートのうち、頻出エキスパートのみをGPU VRAM（12GB）に、全体をメインメモリ（32〜64GB）に配置し、ディスク（NVMe SSD）を巨大キャッシュテーブルとして連動。
-2. **投機的デコーディング**: 小型モデルが予測したトークンを巨大モデルが一括検証することで、推論時間を1.6〜1.8倍に短縮。
-3. **OpenAI / Anthropic デュアル互換API**: `http://127.0.0.1:8080/v1` で起動し、Claude Code（`ANTHROPIC_BASE_URL`）やCursorから直接呼び出し可能。
-4. **マルチモーダル対応**: 画像入力（Vision）にも対応し、図面やUIスクリーンショットの解析が可能。
+- Strata は、通常はサーバーが必要なモデル Qwen3.8-Flash-Next（125-billion-parameter）を、一般的な PC で動かします。
+  - 原文（README）: Strata runs Qwen3.8-Flash-Next, a 125-billion-parameter model that normally needs a server, on a normal PC.
+- チャットとファイルは手元の PC に残ります。
+  - 原文（README）: Your chats and files stay on your PC.
+- OpenAI と Anthropic の API を話すため、Claude Code・Codex CLI・OpenCode などのエージェントから接続できます。
+  - 原文（README）: It speaks the OpenAI and Anthropic APIs, so Claude Code, Codex CLI, OpenCode and other agents connect to it.
+- RAM とグラフィックスメモリ（VRAM）を合わせて 32 GB 以上が必要です。Mac や Ryzen AI Max では統合メモリがこれにあたります。
+  - 原文（README）: You need at least 32 GB of RAM and graphics memory (VRAM) together. On a Mac or a Ryzen AI Max, that is the unified memory.
+- 同じメーカーのカード 2〜3 枚でモデルを分担できます（multi-GPU）。NVIDIA と AMD のカードにまたがってモデルを分けることはしません。
+  - 原文（README）: Two or three cards of the same make can share a model (multi-GPU). Strata never splits a model across NVIDIA and AMD cards.
+- アプリにはエンジンが内蔵されており、インストールしてモデルを選べばチャットできます。
+  - 原文（README）: The app has the engine inside: install it, pick a model, chat.
+- Strata が何をダウンロードし、いつインターネットを使い、ダウンロードをどう検証するかは docs/SAFETY.md にあります。
+  - 原文（README）: What Strata downloads, when it uses the internet and how it checks downloads is in docs/SAFETY.md.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

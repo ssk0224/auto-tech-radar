@@ -6,11 +6,20 @@ browser-use/jev-ultrafast は 2026-09-17 に GitHub で作成されたリポジ�
 
 ## 主な機能とアーキテクチャ概要
 
-jev-ultrafastの速さの秘密は、**「画像を一切送らない構造化DOM推論」**と**「投機的ファンアウト（Speculative Fan-out）」**の融合にあります。
-
-1. **Atomic DOM Snapshot**: 画面内のクリック・入力可能な要素だけをJavaScriptで瞬時にスキャンし、`[1] button`, `[2] combobox` といった軽量なインデックステーブルを構築。
-2. **単一リクエストでの投機的意思決定**: 「操作（CLICK / TYPE等）」と「各操作ごとの候補対象（Target）」を1つのAPI呼び出しで同時予測。
-3. **必要な瞬間だけ小型LLMを召喚**: 文字列生成が必要な`TYPE_TEXT`操作の時のみ、最速の小型モデル（Mercury-2.5やDeepSeek等）を呼び出して入力文字列を出力。
+- 動的でインデックスつきの行動空間を持つブラウザエージェントです。
+  - 原文（README）: A browser agent with a dynamic, indexed action space.
+- TypeSafe の Jev が操作と要素を選び、操作が TYPE_TEXT のときだけ小さな LLM が文章を書きます。
+  - 原文（README）: TypeSafe's Jev picks an operation and an element. A small LLM writes text only when the operation is TYPE_TEXT.
+- ポリシーには、サイト専用の操作スクリプトや用意された入力文字列はありません。
+  - 原文（README）: There are no site-specific action scripts or prepared field strings in the policy.
+- 操作は CLICK・TYPE_TEXT・SELECT・SCROLL_UP・SCROLL_DOWN・WAIT・DONE・BLOCKED です。
+  - 原文（README）: The operations are CLICK, TYPE_TEXT, SELECT, SCROLL_UP, SCROLL_DOWN, WAIT, DONE, and BLOCKED.
+- 2 つの判断を 1 回のネットワークの往復で行います。
+  - 原文（README）: Two decisions, one network round trip.
+- Chrome は uv sync で入る Browser Harness を通じて接続します。
+  - 原文（README）: Chrome connects through Browser Harness, installed by uv sync.
+- 既定のエージェントのループではスクリーンショットを使わず、Jev は構造化された状態を読みます。
+  - 原文（README）: No screenshots in the default agent loop. Jev consumes structured state.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

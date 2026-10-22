@@ -6,13 +6,20 @@ mizorewww/laya-mlx は 2026-09-19 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-`laya-mlx`は、以下の3つの「型付き意思決定」に特化しています。
-
-*   **`choice`**: 複数の選択肢の中から最適なものを確率的に選択します。（例: 問い合わせを「経理」「技術」「営業」のいずれにルーティングするか）
-*   **`score`**: 段階的な評価基準に基づいてスコアを算出します。（例: 顧客の要望の緊急度を「低」「中」「高」で評価）
-*   **`noul`**: ある命題が真である確率を判定します。（例: 「この取引は不正である」という命題の真偽）
-
-これらのタスクは、Apple SiliconのGPU上でMLXによって最適化された双方向エンコーダと意思決定ヘッドを通じて、高速に実行されます。Hugging FaceのRust製トークナイザーも利用し、高速な前処理を実現しています。
+- 重みが公開された型つきの判断モデルを、Apple Silicon でネイティブに動かします。
+  - 原文（README）: Open-weight typed decisions, running natively on Apple Silicon.
+- MLX によるローカルの推論で、PyTorch・Transformers のランタイム・クラウドの API は使いません。
+  - 原文（README）: Local MLX inference, with no PyTorch, Transformers runtime, or cloud API.
+- Apple Silicon、Python 3.11 以降、macOS 14 以降が必要です。
+  - 原文（README）: Apple Silicon, Python 3.11+, macOS 14+.
+- MLX 版は、独自のエンコーダーと判断ヘッド、CPU/GPU のストリーム、dtype、batch_size などの制御を備えます。
+  - 原文（README）: MLX keeps its native encoder/decision head, CPU/GPU streams, dtype, row batch_size, pad_to_multiple, native compile=True, and bounded cache_prompts=True controls.
+- Rust のトークナイザーと推論の経路は、PyTorch も Transformers も必要としません。
+  - 原文（README）: The Rust tokenizer and inference path do not require PyTorch or Transformers.
+- 初回の読み込みでチェックポイントをダウンロードし、その後の推論はすべてローカルで行います。
+  - 原文（README）: First load downloads the checkpoint; later inference is fully local.
+- 追加の extras として serve・mcp・structured・calibration・langchain・langgraph・llamaindex・crewai・agno があります。
+  - 原文（README）: Optional extras are serve, mcp, structured, calibration, langchain, langgraph, llamaindex, crewai, and agno.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

@@ -6,13 +6,22 @@ Pinvou/pinvou-agent は 2026-07-24 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-### 1. 3つの統合ワークスペース
-pinvou-agentの最大の特徴は、業務内容に応じたシームレスなモード切り替えです。
-- **成果物（Artifact）管理**: エージェントが生成したMarkdownや図解はリアルタイムでサイドパネルに集約され、ユーザー自身がGUI上で手動修正を加えたり、選択箇所だけを再指示できます。
-- **Plan / YOLO モード**: 危険な破壊的操作を防ぐために事前に実行ステップを確認・承認する「Planモード」と、一気呵成にタスクを完遂させる「YOLOモード」を切り替え可能。
-
-### 2. 強固なエンジニアリング設計（Tauri 2 + CodeWhale）
-Electronではなく**Tauri 2（Rust）**を採用したことで、メモリ使用量を抑え、OSネイティブなファイルアクセスと高速なベクター検索を実現しています。エージェントエンジンは独立サブモジュール`CodeWhale`として疎結合化されており、独自のMCPサーバーやAPIコネクタを容易にプラグインできます。
+- 仕事・デザイン・コーディングのための、オープンソースのデスクトップ AI エージェントのワークスペースです。
+  - 原文（README）: An open-source desktop AI agent workspace for work, design, and coding.
+- ローカルのモデルを使えば外部に出さずに完結でき、OpenAI 互換のエンドポイントにも接続でき、MCP サーバー・CLI コネクター・Skills・ワークフローでエージェントを拡張できます。
+  - 原文（README）: Use a local model for a fully private loop, connect any OpenAI-compatible endpoint, and extend the agent with MCP servers, CLI connectors, Skills, and workflows.
+- データが手元の機器から出るかどうかは、有効にしたモデルとツールによります。ローカルのモデルとローカルのツールだけなら、すべてローカルで完結します。
+  - 原文（README）: Whether data leaves your machine depends on the model and tools you enable. A local model with local tools stays fully local.
+- 同じデスクトップのワークスペースで、ACP を通じて Codex・Claude Code・Kimi を使えます。コーディングエージェントは実際のプロジェクトや隔離された一時的なワークスペースを読み書きし、コマンドを実行できます。
+  - 原文（README）: Use Codex, Claude Code, or Kimi through ACP in the same desktop workspace. The coding agent can read and edit a real project or an isolated temporary workspace, run commands, and surface plans, tool steps, permission requests, and file changes.
+- Artifact パネルは、エージェントが作成・編集したファイルを自動で集め、1 か所で確認・検索・オープンできます。
+  - 原文（README）: Artifact panel automatically collects every file the agent creates or edits; preview, locate, and open them in one place
+- ローカルのナレッジベースはファイル管理・全文検索・ベクトル検索に対応し、1 つのチャットに複数のコレクションを付けられます。
+  - 原文（README）: Local knowledge base with file management, full-text and vector retrieval; attach multiple collections to one chat, enable or disable each independently, and retain collection and file provenance in answers
+- リモート操作: スマートフォンで QR コードを読み取り、動いているワークスペースを確認・操作できます。
+  - 原文（README）: Remote control — scan a QR code from your phone to view and steer the running workspace
+- セッション・設定・ナレッジ・ランタイムの拡張は、すべて ~/.pinvou3/ に保存されます。
+  - 原文（README）: Sessions, settings, knowledge, and runtime extensions all live under ~/.pinvou3/
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

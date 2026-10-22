@@ -5,14 +5,23 @@
 deepseek-ai/DeepInfer は 2026-10-16 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 12,071 です。
 
 ## 主な機能とアーキテクチャ概要
-DeepInferは、DeepSeekモデルの推論の最適化を目的に設計されています。その核となるのは、GPU/NPUに特化した低レベルカーネル最適化、高度な並列処理、そしてインテリジェントなバッチスケジューリングです。これにより、高いスループットと低いレイテンシを両立させ、大規模なAIサービスを安定稼働させることが可能になります。
 
-**主要な機能:**
-*   **最適化されたカーネル:** FlashMLA, DeepGEMMなど、DeepSeekモデルに特化した高性能カーネル群。
-*   **高度な並列処理:** Attention DP, MoE EPなど、大規模モデルの効率的な分散推論を可能にする技術。
-*   **DSparkと信頼度に基づく検証:** ドラフトトークンと信頼度推定による高速デコーディング。
-*   **非同期スケジューリング:** CPUとデバイス実行のオーバーラップによるゼロオーバーヘッドバッチ処理。
-*   **構造化出力:** 正規表現やJSONスキーマに基づいた出力制御。
+- このオープンソース版は、大規模な提供に必要な中核機能を備えたオフライン推論を提供します。
+  - 原文（README）: This open-source release provides offline inference with the core features needed for serving at scale.
+- NVIDIA SM100 GPU に対応しています。
+  - 原文（README）: NVIDIA SM100 GPUs
+- Huawei Ascend 950 NPU に対応しています。
+  - 原文（README）: Huawei Ascend 950 NPUs
+- チューニングされたカーネルとして、FlashMLA、DeepGEMM、DeepEP、TileKernels、DeepSelect と独自の TileLang カーネルを使います。
+  - 原文（README）: Optimized kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, and custom TileLang kernels.
+- DSpark と信頼度に基づく検証: ドラフトトークンでデコードを速め、信頼度の推定で検証の時期を決めます。
+  - 原文（README）: DSpark and confidence-scheduled verification: accelerate decoding with draft tokens and use confidence estimates to schedule verification.
+- 非同期スケジューリング: CPU でのバッチのスケジューリングとデバイスでの実行を重ねます。既定で有効です。
+  - 原文（README）: Asynchronous scheduling: overlap CPU batch scheduling with device execution. Enabled by default.
+- バッチ不変の推論: バッチの構成が違ってもモデルの結果を同じに保ちます。
+  - 原文（README）: Batch-invariant inference: keep model results identical across different batch compositions.
+- 構造化出力: 生成を正規表現・JSON スキーマ・EBNF 文法に沿うよう制約します。
+  - 原文（README）: Structured outputs: constrain generation to a regex, JSON schema, or EBNF grammar.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

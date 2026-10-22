@@ -6,14 +6,22 @@ rehan-remade/universal-modder は 2026-09-30 に GitHub で作成されたリポ
 
 ## 主な機能とアーキテクチャ概要
 
-`universal-modder`の中核機能は、以下の4つの自律モジュールに集約されます。
-
-1. **`um scan` & 逆コンパイルエンジン**:
-   実行ファイルからエンジン種別（Unity、Unreal、.NET、Native C++）、アンチチート、依存関係を瞬時に特定。ILSpyやCpp2IL、Ghidraを裏側でキックしてコード構造をマップ化。
-3. **`um win` 低レイヤーOS自動制御**:
-   DirectInputレベルのマウス/キーボードエミュレーション、DirectX/Vulkanフレームキャプチャ、プロセス単位の排他的オーディオキャプチャ。
-4. **自己増殖型ナレッジベース（Knowledge Base）**:
-   AIが遭遇したバグやエンジンの落とし穴をMarkdown形式の知見として自動蓄積。次回の解析効率を指数関数的に向上。
+- AI のコーディングエージェントが、手持ちの PC ゲームの mod を作れるようにするスキル・ツール・共有のナレッジベースです。
+  - 原文（README）: Skills, tools and a shared knowledge base that let any AI coding agent mod almost any PC game you own.
+- どのエージェントにも同じスキル（Agent Skills 形式）、fal の MCP サーバー、um の CLI が入ります。
+  - 原文（README）: Each gets the same skills (Agent Skills format), the fal MCP server, and the um CLI.
+- Git・Python 3.10 以降・ffmpeg も必要です。
+  - 原文（README）: You also need Git, Python 3.10+ and ffmpeg. uv is recommended.
+- クローンの中では、各エージェントが自分の探す場所でスキルを見つけます。.agents/skills（Codex・Gemini CLI・Copilot・Cursor・OpenCode）と .claude/skills（Claude Code）は skills/ の複製です。
+  - 原文（README）: Inside a clone, each agent finds the skills where it looks for them: .agents/skills (Codex, Gemini CLI, Copilot, Cursor, OpenCode) and .claude/skills (Claude Code) are copies of skills/.
+- 素材の生成には fal の API キーを使い、fal の MCP サーバーと um fal の両方で使われます。
+  - 原文（README）: For assets, get a fal API key. It powers both the fal MCP server and um fal.
+- 3D からスプライトを描画するには Blender が必要です。
+  - 原文（README）: Blender is needed for 3D → sprite renders.
+- Windows のゲームはネイティブに、または WSL から操作します。
+  - 原文（README）: Windows games are driven natively or from WSL.
+- エージェントは mod-any-game スキルから始め、毎回同じ手順を繰り返します。
+  - 原文（README）: The agent starts with the mod-any-game skill and runs the same loop every time:
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

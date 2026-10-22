@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "Compositor - The Photoshop alternative for Mac"
-description: "Apple Siliconネイティブで動作し、AIエージェントによる外部自動制御にも対応したMITライセンスのオープンソース画像編集ソフトウェア「Compositor」の技術解説。"
 pubDate: "2026-10-11"
-tags: ["Swift", "OSS", "GitHub", "macOS", "Metal", "AI"]
+tags: ["Swift","OSS","GitHub","macOS","AI"]
 repoUrl: "https://github.com/robbietilton/Compositor"
 repoCreatedAt: "2026-09-17"
 stars: 15455
@@ -11,55 +9,37 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "Compositor - 作者は合成と後処理に Photoshop を使っていたため、Compositor はその作業の流れを中心に、最終画像を作るのに必要なツールを備えて作られています"
+description: "作者は合成と後処理に Photoshop を使っていたため、Compositor はその作業の流れを中心に、最終画像を作るのに必要なツールを備えて作られています。"
 ---
 
 # Compositor: 概要
 
 robbietilton/Compositor は 2026-09-17 に GitHub で作成されたリポジトリです。2026-10-11 時点のスター数は 15,455 です。
 
-近年、Adobe Creative Cloudのサブスクリプションコスト高騰やクラウド依存への反発から、ローカルネイティブかつ軽量なクリエイティブツールの需要が急速に高まっています。「Compositor」は、macOS（Apple Silicon）専用にゼロからSwiftで設計された、完全オープンソース（MITライセンス）のPhotoshopオルタナティブです。
+- 作者は合成と後処理に Photoshop を使っていたため、Compositor はその作業の流れを中心に、最終画像を作るのに必要なツールを備えて作られています。
+  - 原文（README）: I used to use Photoshop for compositing and post-processing, so Compositor is built around that workflow - with the tools needed to create a pixel-perfect final image.
+- Compositor は macOS 専用です。
+  - 原文（README）: Compositor is macOS only.
+- Apple silicon を搭載した Mac の macOS 26.0 以降で動作します。
+  - 原文（README）: macOS 26.0 or later on a Mac with Apple silicon
 
-従来のGIMPのようなマルチプラットフォームOSSが抱えていた「UI/UXの非直感性」「macOS独自機能への非対応」「描画レスポンスの遅延」といった課題を、macOS専用設計（MetalやAccelerateフレームワークのフル活用）により完全に克服。さらに特筆すべき革新性として、**「AIエージェントフレンドリーなアーキテクチャ」**を標準搭載している点が挙げられます。独自プロジェクト形式（`.comp`）をファイルシステム直結のJSONマニフェストとPNG群で構成することで、外部スクリプトや生成AIモデルがバックグラウンドから画像編集をリアルタイムに駆動できる設計になっています。
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-Compositorが解決する中核的な技術課題は以下の3点です：
+## 主な機能と構成（README の要約）
 
-1. **高負荷なGPU非破壊レンダリングのローカル完結**:
-   各レイヤーの調整レイヤー（Curves, Levels, LUT）、レイヤースタイル（Drop Shadow, Stroke等）をMetalパイプライン上でリアルタイム計算。メモリ消費を動的にスケーリングし、大容量PSD/PSBファイルも即座に展開。
-2. **Photoshop風のワークフロー**:
-   ブレンドモードの計算順序、クリッピングマスク、非破壊変形、Camera Raw風フィルターパネルなど、プロが違和感なく移行できる操作系を提供。
-3. **人間とAIエージェントのハイブリッド制作基盤**:
-   `.comp`ファイルの実体はディレクトリ構造（`manifest.json` + `layer_*.png`）であり、OSのファイル監視（FSEvents）と連動。AIスクリプトがレイヤーを追加・変形すると、エディタ側がリロードなしで即座にビューポートを更新します。
-
-```mermaid
-graph TD
-    subgraph Storage ["プロジェクト実体: .comp ディレクトリ"]
-        M["manifest.json: 階層構造/座標/ブレンドモード/エフェクト"]
-        L1["layer_001.png: 背景ラスタデータ"]
-        L2["layer_002.png: 被写体/テキストマスク"]
-    end
-
-    subgraph ExternalAgents ["外部スクリプト / AIエージェント"]
-        Python["Python / Node.js 自動生成スクリプト"]
-        LLM["ローカルLLM / Vision Agent"]
-        Python -->|書き込み & 更新| Storage
-        LLM -->|パラメータ調整| M
-    end
-
-    subgraph CompositorEngine ["Compositor Core Engine (Swift / Metal)"]
-        FSWatcher[FSEvents ファイル監視モジュール]
-        Parser["JSON & Image Decoder"]
-        RenderPipeline[Metal GPU レンダリングパイプライン]
-        Viewport["Native macOS Viewport (MetalView)"]
-        
-        Storage -->|変更検知| FSWatcher
-        FSWatcher --> Parser
-        Parser --> RenderPipeline
-        RenderPipeline --> Viewport
-        Viewport -->|人間による手動操作・保存| Storage
-    end
-```
+- レイヤーとフォルダーに対応し、不透明度と Photoshop の描画モード一式を同じ順で備えます。フォルダーの不透明度は中のすべてに効きます。
+  - 原文（README）: Layers and folders, with opacity and Photoshop's full set of blend modes in its order — a folder's opacity dims everything inside it
+- レイヤー効果（Stroke、Drop Shadow、Color Overlay、Inner Shadow、Outer Glow、Inner Glow）は GPU で描画され、いつでも編集できます。
+  - 原文（README）: Layer effects: Stroke, Drop Shadow, Color Overlay, Inner Shadow, Outer Glow and Inner Glow, rendered on the GPU and editable at any time
+- JPEG・PNG・HEIC・TIFF・WebP・SVG・PDF（各ページを個別のレイヤーとして、300 DPI またはキャンバスに合わせて）、カメラの RAW、Photoshop の PSD と PSB（8-bit RGB。CMYK は対象外）を読み込めます。
+  - 原文（README）: Import JPEG, PNG, HEIC, TIFF, WebP, SVG, PDF (every page its own layer, at 300 DPI or fitted to the canvas), camera RAW (with a develop step first) and Photoshop PSD and PSB (8-bit RGB; not CMYK).
+- AI エージェントやスクリプトはプロジェクトを直接作成・編集できます。.comp は PNG のレイヤーとマニフェストを入れたフォルダーで、開いているプロジェクトは書き込みに合わせて更新されます。
+  - 原文（README）: AI agents and scripts can build and edit projects directly: a .comp is a folder of PNG layers and a manifest, and an open project updates live as it's written.
 
 ## インストール（README からの転記）
 

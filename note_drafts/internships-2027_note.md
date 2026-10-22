@@ -6,16 +6,12 @@ zapplyjobs/Internships-2027 は 2018-03-11 に GitHub で作成されたリポ�
 
 ## 主な機能とアーキテクチャ概要
 
-### 1. ATS分散問題を解決するスクレイピング＆パーサー
-米国のテック採用は、企業ごとに異なるATSが利用されています。
-- Workday（大企業、レガシー）
-- Greenhouse（ミドル〜大手テック）
-- Lever, Ashby（急成長スタートアップ）
-
-本システムは、これらのATSの公開API・エンドポイントを定期巡回し、求人要項のテキストから「Visa Sponsorship」の記述パターンを正規表現・NLPで判定。統一フォーマットにマッピングして出力しています。
-
-### 2. GitOpsによるサーバーレスな情報パブリッシング
-Webサーバーを用意してSEO対策をする代わりに、**GitHubのREADME.mdを直接自動コミットで更新**しています。Markdown のテーブルで求人を一覧にしています。
+- 学生向けの、テック・ビジネス・ヘルスケアなどのインターンシップの一覧で、10 分ごとに更新されます。
+  - 原文（README）: 🚀 Internships across tech, business, healthcare, and more for students, updated every 10 minutes.
+- Chrome 拡張機能で、求人への応募フォームを自動入力します。
+  - 原文（README）: Our Chrome extension, which autofills job applications in seconds.
+- 一覧には、会社・職種・勤務地・掲載時期・ビザ・応募先の欄があります。
+  - 原文（README）: Company / Role / Location / Posted / Visa / Apply
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

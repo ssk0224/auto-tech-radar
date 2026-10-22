@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "jiuwenswarm - JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It extends the powerful capabilities of large language models directly to your fingertips through various communication apps you use daily."
-description: "JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It extends the powerful capabilities of large language models directly to your fingertips through various communication apps you use daily."
 pubDate: "2026-10-09"
-tags: ["Python", "OSS", "GitHub"]
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/openJiuwen-ai/jiuwenswarm"
 repoCreatedAt: "2026-03-05"
 stars: 5978
@@ -13,34 +11,37 @@ corrections:
     note: "比較表が当サイトで検証したものではないことを明記し、勧める表現を訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "jiuwenswarm - JiuwenSwarm は、複数のエージェントの協調を行う Agent のシステムです"
+description: "JiuwenSwarm は、複数のエージェントの協調を行う Agent のシステムです。"
 ---
 
 # jiuwenswarm: 概要
 
 openJiuwen-ai/jiuwenswarm は 2026-03-05 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 5,978 です。
 
-JiuwenSwarmは、オープンソースのAIエージェントシステムであり、大規模言語モデル（LLM）の能力を日常のコミュニケーションアプリを通じて直接利用可能にするインテリジェントなプラットフォームです。
+- JiuwenSwarm は、複数のエージェントの協調を行う Agent のシステムです。
+  - 原文（README）: JiuwenSwarm is an Agent system that makes multi-agent collaboration truly work.
+- 1 台のマシンでもクラスターでも動き、ブラウザ・ターミナル・普段使っているチャットアプリから使えます。
+  - 原文（README）: It runs on a single machine or across a cluster, and you can reach it from a browser, a terminal, or the chat apps you already use.
+- Huawei Cloud MaaS・OpenAI・DeepSeek・DashScope・SiliconFlow・OpenRouter などの OpenAI 互換の API と、ローカルのモデルに対応します。
+  - 原文（README）: JiuwenSwarm supports multiple model platforms: Huawei Cloud MaaS, OpenAI, DeepSeek, DashScope, SiliconFlow, OpenRouter and other OpenAI-compatible APIs, as well as local model deployment.
 
-このプロジェクトの核心は、「マルチエージェントコラボレーション」を現実のものにすること。複雑なタスクを自然言語で指示するだけで、AIエージェントが自律的に分解し、専門エージェントチームを編成、協調してタスクを完遂します。さらに、エージェントの「スキル自己進化」機能により、エラーやユーザーの不満を検知して自動的にスキル定義を最適化し、継続的な改善を実現します。
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart TD
-    Task["大タスク / ゴール"] --> Orchestrator["JiuwenSwarm スウォーム司令塔"]
-    Orchestrator --> AgentA["調査エージェント"]
-    Orchestrator --> AgentB["コード生成エージェント"]
-    Orchestrator --> AgentC["テスト＆監査エージェント"]
-    AgentA & AgentB & AgentC --> Memory["共有スウォームメモリ"]
-    Memory --> Result["高精度な最終納品物自動生成"]
-```
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-現代のビジネス環境では、複雑なタスクの自動化と効率化が喫緊の課題です。しかし、従来のAIエージェントは単一タスクに特化しがちで、複数のステップや専門知識を要する複雑なプロセスには対応が困難でした。JiuwenSwarmは以下の課題を解決します。
+## 主な機能と構成（README の要約）
 
-*   **複雑なタスクの分解と実行:** リーダーエージェントが複雑なタスクを分解し、専門エージェントチームを動的に編成。各エージェントが連携し、タスクをエンドツーエンドで実行します。
-*   **エージェント間の協調とスケーラビリティ:** 分散型エージェントスウォームアーキテクチャにより、リーダーとチームメイトがプロセスやマシンを跨いでデプロイされ、大規模な協調作業を可能にします。
-*   **スキルの継続的な最適化:** 「Skill Self-Evolution」機能により、エージェントは実行結果やユーザーフィードバックから学習し、自身のスキル定義を自動で改善します。これにより、一度構築したスキルが陳腐化することなく、常に最新の状態に保たれます。
-*   **ヒューマン・イン・ザ・ループ (HITL) の統合:** SwarmflowというPythonスクリプトによる決定論的なマルチステージワークフローを通じて、人間による介入（`human` / `human_session`）を組み込むことができ、AIの自律性と人間の制御のバランスを取ります。
-*   **幅広いAIインフラ互換性:** Huawei Cloud MaaS、OpenAI互換API、ローカルモデルなど、多様なAIプラットフォームに対応し、既存のインフラを最大限に活用できます。
+- 複数エージェントの協調: Leader が複雑なタスクを分解してチームを組み、各エージェントが役割を分担して動的に調整します。
+  - 原文（README）: Multi-Agent Collaboration / The Leader decomposes a complex task and assembles teams, multi agents specialize and negotiate dynamically.
+- 分散した Agent Swarm: Leader と Teammates がプロセスやマシンをまたいで配置され、連携します。
+  - 原文（README）: Distributed Agent Swarm / Leader and Teammates deploy across processes and machines, coordinating at scale.
+- Skill の自己進化: エラーの兆候と利用者の不満を自動で検出し、Skill の定義を改善します。
+  - 原文（README）: Skill Self-Evolution / Automatically detects error signals and user dissatisfaction, then optimizes Skill definitions
+- ツールの権限と安全: ツールは実行前に承認が必要で、ファイルへのアクセスは許可リストを通り、機密性の高い操作は止められます。
+  - 原文（README）: Tool Permissions & Security / Every step is under your control, tools require approval before execution, file access goes through a whitelist, and sensitive operations are intercepted
 
 ## インストール（README からの転記）
 

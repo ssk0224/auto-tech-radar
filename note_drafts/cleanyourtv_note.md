@@ -5,15 +5,25 @@
 Gathin23/cleanyourtv は 2026-10-17 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 11,608 です。
 
 ## 主な機能とアーキテクチャ概要
-cleanyourtvは、Android TV/Google TVのユーザーエクスペリエンスを改善するための機能を提供します。
 
-**主な機能:**
-*   **広告・ブロートウェアの除去:** メーカーやGoogleがプリインストールした不要なアプリや広告サービスを無効化し、デバイスのリソースを解放します。
-*   **Apple TV風のホーム画面:** ピッチブラックの背景に、お気に入りのアプリを配置できるドック、現在フォーカスされているアプリを大きく表示するトップシェルフなど、洗練されたUIを提供します。
-*   **軽量設計:** ネイティブの Android TV アプリです（対応環境は README を確認してください）。
-*   **高いカスタマイズ性:** `config.xml`やテーマを通じて、ドックのアプリ順序、隠しアプリ、カラム数、壁紙などを自由に設定できます。
-*   **多言語対応:** 英語、ドイツ語、スペイン語、日本語（※READMEには記載なしだが、Androidのロケール設定で対応可能と想定）など、多様な言語に対応しています。
-*   **安全な復元機能:** 変更を加える前にTVの状態を記録し、ワンラインコマンドでいつでも元の状態に復元できます。
+- Android TV には、Android のスマートフォンと同じデバッグブリッジがあります。
+  - 原文（README）: Android TVs have the same debug bridge as Android phones.
+- root もケーブルも不要で、何もアンインストールせず、気が変わったら 1 行で元に戻せます。
+  - 原文（README）: No root, no cable, nothing uninstalled, and a one-line restore if you change your mind.
+- TV と同じ Wi-Fi につながったコンピューターと、シェルを使えるコーディングアシスタントが必要です。
+  - 原文（README）: You need a computer on the same Wi-Fi as the TV and a coding assistant with shell access.
+- 無効化: メーカーのテレメトリ、広告サービス、コンテンツの列、プリインストールの不要なアプリを pm disable-user で無効にします。
+  - 原文（README）: Disable / The manufacturer's telemetry, ad services, content rows and preloaded junk, with pm disable-user.
+- 何もアンインストールしないので、復元スクリプトですべての手順を元に戻せます。
+  - 原文（README）: Nothing is uninstalled, so a restore script can undo every step.
+- インストール: 小さなネイティブのランチャーを入れ、既定のホーム画面にします。
+  - 原文（README）: Install / A small native launcher, made the default home screen.
+- 不要なアプリはブランドごとに違うため、プロンプトはコーディングアシスタントに TV 上で探させ、使うかもしれないものに触れる前に確認させます。
+  - 原文（README）: The bloat differs by brand, so the prompt has your coding assistant discover it on your TV and ask before touching anything you might use.
+- Android TV または Google TV で動く機器が対象です。
+  - 原文（README）: Anything running Android TV or Google TV.
+- Fire TV: Fire OS はホームを他社製のランチャーに渡さないため、不要アプリの無効化だけが使えます。
+  - 原文（README）: Fire TV / The debloat half only, since Fire OS will not hand Home to a third-party launcher.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

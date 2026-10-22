@@ -6,14 +6,22 @@ storytold/cadcraft は 2026-10-07 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-CADCraftが従来のOSS CAD（FreeCADやLibreCADなど）と決定的に異なるポイントは、そのエンジニアリング品質とAPIファーストの構造にあります。
-
-- **Pure Rust + egui / wgpu**: Rust と egui / wgpu によるネイティブ描画。
-- **ヘッドレスCLI & MCP Server**: GUIなしで図面操作を行う `cadcraft-cli` と、Claude DesktopやCursorから直接ツール操作できるMCPを内蔵。
-- **Copy-on-Write データストア**: 設計履歴をCoWで管理するため、極めて低コストなUndo/Redoと並列処理が可能。
-- **クロスプラットフォーム & WebAssembly**: 1つのコードベースからMac/Windows/Linuxデスクトップアプリ、およびブラウザ単体で動くWeb版を生成。
-
-コマンドラインで `L 0,0 @100<0` と打ち込めば、AutoCADと全く同一の感覚で作図が完了します。
+- CADCraft は、純粋な Rust で作られたオープンソースの 2D・3D CAD アプリケーションです。
+  - 原文（README）: Computer-aided design and drafting; an open-source, modern 2D and 3D CAD application, built in pure Rust.
+- macOS・Windows・Linux・FreeBSD でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- CADCraft は初期の段階にあり、開発が速いペースで進んでいます。
+  - 原文（README）: CADCraft is in early, fast development.
+- DXF をネイティブに読み書きでき（ASCII とバイナリ、R12 から 2018 まで）、DWG ファイル（R13 から 2018 まで）はオープンソースの acadrust ライブラリで開いて保存できます。
+  - 原文（README）: DXF is read and written natively (ASCII and binary, R12 through 2018), and DWG files (R13 through 2018) open and save through the open-source acadrust library.
+- 純粋な Rust と egui で作られ、Electron や Web ビューは使いません。
+  - 原文（README）: Pure Rust and egui, no Electron, no web view.
+- メニューの項目・ツール・プロンプトはすべてコマンドです。エージェントは MCP・JSON の制御チャネル・CLI を通じて、人と同じようにコマンドラインに入力し、JSON で任意のコマンドを呼び、図面を調べて作業を確かめ、描画できます。
+  - 原文（README）: Every menu item, tool and prompt is a command. Agents can type at the command line exactly like a person, call any command with JSON, inspect the drawing to verify their work, and render it — over MCP, a JSON control channel, or the CLI.
+- 現在は SVG と PNG への書き出しに対応しています。
+  - 原文（README）: Export to SVG and PNG today.
+- CADCraft のリポジトリにはフォントが含まれず、システムにインストールされた TrueType/OpenType のフォントを使います。
+  - 原文（README）: CADCraft has no fonts in its repository; it uses the TrueType/OpenType fonts installed on your system.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

@@ -5,15 +5,23 @@
 morluto/rea は 2026-04-14 に GitHub で作成されたリポジトリです。2026-10-22 時点のスター数は 354,932 です。
 
 ## 主な機能とアーキテクチャ概要
-reaは、AIエージェント（Claude Code, Codex, Cursorなど）がMCPを通じて、Hopper, Ghidra, IDA, JADXといった多様なリバースエンジニアリングツールを統合的に利用できるフレームワークです。これにより、単一のエージェントインターフェースから、以下のような広範なターゲットに対して解析を実行できます。
 
-- **ネイティブバイナリ**: 擬似コード、アセンブリ、文字列、シンボル、呼び出し、参照
-- **JavaScript / Electronアプリ**: モジュール、インポート、ソースマップ、IPC関係
-- **.NETアセンブリ**: メタデータ、CIL命令、宣言されたネイティブ依存関係
-- **Android APKs**: マニフェスト宣言、クラス、逆コンパイルされたメソッド
-- **Webサイト**: ページ構造、スクリプト、ネットワーク観測、スクリーンショット
-- **ファームウェア**: 領域、抽出結果、ネイティブ解析への引き渡し
-- その他、Goバイナリ、GPUコードオブジェクト、モデルアーティファクト、SQLiteデータベースなど、多岐にわたるターゲット
+- バイナリ・アプリケーション・実行時の動作をまたいでリバースエンジニアリングを行う、1 つの MCP です。
+  - 原文（README）: One MCP for reverse engineering across binaries, applications, and runtime behavior.
+- REA は、ネイティブのバイナリ・JavaScript と Electron のアプリ・.NET のアセンブリ・ウェブサイトを調べるツールにエージェントをつなぎます。
+  - 原文（README）: REA connects your agent to tools for inspecting native binaries, JavaScript and Electron apps, .NET assemblies, and websites.
+- 解析はローカルで行い、結果には各結論の根拠と限界が含まれます。
+  - 原文（README）: Analysis runs locally, and results include the evidence and limitations behind each conclusion.
+- ソースコードなしでアプリを調べ、機能の仕組みを説明し、根拠を示し、自分のプロジェクト向けの版を作れます。
+  - 原文（README）: It can inspect the app without its source code, explain how the feature works, show the evidence, and build a version for your project.
+- ネイティブの解析には、インストール済みの Hopper・Ghidra・IDA を使えます。セットアップで承認すれば Hopper を入れることもできます。
+  - 原文（README）: Native analysis can use an existing Hopper, Ghidra, or IDA installation; setup can optionally install Hopper with approval.
+- JavaScript の静的解析には、ネイティブの解析エンジンは不要です。
+  - 原文（README）: Static JavaScript analysis needs no native analysis engine.
+- セットアップは REA の MCP サーバーと対応するワークフローの指示を追加し、既存の設定はバックアップします。
+  - 原文（README）: Setup adds REA's MCP server and matching workflow instructions, with backups of existing configuration.
+- MCP は既定で、コンテキストの負荷を減らすために簡潔な入力スキーマを使います。
+  - 原文（README）: MCP uses compact input schemas by default to reduce context overhead.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

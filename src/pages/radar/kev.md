@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "kev - Jev-like family of decision models built on top of Qwen3.5/3.8 you can train and run on your own"
-description: "Qwen3.5/3.8を基盤にゼロから自前ホスト・学習可能な意思決定特化型モデル『kev』のアーキテクチャ、商用API互換性、ビジネス実装の完全解説。"
 pubDate: "2026-10-14"
-tags: ["Python", "OSS", "GitHub", "LLM", "AI", "MachineLearning"]
+tags: ["Python","OSS","GitHub","LLM","AI"]
 repoUrl: "https://github.com/jaredpalmer/kev"
 repoCreatedAt: "2026-09-18"
 stars: 9128
@@ -11,76 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "kev - 自分で学習・実行できる、Jev に似た小さな判断モデルです"
+description: "自分で学習・実行できる、Jev に似た小さな判断モデルです。"
 ---
 
 # kev: 概要
 
 jaredpalmer/kev は 2026-09-18 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 9,128 です。
 
-大規模言語モデル（LLM）を実務の自動化パイプラインに組み込む際、最大の障壁となるのが「ハルシネーション（幻覚）」と「確率の不透明さ（信頼度スコアの欠如）」、そして「トークン生成による推論遅延とコスト」です。分類、ルーティング、コンプライアンスチェック、トリアージといった日常の意思決定タスクにおいて、チャット特化型LLMに自由形式で回答を出力させ、それを正規表現やJSON Modeでパースするアプローチは、構造的に不安定であり運用コストも跳ね上がります。
+- 自分で学習・実行できる、Jev に似た小さな判断モデルです。
+  - 原文（README）: Small Jev-like decision models you can train and run yourself.
+- Kev は、Qwen3.5 と Qwen3.8 をもとに、Jev's Architecture Unmasked に書かれた構成にならって作られた小さな判断モデルの系列です。
+  - 原文（README）: Kev is a family of small decision models built on Qwen3.5 and Qwen3.8 and based on the architecture described in Jev's Architecture Unmasked.
+- API は TypeSafe の System One と同じ形なので、その Python SDK を手元のサーバーに向けて使えます。
+  - 原文（README）: The API matches TypeSafe's System One, so you can point their Python SDK at your local server.
 
-この構造的課題を打破するのが、Vercelの元VP of ProductでありTurborepoの作者としても知られるJared Palmer氏が主導するオープンソースプロジェクト **「kev」** です。
+## 🎯 成熟度の目安（README の記載）
 
-`kev` は、TypeSafe社が提供するクローズドな商用意思決定モデル「Jev（System One）」のアーキテクチャをリバースエンジニアリング・拡張し、オープンウェイトの **Qwen3.5 / Qwen3.8** 上に構築された意思決定（Decision-Making）専用モデルファミリーです。0.8B、4B、9B、27Bの4サイズを展開し、単一のリクエスト内で「Yes/No判定（noul）」「多肢選択（choice）」「多段階評価（score）」を同時に高精度かつキャリブレーション（較正）された信頼度確率付きで実行します。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-### 主な特徴と革新性
-1. **確率分布を直接出力（Calibrated Probabilities）**: 単一ラベルのテキスト生成ではなく、較正された温度パラメータ（Fitted Temperature）に基づき、数学的に正確な確率分布を出力。信頼度が閾値未満の場合は人間にエスカレーションする運用設計が容易。
-2. **質問間の完全な分離（Question Isolation）**: 共通の長文コンテキスト（最大65,536トークン）を参照しつつ、同時に投入された質問同士が互いに影響を与えない独立推論設計。
-3. **商用API（TypeSafe System One）とのドロップイン互換**: 公式Python SDKのエンドポイントをローカルホストに向けるだけで、一切のコード変更なしに自前インフラへ移行可能。
-4. **推論効率**: H100上で6問の同時判定をわずか18.1msで完了。Apple Silicon（Mシリーズ）向けにはMLXバックエンドによる高速推論を標準サポート。
+## 主な機能と構成（README の要約）
 
----
-
-## 解決する主要な課題とアーキテクチャ
-
-従来のLLMを用いたワークフロー自動化では、プロンプトインジェクションへの脆弱性や、複数質問を投じた際のコンテキスト内バイアス（前の回答に引きずられる現象）、出力トークン生成に伴うレイテンシがボトルネックでした。`kev` はこの課題を **「ポインターヘッド（Pointer Head）方式」** と **「独立した状態キャッシュ再利用」** によって根本から解決しています。
-
-```mermaid
-graph TD
-    subgraph ClientRequest["クライアントリクエスト"]
-        Doc["Document / State (最大65,536 tokens)"]
-        Q1["Question 1 (noul: 緊急エスカレーション判定)"]
-        Q2["Question 2 (choice: 担当部署ルーティング)"]
-        Q3["Question 3 (score: 顧客の怒りレベル 0-2)"]
-    end
-
-    subgraph KevArchitecture["kev 内部推論パイプライン"]
-        Cache["KV Cache / State Hidden State\n(ドキュメントを1回のみ計算・固定)"]
-        
-        subgraph ForwardPasses["並列評価行 (Question Isolation)"]
-            Row1["State + Q1 + [decide]"]
-            Row2["State + Q2 + [opt]...[/opt] + [decide]"]
-            Row3["State + Q3 + [opt]...[/opt] + [decide]"]
-        end
-
-        PointerHead["Pointer Head & Temperature Calibration\nhidden('[decide]') と hidden('[/opt]') の類似度スコア算出"]
-    end
-
-    subgraph Output["キャリブレーション済みレスポンス"]
-        A1["Q1: 確率 0.93 (Yes)"]
-        A2["Q2: returns: 0.47, shipping: 0.28, billing: 0.25"]
-        A3["Q3: Score 1.44 (Confidence: 0.34)"]
-    end
-
-    Doc --> Cache
-    Cache --> Row1
-    Cache --> Row2
-    Cache --> Row3
-    Q1 --> Row1
-    Q2 --> Row2
-    Q3 --> Row3
-    Row1 --> PointerHead
-    Row2 --> PointerHead
-    Row3 --> PointerHead
-    PointerHead --> Output
-```
-
-### アーキテクチャの要点
-- **ハイブリッドバックボーン対応**: Qwen3.5/3.8のハイブリッド構造（Attention層 ＋ 再帰型Gated DeltaNet層）に最適化。DeltaNet層がアテンションマスクを無視する特性に対応するため、共通の`State`計算結果をキャッシュしつつ、質問ごとに独立した行（Row）としてフォワードパスを実行。質問間の完全な推論分離を保証。
-- **Pointer Headメカニズム**: 各選択肢末尾の`<opt>...</opt>`トークンの隠れ状態と、質問末尾の`<decide>`トークンの隠れ状態の内積を取り、Softmaxを適用することで選択確率を計算。次トークン予測に依存しない方式で、出力は与えた選択肢のどれかになります。
-- **Fitted Temperature**: チェックポイントごとに検証セットを用いて最適なTemperatureパラメータを事前フィッティング。Brierスコアを最小化し、確率値そのものを信頼度メトリクスとして直結可能。
-
----
+- はい・いいえ（noul）、選択式（choice）、評価（score）の質問を 1 回のリクエストで扱います。質問は同じ文書を共有しますが、互いの内容は読めません。
+  - 原文（README）: Yes/no (noul), multiple-choice (choice) and rating (score) questions in one request. The questions share the text but can't read each other.
+- 既定で較正された確率を返します。各チェックポイントには調整済みの temperature が付いています。
+  - 原文（README）: Calibrated probabilities by default: each checkpoint ships with a fitted temperature.
+- 最大 65,536 トークンの文書を、CUDA と、MLX を通じて Apple Silicon で扱えます。
+  - 原文（README）: Documents of up to 65,536 tokens, on CUDA and on Apple Silicon through MLX.
+- 自分でラベルを付けた例でファインチューニングできます。
+  - 原文（README）: Fine-tune on your own labelled examples.
+- 1 つのコマンドで自分の HTTPS エンドポイントをデプロイでき、使われていないときは 0 まで縮小します。
+  - 原文（README）: Deploy your own HTTPS endpoint with one command. It scales to zero when idle.
 
 ## インストール（README からの転記）
 

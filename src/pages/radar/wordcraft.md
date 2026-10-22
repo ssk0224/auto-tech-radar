@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "wordcraft - Pure Rustで完全再実装されたMicrosoft Word代替OSSの衝撃"
-description: "MCPと422個のAPIでAIエージェントによるドキュメント自動生成を可能にする新世代ワープロOSS「WordCraft」を徹底解説。"
 pubDate: "2026-10-14"
-tags: ["Rust", "OSS", "GitHub", "MCP", "AI-Agents"]
+tags: ["Rust","OSS","GitHub","MCP"]
 repoUrl: "https://github.com/storytold/wordcraft"
 repoCreatedAt: "2026-10-07"
 stars: 11077
@@ -13,62 +11,39 @@ corrections:
     note: "根拠のない比較表現（「人間と同等以上の精度」など）を訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "wordcraft - 純粋な Rust で作られた、オープンソースのワードプロセッサーです"
+description: "純粋な Rust で作られた、オープンソースのワードプロセッサーです。"
 ---
 
 # wordcraft: 概要
 
 storytold/wordcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 11,077 です。
 
-`storytold/wordcraft` は、Microsoft Word のワークフロー、UI（リボンUI）、そしてファイル仕様（.docx / OOXML）を、依存関係なしに **Pure Rust** でゼロからクリーンルーム再実装したオープンソースのデスクトップ・Web向けワードプロセッサです。
+- 純粋な Rust で作られた、オープンソースのワードプロセッサーです。
+  - 原文（README）: Writing and document design; an open-source, modern word processor, built in pure Rust.
+- .docx を読み書きでき、macOS・Windows・Linux・BSD でネイティブに、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: It reads and writes .docx, runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- スペルや文法のチェックを含め、すべてオフラインで動作します。
+  - 原文（README）: Spelling, grammar and everything else work offline.
 
-従来のオープンソースオフィス（LibreOffice等）が抱えていた「起動の重さ」「レガシーC++コードベース」「ヘッドレス運用の難しさ」「Electron製ツールのメモリ浪費」というペインを、Rustのメモリ安全性とGPUネイティブ描画（egui）、そしてレイアウトキャッシュ技術によって根本から解決しています。
+## 🎯 成熟度の目安（README の記載）
 
-### 主な革新性
-1. **README に記載の性能**: 段落レイアウトをキャッシュするため、188 ページの文書で入力したときの再レイアウトが約 **1.4ms** と記載されています（当サイトでは計測していません）。Electron は使っていません。
-2. **AIエージェント・ファースト設計**: 全422種類のUIアクションがユニークなコマンドIDとして公開されており、**MCP** サーバーまたはCLIを通じて、Claude 等の AI モデルからヘッドレスで文書の作成・編集を操作できます。
-3. **オフライン・完全プライベート**: 校閲・文法チェック・PDF/DOCX変換が外部API通信なしにローカルで完結。
+README にある開発段階の記載を、原文のまま示します（当サイトによる評価ではありません）。
 
----
+- 原文（README）: WordCraft is in alpha.
 
-## 解決する主要な課題とアーキテクチャ
+## 主な機能と構成（README の要約）
 
-オフィスドキュメントの自動化において、従来の headless LibreOffice や Python-docx は「レイアウトの崩れをリアルタイムに検知できない」「フォントレンダリングや改ページ判定が本家Wordとズレる」という決定的な弱点を抱えていました。
-
-WordCraftは、下図のように厳格なレイヤード・アーキテクチャを採用しており、レンダリングエンジン（`vello_cpu`）とレイアウトエンジン（`wordcraft-layout`）を分離しつつ、AIエージェントプロトコル（MCP）を最上位コントロール層に標準統合しています。
-
-```mermaid
-graph TD
-    subgraph UI_And_Agent_Layer ["UI / Interface & AI Agents"]
-        MCP["MCP Server / Agents"]
-        CLI[wordcraft-cli]
-        EGUI["egui Desktop / WebAssembly"]
-    end
-
-    subgraph Core_Engine ["wordcraft-engine (L4)"]
-        CMD["422 Commands / Session / Undo-Redo"]
-    end
-
-    subgraph Document_Pipeline ["Pipeline (L1 - L3)"]
-        DOC["Document Model & Fonts (L1)"]
-        LAYOUT["Layout & OOXML Parser (L2)"]
-        RENDER["Rasteriser & PDF Export (L3)"]
-    end
-
-    MCP -->|JSON Protocol| CMD
-    CLI -->|CLI Args| CMD
-    EGUI -->|User Events| CMD
-
-    CMD --> DOC
-    CMD --> LAYOUT
-    LAYOUT --> RENDER
-```
-
-### アーキテクチャの特徴
-- **L0〜L3（コアエンジン）**: 幾何計算（`wordcraft-geom`）、フォントシェーピング・ドキュメント構造（`wordcraft-doc`）、禁則処理・ページネーション・数式・表計算（`wordcraft-layout`）を完全分離。
-- **L4（エンジン層）**: 422個のコマンドカタログで全操作を正規化。UIのクリックイベントも、エージェントからのMCPリクエストも同一のエントリポイントを通過。
-- **L5〜L6（配信・フロント）**: ネイティブeguiとWasm対応。ヘッドレスサーバーでもGUIクライアントでも同一のバイナリコアで稼働。
-
----
+- .docx（OOXML）のほか .odt・.rtf・.html・.md・.tex（LaTeX）・.txt を開いて保存でき、97-2003 の .doc も開けます。PDF には選択できる文字・リンク・しおりつきで書き出せます。
+  - 原文（README）: Opens and saves .docx (OOXML), and also .odt, .rtf, .html, .md, .tex (LaTeX), .txt; opens legacy 97-2003 .doc; exports PDF with real, selectable text, links and bookmarks.
+- Electron も Tauri も使わず、GPU 上のネイティブな egui で動きます。
+  - 原文（README）: No Electron, no Tauri: native egui on the GPU.
+- すべての操作は id つきのコマンドで、同じ 422 個のコマンドがリボン・キーボードショートカット・コマンド検索・コマンドラインのツール・JSON の制御チャネル・MCP サーバーを動かします。
+  - 原文（README）: Every action is a command with an id. The same 422 commands drive the ribbon, keyboard shortcuts, the command search, a command-line tool, a JSON control channel and an MCP server.
+- クリーンルーム方式で、公開された仕様と観察から作られています。
+  - 原文（README）: Clean-room: built from public specifications and observation, with every asset original or openly licensed.
 
 ## インストール（README からの転記）
 

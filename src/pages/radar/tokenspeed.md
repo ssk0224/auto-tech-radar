@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "tokenspeed - TokenSpeed is a speed-of-light LLM inference engine."
-description: "TokenSpeed is a speed-of-light LLM inference engine."
 pubDate: "2026-10-09"
-tags: ["Python", "OSS", "GitHub", "LLM", "Inference", "AgenticAI"]
+tags: ["Python","OSS","GitHub","LLM","Inference"]
 repoUrl: "https://github.com/lightseekorg/tokenspeed"
 repoCreatedAt: "2026-05-06"
 stars: 2201
@@ -13,49 +11,33 @@ corrections:
     note: "TensorRT-LLM との性能比較の記述を README の記載（TensorRT-LLM レベルの性能を掲げ、最も高性能なエンジンになることを目標とする）に合わせて訂正。比較表の TensorRT-LLM のライセンスを Apache 2.0 に訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "tokenspeed - スケジューラーは、C++ の制御プレーンと Python の実行プレーンでできています"
+description: "スケジューラーは、C++ の制御プレーンと Python の実行プレーンでできています。"
 ---
 
 # tokenspeed: 概要
 
 lightseekorg/tokenspeed は 2026-05-06 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,201 です。
 
-`tokenspeed`は、GitHubで2200以上のスターを獲得している、Python製のオープンソースLLM推論エンジンです。その名の通り「光速」のLLM推論を実現することを目指し、特に**エージェントワークロード**に最適化されています。TensorRT-LLMレベルのパフォーマンスとvLLMレベルの使いやすさを両立させることを目標に掲げ、プロダクション環境でのエージェントワークロードにおいて最も高性能な推論エンジンとなることを目指しています。
+- スケジューラーは、C++ の制御プレーンと Python の実行プレーンでできています。
+  - 原文（README）: Scheduler: C++ control plane and Python execution plane.
+- 実行プレーンは Python で実装されており、研究者やエンジニアが素早く試行を繰り返せます。
+  - 原文（README）: The execution plane is implemented in Python, enabling fast iteration and lowering the cognitive load for researchers and engineers.
+- 入口は SMG と統合した AsyncLLM で、CPU 側のリクエスト処理の負荷を抑えます。
+  - 原文（README）: Entrypoint: SMG-integrated AsyncLLM for low-overhead CPU-side request handling.
 
-README によると、PyTorch Foundation は TokenSpeed を PyTorch Ecosystem Landscape に迎えた際に、そのアーキテクチャ上の特徴（コントロールプレーンと実行プレーンの分離など）を紹介しています（[PyTorch のブログ](https://pytorch.org/blog/pytorch-ecosystem-landscape-q3-update/)）。また README には、非営利団体の LightSeek Foundation が支援し、NVIDIA や AMD などのベンダーからハードウェア・エンジニアリング面の支援を受けていると記載されています。
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart TD
-    Client["Agent Client / API Request"] --> SMG["SMG AsyncLLM Entrypoint"]
-    subgraph ControlPlane["C++ Control Plane (FSM)"]
-        FSM["Lifecycle & KV Ownership Manager"]
-    end
-    subgraph ExecPlane["Python Execution Plane"]
-        Runtime["Inference Engine Runtime"]
-        Kernels["Modular Layered Kernels (MLA on Blackwell)"]
-    end
-    SMG --> ControlPlane
-    ControlPlane --> ExecPlane
-    ExecPlane --> Hardware["NVIDIA Blackwell / AMD ROCm GPU"]
-```
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-現代のLLMアプリケーション、特に複雑なタスクを自律的に実行するエージェントAIにおいては、推論速度と安定性がビジネスの成否を大きく左右します。従来のLLM推論エンジンは、汎用性や開発の容易さを追求する一方で、エージェントワークロード特有の動的なリクエストパターンやKVキャッシュ管理の課題に対して、最適なパフォーマンスを提供しきれていないケースがありました。
+## 主な機能と構成（README の要約）
 
-TokenSpeedは、この課題に対し根本的に異なるアーキテクチャアプローチで挑みます。
-
-### アーキテクチャの核心
-
-1.  **コントロールプレーンと実行プレーンの分離:**
-    *   **コントロールプレーン (C++):** リクエストのライフサイクル、KVキャッシュの所有権、オーバーラップタイミングなどを有限状態機械（FSM）としてC++で実装。コンパイル時に型システムによって安全なKVリソースの再利用を強制し、実行時のエラーリスクを最小限に抑え、高い信頼性とパフォーマンスを実現します。
-    *   **実行プレーン (Python):** 実際の推論実行ロジックはPythonで実装されており、研究者やエンジニアが迅速なイテレーションと低い認知負荷で開発を進められる柔軟性を提供します。
-    この分離により、コアスケジューリングシステムの強力な正確性保証と、高レベルな実行レイヤーの開発速度を両立させています。
-
-2.  **モジュール化されたカーネルシステム:**
-    *   プラグイン可能なレイヤードカーネルシステムを採用し、ポータブルな公開APIと集中型レジストリを通じて、コアエンジンからカーネルを分離しています。
-    *   README によると、カーネルのレジストリには Blackwell 世代 GPU 向けのエージェントワークロード用 **MLA (Multi-head Latent Attention)** 実装が含まれます（README ではこの実装を "one of the fastest" と説明しています）。カーネルは公開 API とプラグインの仕組みで分離されており、異なるアクセラレータへの拡張を想定しています。
-
-3.  **SMG統合AsyncLLMによる低オーバーヘッドなリクエスト処理:**
-    *   エントリーポイントとしてSMG 統合のAsyncLLMを採用し、CPU側のリクエストハンドリングにおけるオーバーヘッドを最小限に抑え、全体的なスループット向上に貢献しています。
+- リクエストのライフサイクル・KV キャッシュの所有・処理の重なりのタイミングを有限状態機械として表し、KV リソースの安全な再利用をコンパイル時に型システムで保証します。
+  - 原文（README）: Request lifecycle, KV cache ownership, and overlap timing are encoded as a finite-state machine, with safe KV resource reuse enforced by the type system at compile time.
+- TokenSpeed はカーネルをモジュール化されたサブシステムとして扱い、移植可能な公開 API と集中管理の登録簿を通じて中核のエンジンから切り離しています。
+  - 原文（README）: TokenSpeed also treats kernels as a first-class, modular subsystem, separating them from the core engine through a portable public API, centralized registry and selection model, and an extensible plugin mechanism for heterogeneous accelerators.
 
 ## インストール（README からの転記）
 

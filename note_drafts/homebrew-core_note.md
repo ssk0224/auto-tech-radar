@@ -5,12 +5,13 @@
 Homebrew/homebrew-core は 2016-03-01 に GitHub で作成されたリポジトリです。
 
 ## 主な機能とアーキテクチャ概要
-`homebrew-core`は、Homebrewエコシステムにおいて以下の主要な機能とアーキテクチャ的特徴を持っています。
 
-*   **膨大なFormulaeの提供:** `homebrew-core`は、Git、Node.js、Python、Docker、各種データベースクライアントなど、開発者が日常的に利用するほぼ全ての主要なOSSツールのformulaeを網羅しています。これにより、必要なツールを個別に探してインストールする手間が不要になります。
-*   **ソースからのビルド:** 多くのformulaeは、ソフトウェアのソースコードからビルドされます。これにより、ユーザーのシステム環境に最適化された形でソフトウェアがインストールされ、最新の機能やセキュリティパッチが迅速に反映されます。
-*   **Rubyベースのシンプルさ:** 各formulaはRubyスクリプトとして記述されており、その構造は非常にシンプルで読みやすいのが特徴です。これにより、コミュニティによる貢献が容易になり、新しいソフトウェアの追加や既存のformulaの更新が活発に行われています。
-*   **デフォルトのTap:** Homebrewをインストールすると、`homebrew-core`は自動的に「tap」されます。これは、追加設定なしで`homebrew-core`内の全てのformulaが利用可能になることを意味し、Homebrewの使いやすさを決定づける重要な要素です。
+- Homebrew パッケージマネージャーの Core formulae です。
+  - 原文（README）: Core formulae for the Homebrew package manager.
+- これは Homebrew の既定の tap で、最初からインストールされています。
+  - 原文（README）: This is the default tap for Homebrew and is installed by default.
+- brew install で使えます。
+  - 原文（README）: Just brew install .
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

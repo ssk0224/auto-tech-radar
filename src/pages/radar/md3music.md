@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "md3Music - 酷狗概念版 第三方音乐播放器 Flutter + Rust"
-description: "酷狗概念版 第三方音乐播放器 Flutter + Rust"
 pubDate: "2026-10-09"
-tags: ["Dart", "OSS", "GitHub", "Flutter", "Rust", "MaterialDesign"]
+tags: ["Dart","OSS","GitHub","Flutter","Rust"]
 repoUrl: "https://github.com/zzyoxml/md3Music"
 repoCreatedAt: "2026-05-29"
 stars: 858
@@ -11,35 +9,37 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "md3Music - Flutter と Rust で作られた、Material 3 の音楽プレーヤーです"
+description: "Flutter と Rust で作られた、Material 3 の音楽プレーヤーです。"
 ---
 
 # md3Music: 概要
 
 zzyoxml/md3Music は 2026-05-29 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 858 です。
 
-`md3Music` は、GitHubで858以上のスターを獲得している注目のオープンソースプロジェクトです。Dart言語で書かれたFlutterフロントエンドと、高性能なRust製バックエンドを組み合わせた、次世代のAndroid音楽プレイヤーとして開発されています。その名の通り、Googleの最新デザインシステムであるMaterial Design 3 (MD3) と、Apple Musicの洗練されたユーザーエクスペリエンスを融合させた、モダンで美しいUIが特徴です。
+- Flutter と Rust で作られた、Material 3 の音楽プレーヤーです。
+  - 原文（README）: A modern Material 3 music player built with Flutter & Rust.
+- MD3Music は酷狗音楽の API を使う Flutter の音楽プレーヤーで、組み込みの Rust API サーバーを内蔵しており、外部のサーバーなしで使えます。
+  - 原文（README）: MD3Music 是一款基于酷狗音乐 API 的 Flutter 音乐播放器,内置嵌入式 Rust API 服务器,无需外部服务器即可使用。
+- 作者は、このプロジェクトを学習のためだけに使うよう求めています。
+  - 原文（README）: 本项目仅供学习,请勿用于商业用途,详情见免责声明。
 
-このプロジェクトは、中国の主要音楽サービス「酷狗音楽」のAPIをベースに構築されており、オンライン音楽の検索、再生、管理から、ローカル音楽ファイルの再生まで、幅広い機能を提供します。特に注目すべきは、組み込みのRust APIサーバーを採用している点です。これにより、外部サーバーを別途用意することなく、アプリケーション単体でAPIリクエストをローカルで処理する構成です。なお README には、学習目的のプロジェクトであり商用利用しないよう求める記載があります。
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart LR
-    Flutter["Material Design 3 UI"] --> Player["オーディオ再生コア"]
-    Player --> Cache["オフラインキャッシュ / メタデータ"]
-    Cache --> Device["Android / iOS / Desktop 再生"]
-```
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-`md3Music` が解決する主要な課題は、既存の音楽プレイヤーが抱えるパフォーマンス、リソース消費、そしてプライバシーに関する懸念です。
+## 主な機能と構成（README の要約）
 
-1.  **外部サーバー依存の排除とプライバシーの向上:** 多くのサードパーティ製音楽プレイヤーは、APIリクエストを処理するために外部サーバーに依存しています。`md3Music` は、Rustで実装された軽量なAPIサーバーをアプリ内に組み込むことで、外部サーバーへの依存をなくしています。全てのAPIリクエストがローカルの `127.0.0.1` で処理されるため、ユーザーデータのプライバシーが強化され、ネットワーク遅延の影響も最小限に抑えられます。
-2.  **高性能・低リソース消費:** Rustは、その高いパフォーマンスとメモリ安全性で知られています。従来のNode.jsベースのAPIサーバーと比較して、Rust製サーバーはメモリフットプリントが大幅に削減され、起動時間も高速化されています。これにより、Androidデバイス上での音楽再生体験がよりスムーズかつ効率的になります。
-3.  **リッチなユーザーエクスペリエンス:** Flutterの表現力豊かなUIフレームワークを活用し、Material Design 3とApple Musicのスタイルを融合した美しいインターフェースを提供。多音質選択（標準、高質、無損、Hi-Res）、USB独占出力、DLNA投屏、Apple Musicスタイルの逐字歌詞表示、さらには魅族Flymeデバイス特有の状態欄歌詞表示など、ユーザーの音楽体験を向上させるための豊富な機能が盛り込まれています。
-
-**アーキテクチャ概要:**
-*   **フロントエンド:** Flutter (Dart) で構築されたUI層。Androidのネイティブ機能（JNI/MethodChannel）を通じてRustサーバーと連携。
-*   **バックエンド:** アプリケーションに組み込まれたRust製APIサーバー (`libkugou_server.so`)。`tiny_http` と `ureq` を利用し、酷狗音楽APIへのリクエスト処理、キャッシュ、暗号化などをローカルで実行。
-*   **データ層:** ローカルデータとキャッシュ管理にはSharedPreferencesとSQLiteを使用。
-*   **プラットフォーム連携:** USB独占出力にはネイティブC++ (JNI/CMake) を、DLNA投屏には`dlna_dart`ライブラリを使用するなど、高度なプラットフォーム機能も統合。
+- 組み込みの Rust サーバー: 起動時に libkugou_server.so（JNI/MethodChannel）経由でローカルの tiny_http サーバー（127.0.0.1）を起動し、酷狗の API へのリクエストをローカルで処理します。
+  - 原文（README）: 嵌入式 Rust 服务器 — App 启动时通过 libkugou_server.so(JNI/MethodChannel)启动本地 tiny_http 服务器(127.0.0.1),所有酷狗 API 请求在本地处理
+- 複数のアーキテクチャ（armeabi-v7a（32 ビット）、arm64-v8a（64 ビット）、x86、x86_64（エミュレーター））に対応します。
+  - 原文（README）: 多架构支持 — 支持 armeabi-v7a(32 位)、arm64-v8a(64 位)、x86、x86_64(模拟器)
+- ローカルネットワークの HTTP サーバー（Range リクエスト対応）を内蔵し、ローカルの音楽も DLNA の機器にキャストできます。
+  - 原文（README）: 本地投屏支持 — 内置局域网 HTTP 服务器(支持 Range 请求),本地音乐也能投屏到 DLNA 设备
+- GitHub Actions を設定しており、v* のタグをプッシュすると自動でビルドして GitHub Release を作ります。
+  - 原文（README）: 项目配置了 GitHub Actions,推送 v* 标签会自动构建并创建 GitHub Release。
 
 ## インストール（README からの転記）
 

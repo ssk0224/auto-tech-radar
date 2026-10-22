@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "pdfcraft - PdfCraft: An open-source PDF reader and editor written by scratch in pure Rust"
-description: "Adobe Acrobatを純粋なRustでゼロからクリーンルーム再実装したオープンソースPDFワークベンチ。ネイティブGUI、高速CLI、AIエージェント向けMCPサーバーを完全統合。"
 pubDate: "2026-10-13"
-tags: ["Rust", "OSS", "GitHub", "PDF", "MCP", "AI"]
+tags: ["Rust","OSS","GitHub","PDF","MCP","AI"]
 repoUrl: "https://github.com/storytold/pdfcraft"
 repoCreatedAt: "2026-09-30"
 stars: 11454
@@ -11,82 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "pdfcraft - 純粋な Rust で作られた、オープンソースの PDF リーダー兼エディターです"
+description: "純粋な Rust で作られた、オープンソースの PDF リーダー兼エディターです。"
 ---
 
 # pdfcraft: 概要
 
 storytold/pdfcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-13 時点のスター数は 11,454 です。
 
-**PdfCraft**（`storytold/pdfcraft`）は、業界標準であるAdobe Acrobatの機能を、外部の巨大C/C++ライブラリに頼らず**純粋なRust（Pure Rust）でゼロからクリーンルーム再実装**した次世代のオープンソースPDFワークベンチです。
+- 純粋な Rust で作られた、オープンソースの PDF リーダー兼エディターです。
+  - 原文（README）: The PDF workbench; an open-source, modern PDF reader and editor, built in pure Rust.
+- アカウント・テレメトリ・クラウドは不要で、オフラインで動作します。
+  - 原文（README）: No account, no telemetry, no cloud. It works offline and opens instantly.
+- エンジン・CLI・アプリはすべてオープンソースです。
+  - 原文（README）: The engine, CLI and app are all open source.
 
-macOS、Windows、Linux、FreeBSD向けの高速なネイティブデスクトップアプリとして動作するだけでなく、同一コードベースからWebAssembly（Wasm）としてブラウザ上でも動作します。アカウント登録不要、テレメトリ皆無、完全オフライン稼働という極めてプライベートな設計を徹底しています。
+## 🎯 成熟度の目安（README の記載）
 
-さらに特筆すべきは、**AIエージェント時代を前提とした設計（Agent-First Architecture）**です。GUIの操作にとどまらず、JSON Schemaで定義されたCLIツール群、ClaudeなどのLLMエージェントと直接通信可能な**標準MCPサーバー**、さらにはアクセシビリティツリーを介したヘッドレスGUI自動操縦プロトコルまで標準搭載しています。
+README にある開発段階の記載を、原文のまま示します（当サイトによる評価ではありません）。
 
-## 解決する主要な課題とアーキテクチャ
+- 原文（README）: Where it stands (October 2026), honestly: PdfCraft is alpha.
 
-従来のPDFツールエコシステムは、以下の深刻な課題を抱えていました。
+## 主な機能と構成（README の要約）
 
-1. **レガシーC/C++製エンジンの脆弱性**: PopplerやPDFiumなどの既存エンジンはバッファオーバーフロー等のメモリ破壊リスクを常に抱えている。
-2. **商用製品（Adobe等）のベンダーロックインと高額ライセンス**: 企業でのシート単位課金、クラウド強制アップロードによる情報漏洩リスク。
-3. **データ損失を招く破壊的保存**: 編集時にオリジナルバイト列を不可逆に変更し、フォームや注釈、レイヤーのメタデータが破損する。
-4. **AI/プログラム連携の困難さ**: 高度なPDF編集（フォーム入力、注釈追加、特定ページ抽出）をCLIやLLMから安全かつ決定論的に実行する手段の欠如。
-
-PdfCraftは、レイヤード・ワークスペースアーキテクチャを採用し、UIとコアロジックを完全分離することでこれらの課題を解決しています。
-
-```mermaid
-graph TD
-    subgraph Clients ["Frontends & Automation Interfaces"]
-        GUI["デスクトップ / Web GUI (pdfcraft-ui-egui)"]
-        CLI["CLI コマンドラインツール (pdfcraft-cli)"]
-        MCP["AI エージェント / MCP Server (Claude Desktop等)"]
-        Headless["GUI 自動操縦 Control Socket (~/.pdfcraft-control.json)"]
-    end
-
-    subgraph Facade ["Engine Façade Layer"]
-        Engine["pdfcraft-engine<br/>(セッション管理 / 編集履歴 / Undo-Redo / ツールカタログ)"]
-        Auto["pdfcraft-automation<br/>(JSON Schema ツールテーブル / 権限隔離)"]
-    end
-
-    subgraph CoreCrates ["Pure Rust Core Crates (Domain Specific)"]
-        Organize["pdfcraft-organize<br/>(結合 / 分割 / 抽出 / アウトライン)"]
-        Annot["pdfcraft-annot<br/>(注釈 / テキストマークアップ / 描画)"]
-        Forms["pdfcraft-forms<br/>(インタラクティブフォーム / JSサンドボックス)"]
-        Render["pdfcraft-render<br/>(テキスト抽出 / レンダリング)"]
-        Crypt["pdfcraft-crypt<br/>(RC4 / AES-128/256 / 権限検証)"]
-        Filters["pdfcraft-filters<br/>(Flate / LZW / ASCII85 / 予測子)"]
-    end
-
-    subgraph Storage ["Document Storage / Object Model"]
-        COS["pdfcraft-cos<br/>(耐障害パーサー / Copy-on-Write / アトミック保存)"]
-        PDFFile[("ローカル PDF ファイル<br/>(オリジナルバイト保持 / 差分追記)")]
-    end
-
-    GUI --> Engine
-    CLI --> Engine
-    MCP --> Auto
-    Headless --> Engine
-    Auto --> Engine
-
-    Engine --> Organize
-    Engine --> Annot
-    Engine --> Forms
-    Engine --> Render
-
-    Organize --> COS
-    Annot --> COS
-    Forms --> COS
-    Render --> COS
-    Crypt --> COS
-    Filters --> COS
-
-    COS --> PDFFile
-```
-
-### アーキテクチャの核心
-- **インクリメンタル＆アトミックライト**: 元のバイト列に差分のみを追記（Incremental Update）し、一時ファイルへの書き込み完了後にアトミックにスワップするため、保存中の電源断でもファイルが破損しません。
-- **耐障害パース性能**: pdf.jsのテストコーパス983ファイル中、963ファイルがクラッシュゼロで正常描画され、損傷した構造も自動修復します。
-- **多言語・縦書き完全対応**: 日本語の縦書きテキスト、アラビア語・ヘブライ語（RTL）、デーヴァナーガリー文字、カラー絵文字まで正確にレンダリングします。
+- 保存のたびに変更を追記し、元のバイト列には手を加えません。書き込みはアトミックで、間違って閉じても何も失われません。
+  - 原文（README）: Every save appends your changes and leaves the original bytes untouched. Writes are atomic, undo runs deep, and nothing is lost if you close by mistake.
+- 大きなページはタイルに分けて描画するため、どの倍率でも文字がくっきり表示されます。
+  - 原文（README）: Large pages render in tiles, so text stays crisp at any magnification.
+- 各ページは個別に描画され、壊れた文書は修復されます。983 ファイルからなる pdf.js のテストコーパスでは、クラッシュは 0 件でした。
+  - 原文（README）: Every page renders in isolation and damaged documents are repaired. Across the 983-file pdf.js test corpus the result is 0 crashes.
+- 入力しながら文書全体を検索し、⌘G で一致箇所を順にたどり、正しい読み順で文字を選択できます。
+  - 原文（README）: Search the whole document as you type, step through matches with ⌘G , and select text that comes out in the right reading order.
 
 ## インストール（README からの転記）
 

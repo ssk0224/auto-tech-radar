@@ -6,9 +6,22 @@ jaredpalmer/kev は 2026-09-18 に GitHub で作成されたリポジトリで�
 
 ## 主な機能とアーキテクチャ概要
 
-`kev` は、テキスト生成（自由記述チャット）を一切行いません。その代わり、与えられたドキュメント（最大65,536トークン）に対して、複数の評価基準を同時並行でスコアリングします。
-
-従来の生成AIでは3回のリクエストや長いJSONプロンプトが必要でしたが、`kev` は内部のポインターヘッドにより、**1回のフォワードパス（状態キャッシュ再利用）で全問をサブ数十ミリ秒で同時に解きます**。しかも質問同士が干渉し合わない構造的隔離（Question Isolation）が施されています。
+- 自分で学習・実行できる、Jev に似た小さな判断モデルです。
+  - 原文（README）: Small Jev-like decision models you can train and run yourself.
+- Kev は、Qwen3.5 と Qwen3.8 をもとに、Jev's Architecture Unmasked に書かれた構成にならって作られた小さな判断モデルの系列です。
+  - 原文（README）: Kev is a family of small decision models built on Qwen3.5 and Qwen3.8 and based on the architecture described in Jev's Architecture Unmasked.
+- API は TypeSafe の System One と同じ形なので、その Python SDK を手元のサーバーに向けて使えます。
+  - 原文（README）: The API matches TypeSafe's System One, so you can point their Python SDK at your local server.
+- はい・いいえ（noul）、選択式（choice）、評価（score）の質問を 1 回のリクエストで扱います。質問は同じ文書を共有しますが、互いの内容は読めません。
+  - 原文（README）: Yes/no (noul), multiple-choice (choice) and rating (score) questions in one request. The questions share the text but can't read each other.
+- 既定で較正された確率を返します。各チェックポイントには調整済みの temperature が付いています。
+  - 原文（README）: Calibrated probabilities by default: each checkpoint ships with a fitted temperature.
+- 最大 65,536 トークンの文書を、CUDA と、MLX を通じて Apple Silicon で扱えます。
+  - 原文（README）: Documents of up to 65,536 tokens, on CUDA and on Apple Silicon through MLX.
+- 自分でラベルを付けた例でファインチューニングできます。
+  - 原文（README）: Fine-tune on your own labelled examples.
+- 1 つのコマンドで自分の HTTPS エンドポイントをデプロイでき、使われていないときは 0 まで縮小します。
+  - 原文（README）: Deploy your own HTTPS endpoint with one command. It scales to zero when idle.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

@@ -6,11 +6,14 @@ wikimedia/mediawiki は 2012-11-02 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-MediaWikiが数あるナレッジツールの中で別格とされる理由は以下の3点に集約されます。
-
-1. **イミュータブル（不変）な差分追跡**: すべての変更は過去履歴として保存され、誰でも過去バージョンへのロールバックが可能。情報統制と監査ログの観点で極めて優れています。
-2. **階層化されたキャッシュ構造**: Memcached/Redis、Varnishとの親和性が極めて高く、低スペックサーバーでも膨大な同時アクセスを処理可能。
-3. **拡張性とAPIエコシステム**: REST APIはもちろん、数百の拡張機能（VisualEditor、Semantic MediaWiki、認証プラグイン等）が用意されており、要件に合わせた自由なカスタマイズが可能です。
+- MediaWiki は、PHP で書かれたオープンソースの wiki ソフトウェアです。
+  - 原文（README）: MediaWiki is a free and open-source wiki software package written in PHP.
+- Wikipedia をはじめとする Wikimedia のプロジェクトの基盤です。
+  - 原文（README）: It serves as the platform for Wikipedia and the other Wikimedia projects, used by hundreds of millions of people each month.
+- システム要件・インストール・アップグレードの詳細は、RELEASE-NOTES・INSTALL・UPGRADE のファイルにあります。
+  - 原文（README）: For system requirements, installation, and upgrade details, see the files RELEASE-NOTES, INSTALL, and UPGRADE.
+- CREDITS ファイルに、プロジェクトの技術的な貢献者が載っています。
+  - 原文（README）: The CREDITS file lists technical contributors to the project.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

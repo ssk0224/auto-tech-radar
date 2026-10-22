@@ -5,23 +5,21 @@
 openJiuwen-ai/jiuwenswarm は 2026-03-05 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 5,978 です。
 
 ## 主な機能とアーキテクチャ概要
-```mermaid
-flowchart TD
-    Task["大タスク / ゴール"] --> Orchestrator["JiuwenSwarm スウォーム司令塔"]
-    Orchestrator --> AgentA["調査エージェント"]
-    Orchestrator --> AgentB["コード生成エージェント"]
-    Orchestrator --> AgentC["テスト＆監査エージェント"]
-    AgentA & AgentB & AgentC --> Memory["共有スウォームメモリ"]
-    Memory --> Result["高精度な最終納品物自動生成"]
-```
 
-現代のビジネス環境では、複雑なタスクの自動化と効率化が喫緊の課題です。しかし、従来のAIエージェントは単一タスクに特化しがちで、複数のステップや専門知識を要する複雑なプロセスには対応が困難でした。JiuwenSwarmは以下の課題を解決します。
-
-*   **複雑なタスクの分解と実行:** リーダーエージェントが複雑なタスクを分解し、専門エージェントチームを動的に編成。各エージェントが連携し、タスクをエンドツーエンドで実行します。
-*   **エージェント間の協調とスケーラビリティ:** 分散型エージェントスウォームアーキテクチャにより、リーダーとチームメイトがプロセスやマシンを跨いでデプロイされ、大規模な協調作業を可能にします。
-*   **スキルの継続的な最適化:** 「Skill Self-Evolution」機能により、エージェントは実行結果やユーザーフィードバックから学習し、自身のスキル定義を自動で改善します。これにより、一度構築したスキルが陳腐化することなく、常に最新の状態に保たれます。
-*   **ヒューマン・イン・ザ・ループ (HITL) の統合:** SwarmflowというPythonスクリプトによる決定論的なマルチステージワークフローを通じて、人間による介入（`human` / `human_session`）を組み込むことができ、AIの自律性と人間の制御のバランスを取ります。
-*   **幅広いAIインフラ互換性:** Huawei Cloud MaaS、OpenAI互換API、ローカルモデルなど、多様なAIプラットフォームに対応し、既存のインフラを最大限に活用できます。
+- JiuwenSwarm は、複数のエージェントの協調を行う Agent のシステムです。
+  - 原文（README）: JiuwenSwarm is an Agent system that makes multi-agent collaboration truly work.
+- 1 台のマシンでもクラスターでも動き、ブラウザ・ターミナル・普段使っているチャットアプリから使えます。
+  - 原文（README）: It runs on a single machine or across a cluster, and you can reach it from a browser, a terminal, or the chat apps you already use.
+- Huawei Cloud MaaS・OpenAI・DeepSeek・DashScope・SiliconFlow・OpenRouter などの OpenAI 互換の API と、ローカルのモデルに対応します。
+  - 原文（README）: JiuwenSwarm supports multiple model platforms: Huawei Cloud MaaS, OpenAI, DeepSeek, DashScope, SiliconFlow, OpenRouter and other OpenAI-compatible APIs, as well as local model deployment.
+- 複数エージェントの協調: Leader が複雑なタスクを分解してチームを組み、各エージェントが役割を分担して動的に調整します。
+  - 原文（README）: Multi-Agent Collaboration / The Leader decomposes a complex task and assembles teams, multi agents specialize and negotiate dynamically.
+- 分散した Agent Swarm: Leader と Teammates がプロセスやマシンをまたいで配置され、連携します。
+  - 原文（README）: Distributed Agent Swarm / Leader and Teammates deploy across processes and machines, coordinating at scale.
+- Skill の自己進化: エラーの兆候と利用者の不満を自動で検出し、Skill の定義を改善します。
+  - 原文（README）: Skill Self-Evolution / Automatically detects error signals and user dissatisfaction, then optimizes Skill definitions
+- ツールの権限と安全: ツールは実行前に承認が必要で、ファイルへのアクセスは許可リストを通り、機密性の高い操作は止められます。
+  - 原文（README）: Tool Permissions & Security / Every step is under your control, tools require approval before execution, file access goes through a whitelist, and sensitive operations are intercepted
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

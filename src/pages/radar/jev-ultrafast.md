@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "jev-ultrafast - Fastest and cheapest web agent"
-description: "投機的な意思決定とDOMの扱いを工夫したWebブラウザ自律エージェント"
 pubDate: "2026-10-10"
-tags: ["Python", "OSS", "GitHub", "AI-Agents", "Automation"]
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/browser-use/jev-ultrafast"
 repoCreatedAt: "2026-09-17"
 stars: 22480
@@ -13,63 +11,37 @@ corrections:
     note: "説明文の最上級の表現を削除し、機能の説明に訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "jev-ultrafast - 動的でインデックスつきの行動空間を持つブラウザエージェントです"
+description: "動的でインデックスつきの行動空間を持つブラウザエージェントです。"
 ---
 
 # jev-ultrafast: 概要
 
 browser-use/jev-ultrafast は 2026-09-17 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 22,480 です。
 
-**jev-ultrafast**は、Webブラウザ自動化における最大のボトルネックであった「推論レイテンシ」と「トークンコスト」を減らすことを目的とした、自律型ブラウザエージェントフレームワークです。
+- 動的でインデックスつきの行動空間を持つブラウザエージェントです。
+  - 原文（README）: A browser agent with a dynamic, indexed action space.
+- TypeSafe の Jev が操作と要素を選び、操作が TYPE_TEXT のときだけ小さな LLM が文章を書きます。
+  - 原文（README）: TypeSafe's Jev picks an operation and an element. A small LLM writes text only when the operation is TYPE_TEXT.
+- ポリシーには、サイト専用の操作スクリプトや用意された入力文字列はありません。
+  - 原文（README）: There are no site-specific action scripts or prepared field strings in the policy.
 
-従来のマルチモーダルWebエージェント（GPT-4VやClaude 3.5 Sonnetなどを用いた画面キャプチャベースの方式）は、1ステップごとに高解像度スクリーンショットをモデルへ送信し、巨大なコンテキストを消費しながら数秒〜十数秒かけて次の操作（座標クリックや入力）を推論していました。このアプローチは精度こそ高いものの、API課金額の爆発と極度の遅延が商用本番導入の致命的な壁となっていました。
+## 🎯 成熟度の目安（README の記載）
 
-jev-ultrafastはこのパラダイムを根本から刷新します。TypeSafeの「Jev」アーキテクチャを採用し、**「1回のネットワーク往復で操作タイプと対象要素を同時に投機的推論」「スクリーンショットを排除した極小DOMスナップショット」「テキスト入力時のみ小型LLMに委譲」**という3段階のハイブリッドパイプラインを構築。Google Flightsでの複雑なフライト検索タスクをわずか**7.1秒**で完結させ、従来のBrowser Use構成と比較してCDPコール数を**1,092回から101回へ削減**、実行速度を25%高速化することに成功しました。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
----
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-### 1. 従来型ブラウザエージェントの課題
-- **高額なVLMコスト**: スクリーンショット1枚あたり数千トークンを消費し、1タスク数十ステップで数百円のコストが発生。
-- **直列的レイテンシ**: 「画面解析 → アクション決定 → ターゲット要素特定 → 入力文字列生成」が直列に行われる。
-- **DOM肥大化によるコンテキスト溢れ**: 巨大なHTMLツリーをそのまま投じることによるトークン圧迫とハルシネーション。
-
-### 2. jev-ultrafastのコアアーキテクチャ
-
-jev-ultrafastは、観察（Observation）ごとに可視領域のインタラクティブ要素のみを抽出した「番号付きエレメントテーブル」を原子的に構築し、1リクエスト内で操作（Operation）と各操作ごとのターゲット候補（Target Heads）を投機的に同時取得します。
-
-```mermaid
-graph TD
-    A[ブラウザ画面 DOM] -->|snapshot.js 原子抽出| B[可視要素インデックステーブル]
-    B --> C{TypeSafe Jev 単一リクエスト}
-    
-    subgraph SpeculativeFanoutDecision ["Speculative Fan-out Decision"]
-        C --> D["Operation Head: CLICK / TYPE / etc."]
-        C --> E["Click Target Head: 要素番号"]
-        C --> F["Type Target Head: 要素番号"]
-        C --> G["Select Target Head: 要素番号"]
-    end
-    
-    D --> H{決定された操作}
-    H -->|CLICKの場合| I[Eの対象へ即時クリック実行]
-    H -->|TYPE_TEXTの場合| J[小型LLMへコンテキスト委譲]
-    
-    J -->|短文生成のみ| K[Fの対象へ入力実行]
-    
-    I --> L["ジオメトリ & 鮮度バリデーション"]
-    K --> L
-    L -->|成功| M["次回サイクル / 完了判定"]
-```
-
-### 3. 高速化のための主要技術
-1. **投機的ファンアウト（Speculative Fan-out）**: 
-   「次がCLICKならどの要素か」「TYPE_TEXTならどの要素か」を1回の推論パスで並列予測。確定したOperationに応じたTargetをそのまま使うため、ネットワークRTTを半減。
-2. **Atomic DOM Snapshot**: 
-   JavaScriptフックを用いて、ビューポート内の操作可能ノード（ボタン、入力欄、コンボボックス）のみをインデックス化し、ノード参照を保持したままテーブル化。
-3. **小型LLMによるテキスト補完の分離**: 
-   ナビゲーションやクリックの決定には汎用大型モデルを使わず、フォーム入力に必要な文脈生成時のみ小型のLLM（Mercury-2.5、GLM、DeepSeek等）を呼び出すことで、ミリ秒単位の応答と最小コストを両立。
-
----
+- 操作は CLICK・TYPE_TEXT・SELECT・SCROLL_UP・SCROLL_DOWN・WAIT・DONE・BLOCKED です。
+  - 原文（README）: The operations are CLICK, TYPE_TEXT, SELECT, SCROLL_UP, SCROLL_DOWN, WAIT, DONE, and BLOCKED.
+- 2 つの判断を 1 回のネットワークの往復で行います。
+  - 原文（README）: Two decisions, one network round trip.
+- Chrome は uv sync で入る Browser Harness を通じて接続します。
+  - 原文（README）: Chrome connects through Browser Harness, installed by uv sync.
+- 既定のエージェントのループではスクリーンショットを使わず、Jev は構造化された状態を読みます。
+  - 原文（README）: No screenshots in the default agent loop. Jev consumes structured state.
 
 ## インストール（README からの転記）
 

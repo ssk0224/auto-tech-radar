@@ -6,13 +6,20 @@ ModelCloud/GPTQModel は 2024-06-17 に GitHub で作成されたリポジトリ
 
 ## 主な機能とアーキテクチャ概要
 
-GPTQModelは、大規模言語モデル（LLM）の量子化、品質検証、および高速推論デプロイメントを単一APIで統合するプラットフォームです。GPTQ、AWQ、ParoQuant、GGUF、FP8、EXL3、QQQといった多様な量子化手法をサポートし、FP16/BF16モデルのGPUメモリ消費量を大幅に削減しながら推論スループットを向上させます。
-
-- **マルチハードウェア対応**: NVIDIA CUDA、AMD ROCm、Intel XPU、Apple Silicon (MPS/MLX)、CPU (AVX/AMX) に対応。
-- **主要推論ランタイム統合**: Hugging Face Transformers、vLLM、SGLang とネイティブ連携。
-- **レイヤー単位の動的量子化制御**: 精度劣化を抑えたい特定レイヤーのビット幅を個別に制御可能。
-
----
+- GPT-QModel は、LLM の量子化・検証・デプロイのための拡張可能なプラットフォームです。
+  - 原文（README）: GPT-QModel ⚡ An extensible platform for LLM quantization, validation, and deployment.
+- GPTQ・AWQ・ParoQuant・GGUF・FP8・EXL3・QQQ などに、NVIDIA CUDA・AMD ROCm・Huawei Ascend・Intel XPU・CPU で、Transformers・vLLM・SGLang とともに対応します。
+  - 原文（README）: GPTQ, AWQ, ParoQuant, GGUF, FP8, EXL3, QQQ, and more—across NVIDIA CUDA, AMD ROCm, Huawei Ascend, Intel XPU, and CPU, with Transformers, vLLM, and SGLang.
+- GPT-QModel は、キャリブレーション・量子化・品質評価・モデル変換・高速化した推論のための一貫した API を提供します。
+  - 原文（README）: GPT-QModel provides a consistent API for calibration, quantization, quality evaluation, model conversion, and accelerated inference.
+- 手法・形式・バックエンド・カーネルの層はモジュール化されており、必要なところでは手法ごとの制御を使いつつ、実装は同じモデルのライフサイクルを共有します。
+  - 原文（README）: Its method, format, backend, and kernel layers are modular: method-specific controls remain available where needed, while implementations share the same model lifecycle.
+- すべての量子化手法は、キャリブレーション・量子化・検証・保存・読み込み・提供という共通のライフサイクルを共有し、手法ごとの制御も残します。
+  - 原文（README）: Every quantization method shares a common lifecycle—calibrate, quantize, validate, save, load, and serve—while retaining method-specific controls where they matter.
+- GGUF・FP8・EXL3・ParoQuant・VPTQ は、現在 GPT-QModel 独自の量子化・実行の経路です。
+  - 原文（README）: GGUF, FP8, EXL3, ParoQuant, and VPTQ are currently native GPT-QModel quantization/runtime paths.
+- SGLang での読み込みは、METHOD.GPTQ（FORMAT.GPTQ、FORMAT.GPTQ_V2、FORMAT.MARLIN）と METHOD.AWQ（FORMAT.GEMM、FORMAT.MARLIN）に限られます。
+  - 原文（README）: SGLang loading is limited to METHOD.GPTQ with FORMAT.GPTQ, FORMAT.GPTQ_V2, or FORMAT.MARLIN, and METHOD.AWQ with FORMAT.GEMM or FORMAT.MARLIN.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

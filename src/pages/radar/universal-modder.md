@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "universal-modder - PCゲーム解析・アセット生成・Mod構築を自動化するAIエージェント統合フレームワーク"
-description: "Claude CodeなどのAIエージェントにPCゲームのMod開発を一任。リバースエンジニアリング、fal.aiを用いたアート/3D/音声生成、実機検証、プロモーション動画制作までを自律実行するOSS「universal-modder」を徹底解剖。"
 pubDate: "2026-10-15"
-tags: ["Python", "OSS", "GitHub", "ReverseEngineering", "GameDev", "LLM", "ClaudeCode"]
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/rehan-remade/universal-modder"
 repoCreatedAt: "2026-09-30"
 stars: 7929
@@ -11,60 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "universal-modder - AI のコーディングエージェントが、手持ちの PC ゲームの mod を作れるようにするスキル・ツール・共有のナレッジベースです"
+description: "AI のコーディングエージェントが、手持ちの PC ゲームの mod を作れるようにするスキル・ツール・共有のナレッジベースです。"
 ---
 
 # universal-modder: 概要
 
 rehan-remade/universal-modder は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 7,929 です。
 
-`universal-modder`（GitHubスター数7,900超）は、Claude Code、Codex、Cursor、Gemini CLIなどのLLMコーディングエージェントに対して、**PCゲームのリバースエンジニアリング、コード生成、生成AIアセット作成、ゲーム内実機テスト、紹介動画作成**までの一連のMod開発パイプラインを統合実行させるオープンソースの自律型エージェント環境です。
+- AI のコーディングエージェントが、手持ちの PC ゲームの mod を作れるようにするスキル・ツール・共有のナレッジベースです。
+  - 原文（README）: Skills, tools and a shared knowledge base that let any AI coding agent mod almost any PC game you own.
+- どのエージェントにも同じスキル（Agent Skills 形式）、fal の MCP サーバー、um の CLI が入ります。
+  - 原文（README）: Each gets the same skills (Agent Skills format), the fal MCP server, and the um CLI.
+- Git・Python 3.10 以降・ffmpeg も必要です。
+  - 原文（README）: You also need Git, Python 3.10+ and ffmpeg. uv is recommended.
 
-従来、ゲームMod制作はアセンブリ解析、バイナリパッチ、ゲームエンジン固有の非公開データ構造調査、ピクセルアートや3Dモデル制作など、高度かつ多分野にわたる職人芸を要求されてきました。`universal-modder`は、Agent Skills仕様に準拠したツールチェーン、専用CLI（`um`）、fal.aiと連携するMCPサーバー、そして過去の解析知見を蓄積する自律型ナレッジベース（KB）を組み合わせることで、**「ゲームのパスとModの要件を自然言語で渡すだけで、AIが実バイナリを調査し、稼働するModを実装・検証する」**という異次元の開発体験を実現しています。
+## 🎯 成熟度の目安（README の記載）
 
----
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-## 解決する主要な課題とアーキテクチャ
+## 主な機能と構成（README の要約）
 
-ゲームMod開発やレガシーバイナリのカスタマイズにおいて、エンジニアは以下の重大なボトルネックに直面していました。
-
-1. **極度の文脈断片化**: ゲームエンジンの特定（Unity/Unreal/.NET/C++）、ローダー選定（BepInEx, Harmony, Fabric等）、逆コンパイルコードの解読という前工程の工数が膨大。
-2. **クリエイティブアセットの調達コスト**: スプライト、3Dモデル、BGM/SFXの制作に別個のツールとスキルが必要。
-3. **インゲーム検証のフィードバックループ欠如**: AIがコードを生成しても、実ゲーム内でクラッシュせず意図通り動くかを自律的にテストできない。
-
-`universal-modder`は、これらを**3層マルチエージェント構造**と**OSレベルの低レイヤー自動化パイプライン**によって解決します。
-
-```mermaid
-graph TD
-    User(["開発者 / オペレーター"]) -->|プロンプト・要件定義| Orchestrator["mod-orchestrator<br>監督エージェント"]
-    
-    subgraph "universal-modder コアアーキテクチャ"
-        Orchestrator -->|タスク指示 & ログ照合| OfflineWorker["mod-offline-worker<br>設計・解析・スタブ検証"]
-        Orchestrator -->|実行指示| GameWorker["mod-game-worker<br>実機ビルド・インジェクト・実機検証"]
-        
-        OfflineWorker -->|検索・知見共有| KB[("Knowledge Base<br>AI written field notes")]
-        OfflineWorker -->|アセット生成| FalMCP["fal.ai MCP / ComfyUI<br>2D/3D/SFX/PBR"]
-        
-        GameWorker -->|逆コンパイル・解析| RE["ILSpy / Cpp2IL / Ghidra / Frida"]
-        GameWorker -->|GUI制御・キャプチャ| WinDrive["um win<br>低遅延入力 / 画面録画 / 音声ループバック"]
-        GameWorker -->|ビルド & 配布| Loader["ゲームエンジン / Modローダー"]
-    end
-    
-    Loader --> TargetGame[("対象PCゲーム")]
-    TargetGame -.->|フレームバッファ / 状態| WinDrive
-```
-
-### アーキテクチャの3大中核
-1. **監督・分業型サブエージェント（Multi-Agent Roles）**
-   - `mod-orchestrator`: 全体計画立案、各ワーカーの報告内容と実ログの監査、進行管理。
-   - `mod-offline-worker`: 実機を汚さず、逆コンパイル結果の解析、SDK調査、パッチ設計、アセット生成を実施。
-   - `mod-game-worker`: ゲームプロセスへのMod投入、実機プロセスメモリのプローブ計測、クラッシュログ解析を専任。
-2. **OS/ゲーム自動化エンジン（`um win` CLI）**
-   - DirectInput/RawInputをエミュレートし、バックグラウンドでも対象ゲームウィンドウのみに安全にキーストローク・マウス操作を送信。
-   - プロセス単位のDirectX/Vulkanフレームキャプチャおよびオーディオループバック録音を行い、AIが目視・聴覚で挙動を検証。
-3. **AI間ナレッジ蓄積ループ（Self-Updating Knowledge Base）**
-   - 解決困難なエンジン固有の落とし穴（例: 特定バージョンのアンチチート挙動、メモリレイアウト）をMarkdown形式のフィールドノートとして自動生成。次世代のセッションへフィードバックされるエコシステムを形成。
-
----
+- クローンの中では、各エージェントが自分の探す場所でスキルを見つけます。.agents/skills（Codex・Gemini CLI・Copilot・Cursor・OpenCode）と .claude/skills（Claude Code）は skills/ の複製です。
+  - 原文（README）: Inside a clone, each agent finds the skills where it looks for them: .agents/skills (Codex, Gemini CLI, Copilot, Cursor, OpenCode) and .claude/skills (Claude Code) are copies of skills/.
+- 素材の生成には fal の API キーを使い、fal の MCP サーバーと um fal の両方で使われます。
+  - 原文（README）: For assets, get a fal API key. It powers both the fal MCP server and um fal.
+- 3D からスプライトを描画するには Blender が必要です。
+  - 原文（README）: Blender is needed for 3D → sprite renders.
+- Windows のゲームはネイティブに、または WSL から操作します。
+  - 原文（README）: Windows games are driven natively or from WSL.
+- エージェントは mod-any-game スキルから始め、毎回同じ手順を繰り返します。
+  - 原文（README）: The agent starts with the mod-any-game skill and runs the same loop every time:
 
 ## インストール（README からの転記）
 

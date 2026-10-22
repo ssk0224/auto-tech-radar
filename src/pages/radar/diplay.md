@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "DiPlay - Independent CarPlay receiver for compatible Android head units. Wired and wireless public preview."
-description: "Independent CarPlay receiver for compatible Android head units. Wired and wireless public preview."
 pubDate: "2026-10-14"
-tags: ["Kotlin", "OSS", "GitHub"]
+tags: ["Kotlin","OSS","GitHub"]
 repoUrl: "https://github.com/shihabal3amri/DiPlay"
 repoCreatedAt: "2026-09-25"
 stars: 10296
@@ -11,59 +9,41 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "DiPlay - 対応する BYD の Android ヘッドユニットで CarPlay を使うためのアプリです。有線と無線に対応し、DiAuto のインターフェースを使います"
+description: "対応する BYD の Android ヘッドユニットで CarPlay を使うためのアプリです。有線と無線に対応し、DiAuto のインターフェースを使います。"
 ---
 
 # DiPlay: 概要
 
 shihabal3amri/DiPlay は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 10,296 です。
 
-**DiPlay**は、Androidベースの車載インフォテインメント（IVI）システム（特にBYD製車両のDiLinkシステム向けに最適化）上でネイティブに動作する独立型Apple CarPlayレシーバーアプリケーションです。
+- 対応する BYD の Android ヘッドユニットで CarPlay を使うためのアプリです。有線と無線に対応し、DiAuto のインターフェースを使います。
+  - 原文（README）: CarPlay for compatible BYD Android head units. Wired and wireless, with the familiar DiAuto interface.
+- 対象は BYD の車です。他のブランドでも動く可能性はありますが、対応しておらず、ブランド固有の非互換を直す予定もありません。
+  - 原文（README）: BYD support scope: These projects focus on BYD cars. They may work on other brands, but other brands are unsupported and there are no plans to add support or fix brand-specific incompatibilities.
+- iPhone ではなく車にインストールします。脱獄・ドングル・Mac・アカウント・認証サーバーは不要です。
+  - 原文（README）: Install on the car, not the iPhone. No jailbreak, dongle, Mac, account or authentication server is required for use.
 
-従来の車載Android端末におけるCarPlay利用は、Carlinkitなどの「外付けUSBハードウェアドングル（プロトコル変換アダプター）」を物理接続することが事実上の業界標準でした。しかしDiPlayは、追加ハードウェアを一切介さず、Android車載機のAPKレイヤー単体でCarPlayプロトコルのハンドシェイク、Wi-Fi Direct / 車載ホットスポット経由のワイヤレスリンク確立、映像デコード、オーディオバッファリング、HID入力を完結させます。
+## 🎯 成熟度の目安（README の記載）
 
----
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-## 解決する主要な課題とアーキテクチャ
+## 主な機能と構成（README の要約）
 
-### 従来の車載プロジェクションの課題
-1. **追加ハードウェアへの依存**: 物理ドングル故障リスク、USBポートの占有、熱暴走による接続瞬断。
-2. **車載ハードウェアとの統合不足**: 外部ドングル経由では車両側のHUD（ヘッドアップディスプレイ）やメータクラスタ（メーターパネル）へのルート案内表示（交差点名・矢印）、ステアリングスイッチ連動が困難。
-3. **高遅延・オーディオアンダーラン**: 2重の変換レイヤーによる音声遅延、通話時のエコー、Siri入力の脱落。
-
-### システムアーキテクチャと通信フロー
-DiPlayは、Kotlinおよび低レイヤーNativeコードを用いてAndroid端末上にCarPlay Accessory Daemonを自律展開します。
-
-```mermaid
-graph TD
-    subgraph iPhone ["iPhone Client (iOS)"]
-        CP_Client[Apple CarPlay Engine]
-        BT_WIFI["Bluetooth / Wi-Fi Direct / AP"]
-    end
-
-    subgraph AndroidHU ["BYD DiLink / Android Head Unit"]
-        DiPlayApp["DiPlay Core Engine (APK)"]
-        subgraph DiPlayEngine ["DiPlay Internal Stack"]
-            Auth[Local MFi Auth Emulator]
-            StreamReceiver["H.264/AAC Video & Audio Pipe"]
-            AudioBuffer["Jitter Buffer & Opus Encoder"]
-            InputHandler["Touch / Steering / HID Bridge"]
-        end
-        MediaCodec["Android MediaCodec / SurfaceView"]
-        VehicleCAN["BYD DiLink CAN-Bus Bridge / HUD"]
-    end
-
-    CP_Client <-->|"1. Discovery & Pair (BT / Wi-Fi)"| BT_WIFI
-    BT_WIFI <-->|"2. High-speed Stream (Wi-Fi 5GHz / USB)"| DiPlayApp
-    DiPlayApp --> Auth
-    DiPlayApp --> StreamReceiver
-    StreamReceiver -->|Decoded Frame| MediaCodec
-    DiPlayApp --> InputHandler
-    StreamReceiver -.->|Turn-by-Turn Nav Data| VehicleCAN
-```
-
-DiPlayは外部認証サーバーや常時インターネット接続を必要とせず、ローカル認証シーケンスを車載機内で完結。受信したH.264ストリームをAndroid標準の`MediaCodec`へダイレクトに流し込むことで、超低遅延描画とBYD DiLink特有の画面回転・HUD連携を実現しています。
-
----
+- CarPlay の中核機能に ADB は不要ですが、ダッシュボード・バッテリー・車輪速・駐車中の動画の機能には必要です。
+  - 原文（README）: Core CarPlay does not require ADB; optional dashboard, battery, wheel-speed and parked-video features do.
+- APK は Android 7.0 以降（API 24）に対応しますが、Android 7.0〜8.1 での対応は実車でまだ確認されていません。
+  - 原文（README）: The APK supports Android 7.0+ (API 24); Android 7.0–8.1 support is not yet confirmed on a vehicle.
+- 無線接続は Wi-Fi Direct、車の既存のホットスポット、既存の Wi-Fi（同じ LAN）に対応します。
+  - 原文（README）: Wireless supports Wi-Fi Direct, the car’s existing hotspot or Existing Wi-Fi / Same LAN.
+- Apple の認証を受けた製品ではありません。
+  - 原文（README）: This is not an Apple-certified product.
+- APK には、公開されている Carlinkit のファームウェアから取り出した実験的なアクセサリーの識別情報が同梱されており、DiPlay 用に新しく発行された MFi の識別情報ではありません。同梱の秘密鍵は取り出せます。
+  - 原文（README）: The APK bundles an experimental accessory identity recovered from public Carlinkit firmware, not a newly provisioned MFi identity for DiPlay. A bundled private key is extractable.
+- ほかのヘッドユニットや iOS での互換性は保証されていません。
+  - 原文（README）: Broader head-unit and iOS compatibility is not guaranteed.
 
 ## インストール（README からの転記）
 

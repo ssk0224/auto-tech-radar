@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "Strata - Qwen3.8-Flash-Next on any consumer hardware: one-click install for Windows / Linux. Strata inference engine, OpenAI/Anthropic API on localhost, optional image input."
-description: "Qwen3.8-Flash-Next on any consumer hardware: one-click install for Windows / Linux. Strata inference engine, OpenAI/Anthropic API on localhost, optional image input."
 pubDate: "2026-10-10"
-tags: ["C++", "OSS", "GitHub"]
+tags: ["C++","OSS","GitHub"]
 repoUrl: "https://github.com/Niko1221/Strata"
 repoCreatedAt: "2026-09-25"
 stars: 19544
@@ -11,59 +9,37 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "Strata - Strata は、通常はサーバーが必要なモデル Qwen3.8-Flash-Next（125-billion-parameter）を、一般的な PC で動かします"
+description: "Strata は、通常はサーバーが必要なモデル Qwen3.8-Flash-Next（125-billion-parameter）を、一般的な PC で動かします。"
 ---
 
 # Strata: 概要
 
 Niko1221/Strata は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 19,544 です。
 
-**Strata** は、1250億パラメータ規模の次世代オープンウェイトモデル「Qwen3.8-Flash-Next」を、一般的なコンシューマー向けゲーミングPC（VRAM 12GB〜）上で高速推論させるC++製オープンソース推論エンジンです。
+- Strata は、通常はサーバーが必要なモデル Qwen3.8-Flash-Next（125-billion-parameter）を、一般的な PC で動かします。
+  - 原文（README）: Strata runs Qwen3.8-Flash-Next, a 125-billion-parameter model that normally needs a server, on a normal PC.
+- チャットとファイルは手元の PC に残ります。
+  - 原文（README）: Your chats and files stay on your PC.
+- OpenAI と Anthropic の API を話すため、Claude Code・Codex CLI・OpenCode などのエージェントから接続できます。
+  - 原文（README）: It speaks the OpenAI and Anthropic APIs, so Claude Code, Codex CLI, OpenCode and other agents connect to it.
 
-Strataは階層型のメモリ管理と投機的デコーディング（Speculative Decoding）を組み合わせ、12GB GPU の環境で大規模な MoE モデルを動かすことを目指しています。対応 GPU と速度の数値は README で確認してください。
+## 🎯 成熟度の目安（README の記載）
 
-さらに、`localhost:8080`上でOpenAI API互換（`/v1/chat/completions`、`/v1/responses`）およびAnthropic API互換（`/v1/messages`）のエンドポイントを透過的に提供するため、Claude Code、Cursor、Codex CLIといった既存の開発エコシステムへ一切のコード改変なしで接続可能です。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
----
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-大規模モデルの推論におけるボトルネックは「GPU VRAM容量の不足」と「メモリ帯域幅」です。StrataはMoE（Mixture of Experts）構造のスパース性を活用し、ハードウェア資源（VRAM・メインメモリ・NVMe SSD）を階層的に最適配置する設計を採用しています。
-
-### 1. 24,576エキスパートの階層的オフロード（Pantry & Counterモデル）
-モデル全体が内包する24,576のエキスパートのうち、各トークン生成で活性化するのはごく一部（約10エキスパート）です。Strataは頻出する「コア・エキスパート」のみを高速なGPU VRAM（Counter）に常駐させ、全エキスパート実体をシステムRAM（Pantry）に、巨大ルックアップテーブルをNVMe SSDに分散配置します。
-
-### 2. 投機的推論（Speculative Guess & Check）
-軽量なドラフトモデルが数トークン先を投機的に予測（Guess）し、巨大な本体モデルが一括検証（Check）を行うことで、推論速度を従来の1.6〜1.8倍に引き上げています。
-
-```mermaid
-graph TD
-    subgraph Client["クライアント環境"]
-        IDE["Cursor / Claude Code / Codex CLI"]
-        WebUI["Web Browser (Chat / Monitor)"]
-    end
-
-    subgraph StrataEngine["Strata 推論エンジン (C++ / localhost:8080)"]
-        APIProxy["API Router (OpenAI / Anthropic 互換)"]
-        Speculative["投機的ドラフトモジュール (Guess Engine)"]
-        CoreEngine["MoE 検証・推論コア (Check Engine)"]
-    end
-
-    subgraph HardwareTier["ハードウェア階層別オフロード"]
-        GPU["GPU VRAM (12GB~)<br>・最頻出エキスパート<br>・KVキャッシュ"]
-        RAM["System RAM (32GB~64GB)<br>・24,576エキスパート全量<br>・CPU並列演算"]
-        SSD["NVMe SSD<br>・超巨大ルックアップテーブル<br>・コールドデータ"]
-    end
-
-    IDE -->|HTTP /v1/messages| APIProxy
-    WebUI -->|HTTP /v1/chat/completions| APIProxy
-    APIProxy --> Speculative
-    Speculative -->|投機トークン候補| CoreEngine
-    CoreEngine <-->|高速メモリアクセス| GPU
-    CoreEngine <-->|DMA / ゼロコピー転送| RAM
-    CoreEngine <-->|ダイレクトI/O| SSD
-```
-
----
+- RAM とグラフィックスメモリ（VRAM）を合わせて 32 GB 以上が必要です。Mac や Ryzen AI Max では統合メモリがこれにあたります。
+  - 原文（README）: You need at least 32 GB of RAM and graphics memory (VRAM) together. On a Mac or a Ryzen AI Max, that is the unified memory.
+- 同じメーカーのカード 2〜3 枚でモデルを分担できます（multi-GPU）。NVIDIA と AMD のカードにまたがってモデルを分けることはしません。
+  - 原文（README）: Two or three cards of the same make can share a model (multi-GPU). Strata never splits a model across NVIDIA and AMD cards.
+- アプリにはエンジンが内蔵されており、インストールしてモデルを選べばチャットできます。
+  - 原文（README）: The app has the engine inside: install it, pick a model, chat.
+- Strata が何をダウンロードし、いつインターネットを使い、ダウンロードをどう検証するかは docs/SAFETY.md にあります。
+  - 原文（README）: What Strata downloads, when it uses the internet and how it checks downloads is in docs/SAFETY.md.
 
 ## インストール（README からの転記）
 

@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "filmcraft - FilmCraft: An open-source, nonlinear video editor written by scratch in pure Rust"
-description: "FilmCraft: An open-source, nonlinear video editor written by scratch in pure Rust"
 pubDate: "2026-10-12"
-tags: ["Rust", "OSS", "GitHub"]
+tags: ["Rust","OSS","GitHub"]
 repoUrl: "https://github.com/storytold/filmcraft"
 repoCreatedAt: "2026-09-30"
 stars: 10085
@@ -11,71 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "filmcraft - 純粋な Rust で作られた、オープンソースのノンリニア動画編集ソフトです"
+description: "純粋な Rust で作られた、オープンソースのノンリニア動画編集ソフトです。"
 ---
 
 # filmcraft: 概要
 
 storytold/filmcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-12 時点のスター数は 10,085 です。
 
-**FilmCraft**は、Adobe Premiere ProのUIおよびワークフローをピュアRustでゼロからクリーンルーム再実装したオープンソースのノンリニアビデオ編集（NLE）システムです。
+- 純粋な Rust で作られた、オープンソースのノンリニア動画編集ソフトです。
+  - 原文（README）: Video editing, color and sound; an open-source, professional non-linear video editor, built in pure Rust.
+- macOS・Windows・Linux でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: An open-source, modern non-linear video editing workflow: native on macOS, Windows and Linux, and in the browser via WebAssembly.
 
-従来のオープンソース動画編集ソフト（Shotcut、Kdenlive、Blenderなど）の多くは、動画デコード・エンコード処理をFFmpegなどのC/C++ライブラリに全面的に依存していました。しかし、FilmCraftは**FFmpeg非依存**を掲げ、H.264、HEVC、ProRes、AACなどの主要コーデックやコンテナパーサーをITU-T/ISO/IETFの公式仕様書に基づきピュアRustで独自実装しています。
+## 🎯 成熟度の目安（README の記載）
 
-最大の革新性は、全UI操作および編集パイプラインが650以上の厳密に型定義されたコマンドとして抽象化されており、標準で**MCP** サーバーおよびJSON-RPC制御ソケットを備えている点です。人間が触るPremiere互換のネイティブGUIを持ちながら、Claudeなどの自律型AIエージェントがヘッドレスまたはリアルタイム描画付きでタイムライン配置・カラーコレクション・音声ミックス・書き出しをミリ秒精度の完全自律操作で行える「AIネイティブ・ビデオ編集基盤」を実現しています。
+README にある開発段階の記載を、原文のまま示します（当サイトによる評価ではありません）。
 
-## 解決する主要な課題とアーキテクチャ
+- 原文（README）: FilmCraft is in alpha.
 
-FilmCraftは、長年プロフェッショナル映像制作業界と自動化エンジニアリングを悩ませてきた以下の課題を解決します。
+## 主な機能と構成（README の要約）
 
-1. **高額なプロ向けNLEのライセンス縛りと自動化の難しさ**: Premiere Pro等のExtendScript/CEP/UXPは低速でヘッドレス運用が難しく、クラウド自動レンダリングに不向き。
-2. **フレーム落ち・音ズレ問題（浮動小数点ドリフト）**: ドロップフレーム（29.97）や混在フレームレートの計算に浮動小数点数を用いると、長時間シーケンスで1フレーム未満の累積誤差（ドリフト）が発生する。
-3. **C/C++製マルチメディアライブラリの脆弱性とクラッシュ**: 外部メモリ破壊やセグフォを、Rustの所有権・型システムで防ぐ設計です。
-
-### アーキテクチャとデータフロー
-
-FilmCraftは、UIフレームワークやOS APIに依存しないレイヤードアーキテクチャを採用しています。タイムベースには毎秒`254,016,000,000`ティック（README によると一般的なフレームレートとサンプルレートで割り切れる値。23.976、29.97 ドロップフレーム、59.94 も正確に表せる）の固定小数点整数を使用し、絶対的な時間精度を保証します。
-
-```mermaid
-graph TD
-    subgraph Control_Layer ["制御・インターフェース層"]
-        UI["Desktop UI / egui"]
-        Web["WebAssembly / Web Browser"]
-        CLI[filmcraft-cli]
-        MCP["MCP Server / AI Agent Claude"]
-        Socket[TCP JSON-RPC Control Server]
-    end
-
-    subgraph Engine_Layer ["コアエンジン層"]
-        Registry["Command Registry: 650+ Typed Commands"]
-        Session["Session / Undo-Redo / Crash Journal"]
-        TimeBase["Exact Integer Timebase: 254G ticks/sec"]
-    end
-
-    subgraph Pipeline_Layer ["レンダリング & DSP層"]
-        GPU["wgpu Linear Light Compositor: Metal/Vulkan/DX12/WebGPU"]
-        DSP["Audio DSP: BS.1770 / EBU R128 Loudness / Mixdown"]
-        Color[Lumetri-Style 32-bit Float Pipeline]
-    end
-
-    subgraph Pure_Rust_Codecs ["完全独自 Rust コーデック層"]
-        Dec["Decoders: H.264 / HEVC / ProRes / VP9 / AV1 / AAC"]
-        Enc["Encoders: H.264 / ProRes 422HQ / DNxHR / AAC"]
-        Mux["Demux/Mux: ISOBMFF MP4 / MOV / Matroska"]
-    end
-
-    UI --> Registry
-    Web --> Registry
-    CLI --> Registry
-    MCP --> Registry
-    Socket --> Registry
-
-    Registry --> Session
-    Session --> TimeBase
-    Session --> Pipeline_Layer
-    
-    Pipeline_Layer --> Pure_Rust_Codecs
-    Pure_Rust_Codecs --> Storage[("Disk / Export File")]
-```
+- H.264・HEVC・ProRes・AAC のコーデックは、公開された仕様をもとに Rust で独自に書かれています。
+  - 原文（README）: The H.264, HEVC, ProRes and AAC codecs are our own, written in Rust from the public specifications.
+- GPU のコンポジターはリニアな光で処理します。
+  - 原文（README）: A GPU compositor works in linear light.
+- フレームの計算は正確な整数の時間で行うため、編集がずれません。
+  - 原文（README）: Frame math runs on exact integer time, so edits never drift.
+- アプリのすべての操作はコマンドで、AI エージェントが人と同じ精度で実行できます。
+  - 原文（README）: And every action in the app is a command that an AI agent can drive as precisely as you can.
+- 保存はアトミックで、自動保存は直近の複数の版を残し、各編集のすぐ後に書かれるクラッシュ復旧用の記録が、クラッシュや停電のあとに未保存の変更を戻します。
+  - 原文（README）: Saves are atomic, auto-save keeps a rolling set of versions, and a crash-recovery journal written about a second after each edit brings back unsaved changes after a crash or power cut.
 
 ## インストール（README からの転記）
 

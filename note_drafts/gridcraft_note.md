@@ -6,14 +6,22 @@ storytold/gridcraft は 2026-10-07 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-GridCraftは単なるUIクローンではありません。バックエンドで動作する堅牢な計算エンジンです。
-
-1. **513種のExcel関数と動的配列の完全サポート**:
-   `LET`, `LAMBDA`, `MAP`, `REDUCE`, `XLOOKUP`などの最新Excel関数に対応。数式エンジンが単体で動作するため、Excelがインストールされていないサーバー上でも数式結果を正確に評価します。
-2. **ネイティブMCPサーバー**:
-   `gridcraft-cli mcp`を立ち上げるだけで、Claude DesktopやCursor、自作のLangChain/LlamaIndexエージェントから「セルの読み書き」「書式設定」「グラフ生成」「数式実行」がAPIレベルで直ちに叩けます。
-3. **ピュアRust ＆ マルチプラットフォーム**:
-   単一バイナリでLinux、macOS、Windows、さらにはWebAssembly（ブラウザ）上で動作。コンテナイメージサイズは数十MBに収まります。
+- 純粋な Rust で作られた、オープンソースのスプレッドシートアプリケーションです。
+  - 原文（README）: Spreadsheets and data; an open-source, high-performance modern spreadsheet application, built in pure Rust.
+- macOS・Windows・Linux・BSD でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: It runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- デスクトップとウェブで 1 つの Rust のコードベースを使います。
+  - 原文（README）: One Rust codebase for desktop and the web.
+- 500 以上の関数、動的配列、LET と LAMBDA、構造化テーブル参照に対応します。
+  - 原文（README）: 500+ functions, dynamic arrays, LET and LAMBDA, structured table references.
+- XLSX がネイティブの形式で、スタイル・テーマ・数式（動的配列を含む）・テーブル・条件付き書式・入力規則・コメント・ハイパーリンク・グラフ・画像・スパークライン・ピボットテーブル・印刷設定を扱います。
+  - 原文（README）: XLSX is the native format: styles, themes, formulas (including dynamic arrays), tables, conditional formats, validation, comments, hyperlinks, charts, pictures, sparklines, pivot tables and print settings round-trip.
+- 97-2003 形式の .xls ブックは、値・数式・数値の書式とともに開けます（書式設定とオブジェクトはまだ対象外です）。
+  - 原文（README）: Legacy 97-2003 .xls workbooks open with their values, formulas and number formats (formatting and objects not yet).
+- コピーオンライトのブック、差分の再計算、画面に見える部分だけを配置する仮想化されたグリッドを備えます。
+  - 原文（README）: Copy-on-write workbooks (undo snapshots are nearly free), incremental recalculation, and a virtualised grid that only lays out what's on screen.
+- リボンのボタン・メニューの項目・ダイアログ・キー操作・マウス操作はすべてコマンドで、エージェントは JSON の制御チャネル・MCP サーバー・CLI から実行できます。
+  - 原文（README）: Every ribbon button, menu item, dialog, keystroke and mouse gesture is a command that agents can run over a JSON control channel, an MCP server, or the CLI.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

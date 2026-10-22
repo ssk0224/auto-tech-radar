@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "solidcraft - SolidCraft: an open-source parametric 3D CAD application built in pure Rust. Desktop, web, and automation through MCP."
-description: "SolidCraft: an open-source parametric 3D CAD application built in pure Rust. Desktop, web, and automation through MCP."
 pubDate: "2026-10-19"
-tags: ["Rust", "OSS", "GitHub"]
+tags: ["Rust","OSS","GitHub"]
 repoUrl: "https://github.com/tangency-labs/solidcraft"
 repoCreatedAt: "2026-10-08"
 stars: 5717
@@ -13,70 +11,39 @@ corrections:
     note: "採用判定のラベルと導入を勧める表現を削除し、README の記載（76 部品中 75 部品の一致）に基づく記述に訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "solidcraft - 純粋な Rust で作られた、オープンソースのパラメトリック 3D CAD アプリケーションです"
+description: "純粋な Rust で作られた、オープンソースのパラメトリック 3D CAD アプリケーションです。"
 ---
 
 # solidcraft: 概要
 
 tangency-labs/solidcraft は 2026-10-08 に GitHub で作成されたリポジトリです。2026-10-19 時点のスター数は 5,717 です。
 
-`SolidCraft`は、純粋なRust（Pure Rust）でフルスクラッチ開発されたオープンソースのパラメトリック3D CADアプリケーションです。Autodesk Fusionなどの商用CADと同様の幾何拘束スケッチ、フィーチャータイムライン、パラメトリックリビルド、板金加工、アセンブリモデリングをローカルデスクトップ、Webブラウザ（WebGPU/WASM）、ヘッドレスCLIのすべてで動作させます。
+- 純粋な Rust で作られた、オープンソースのパラメトリック 3D CAD アプリケーションです。
+  - 原文（README）: An open-source parametric 3D CAD application built in pure Rust.
+- スケッチと拘束からパラメトリックなフィーチャーのタイムラインでソリッドを作り、寸法を変えるとモデルが作り直されます。
+  - 原文（README）: Sketch, constrain, and build solids with a parametric feature timeline. Change a dimension and watch your model rebuild.
+- デスクトップ・ブラウザで動かせるほか、内蔵の MCP サーバーを通じて AI エージェントにモデリングさせることもできます。
+  - 原文（README）: Run it on your desktop, in your browser, or let AI agents model through the built-in MCP server.
 
-特筆すべき最大のエッジは、**「Model Context Protocol（MCP）サーバー」をコアCLIに内蔵している点**です。LLMエージェント（Claude DesktopやCursor等）がMCPツール経由で3Dパーツを直接生成・計測・操作できる「AIネイティブCAD」として、製造業DXおよび自動設計パイプラインにパラダイムシフトをもたらしています。
+## 🎯 成熟度の目安（README の記載）
 
-## 🎯 成熟度の目安（AI による見立て）
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-- **根拠**:
-  - 記事作成時点の GitHub スター数は 5,700 を超えています（スター数は品質の保証ではありません）。
-  - 幾何オラクル検証において、76 個の公開参照パーツのうち 75 個で、体積・面積・重心・バウンディングボックスが解析解または FreeCAD の計算結果と一致したと README に記載されています（残り 1 個は既知の不具合として追跡中）。
-  - レイヤードアーキテクチャ（L0〜L5）で構成された、MIT/Apache-2.0デュアルライセンスのクリーンルーム実装。
-  - README では「Early but usable for simple parts」（初期段階だが単純な部品には使える）とされ、複雑な曲面モデリングや大規模アセンブリには未実装の領域があります。**「AI による定型の治具・ブラケットの生成」「Web 上の 3D カスタマイザー」「ヘッドレス CAD パイプライン」**などの限られた用途で検証候補になります。
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-従来のオープンソースCAD（FreeCADやOpenSCAD等）や商用CAD（Fusion 360, SolidWorks等）が抱えていた以下の課題を根本から解決します。
-
-1. **AIエージェント親和性の欠如**: 従来のGUI中心CADは外部APIが貧弱であり、AIエージェントによるリアルタイム操作が困難だった。
-2. **パフォーマンスと依存性の肥大化**: C++で書かれた旧来のCADエンジンはビルドが複雑でWeb展開が困難。SolidCraftはPure Rust＋WebGPUで、Webブラウザでも動作することを目指している。
-3. **テッセレーションのボトルネック**: 独自のGPU Compute Shaderを用いたパッチ生成でメッシュ化します。性能の数値は README で確認してください。
-
-### システムアーキテクチャ ＆ データフロー図
-
-```mermaid
-graph TD
-    subgraph UI_And_Agent_Layer ["Interface & Control Layer"]
-        DesktopApp["Desktop App: egui + wgpu"]
-        WebApp["Web Browser: WASM + WebGPU"]
-        AIAgent["LLM / AI Agent: Claude, Cursor"]
-        CLI["Headless CLI: solidcraft-cli"]
-    end
-
-    subgraph Core_Engine ["SolidCraft Engine: L4 / L5"]
-        MCPServer["MCP Server stdio / TCP"]
-        CommandRegistry["Command Registry: Everything is a Command"]
-        SessionMgr["Document & Session Manager"]
-    end
-
-    subgraph CAD_Kernel ["Parametric Kernel: L0 - L3"]
-        Timeline["L2: Parametric Timeline & Expr Engine"]
-        ConstraintSolver["L1: Geometric Solver Loci + LM"]
-        BRepKernel["L1: B-Rep Kernel truck"]
-        TessPlanner["L5: Compute Shader Tessellation Planner"]
-        IOEngine["L3: STEP / IGES / STL / 3MF / URDF Engine"]
-    end
-
-    DesktopApp --> CommandRegistry
-    WebApp --> CommandRegistry
-    CLI --> CommandRegistry
- AIAgent -->|MCP Tools JSON-RPC| MCPServer
-    MCPServer --> CommandRegistry
-
-    CommandRegistry --> SessionMgr
-    SessionMgr --> Timeline
-    Timeline --> ConstraintSolver
-    Timeline --> BRepKernel
-    BRepKernel --> TessPlanner
-    BRepKernel --> IOEngine
-```
+- 初期段階ですが単純な部品には使えます。公開された参照部品 76 個のうち 75 個で、体積・面積・重心・外接箱が解析値または FreeCAD の計算値と一致します。
+  - 原文（README）: Early but usable for simple parts: 75 of 76 public reference parts match their analytic or FreeCAD-computed volume, area, centre of mass and bounding box (oracle); the other is a tracked bug.
+- フィーチャー: 押し出し・回転・スイープ・ロフト・フィレット・面取り・シェル・抜き勾配・穴・ねじ・パターン・ミラー・分割・結合を、編集できるパラメトリックなタイムライン上で扱います。
+  - 原文（README）: Features: extrude, revolve, sweep, loft, fillet, chamfer, shell, draft, holes, threads, patterns, mirror, split and combine on an editable parametric timeline.
+- ファイル: STEP・IGES・3MF・STL・OBJ・glTF の読み書き（対応する範囲）、URDF の書き出し、.solidcraft 形式の設計に対応します。
+  - 原文（README）: Files: STEP, IGES, 3MF, STL, OBJ and glTF in and out where supported, URDF export, .solidcraft designs.
+- デスクトップアプリ・ブラウザアプリ・画面なしの CLI・MCP サーバーは、すべて同じコマンドで動きます。
+  - 原文（README）: Desktop app, browser app, headless CLI and MCP server, all running the same commands.
+- スクリプトは UI が実行するのと同じコマンドを並べた JSON の一覧で、solidcraft-cli run で実行します。
+  - 原文（README）: A script is a JSON list of the same commands the UI runs, executed with solidcraft-cli run.
 
 ## インストール（README からの転記）
 

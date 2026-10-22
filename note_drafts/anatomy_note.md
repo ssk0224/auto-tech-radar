@@ -6,11 +6,22 @@ wheresryan22/anatomy は 2026-10-08 に GitHub で作成されたリポジトリ
 
 ## 主な機能とアーキテクチャ概要
 
-anatomyの真骨頂は、単なるイラスト生成ではなく「**動作する物理モデルの幾何学的コード生成**」にあります。
-
-1. **メタファー生成力**: レート制限を「水門とバケット」、CDNキャッシュを「物理的なピンタンブラー錠」など、動的な機械構造へ自律変換。
-2. **ゼロ依存の精密描画（Zero-Dependency）**: React、Vueはもちろん、単一の静的HTMLやスタンドアロンSVGとして出力可能。npmパッケージの依存トラブルがゼロ。
-3. **自己修復型の幾何監査（Audit Engine）**: 部品同士の衝突やパイプのズレをヘッドレスブラウザで自動検証し、破綻のない図面をAI自ら反復修正。
+- anatomy は、アイデアを実際に動く物として組み立てて説明する Claude のスキルです。
+  - 原文（README）: A Claude skill that explains an idea by building it as a real, working object.
+- Antigravity、OpenCode、Codex、MiniMax Code でも動作します。
+  - 原文（README）: Also runs in Antigravity, OpenCode, Codex and MiniMax Code.
+- 小さな部品を多く組み合わせた、操作できるアイソメトリックの図を、SVG・WebGL・3D で作ります。
+  - 原文（README）: Crafted, interactive isometric figures with many small precise parts, in SVG, WebGL and 3D.
+- 技術的なアイデアを説明する図を Claude に頼むと、Anatomy はその概念どおりに動く物理的な物を考え出させます。
+  - 原文（README）: Ask Claude for a figure that explains a technical idea, and Anatomy has it invent a physical thing whose working is the concept.
+- その後 Claude は、小さな部品を多く組み合わせてその物を作り、題名・ヒント・表示つきのカードに入れ、ポインターとキーボードで動かせるようにし、すべての継ぎ目を拡大して自分の作業を確かめます。
+  - 原文（README）: Then Claude builds that thing out of dozens of small, solid, shaded parts, puts it in a framed card with a title, a hint and a live readout, makes it move calmly under the pointer and the keyboard, and checks its own work by zooming in on every joint.
+- 図に表示される数値は、部品を動かすのと同じ小さなモデルから来ています。
+  - 原文（README）: Every number the figure shows comes from the same small model that moves its parts.
+- API キーも npm install も不要で、キットは Node の組み込みモジュールだけを使います。
+  - 原文（README）: No API keys and nothing to npm install: the kit uses only Node's built-in modules.
+- Anatomy は Agent Skill の形式で、ルートに SKILL.md を置いたフォルダーです。このリポジトリがそのフォルダーです。
+  - 原文（README）: Anatomy is a standard Agent Skill: a folder with a SKILL.md at its root. This repository is that folder.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

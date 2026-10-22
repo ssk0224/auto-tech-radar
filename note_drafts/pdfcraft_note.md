@@ -6,11 +6,20 @@ storytold/pdfcraft は 2026-09-30 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-PdfCraftの技術的特異点は、既存のライブラリ（PopplerやPDFium）の単なるラッパーではなく、**PDFのパース、暗号解読、レンダリング、編集保存に至るすべてをゼロからRustで書き直している（Clean-room reimplementation）**点にあります。
-
-- **C言語フリーの堅牢性**: メモリ破壊バッファオーバーフロー攻撃を根本から排除。
-- **不可逆破壊のないアトミック保存**: 既存のバイト列を壊さず差分追記（Incremental Update）を行うため、保存失敗によるファイル破損が理論上発生しない。
-- **ヘッドレス・エージェント完全対応**: CLIツール（`pdfcraft-cli`）と標準MCPサーバーが同梱されており、AIエージェントが「ページ回転」「テキスト検索」「コメント挿入」「フォーム入力」を直接実行可能。
+- 純粋な Rust で作られた、オープンソースの PDF リーダー兼エディターです。
+  - 原文（README）: The PDF workbench; an open-source, modern PDF reader and editor, built in pure Rust.
+- アカウント・テレメトリ・クラウドは不要で、オフラインで動作します。
+  - 原文（README）: No account, no telemetry, no cloud. It works offline and opens instantly.
+- エンジン・CLI・アプリはすべてオープンソースです。
+  - 原文（README）: The engine, CLI and app are all open source.
+- 保存のたびに変更を追記し、元のバイト列には手を加えません。書き込みはアトミックで、間違って閉じても何も失われません。
+  - 原文（README）: Every save appends your changes and leaves the original bytes untouched. Writes are atomic, undo runs deep, and nothing is lost if you close by mistake.
+- 大きなページはタイルに分けて描画するため、どの倍率でも文字がくっきり表示されます。
+  - 原文（README）: Large pages render in tiles, so text stays crisp at any magnification.
+- 各ページは個別に描画され、壊れた文書は修復されます。983 ファイルからなる pdf.js のテストコーパスでは、クラッシュは 0 件でした。
+  - 原文（README）: Every page renders in isolation and damaged documents are repaired. Across the 983-file pdf.js test corpus the result is 0 crashes.
+- 入力しながら文書全体を検索し、⌘G で一致箇所を順にたどり、正しい読み順で文字を選択できます。
+  - 原文（README）: Search the whole document as you type, step through matches with ⌘G , and select text that comes out in the right reading order.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

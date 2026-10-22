@@ -6,13 +6,20 @@ opensandbox-group/OpenSandbox は 2025-12-17 に GitHub で作成されたリポ
 
 ## 主な機能とアーキテクチャ概要
 
-AIエージェントが自律的にPythonコードやシェルコマンド、ブラウザ操作を実行する際、ホストOS上で直接実行すると機密漏洩や環境破壊のリスクが生じます。OpenSandboxは以下の仕組みでこれを解決します。
-
-- **Firecracker マイクロVMによるカーネル分離**: P50 64ms の高速起動と独立カーネルによる高強度な隔離を両立し、メモリ・ディスク状態を保った一時停止・再開にも対応。
-- **エグレス制御と Credential Vault**: アウトバウンド通信をポリシーで制限し、外部APIキーをサンドボックス内に直接露出させずに安全に注入。
-- **マルチ言語SDKとMCP連携**: Python / TypeScript / Go / Java / C# SDK、CLI（`osb`）、および MCP 接続をサポート。
-
----
+- 自分のインフラ上のサンドボックスで AI エージェントを動かします。
+  - 原文（README）: Run AI agents in sandboxes on your own infrastructure.
+- OpenSandbox は、AI アプリケーションに、コードの実行・コマンドの実行・ファイルの管理・ブラウザやデスクトップの操作のための隔離された環境を与えます。
+  - 原文（README）: OpenSandbox gives AI applications isolated environments to execute code, run commands, manage files, and operate browsers or desktops.
+- Docker を使ってローカルで始め、統一されたサンドボックスの API で Kubernetes にデプロイします。
+  - 原文（README）: Start locally with Docker and deploy on Kubernetes through a unified sandbox API.
+- Firecracker のサンドボックスは、メモリとディスクの状態を保ったまま一時停止と再開ができます。
+  - 原文（README）: Firecracker sandboxes support pause/resume with memory and disk state preserved.
+- ネットワークのアクセス制御: 受信の通信は共通の ingress ゲートウェイを通し、送信はサンドボックスごとの egress ポリシーで制御します。
+  - 原文（README）: Network access control / Route inbound traffic through a unified ingress gateway and control outbound access with per-sandbox egress policies.
+- Credential Vault: 本物の認証情報をサンドボックス内の処理に見せずに、エージェントから外部のサービスを呼べます。
+  - 原文（README）: Credential Vault / Let agents call external services without exposing real credentials to sandbox workloads.
+- Python・Java/Kotlin・TypeScript/JavaScript・C#/.NET・Go の SDK があり、ターミナルからは osb を使い、エージェントは MCP でつなげます。
+  - 原文（README）: SDKs, CLI, and MCP / Integrate with Python, Java/Kotlin, TypeScript/JavaScript, C#/.NET, or Go SDKs. Use osb from the terminal or connect agents through MCP.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

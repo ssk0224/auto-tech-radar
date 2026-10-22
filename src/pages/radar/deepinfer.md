@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "DeepInfer - DeepInfer: High-performance, large-scale inference framework for DeepSeek models"
-description: "DeepInfer: High-performance, large-scale inference framework for DeepSeek models"
 pubDate: "2026-10-21"
-tags: ["Python", "OSS", "GitHub"]
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/deepseek-ai/DeepInfer"
 repoCreatedAt: "2026-10-16"
 stars: 12071
@@ -13,66 +11,39 @@ corrections:
     note: "採用判定のラベル・導入を勧める表現と根拠のない性能比較を削除し、README の記載に基づく記述に訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "DeepInfer - このオープンソース版は、大規模な提供に必要な中核機能を備えたオフライン推論を提供します"
+description: "このオープンソース版は、大規模な提供に必要な中核機能を備えたオフライン推論を提供します。"
 ---
 
 # DeepInfer: 概要
 
 deepseek-ai/DeepInfer は 2026-10-16 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 12,071 です。
 
-DeepInferは、DeepSeek AIが大規模なプロダクションサービスを支えるために開発した、高性能な推論フレームワークです。このオープンソースリリースは、DeepSeekモデルのオフライン推論に特化しており、大規模なサービス提供に必要なコア機能を網羅しています。README には、推論の性能と効率のための最適化カーネルや並列化・スケジューリングの機能が挙げられています。
+- このオープンソース版は、大規模な提供に必要な中核機能を備えたオフライン推論を提供します。
+  - 原文（README）: This open-source release provides offline inference with the core features needed for serving at scale.
+- NVIDIA SM100 GPU に対応しています。
+  - 原文（README）: NVIDIA SM100 GPUs
+- Huawei Ascend 950 NPU に対応しています。
+  - 原文（README）: Huawei Ascend 950 NPUs
 
-## 🎯 成熟度の目安（AI による見立て）
+## 🎯 成熟度の目安（README の記載）
 
-**根拠:**
-記事作成時点で GitHub のスター数は 12,000 を超えています。[README](https://github.com/deepseek-ai/DeepInfer#readme) には、DeepSeek の大規模な本番サービスを支える推論フレームワークであり、今回のオープンソース版はオフライン推論向けであると記載されています。ライセンスは Apache License 2.0 です。本番サービスでの利用は DeepSeek 社内での実績で、公開版の動作や性能を当サイトで検証したものではありません。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-**検証候補になる用途:**
-DeepSeek のモデルのオフライン推論の検証候補になります。公開版はオフライン推論向けのため、オンラインのサービス提供に使う場合に必要な機能がそろっているかは README で確認してください。自社の GPU / NPU 環境での動作と性能は、事前の検証が必要です。
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-DeepInferが解決する主要な課題は、大規模言語モデル（LLM）の推論における「パフォーマンス」「スケーラビリティ」「効率性」です。特に、DeepSeekモデルのような大規模モデルを実サービスで利用する際、高いスループットと低いレイテンシを両立させることは極めて困難です。README に記載されている主なアーキテクチャと機能は次のとおりです。
-
-1.  **最適化されたカーネル群:** FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, およびカスタムのTileLangカーネルといった、GPU/NPUに特化した低レベル最適化カーネルを多数統合。計算効率の向上を目的としています。
-2.  **高度な並列処理:** Attention DP / balanced CP、MoE EP + EPLB などの並列化戦略をサポートし、複数のデバイスにわたる効率的なワークロード分散を実現します。
-3.  **インテリジェントなスケジューリング:**
-    *   **DSparkと信頼度に基づく検証:** ドラフトトークンを用いたデコーディングを高速化し、信頼度推定に基づいて検証をスケジュールすることで、推論速度を向上させます。
-    *   **SWA バウンドリプレイ:** デコーダのプリフィル作業を、境界のあるサフィックスのみをリプレイすることで削減します。
-    *   **非同期スケジューリング:** CPUのバッチスケジューリングとデバイス実行をオーバーラップさせ、ゼロオーバーヘッドのバッチ処理を実現します。
-4.  **出力制御と再現性:**
-    *   **バッチ不変推論:** 異なるバッチ構成でもモデル結果を同一に保ちます（NVIDIAのみ）。
-    *   **決定論的サンプリング:** 同一の入力トークンとサンプリングパラメータに対して同一の出力を生成します（NVIDIAのみ）。
-    *   **構造化出力:** 正規表現、JSONスキーマ、EBNF文法に基づいて生成を制約し、特定のフォーマットに沿った出力を保証します。
-
-これらは、DeepSeek のモデルの推論を最適化するための機能として README に記載されています。
-
-```mermaid
-graph TD
-    A[Input Prompt] --> B(DeepInfer Framework)
-    B --> C{Model Executor}
-    C --> D[DeepSeek-V4.1-Flash Model]
-    C --> E["Optimized Kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect"]
-    C --> F["Parallelism Modules: Attention DP, MoE EP"]
-    C --> G["Scheduling & Decoding: Asynchronous, DSpark, SWA Replay"]
-    D -- Model Weights --> C
-    E -- Accelerates Ops --> C
-    F -- Distributes Workload --> C
-    G -- Manages Batch & Output --> C
-    B -- Optimized Inference --> H[Output Response]
-
-    subgraph DeepInfer_Core_Components ["DeepInfer Core Components"]
-        C
-        D
-        E
-        F
-        G
-    end
-```
-
-**注意点:** DeepInferのオープンソースリリースには、完全な推論サービスに必要な以下のコンポーネントは含まれていません。これらは別途構築が必要です。
--   KVキャッシュシステム
--   VE/Prefill/Decodeの分離（エンジン機能の大部分は実装済み）
--   プリフィルとデコードの両方におけるデータ並列レプリカ間のロードバランシング
+- チューニングされたカーネルとして、FlashMLA、DeepGEMM、DeepEP、TileKernels、DeepSelect と独自の TileLang カーネルを使います。
+  - 原文（README）: Optimized kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, and custom TileLang kernels.
+- DSpark と信頼度に基づく検証: ドラフトトークンでデコードを速め、信頼度の推定で検証の時期を決めます。
+  - 原文（README）: DSpark and confidence-scheduled verification: accelerate decoding with draft tokens and use confidence estimates to schedule verification.
+- 非同期スケジューリング: CPU でのバッチのスケジューリングとデバイスでの実行を重ねます。既定で有効です。
+  - 原文（README）: Asynchronous scheduling: overlap CPU batch scheduling with device execution. Enabled by default.
+- バッチ不変の推論: バッチの構成が違ってもモデルの結果を同じに保ちます。
+  - 原文（README）: Batch-invariant inference: keep model results identical across different batch compositions.
+- 構造化出力: 生成を正規表現・JSON スキーマ・EBNF 文法に沿うよう制約します。
+  - 原文（README）: Structured outputs: constrain generation to a regex, JSON schema, or EBNF grammar.
 
 ## インストール（README からの転記）
 

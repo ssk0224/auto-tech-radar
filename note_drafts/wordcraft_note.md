@@ -6,11 +6,20 @@ storytold/wordcraft は 2026-10-07 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-WordCraftのアーキテクチャは、Rustで書かれたレイヤード構造です。
-
-- **GPUネイティブ描画（egui）**: Electron を使わないネイティブ描画。
-- **レイアウトエンジン**: 性能の数値は README で確認してください。
-- **422のコマンドとMCPネイティブ対応**: `select_text`, `format.bold`, `inspect_document`, `track_changes` などの操作がすべてJSON/CLI/MCP経由で実行可能。
+- 純粋な Rust で作られた、オープンソースのワードプロセッサーです。
+  - 原文（README）: Writing and document design; an open-source, modern word processor, built in pure Rust.
+- .docx を読み書きでき、macOS・Windows・Linux・BSD でネイティブに、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: It reads and writes .docx, runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- スペルや文法のチェックを含め、すべてオフラインで動作します。
+  - 原文（README）: Spelling, grammar and everything else work offline.
+- .docx（OOXML）のほか .odt・.rtf・.html・.md・.tex（LaTeX）・.txt を開いて保存でき、97-2003 の .doc も開けます。PDF には選択できる文字・リンク・しおりつきで書き出せます。
+  - 原文（README）: Opens and saves .docx (OOXML), and also .odt, .rtf, .html, .md, .tex (LaTeX), .txt; opens legacy 97-2003 .doc; exports PDF with real, selectable text, links and bookmarks.
+- Electron も Tauri も使わず、GPU 上のネイティブな egui で動きます。
+  - 原文（README）: No Electron, no Tauri: native egui on the GPU.
+- すべての操作は id つきのコマンドで、同じ 422 個のコマンドがリボン・キーボードショートカット・コマンド検索・コマンドラインのツール・JSON の制御チャネル・MCP サーバーを動かします。
+  - 原文（README）: Every action is a command with an id. The same 422 commands drive the ribbon, keyboard shortcuts, the command search, a command-line tool, a JSON control channel and an MCP server.
+- クリーンルーム方式で、公開された仕様と観察から作られています。
+  - 原文（README）: Clean-room: built from public specifications and observation, with every asset original or openly licensed.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

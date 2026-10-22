@@ -5,12 +5,15 @@
 rust-lang/crates.io-index は 2014-11-05 に GitHub で作成されたリポジトリです。
 
 ## 主な機能とアーキテクチャ概要
-`crates.io-index`の主な機能は、Rustクレートのメタデータを提供することです。具体的には、各クレートの利用可能なバージョン、それぞれのバージョンが依存する他のクレート、そしてクレート本体をダウンロードするためのURLなどが含まれます。
 
-このインデックスは、主にJSON形式のファイル群として構成されており、以下の2つの方法で`cargo`に提供されます。
-
-1.  **Gitリポジトリ**: `https://github.com/rust-lang/crates.io-index`として公開されており、`cargo`はこれをローカルにクローンして利用できます。オフライン環境での開発や、インデックスの履歴を追跡したい場合に有用です。
-2.  **HTTP API (Sparse Protocol)**: `https://index.crates.io/`で提供される、より新しいプロトコルです。`cargo`が特定のクレートの情報を必要とすると、HTTPリクエストを通じてそのクレートのJSONデータのみが返されます。これにより、インデックス全体のダウンロードが不要となり、特に大規模なプロジェクトや頻繁な依存関係の更新がある場合に、大幅な高速化を実現します。
+- crates.io のパッケージインデックスには、cargo がクレートをダウンロードして依存関係を解決するためのメタデータが入っています。
+  - 原文（README）: The crates.io package index contains the necessary metadata for cargo to download crates and resolve their dependencies.
+- index.crates.io で HTTP API（sparse protocol）として提供されています。
+  - 原文（README）: https://index.crates.io/ as an HTTP API (sparse protocol)
+- インデックスの形式は The Cargo Book に詳しく書かれています。
+  - 原文（README）: The index format is described in detail in The Cargo Book.
+- crates.io のインデックスは crates.io チームが管理しています。
+  - 原文（README）: The crates.io index is maintained by the crates.io team.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

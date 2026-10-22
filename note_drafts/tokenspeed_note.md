@@ -5,19 +5,17 @@
 lightseekorg/tokenspeed は 2026-05-06 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,201 です。
 
 ## 主な機能とアーキテクチャ概要
-README に記載されている主なアーキテクチャは次のとおりです。LLM推論のパフォーマンスと安定性を最大化するために、以下の主要なコンポーネントと設計思想が採用されています。
 
-1.  **コントロールプレーンと実行プレーンの分離:**
-    *   **コントロールプレーン (C++):** リクエストのライフサイクル管理、KVキャッシュの所有権、処理のタイミング調整といった、推論エンジンの「頭脳」となる部分はC++で実装されています。特に、有限状態機械（FSM）と型システムを駆使することで、KVキャッシュのような共有リソースの安全な再利用をコンパイル時に保証。
-    *   **実行プレーン (Python):** 実際のモデル推論やデータ処理といった「手足」となる部分はPythonで実装されています。これにより、開発者はPythonの豊富なエコシステムと高い生産性を享受しながら、迅速に新しいモデルや最適化を試すことができます。
-    
-
-2.  **モジュール化されたカーネルシステム:**
-    *   TokenSpeedは、推論の核となるカーネル（GPU上で実際に計算を行う部分）を、コアエンジンから独立したモジュールとして扱います。ポータブルな公開APIと集中型レジストリを通じて、様々なカーネルをプラグインとして組み込むことが可能です。
-    *   特に、エージェントワークロードに最適化された、Blackwell世代GPU向けの最速**MLA (Multi-head Latent Attention)** 実装を提供。これにより、特定のハードウェアに依存せず、常に最新かつ最適なカーネルを利用できる柔軟性と拡張性を実現しています。
-
-3.  **SMG統合AsyncLLMによる効率的なリクエスト処理:**
-    *   リクエストの受け付けと処理には、SMG と統合されたAsyncLLMが採用されています。これにより、CPU側のリクエストハンドリングにおけるオーバーヘッドが最小限に抑えられ、多数の同時リクエストに対しても高いスループットを維持できます。
+- スケジューラーは、C++ の制御プレーンと Python の実行プレーンでできています。
+  - 原文（README）: Scheduler: C++ control plane and Python execution plane.
+- 実行プレーンは Python で実装されており、研究者やエンジニアが素早く試行を繰り返せます。
+  - 原文（README）: The execution plane is implemented in Python, enabling fast iteration and lowering the cognitive load for researchers and engineers.
+- 入口は SMG と統合した AsyncLLM で、CPU 側のリクエスト処理の負荷を抑えます。
+  - 原文（README）: Entrypoint: SMG-integrated AsyncLLM for low-overhead CPU-side request handling.
+- リクエストのライフサイクル・KV キャッシュの所有・処理の重なりのタイミングを有限状態機械として表し、KV リソースの安全な再利用をコンパイル時に型システムで保証します。
+  - 原文（README）: Request lifecycle, KV cache ownership, and overlap timing are encoded as a finite-state machine, with safe KV resource reuse enforced by the type system at compile time.
+- TokenSpeed はカーネルをモジュール化されたサブシステムとして扱い、移植可能な公開 API と集中管理の登録簿を通じて中核のエンジンから切り離しています。
+  - 原文（README）: TokenSpeed also treats kernels as a first-class, modular subsystem, separating them from the core engine through a portable public API, centralized registry and selection model, and an extensible plugin mechanism for heterogeneous accelerators.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

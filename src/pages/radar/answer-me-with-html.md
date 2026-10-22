@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "answer-me-with-html - AIエージェントの長文回答を1ページの美麗なHTML・図解へ瞬時に変換する新世代スキル"
-description: "AIエージェントのテキストの壁を解消。シーケンス図やフローチャートを含むオフライン完結型単一HTML/解説動画を自動生成するOSS「answer-me-with-html」を徹底解剖。"
 pubDate: "2026-10-09"
-tags: ["JavaScript", "OSS", "GitHub", "AI", "LLM", "ClaudeCode", "AgentSkills"]
+tags: ["JavaScript","OSS","GitHub","AI","LLM"]
 repoUrl: "https://github.com/QingYunA/answer-me-with-html"
 repoCreatedAt: "2026-10-02"
 stars: 2358
@@ -11,57 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "answer-me-with-html - エージェントのスキルです。難しい質問をすると、文字の壁ではなく読めるページが返ってきます"
+description: "エージェントのスキルです。難しい質問をすると、文字の壁ではなく読めるページが返ってきます。"
 ---
 
 # answer-me-with-html: 概要
 
 QingYunA/answer-me-with-html は 2026-10-02 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,358 です。
 
-LLMやAIエージェントが高度化するにつれ、開発現場では「出力される膨大なテキスト（Wall of Text）の認知的負荷」が最大のボトルネックになりつつあります。Andrej Karpathy氏が指摘したように、LLMの自律性が高まるほど、その出力を人間がいかに高速に咀嚼できるかが重要になります。
+- エージェントのスキルです。難しい質問をすると、文字の壁ではなく読めるページが返ってきます。
+  - 原文（README）: An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.
+- エージェントは短い Markdown の下書きを書き、スキルに同梱された CLI に渡します。
+  - 原文（README）: The agent writes a short Markdown draft and hands it to the CLI that ships with the skill.
+- このスキルを使うと、モデルが書くのは Markdown の下書きだけになります。
+  - 原文（README）: With this skill the model writes only a Markdown draft.
 
-**`answer-me-with-html`** は、Claude Code、Cursor、Codex、OpenCodeといった各種AIエージェントに組み込むオープンソースの「エージェント・スキル（Agent Skill）」です。複雑なアーキテクチャの質問、TCPのハンドシェイク、DBの比較検討などを尋ねた際、端末画面を埋め尽くす長文テキストではなく、シーケンス図、フローチャート、状態遷移表、比較マトリクスが美しくレイアウトされた**完全スタンドアロンの1枚のHTMLファイル**を瞬時に生成・表示します。
+## 🎯 成熟度の目安（README の記載）
 
-### 本ツールのコアメカニズム
-従来、LLMに「HTMLで出力して」と指示した場合、数千行におよぶインラインCSSやSVGの座標計算を出力させることになり、以下のような深刻な問題が生じていました：
-1. **生成待ち時間が長い**
-2. **トークン消費量が膨大**（出力トークン枯渇やコスト高騰）
-3. **SVG図解の崩壊**（LLMは座標計算が苦手なため、矢印があらぬ方向を指す）
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-`answer-me-with-html` はこの責務を完全に分離しました。
-- **LLMの役割**: 専用Markdownドラフト（データ構造とテキストのみ）を書くだけ。
-- **バンドルCLIの役割**: レイアウト計算、カラーパレット適用、`dagre` によるグラフ自動配置、SVG描画、ASD-STE100準拠の構文チェックをローカル（約50ms）で実行。
+## 主な機能と構成（README の要約）
 
-README の比較では、出力トークン数は平均 4,893 tokens から平均 612 tokens に、生成完了までの速度は 2.6x と記載されています（README の計測で、当サイトでは検証していません）。
-
----
-
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart LR
-    User["ユーザー質問"] --> LLM["LLM (Claude / GPT / Gemini)"]
-    LLM --> AMWH["answer-me-with-html 変換エンジン"]
-    AMWH --> Template["Tailwind / CSS コンポーネント"]
-    Template --> SingleHTML["単一HTMLカード出力 (図解・表組・視覚化)"]
-    SingleHTML --> View["ブラウザ / レポート描画"]
-```
-
-### 1. 解決する課題
-- **認知的オーバーロード**: 端末上のモノスペースフォントによる長文ログを読む苦痛の解消。
-- **LLMのトークン生成オーバーヘッド**: CSS/SVGタグ出力によるAPIレイテンシと課金増の抑制。
-- **外部依存とセキュリティ**: 外部SaaSやCDNに依存せず、完全ローカルかつ単一の自己完結HTMLファイルで閲覧・共有可能。
-
-### 2. システムアーキテクチャ
-本ツールはランタイムに Node.js（20以上）のみを要求し、外部CDNや追加のnpmインストールを必要としません（`marked` や `@dagrejs/dagre` などの必要ライブラリは `am.mjs` に事前バンドル済み）。
-
-### 3. 主なサポートコンポーネント
-- `flow`: アーキテクチャ図、決定分岐、コールグラフの自動階層レイアウト
-- `sequence`: メッセージの時系列シーケンス図
-- `er`: 主キー・外部キーおよび多重度（Crow's foot記法）対応のER図
-- `timeline` / `tree`: 歴史的経緯やリポジトリのディレクトリ構造
-- `ask`: HTML上でユーザーが選択肢をクリックしてエージェントに逆フィードバックできるフォーム
-- `video`: 3Blue1Brownスタイルの音声ナレーション付き解説動画（WebM/MP4）自動生成
-
----
+- このスキルは Markdown の下書きから、文章・表・コード・図を 1 ページにまとめて質問全体に答えます。シェルのコマンドを実行できるエージェントで使えます。
+  - 原文（README）: This skill answers the whole question as one page: text, tables, code and diagrams, from a Markdown draft, in any agent that can run a shell command.
+- Node.js 20 以降が必要です。npm install の手順はなく、CLI はスキルの中に同梱されています。
+  - 原文（README）: You need Node.js 20 or newer. There is no npm install step. The CLI is bundled inside the skill.
+- 右上のボタンで、テーマとライト・ダークの表示を切り替え、返信を集め、ページの元になった Markdown をコピーできます。
+  - 原文（README）: The buttons in the top-right corner switch the theme and light/dark mode, collect your reply, and copy the Markdown that produced the page.
+- 音声はページの中にあるので、オフラインで再生できます。
+  - 原文（README）: The voice is inside the page, so it plays offline.
+- 設定はスラッシュコマンドで変えます。手で編集する設定ファイルはありません。
+  - 原文（README）: Change settings with a slash command. There are no config files to edit by hand.
 
 ## インストール（README からの転記）
 

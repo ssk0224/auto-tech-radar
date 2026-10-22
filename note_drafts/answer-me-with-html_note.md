@@ -6,23 +6,22 @@ QingYunA/answer-me-with-html は 2026-10-02 に GitHub で作成されたリポ�
 
 ## 主な機能とアーキテクチャ概要
 
-### 1. なぜ「手書きHTML」ではなく「Markdownドラフト」なのか？
-LLMがHTMLを直書きする場合、トークンの大半は「CSSスタイル」「SVGのパス座標」「タグの閉じ忘れ防止」に浪費されます。これはAPI費用の増大だけでなく、生成速度の致命的な低下を招きます。
-
-`answer-me-with-html` では、LLMは最小限のMarkdown構造（シーケンス定義、フロー図の接続関係、テキスト）のみを出力します。その出力をローカルの専用CLIが受け取り、わずか50ミリ秒で完全なシングルページHTMLにコンパイルします。
-
-| 項目 | HTMLを直書きさせた場合 | answer-me-with-html |
-| :--- | :--- | :--- |
-| **出力トークン数** | 平均 4,893 tokens | **平均 612 tokens** |
-| **応答待ち時間** | 約31秒 | **約12秒 (2.6倍高速)** |
-| **図の正確性** | 座標ズレ・矢印崩れ多発 | **Dagreエンジンにより完全自動整列** |
-
-### 2. 多彩なコンポーネントと3Blue1Brown風の動画生成
-HTML内には以下の要素が美しくレンダリングされます：
-- **シーケンス図 / フロー図 / ER図**: エンジニアリング品質の作図
-- **実ファイルコード引用**: プロジェクト内の実コードを行番号指定で直接インライン表示
-- **インタラクティブ決定機能 (`ask`)**: 画面上で選択肢を選び、ボタン1つでエージェントへの返信プロンプトをクリップボードにコピー
-- **解説動画生成機能**: 数式やアルゴリズムを、3Blue1Brown風のアニメーション＋音声ナレーション付き動画（WebM/MP4）として自動出力
+- エージェントのスキルです。難しい質問をすると、文字の壁ではなく読めるページが返ってきます。
+  - 原文（README）: An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.
+- エージェントは短い Markdown の下書きを書き、スキルに同梱された CLI に渡します。
+  - 原文（README）: The agent writes a short Markdown draft and hands it to the CLI that ships with the skill.
+- このスキルを使うと、モデルが書くのは Markdown の下書きだけになります。
+  - 原文（README）: With this skill the model writes only a Markdown draft.
+- このスキルは Markdown の下書きから、文章・表・コード・図を 1 ページにまとめて質問全体に答えます。シェルのコマンドを実行できるエージェントで使えます。
+  - 原文（README）: This skill answers the whole question as one page: text, tables, code and diagrams, from a Markdown draft, in any agent that can run a shell command.
+- Node.js 20 以降が必要です。npm install の手順はなく、CLI はスキルの中に同梱されています。
+  - 原文（README）: You need Node.js 20 or newer. There is no npm install step. The CLI is bundled inside the skill.
+- 右上のボタンで、テーマとライト・ダークの表示を切り替え、返信を集め、ページの元になった Markdown をコピーできます。
+  - 原文（README）: The buttons in the top-right corner switch the theme and light/dark mode, collect your reply, and copy the Markdown that produced the page.
+- 音声はページの中にあるので、オフラインで再生できます。
+  - 原文（README）: The voice is inside the page, so it plays offline.
+- 設定はスラッシュコマンドで変えます。手で編集する設定ファイルはありません。
+  - 原文（README）: Change settings with a slash command. There are no config files to edit by hand.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

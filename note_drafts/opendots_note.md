@@ -6,16 +6,22 @@ CopilotKit/OpenDots は 2026-09-30 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-OpenDotsは、CopilotKitが提唱する「AG-UI（Agent-User Interface）」と「OpenBot（コンテナスーパーバイザー）」の上に構築されています。
-
-1. **Spaces（ドキュメントワークスペース）**:
-   Notionのようにスラッシュコマンド、自動保存、バージョン管理が可能なドキュメント基盤。AIが作業した成果物が自動的にここに蓄積されます。
-2. **Dot Computers（エージェント専用PC）**:
-   各AI同僚（Dot）に独立したDockerコンテナと専用ブラウザプロファイルを付与。ファイルの永続化はもちろん、ターミナルでのコマンド実行まで隔離環境で行います。
-3. **Omni-Channel（Web / Realtime Voice / Slack）**:
-   Web上の画面操作だけでなく、WebRTC経由の音声通話で指示を出し、外出先からはSlackのメンションでタスクの進捗を確認・承認できます。
-4. **Human-in-the-Loop（人間の承認介入）**:
-   破壊的な操作や外部通信を行う際、UI上に「Approve & Run」カードが自動出現。人間が承認ボタンを押すまでエージェントが待機します。
+- それぞれが自分のコンピューターを持つ、常駐型 AI エージェントのためのオープンソースのテンプレートです。
+  - 原文（README）: An open-source template for persistent AI agents, each with its own computer.
+- CopilotKit と AG-UI で作られています。
+  - 原文（README）: Built with CopilotKit and AG-UI.
+- ホスティングされた製品ではなくテンプレートで、アプリケーションの実行とインフラの設定は利用者が行います。
+  - 原文（README）: A template, not a hosted product. You run the application and configure its infrastructure.
+- 各 Dot は、OpenBot のコンテナ管理とコンピューターサービスを使って、自分のコンピューターを持てます。
+  - 原文（README）: Each Dot can have its own computer, using OpenBot's container supervisor and computer service.
+- アプリケーションはサービスの認証情報をサーバーに置き、Dot ごとに別のコンピューター用の認証情報を作ります。
+  - 原文（README）: The application keeps service credentials on the server and derives a different computer credential for each Dot.
+- Dot には、メール・カレンダー・GitHub・自前のサービスなど任意の MCP サーバーのツールを持たせられ、読み取り専用のツールはそのまま動きます。
+  - 原文（README）: Give a Dot tools from any MCP server, such as email, calendar, GitHub, or your own services. Read-only tools run on their own.
+- それ以外のツールはチャットの Approve & run カードで止まり、承認したときだけ実行されます。
+  - 原文（README）: Any other tool pauses for an Approve & run card in chat, and only your approval runs it.
+- ページはローカルのワークスペースのデータベースに保存されます。
+  - 原文（README）: Pages stay in the local workspace database.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

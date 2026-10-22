@@ -6,28 +6,20 @@ NandhaKishorM/laya は 2026-09-18 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-`laya`は、ModernBERTおよびmmBERTをベースに、厳密適格スコアリングルール（RLCD）を用いて強化学習された意思決定特化型モデルです。
-
-1. **単一フォワードパスでの複数判定**: 1回の推論（約33ms）で、「カテゴリ分類（Choice）」「スコアリング（Score）」「確信度付きYes/No（Noul）」を同時に確定。
-2. **多言語自動ルーティング**: 日本語、英語を含む100以上の言語を内蔵ルーターがサブミリ秒で判別し、最適なモデルへディスパッチ。
-3. **長文サポート**: 最大8,192トークンまで処理可能（README の記載）。
-
-```python
-from laya import Router
-
-router = Router()
-result = router.predict(
-    "請求書が重複しています。今日中に返金されなければ解約します。",
-    questions={
-        "dept": {"type": "choice", "instructions": "担当部門", "criteria": {"billing": "請求", "tech": "技術"}},
-        "churn": {"type": "noul", "instructions": "解約リスクがあるか"}
-    }
-)
-# result["answers"]["dept"]["choice"] -> 'billing'
-# result["answers"]["churn"]["noul"]  -> 0.982
-```
-
----
+- 多言語対応の、非自己回帰型の System 1 判断エンジンです。
+  - 原文（README）: Multilingual, non-autoregressive System 1 decision engine.
+- uv を使う場合は、uv のプロジェクトで uv add laya、仮想環境で uv pip install laya を実行します。Python 3.10 以降が必要です。
+  - 原文（README）: With uv, run uv add laya in a uv project or uv pip install laya in a virtual environment. Python 3.10 or newer.
+- 長い文書: laya-multilingual は max_len=8192 を指定すると 8,192 トークンまで読みます。
+  - 原文（README）: Long documents. laya-multilingual reads up to 8,192 tokens with max_len=8192.
+- Laya は、型つきの質問（choice・score・noul）を、任意の状態（テキスト・メール・チケット・JSON 文書）に対して 1 回の順伝播で評価します。
+  - 原文（README）: Laya evaluates typed questions (choice, score, noul) over any state (text, email, ticket or JSON document) in a single forward pass — 33 ms for one question, 7.2 ms/question batched, measured on a T4.
+- 3 つのチェックポイントがあり、Router がリクエストごとにどれを使うかを選びます。
+  - 原文（README）: Three checkpoints, and a Router that picks between them per request:
+- Router は文字体系と言語を判定し、英語以外の文章を laya-multilingual に送ります。
+  - 原文（README）: The Router detects the script and language and sends non-English text to laya-multilingual:
+- Python の HTTP SDK の predict_batch は、状態の一覧を 1 回の POST /v1/systemone/batch で送り、入力の順に結果を返します。
+  - 原文（README）: predict_batch in the Python HTTP SDK, one POST /v1/systemone/batch for a list of states, results in input order, no splitting and no fallback to single requests (#1297).
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

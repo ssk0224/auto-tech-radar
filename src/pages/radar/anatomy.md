@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "anatomy - 複雑な概念をリアルな動的機械へ変換するアイソメトリック生成エージェントスキル"
-description: "Claude CodeなどのAIエージェントと連携し、詳細かつインタラクティブな等角投影図（SVG/WebGL/3D）を自動生成・幾何監査するゼロ依存OSS「anatomy」を徹底解説。"
 pubDate: "2026-10-14"
-tags: ["JavaScript", "OSS", "GitHub", "AI", "SVG", "WebGL", "Architecture"]
+tags: ["JavaScript","OSS","GitHub","SVG","WebGL"]
 repoUrl: "https://github.com/wheresryan22/anatomy"
 repoCreatedAt: "2026-10-08"
 stars: 9975
@@ -11,59 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "anatomy - anatomy は、アイデアを実際に動く物として組み立てて説明する Claude のスキルです"
+description: "anatomy は、アイデアを実際に動く物として組み立てて説明する Claude のスキルです。"
 ---
 
 # anatomy: 概要
 
 wheresryan22/anatomy は 2026-10-08 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 9,975 です。
 
-ソフトウェアアーキテクチャや分散システムの内部動作を説明する際、多くのエンジニアは「四角と矢印」で構成された抽象的なブロック図（C4モデルやフローチャート）に頼りがちです。しかし、キャッシュヒット率の挙動、トークンバケットによるレート制限、データベース接続プーリングといった動的なアルゴリズムは、静止した図形だけでは直感的な理解に限界があります。
+- anatomy は、アイデアを実際に動く物として組み立てて説明する Claude のスキルです。
+  - 原文（README）: A Claude skill that explains an idea by building it as a real, working object.
+- Antigravity、OpenCode、Codex、MiniMax Code でも動作します。
+  - 原文（README）: Also runs in Antigravity, OpenCode, Codex and MiniMax Code.
+- 小さな部品を多く組み合わせた、操作できるアイソメトリックの図を、SVG・WebGL・3D で作ります。
+  - 原文（README）: Crafted, interactive isometric figures with many small precise parts, in SVG, WebGL and 3D.
 
-**「anatomy」**は、この課題を根本から覆すアプローチを採用したAIエージェント向けスキル（Claude Code、OpenCode、Codex等に対応）です。抽象的な技術コンセプトを入力すると、その概念を模した「実在しそうな精密機械」を物理モデルとしてメタファー化。数十〜数百のソリッドパーツからなる等角投影図（Isometric Illustration）を、ピュアSVG、WebGLシェーダー、3D投影技術を駆使してコードとして自動生成します。
+## 🎯 成熟度の目安（README の記載）
 
-最大の革新性は以下の点にあります：
-- **概念の物理機械化**: キャッシュ検証を「ピンタンブラー錠」、複数キャンバスのGPU描画を「ガントリープロッター」のように、動作原理が直感的に伝わる物理ギミックへ自律的に再設計。
-- **純粋なゼロ依存（Zero-Dependency）**: 外部npmライブラリを一切使わず、Node.js標準モジュールのみで幾何計算からレンダリングまで完結。
-- **自律的幾何学監査（Geometry Audit）**: 生成したパーツ同士の干渉（パイプの衝突、浮遊オブジェクト、描画順序の破綻）をヘッドレスChromeと幾何解析スクリプトで自己テストし、厳密に修正。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
----
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-システム設計書の作成において、高品質なインタラクティブ図解を作成するには、3Dモデラー（Blender等）やUIデザイナー（Figma）、フロントエンドエンジニアが数週間かけて共同作業を行う必要がありました。anatomyはこの制作パイプラインをAIエージェントの自律ループへ統合します。
-
-### アーキテクチャと実行フロー
-
-anatomyは、Agent Skills仕様に準拠したプロンプトフレームワークと、自社開発の軽量幾何エンジン（`kit/`）で構成されています。
-
-```mermaid
-graph TD
-    User(["開発者・アーキテクト"]) -->|プロンプト入力| Agent["AI Agent: Claude Code / Codex"]
-    Agent -->|SKILL.md 読み込み| Skill[Anatomy Workflow Engine]
-    
-    subgraph IterativeDesignLoop ["Iterative Design Loop"]
-        Skill --> Step1["1. 数値・制約抽出<br>閾値, レート, 容量"]
-        Step1 --> Step2["2. 物理メタファー策定<br>機械構造・パーツリスト化"]
-        Step2 --> Step3["3. 幾何モデリング kit/<br>iso-kit, lathe, tube"]
-        Step3 --> Step4["4. レンダリング生成<br>SVG階層 + WebGL Canvas"]
-        Step4 --> Step5["5. 自動検証 & 監査<br>kit/audit.mjs & Chrome"]
-        Step5 -->|干渉・浮遊検知| Step3
-    end
-
-    Step5 -->|パス完了| Output[成果物出力]
-    Output --> HTML[Standalone HTML]
-    Output --> SVG[Standalone SVG]
-    Output --> React["React/Next.js Component"]
-```
-
-#### コアコンポーネント構成
-1. **`SKILL.md`**: エージェントに「まず真の数値を集め、機械を発明し、背面から前面へ描画せよ」という職人的制約を与えるシステムプロンプト。
-2. **`kit/iso-kit.ts`**: 等角カメラ変換、4トーンシェーディング、深度ソート（Painter's Algorithm）を司るコア描画基盤。
-3. **`kit/tube.mjs` & `lathe.mjs`**: 任意の3次元軸に沿った配管・配線、旋盤加工のような回転体のパラメトリック生成。
-4. **`kit/gl.mjs`**: 火炎、排気、液体、波紋などベクターでは表現不可能な流体を表現するため、SVGのレイヤー間にアイソメトリック視点で挟み込むWebGLシェーダー。
-5. **`kit/audit.mjs`**: 部品間のクリッピングや貫通バグ、未接合ラインを幾何数学的にチェックする監査システム。
-
----
+- 技術的なアイデアを説明する図を Claude に頼むと、Anatomy はその概念どおりに動く物理的な物を考え出させます。
+  - 原文（README）: Ask Claude for a figure that explains a technical idea, and Anatomy has it invent a physical thing whose working is the concept.
+- その後 Claude は、小さな部品を多く組み合わせてその物を作り、題名・ヒント・表示つきのカードに入れ、ポインターとキーボードで動かせるようにし、すべての継ぎ目を拡大して自分の作業を確かめます。
+  - 原文（README）: Then Claude builds that thing out of dozens of small, solid, shaded parts, puts it in a framed card with a title, a hint and a live readout, makes it move calmly under the pointer and the keyboard, and checks its own work by zooming in on every joint.
+- 図に表示される数値は、部品を動かすのと同じ小さなモデルから来ています。
+  - 原文（README）: Every number the figure shows comes from the same small model that moves its parts.
+- API キーも npm install も不要で、キットは Node の組み込みモジュールだけを使います。
+  - 原文（README）: No API keys and nothing to npm install: the kit uses only Node's built-in modules.
+- Anatomy は Agent Skill の形式で、ルートに SKILL.md を置いたフォルダーです。このリポジトリがそのフォルダーです。
+  - 原文（README）: Anatomy is a standard Agent Skill: a folder with a SKILL.md at its root. This repository is that folder.
 
 ## インストール（README からの転記）
 

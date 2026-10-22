@@ -6,12 +6,20 @@ storytold/filmcraft は 2026-09-30 に GitHub で作成されたリポジトリ�
 
 ## 主な機能とアーキテクチャ概要
 
-README に記載されている主なアーキテクチャの特徴は次のとおりです。
-
-- **完全なPremiere互換ワークフロー**: ソース・プログラムモニター、3点編集、リップル/ロール/スリップ/スライドトリム、Lumetriスタイルの32bitカラーグレーディング、キーフレーム制御。
-- **絶対時間整数演算**: 毎秒254,016,000,000ティックを採用し、23.976fpsや29.97ドロップフレーム編集でも音声と映像のズレが理論上ゼロ。
-- **外部依存ゼロのRust独自コーデック**: H.264、HEVC、ProRes 422HQ、AAC等をピュアRustで独自実装。
-- **650以上のエンジンコマンドをMCP化**: すべてのUIアクションがAPI/MCP経由で実行可能。
+- 純粋な Rust で作られた、オープンソースのノンリニア動画編集ソフトです。
+  - 原文（README）: Video editing, color and sound; an open-source, professional non-linear video editor, built in pure Rust.
+- macOS・Windows・Linux でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: An open-source, modern non-linear video editing workflow: native on macOS, Windows and Linux, and in the browser via WebAssembly.
+- H.264・HEVC・ProRes・AAC のコーデックは、公開された仕様をもとに Rust で独自に書かれています。
+  - 原文（README）: The H.264, HEVC, ProRes and AAC codecs are our own, written in Rust from the public specifications.
+- GPU のコンポジターはリニアな光で処理します。
+  - 原文（README）: A GPU compositor works in linear light.
+- フレームの計算は正確な整数の時間で行うため、編集がずれません。
+  - 原文（README）: Frame math runs on exact integer time, so edits never drift.
+- アプリのすべての操作はコマンドで、AI エージェントが人と同じ精度で実行できます。
+  - 原文（README）: And every action in the app is a command that an AI agent can drive as precisely as you can.
+- 保存はアトミックで、自動保存は直近の複数の版を残し、各編集のすぐ後に書かれるクラッシュ復旧用の記録が、クラッシュや停電のあとに未保存の変更を戻します。
+  - 原文（README）: Saves are atomic, auto-save keeps a rolling set of versions, and a crash-recovery journal written about a second after each edit brings back unsaved changes after a crash or power cut.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

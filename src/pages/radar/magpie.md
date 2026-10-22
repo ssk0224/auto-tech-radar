@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "magpie - Every agent's model. One place. Codex on DeepSeek, Claude Code on Kimi, from the menu bar."
-description: "Every agent's model. One place. Codex on DeepSeek, Claude Code on Kimi, from the menu bar."
 pubDate: "2026-10-14"
-tags: ["Go", "OSS", "GitHub"]
+tags: ["Go","OSS","GitHub"]
 repoUrl: "https://github.com/yetone/magpie"
 repoCreatedAt: "2026-09-24"
 stars: 11503
@@ -13,78 +11,37 @@ corrections:
     note: "導入手順の表現を訂正"
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "magpie - 1 つのローカルゲートウェイがすべてのエージェントの要求を受け、利用枠を使い切ると次のアカウントに切り替えます"
+description: "1 つのローカルゲートウェイがすべてのエージェントの要求を受け、利用枠を使い切ると次のアカウントに切り替えます。"
 ---
 
 # magpie: 概要
 
 yetone/magpie は 2026-09-24 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 11,503 です。
 
-近年、エンジニアの日常業務には「Claude Code」「Cursor」「Codex」「Gemini CLI」「OpenCode」といった多種多様なAIコーディングエージェントが入り乱れています。しかし、開発現場では深刻な**「エージェント・プロバイダーのサイロ化」**が発生しています。
+- 1 つのローカルゲートウェイがすべてのエージェントの要求を受け、利用枠を使い切ると次のアカウントに切り替えます。
+  - 原文（README）: One local gateway serves them all, and when a quota runs out, it quietly moves on to the next account.
+- エージェントはそれぞれ、モデルの設定を独自のファイル・形式・キー・base URL で持っています。
+  - 原文（README）: Each agent keeps its model in its own file, in its own format, with its own keys and base URLs.
+- macOS・Windows・Linux（メニューバーのアプリ、ウィンドウ、TUI、web UI、CLI）、Docker、Termux で動作します。
+  - 原文（README）: Runs on macOS, Windows and Linux (menu bar app, window, TUI, web UI and CLI), in Docker, and on Termux.
 
-各エージェントは独自の設定ファイル形式を持ち、有料サブスクリプション（ChatGPT Plus、Claude Pro、GitHub Copilot等）や個別のAPIキーが各ツール内部に閉じ込められています。そのため、「Claude CodeでDeepSeek V4を使いたい」「Cursorの裏側で割安なKimiやローカルLLMを動かしたい」「APIクォータが切れたら別アカウントへシームレスにフェイルオーバーさせたい」という要求に対して、設定ファイルの書き換えやプロトコル変換を泥臭く手作業で行う必要がありました。
+## 🎯 成熟度の目安（README の記載）
 
-この課題を対象にしているのが、Go言語製のオープンソース・統合ゲートウェイ**「magpie」**です。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-### magpieのコア革新性
-1. **全主要プロトコルのリアルタイム相互変換**：ローカルポート（`127.0.0.1:3425`）で待受し、OpenAI Chat/Responses、Anthropic Messages、Google GeminiのAPI仕様を自動相互トランスパイル（ストリーミング・Tool Use・Reasoning tags完全対応）。
-2. **エージェント設定ファイルの非破壊的自動書き換え**：各CLIエージェントの設定（JSON, TOML, YAML等）の構造・コメントを壊すことなく、ターゲットURLとモデル指定をワンクリック／1コマンドで置換。
-3. **インテリジェント・ルーティング＆クォータ・フェイルオーバー**：複数アカウントや異なるLLMをグループ化し、トークン残量、更新タイミング（smart/pace）、推論コスト（Intent Routing）に応じてリクエストを自動分散。
-4. **JavaScript/Bunベースのゲートウェイミドルウェア拡張**：`onRequest`、`onResponse`をフックし、プロンプトの注入、マスク、モデルリライトを数行で実装可能。
+## 主な機能と構成（README の要約）
 
----
-
-## 解決する主要な課題とアーキテクチャ
-
-従来のエージェント利用環境では、ツールごとに個別のAPI設定やキーの分散管理が必要であり、サブスクリプションの利用制限（Rate Limit）到達による作業停止が日常茶飯事でした。
-
-magpieはローカルプロキシアーキテクチャを採用し、すべてのエージェントとすべてのLLMプロバイダ間に透過的なレイヤーを挟み込みます。
-
-```mermaid
-graph TD
-    subgraph DevClients ["Development Clients"]
-        C1[Claude Code CLI]
-        C2["Cursor / Zed / VS Code"]
-        C3["Gemini CLI / Codex"]
-        C4["OpenCode / Custom Agent"]
-    end
-
-    subgraph magpie_gateway ["magpie Local Core Gateway (127.0.0.1:3425)"]
-        GW[Unified Local Gateway Engine]
-        TR[Protocol Transformer\nOpenAI ↔ Anthropic ↔ Gemini]
-        MW["Bun Middleware / Plugins\nModel Mapping & Word Guard"]
-        RG["Routing Groups Engine\nSmart / Order / Rotate / Pace"]
-    end
-
-    subgraph UpstreamModelProviders ["Upstream Model Providers"]
-        P1["Claude Pro / Opus / Sonnet"]
-        P2["ChatGPT Plus / Codex"]
-        P3["DeepSeek / Moonshot Kimi / GLM"]
-        P4["Local LLM Ollama / vLLM"]
-        P5["GitHub Copilot / Google Vertex"]
-    end
-
-    C1 -->|Anthropic Protocol| GW
-    C2 -->|OpenAI Protocol| GW
-    C3 -->|Gemini Protocol| GW
-    C4 -->|Any Standard Protocol| GW
-
-    GW --> TR
-    TR --> MW
-    MW --> RG
-
-    RG -->|Session Sticky / Failover| P1
-    RG -->|Auto Fallback| P2
-    RG -->|Cost Efficient| P3
-    RG -->|Zero Cost / Offline| P4
-    RG -->|Enterprise Account| P5
-```
-
-### アーキテクチャの強み
-- **セッション維持（Sticky Session）**：プロンプトキャッシュの効果を最大化するため、同一セッションのリクエストはキャッシュが有効な同一プロバイダに固定。
-- **意図ルーティング（Intent Routing）**：小型LLMがリクエスト内容を瞬時に判定。単純な質問は格安のDeepSeekやKimiへ、複雑なリファクタリングやテストコード生成はClaude Opus/GPT-4oへ自動振り分け。
-- **安全な認証抽出**：OSのKeychainやローカルCLIの既存セッションから安全にサブスクリプション認証を同期し、追加キー発行なしで他エージェントに再利用可能。
-
----
+- 1 つの一覧から、どのエージェントにもどのモデルでも選べます。magpie はエージェント自身の設定のうち、関係する 1 つのキーだけを書き換えます。
+  - 原文（README）: Pick any model for any agent from one list. magpie edits the one key that matters in the agent's own config.
+- 利用枠を使い切っても続けられます。ルーティンググループが次のアカウントかモデルに移り、エージェントにはエラーが見えません。
+  - 原文（README）: Keep going when a quota runs out: a routing group moves to the next account or model, and the agent never sees the error.
+- 127.0.0.1:3425 のゲートウェイは OpenAI Chat・OpenAI Responses・Anthropic Messages・Gemini の形式を話し、ストリーミング・ツール呼び出し・推論を含めて相互に変換します。
+  - 原文（README）: The gateway at 127.0.0.1:3425 speaks OpenAI Chat, OpenAI Responses, Anthropic Messages and Gemini, and translates between them, streaming, tool calls and reasoning included.
+- エージェントの設定はアトミックに書き換えられ、コメント・順序・書式はそのまま残ります。
+  - 原文（README）: The agent's config is rewritten atomically, and its comments, order and formatting stay as they were.
 
 ## インストール（README からの転記）
 

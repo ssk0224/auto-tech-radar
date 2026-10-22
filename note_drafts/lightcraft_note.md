@@ -6,11 +6,22 @@ storytold/lightcraft は 2026-09-30 に GitHub で作成されたリポジトリ
 
 ## 主な機能とアーキテクチャ概要
 
-### 1. 圧倒的なスペック
-- **Pure Rust & メモリ安全性**: C/C++のレガシーコードゼロ。メモリ破壊クラッシュのリスクを構造的に排除。
-- **プロ仕様の色空間処理**: 内部はすべて32-bit浮動小数点リファレンス空間（Rec.2020）で演算。OkLCh色空間による高精度なカラーグレーディング。
-- **GPUアクセラレーション**: `wgpu`（Metal / Vulkan / DirectX 12）を活用し、2400万画素のRAW画像の現像処理をわずか数ミリ秒で実行。
-- **MCPネイティブ**: Anthropicが提唱するMCPサーバーを標準搭載。ClaudeなどのAIが「目（画像プレビュー）」を持ちながら現像パラメータを自律調整可能。
+- 純粋な Rust で作られた、オープンソースの非破壊型の写真ライブラリと RAW 現像ソフトです。
+  - 原文（README）: Photo library and raw development; an open-source, non-destructive photo library and raw developer, built in pure Rust.
+- macOS・Windows・Linux でネイティブに動作し、WebAssembly によりブラウザでも動作します。
+  - 原文（README）: Native on macOS, Windows and Linux. In the browser via WebAssembly.
+- AI エージェントが MCP を通じて最初から最後まで操作できます。
+  - 原文（README）: Drivable end to end by AI agents over MCP.
+- すべての調整は非破壊で、元の画像には手を加えません。
+  - 原文（README）: Every adjustment is non-destructive, so your originals are never touched.
+- すべてのスライダーは、シーン参照・広色域・32-bit 浮動小数点のパイプラインで描画されます。
+  - 原文（README）: Every slider renders through a scene-referred, wide-gamut, 32-bit float pipeline: highlights roll off like film, shadows open up without halos, and colour stays clean from capture to export.
+- ホワイトバランスは色温度と色かぶり補正で調整し（RAW は Kelvin、JPEG は相対値）、プリセット・Auto・クリックで中立にするスポイトを使えます。
+  - 原文（README）: White balance by temperature and tint (Kelvin for raw, relative for JPEG) with presets, Auto and a click-to-neutralise eyedropper.
+- これらはすべて、知覚に基づく色空間 OkLCh で計算されます。
+  - 原文（README）: All of it is computed in OkLCh, a modern perceptual colour space.
+- カーブは構造上単調なので、意図しない階調の反転は起きません。
+  - 原文（README）: Curves are monotone by construction, so you never get an accidental tone inversion.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

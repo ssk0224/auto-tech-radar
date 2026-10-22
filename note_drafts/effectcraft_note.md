@@ -6,68 +6,22 @@ storytold/effectcraft は 2026-10-01 に GitHub で作成されたリポジト�
 
 ## 主な機能とアーキテクチャ概要
 
-EffectCraftは、既存の商用モーショングラフィックスツールの抱える以下の主要な課題を解決しようとしています。
-
-1.  **高コストとベンダーロックイン**: Adobe After Effectsなどの商用ツールは高額なサブスクリプション費用がかかり、特定のベンダーに依存するリスクがあります。EffectCraftはオープンソースであるため、ライセンス費用が不要で、コミュニティ主導で開発が進められます。
-2.  **パフォーマンスと安定性**: 純粋なRustでゼロから構築されているため、メモリ安全性と実行時のパフォーマンスが最適化されています。FFmpegに依存せず、独自のRust製コーデックを使用することで、より制御された高速な処理が期待できます。
-3.  **自動化とCI/CD連携の困難さ**: 従来のGUI中心のツールは、スクリプトによる自動化やCI/CDパイプラインへの統合が難しい場合があります。EffectCraftは、全ての操作がコマンドレジストリを介し、コマンドライン、JSONコントロールチャンネル、MCPサーバーからアクセス可能であるため、ヘッドレスでの自動レンダリングやAIエージェントによる操作が容易です。
-4.  **Web/アプリ連携の複雑さ**: Webやモバイルアプリで利用されるLottieアニメーションへの変換には、通常プラグインや追加のワークフローが必要でした。EffectCraftはLottieのインポート/エクスポートをネイティブでサポートし、このプロセスを大幅に簡素化します。
-5.  **プロジェクトファイルの可読性**: 商用ツールのプロジェクトファイルはバイナリ形式が多く、バージョン管理システムでの差分比較が困難です。EffectCraftのプロジェクトファイルは人間が読めるJSON形式（`.ecproj`）であり、Gitなどのバージョン管理システムとの親和性が高いです。
-
-### アーキテクチャ概要
-
-EffectCraftは「Engine first」のアプローチを採用しており、厳格なレイヤリングを持つ小さなクレートのスタックで構成されています。UI層（egui）は最上位に位置し、その下のエンジン層はUIに依存しません。これにより、ヘッドレス実行や異なるUIフレームワークへの対応が容易になっています。
-
-```mermaid
-graph TD
-    subgraph User Interaction & Automation
-        A["User Interface (egui)"] --> B[Command Registry]
-        M["Agent Control (MCP Server, CLI, Control Channel)"] --> B
-    end
-
-    subgraph Core Engine & Logic
-        B --> C[Project & Property Tree]
-        B --> D[Keyframe & Animation Engine]
-        B --> E[Effect Processing Engine]
-        B --> F[3D Engine]
-        B --> G[Render Queue & Export Module]
-    end
-
-    subgraph Data & Media Handling
-        C --> H["File I/O (.ecproj JSON)"]
-        D --> I[Time Model]
-        E --> J[306 Effects Library]
-        F --> K[Camera & Light Management]
-        G --> L["Pure Rust Codecs (H.264, ProRes, AV1, Lottie)"]
-    end
-
-    subgraph Foundational Aspects
-        H --> N[Version Control Integration]
-        I --> O[Frame-accurate Timing]
-        J --> P[Layer Styles]
-        K --> Q[3D Layer Intersection]
-        L --> R[No FFmpeg Dependency]
-    end
-
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style M fill:#ccf,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style G fill:#fcf,stroke:#333,stroke-width:2px
-    style L fill:#cfc,stroke:#333,stroke-width:2px
-    style R fill:#fcc,stroke:#333,stroke-width:2px
-```
-
-**主要コンポーネント:**
-
-*   **User Interface (egui)**: クロスプラットフォーム対応のGUIフレームワークeguiを使用。
-*   **Command Registry**: 全てのユーザー操作やエージェントからのコマンドを処理する中心ハブ。
-*   **Project & Property Tree**: プロジェクト構造、レイヤー、プロパティを管理。`.ecproj` (JSON) 形式で保存。
-*   **Keyframe & Animation Engine**: キーフレーム補間、グラフエディタ、エクスプレッションなどを処理。
-*   **Effect Processing Engine**: 306種類のエフェクトと9種類のレイヤースタイルを適用。
-*   **3D Engine**: クラシック3Dレイヤー、カメラ、ライト、シャドウをサポート。
-*   **Render Queue & Export Module**: H.264, ProRes, AV1, Lottieなど多様な形式でのレンダリングとエクスポートを管理。
-*   **Pure Rust Codecs**: FFmpegに依存しない、自社開発のRust製ビデオ/オーディオコーデック。
-*   **Agent Control**: MCPサーバー、コマンドラインインターフェース、コントロールチャンネルを通じて、外部システムやAIエージェントからの操作を可能にする。
+- 純粋な Rust で作られた、オープンソースのモーショングラフィックスと視覚効果のスタジオです。
+  - 原文（README）: Motion graphics and visual effects; an open-source, professional motion graphics and visual effects studio, built in pure Rust.
+- EffectCraft は、アニメーションのタイトル、モーショングラフィックス、合成の作業のためのものです。
+  - 原文（README）: EffectCraft is for animated titles, motion graphics and compositing work: the kind of thing motion designers and VFX artists need.
+- EffectCraft の最初のコミットは 2026 年 10 月 1 日です。
+  - 原文（README）: EffectCraft is young: its first commit was on 1 October 2026.
+- レイヤー（平面・シェイプ・テキスト・フッテージ・ほかのコンポジション）からコンポジションを組み、キーフレームでプロパティを動かし、エフェクトを重ねて結果をレンダリングします。
+  - 原文（README）: You build a composition out of layers (solids, shapes, text, footage, other compositions), animate their properties with keyframes, stack effects on them and render the result.
+- プロジェクトはバージョンつきの JSON（.ecproj）なので、バージョン管理で差分をきれいに取れます。
+  - 原文（README）: Projects are versioned JSON (.ecproj), so they diff cleanly in version control.
+- メニューの項目・タイムラインのドラッグ・プロパティの編集はすべて 1 つのコマンドの登録簿を通るため、同じ操作をコマンドライン・JSON の制御チャネル・エージェント向けの MCP サーバーから実行できます。
+  - 原文（README）: Every menu item, timeline drag and property edit goes through one command registry, so the same actions are reachable from a command line, a JSON control channel and an MCP server for agents.
+- FFmpeg は使いません。動画と音声のデコードとエンコードは純粋な Rust で、FilmCraft のコーデックと EffectCraft 独自の VP9・AV1・HEVC・Opus のエンコーダーを使います。
+  - 原文（README）: No FFmpeg. Video and audio decoding and encoding are pure Rust: FilmCraft's codecs and EffectCraft's own VP9, AV1, HEVC and Opus encoders.
+- MCP サーバー: effectcraft-cli mcp は stdio で Model Context Protocol を話し、単独でも、起動中のアプリにつないでも（--bridge 9877）動きます。
+  - 原文（README）: MCP server: effectcraft-cli mcp speaks the Model Context Protocol over stdio, headless or bridged to the running app (--bridge 9877).
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

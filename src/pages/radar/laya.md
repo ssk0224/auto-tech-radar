@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "laya - Non-autoregressive System 1 decision engine. Typed choice, score and yes/no decisions over any text in a single forward pass, in 100+ languages, with a router that picks the right checkpoint per request."
-description: "Non-autoregressive System 1 decision engine. Typed choice, score and yes/no decisions over any text in a single forward pass, in 100+ languages, with a router that picks the right checkpoint per request."
 pubDate: "2026-10-10"
-tags: ["Python", "OSS", "GitHub"]
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/NandhaKishorM/laya"
 repoCreatedAt: "2026-09-18"
 stars: 31976
@@ -11,63 +9,37 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "laya - 多言語対応の、非自己回帰型の System 1 判断エンジンです"
+description: "多言語対応の、非自己回帰型の System 1 判断エンジンです。"
 ---
 
 # laya: 概要
 
 NandhaKishorM/laya は 2026-09-18 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 31,976 です。
 
-LLM（大規模言語モデル）の台頭により、カスタマーサポートのトリアージ、コンテンツモデレーション、ルーティングなどのテキスト分類タスクにGPT-4やClaude等の生成モデルを組み込む例が急増しました。しかし、そこでエンジニアが直面するのが**「トークン生成による大きなレイテンシ（数百ms〜数秒）」「高額なAPIコスト」「JSONパース失敗」「確率的ハルシネーション」**というSystem 2（熟慮型）推論特有の致命的ペインです。
+- 多言語対応の、非自己回帰型の System 1 判断エンジンです。
+  - 原文（README）: Multilingual, non-autoregressive System 1 decision engine.
+- uv を使う場合は、uv のプロジェクトで uv add laya、仮想環境で uv pip install laya を実行します。Python 3.10 以降が必要です。
+  - 原文（README）: With uv, run uv add laya in a uv project or uv pip install laya in a virtual environment. Python 3.10 or newer.
+- 長い文書: laya-multilingual は max_len=8192 を指定すると 8,192 トークンまで読みます。
+  - 原文（README）: Long documents. laya-multilingual reads up to 8,192 tokens with max_len=8192.
 
-GitHubで31,000スターを超える急上昇OSS **「laya」** は、この課題を根本から覆す**「Non-autoregressive（非自己回帰型）System 1意思決定エンジン」**です。
+## 🎯 成熟度の目安（README の記載）
 
-Daniel Kahnemanの提唱する「System 1（直感的・瞬時な思考）」をAIアーキテクチャに落とし込み、テキスト生成（Token-by-token generation）を一切行いません。独自のエンコーダ構造（ModernBERT / mmBERT）と、厳密適格スコアリングルール（Strictly Proper Scoring Rules: RLCD）で学習された分類ヘッドにより、**単一のフォワードパス（わずか33ms）**で型付けされた決定（Typed Choice、Score、Yes/No）を出力します。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-### 主なポイント
-- **超低レイテンシ・高スループット**: 単一クエリ33ms、バッチ処理時7.2ms/クエリ（T4 GPU測定）。
-- **ゼロ・ハルシネーション & 堅牢な型安全性**: テキストを生成しないため、存在しないラベルの出力やJSONの構文エラーが構造的にゼロ。
-- **100以上の言語を自動ルーティング**: サブミリ秒で言語とスクリプトを判定し、最適なチェックポイントへ振り分ける内蔵`Router`。
-- **長文対応（最大8,192トークン）**: `laya-multilingual`は最大8,192トークンまでの長文コンテキストに対応。
+## 主な機能と構成（README の要約）
 
----
-
-## 解決する主要な課題とアーキテクチャ
-
-従来のLLMベースの意思決定パイプラインでは、プロンプトにJSONスキーマを埋め込み、生成された文字列をPydantic等でバリデーションしていました。この方式はトークン課金が嵩むだけでなく、並列リクエスト時のキュー詰まりを引き起こします。
-
-`laya`は、リクエスト判定を瞬時に行う「Router層」と、特化型エンコーダで構成された「Decision Engine層」の2層構造を採用しています。
-
-```mermaid
-graph TD
-    UserReq["入力テキスト / チケット / JSON"] --> Router["laya Router<br/>言語/スクリプト高速判定"]
-    
-    subgraph RoutingEngine ["Routing Engine"]
-        Router -->|英語 & 標準タスク| EnModel["laya<br/>ModernBERT-large 421M"]
-        Router -->|100+ 多言語 / 長文 8k| MultiModel["laya-multilingual<br/>mmBERT-base 322M"]
-        Router -->|特化ワークフロー| FineModel["laya-typed-decisions<br/>ModernBERT-large 421M"]
-    end
-
-    subgraph SingleForwardPass ["Single Forward Pass 33ms"]
-        EnModel --> Heads[Classification Heads]
-        MultiModel --> Heads
-        FineModel --> Heads
-    end
-
-    Heads --> OutChoice["Choice: 確定カテゴリ"]
-    Heads --> OutScore["Score: 順序尺度 0.0-1.0"]
-    Heads --> OutNoul["Noul: Yes/No 確率"]
-
-    OutChoice --> FinalRes["型安全な構造化レスポンス<br/>JSONパース不要"]
-    OutScore --> FinalRes
-    OutNoul --> FinalRes
-```
-
-### モデルチェックポイントの役割分担
-1. **`laya` (421M / ModernBERT-large)**: 英語テキストに最適化されたベースモデル。
-2. **`laya-multilingual` (322M / mmBERT-base)**: 100以上の言語に対応し、ベースモデルの約2倍の推論速度を誇る。最大8,192トークンまで拡張可能。
-3. **`laya-typed-decisions` (421M)**: 業務意思決定ベンチマークでRLCDによりファインチューニングされた高精度モデル。
-
----
+- Laya は、型つきの質問（choice・score・noul）を、任意の状態（テキスト・メール・チケット・JSON 文書）に対して 1 回の順伝播で評価します。
+  - 原文（README）: Laya evaluates typed questions (choice, score, noul) over any state (text, email, ticket or JSON document) in a single forward pass — 33 ms for one question, 7.2 ms/question batched, measured on a T4.
+- 3 つのチェックポイントがあり、Router がリクエストごとにどれを使うかを選びます。
+  - 原文（README）: Three checkpoints, and a Router that picks between them per request:
+- Router は文字体系と言語を判定し、英語以外の文章を laya-multilingual に送ります。
+  - 原文（README）: The Router detects the script and language and sends non-English text to laya-multilingual:
+- Python の HTTP SDK の predict_batch は、状態の一覧を 1 回の POST /v1/systemone/batch で送り、入力の順に結果を返します。
+  - 原文（README）: predict_batch in the Python HTTP SDK, one POST /v1/systemone/batch for a list of states, results in input order, no splitting and no fallback to single requests (#1297).
 
 ## インストール（README からの転記）
 

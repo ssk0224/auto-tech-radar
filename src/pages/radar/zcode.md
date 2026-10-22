@@ -1,9 +1,7 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "ZCode - Z.ai's coding agent harness. Powerful, intelligent, extensible."
-description: "Z.aiが主導するフルスタックAIコーディングエージェント基盤「ZCode」のアーキテクチャ解析と商用実装ガイド。"
 pubDate: "2026-10-15"
-tags: ["TypeScript", "OSS", "GitHub", "AI-Agent", "Developer-Tools"]
+tags: ["TypeScript","OSS","GitHub"]
 repoUrl: "https://github.com/zai-org/ZCode"
 repoCreatedAt: "2026-09-20"
 stars: 7854
@@ -11,76 +9,39 @@ updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+title: "ZCode - ZCode は AI プログラミングのワークベンチで、デスクトップアプリ・ブラウザの画面・ターミナルの Agent を提供します"
+description: "ZCode は AI プログラミングのワークベンチで、デスクトップアプリ・ブラウザの画面・ターミナルの Agent を提供します。"
 ---
 
 # ZCode: 概要
 
 zai-org/ZCode は 2026-09-20 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 7,854 です。
 
-近年、CursorやGitHub Copilot Workspace、Devinに代表される自律型コーディングエージェントがソフトウェア開発の現場を塗り替えています。しかし、商用クラウドサービスへのソースコード転送に対するセキュリティ懸念や、月額シート課金による運用コスト肥大化が多くのエンタープライズにとってのボトルネックとなっていました。
+- ZCode は AI プログラミングのワークベンチで、デスクトップアプリ・ブラウザの画面・ターミナルの Agent を提供します。
+  - 原文（README）: ZCode 是 AI 编程工作台,提供桌面应用、浏览器界面和终端 Agent。
+- このリポジトリには、クライアント・バックエンドのサービス・共有 UI と、Agent CLI とランタイムのソースが含まれます。
+  - 原文（README）: 本仓库包含客户端、后端服务、共享 UI,以及 Agent CLI 与运行时源码。
+- Git・Node.js 24.14.0・pnpm 10.33.2 を用意します。版は mise.toml に従います。
+  - 原文（README）: 准备 Git、Node.js 24.14.0 和 pnpm 10.33.2,版本以 mise.toml 为准。
 
-**ZCode** は、Z.aiがオープンソース（Apache License 2.0）として公開している統合コーディングエージェント・ハーネス（Harness）です。GitHubスター数は既に7,800を超え、世界中のAI開発者・プラットフォームエンジニアから強烈な支持を集めています。
+## 🎯 成熟度の目安（README の記載）
 
-ZCodeの最大の特徴は、**「デスクトップ（Electron）」「Webブラウザ（SPA/Remote Server）」「ターミナル（TUI/CLI）」という3つの実行サーフェスを、単一のTypeScriptモノレポから同一のコアランタイムとして提供している点**です。これにより、開発者はローカルマシンの閉域環境、社内の踏み台サーバー、クラウドコンテナなど、インフラ制約に合わせた柔軟なデプロイと拡張が可能になります。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
----
+## 主な機能と構成（README の要約）
 
-## 解決する主要な課題とアーキテクチャ
-
-ZCodeは、従来のAI開発ツールが抱えていた以下の課題を根本から解決します。
-
-1. **インフラ・環境の断絶**: ローカル専用ツール（Cursor等）とリモート開発環境（SSH/WSL/コンテナ）の間の機能格差を解消。
-2. **ベンダーロックインの排除**: 特定のモデルプロバイダに依存せず、独自のLLMエンドポイントやローカルモデルを差し替え可能なProviderレイヤー。
-3. **拡張性の欠如**: UI Pluginアーキテクチャにより、Excalidraw等のホワイトボードや社内独自のデザインシステムをシームレスにエージェントワークスペースへ統合可能。
-
-### システムアーキテクチャとデータフロー
-
-以下は、ZCodeの主要コンポーネントとリクエスト実行フローを示すアーキテクチャ図です。
-
-```mermaid
-graph TD
-    subgraph Clients ["Presentation Surfaces (Unified Frontend)"]
-        ElectronApp["Desktop App (Electron)"]
-        BrowserUI["Web SPA (@zcode/web)"]
-        TUIClient["Terminal TUI / Agent CLI (@zcode/cli)"]
-    end
-
-    subgraph CoreEngine ["ZCode Core & Server Layer"]
-        RPCGateway["Shared RPC & Protocol Layer (@zcode/rpc)"]
-        ServerCore["HTTP / WebSocket Server (@zcode/server)"]
-        StateManager["Shared State & Storage (@zcode/services)"]
-    end
-
-    subgraph AgentRuntime ["Agent Execution Runtime"]
-        AgentCore["ZCode Agent Harness"]
-        ToolRegistry["Built-in Tools (FS, Bash, Git)"]
-        UIPluginHost["UI Plugin System (Excalidraw etc.)"]
-        ProviderNode["Provider Adapter (@zcode/provider-node)"]
-    end
-
-    subgraph ExternalServices ["External Resources"]
-        RemoteEnv["Remote Workspaces (SSH / WSL)"]
-        LLMEndpoints["LLM APIs (OpenAI / Claude / Self-hosted)"]
-    end
-
-    ElectronApp --> RPCGateway
-    BrowserUI --> |WebSocket / REST| ServerCore
-    TUIClient --> AgentCore
-
-    ServerCore --> RPCGateway
-    RPCGateway --> AgentCore
-    AgentCore --> ToolRegistry
-    AgentCore --> StateManager
-    AgentCore --> UIPluginHost
-    AgentCore --> ProviderNode
-
-    ProviderNode --> LLMEndpoints
-    ToolRegistry --> RemoteEnv
-```
-
-ZCodeはTypeScriptで統一されたモノレポ構成（`pnpm workspace`）を採用。コアとなる状態管理（ZustandベースのUI共有パッケージ）、RPC通信レイヤー、Provider抽象化レイヤーが疎結合に設計されており、ヘッドレスなCI/CDパイプラインからGUI重視のローカル開発まで、同一のAgent Harnessを使い回すことができます。
-
----
+- Agent CLI とランタイムのソースは apps/zcode-cli/ にあり、通常のディレクトリとしてこのリポジトリと一緒にクローンされます。
+  - 原文（README）: Agent CLI 与运行时源码位于 apps/zcode-cli/,作为普通目录随本仓库一起克隆,无需单独拉取或初始化 Git submodule。
+- コマンドライン版は TUI・Web・Agent を含み、zcode で起動します。引数なしなら TUI、最初の引数が --web なら Web を起動し、ほかの引数は Agent CLI に渡します。
+  - 原文（README）: 命令行发行包包含 TUI、Web 和 Agent,统一使用 zcode 启动:无参数进入 TUI;第一个参数为 --web 时启动 Web;其他参数交给现有 Agent CLI 处理。
+- どちらのモードも手元の機器で動き、Electron は不要です。
+  - 原文（README）: 两种模式都在本机运行,无需 Electron。
+- Web モードは既定で現在のディレクトリを作業ディレクトリにし、127.0.0.1 で待ち受け、アクセストークンは使わず、空いているポートを自動で選んでブラウザを開きます。
+  - 原文（README）: Web 模式默认工作目录为当前目录,监听 127.0.0.1,默认不启用访问令牌,自动选择空闲端口并打开浏览器。
+- ローカルネットワークからは --host 0.0.0.0 で使えます。本機以外で待ち受けるときは既定でアクセストークンを作り、ターミナルに出るトークンつきのリンクを使います。
+  - 原文（README）: 局域网访问可使用 --host 0.0.0.0;监听非本机地址时默认生成访问令牌,使用终端输出的带令牌链接。
 
 ## インストール（README からの転記）
 
