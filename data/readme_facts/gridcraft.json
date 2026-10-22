@@ -1315,5 +1315,15 @@
       "lang": "sh",
       "code": "cd apps/gridcraft-web && trunk build --release     # → dist/web (serve it with any static server)\ncd apps/gridcraft-web && trunk serve --release     # http://127.0.0.1:8771  (?sample=sales opens a sample)"
     }
+  ],
+  "publication": {
+    "date": "2026-10-18",
+    "stars": 5729,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "hfoPiqvmixvn"
   ]
 }

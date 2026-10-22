@@ -1,27 +1,21 @@
-# 海外急上昇OSS「rea」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS化のアイデア付き
+# 「rea」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
 ## はじめに
 
 morluto/rea は 2026-04-14 に GitHub で作成されたリポジトリです。2026-10-22 時点のスター数は 354,932 です。
 
-## 主な機能とアーキテクチャ概要
+## README の要点（原文）
 
-- バイナリ・アプリケーション・実行時の動作をまたいでリバースエンジニアリングを行う、1 つの MCP です。
-  - 原文（README）: One MCP for reverse engineering across binaries, applications, and runtime behavior.
-- REA は、ネイティブのバイナリ・JavaScript と Electron のアプリ・.NET のアセンブリ・ウェブサイトを調べるツールにエージェントをつなぎます。
-  - 原文（README）: REA connects your agent to tools for inspecting native binaries, JavaScript and Electron apps, .NET assemblies, and websites.
-- 解析はローカルで行い、結果には各結論の根拠と限界が含まれます。
-  - 原文（README）: Analysis runs locally, and results include the evidence and limitations behind each conclusion.
-- ソースコードなしでアプリを調べ、機能の仕組みを説明し、根拠を示し、自分のプロジェクト向けの版を作れます。
-  - 原文（README）: It can inspect the app without its source code, explain how the feature works, show the evidence, and build a version for your project.
-- ネイティブの解析には、インストール済みの Hopper・Ghidra・IDA を使えます。セットアップで承認すれば Hopper を入れることもできます。
-  - 原文（README）: Native analysis can use an existing Hopper, Ghidra, or IDA installation; setup can optionally install Hopper with approval.
-- JavaScript の静的解析には、ネイティブの解析エンジンは不要です。
-  - 原文（README）: Static JavaScript analysis needs no native analysis engine.
-- セットアップは REA の MCP サーバーと対応するワークフローの指示を追加し、既存の設定はバックアップします。
-  - 原文（README）: Setup adds REA's MCP server and matching workflow instructions, with backups of existing configuration.
-- MCP は既定で、コンテキストの負荷を減らすために簡潔な入力スキーマを使います。
-  - 原文（README）: MCP uses compact input schemas by default to reduce context overhead.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: One MCP for reverse engineering across binaries, applications, and runtime behavior.
+- 原文（README）: REA connects your agent to tools for inspecting native binaries, JavaScript and Electron apps, .NET assemblies, and websites.
+- 原文（README）: Analysis runs locally, and results include the evidence and limitations behind each conclusion.
+- 原文（README）: It can inspect the app without its source code, explain how the feature works, show the evidence, and build a version for your project.
+- 原文（README）: Native analysis can use an existing Hopper, Ghidra, or IDA installation; setup can optionally install Hopper with approval.
+- 原文（README）: Static JavaScript analysis needs no native analysis engine.
+- 原文（README）: Setup adds REA's MCP server and matching workflow instructions, with backups of existing configuration.
+- 原文（README）: MCP uses compact input schemas by default to reduce context overhead.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）

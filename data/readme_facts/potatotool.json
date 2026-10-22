@@ -560,5 +560,30 @@
     "VC=vm could",
     "VMC=vm could"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 1237,
+    "gain7d": null
+  },
+  "topics": [
+    "av-evasion",
+    "blue-team",
+    "cybersecurity",
+    "decryption",
+    "information-gathering",
+    "memshell",
+    "network-security",
+    "osint",
+    "pentest",
+    "red-team",
+    "security",
+    "security-tools",
+    "threat-intelligence",
+    "vulnerability-scanner",
+    "webshell",
+    "webshell-decryption"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

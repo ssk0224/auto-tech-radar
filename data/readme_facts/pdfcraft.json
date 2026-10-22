@@ -2004,5 +2004,22 @@
       "lang": "sh",
       "code": "eselect repository add snakebyte git https://github.com/switch87/snakebyte-overlay.git\nemaint sync -r snakebyte\necho 'app-text/pdfcraft-bin ~amd64' >> /etc/portage/package.accept_keywords/pdfcraft\nemerge --ask app-text/pdfcraft-bin"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-13",
+    "stars": 11454,
+    "gain7d": null
+  },
+  "topics": [
+    "document-processing",
+    "documents",
+    "pdf",
+    "pdf-generation",
+    "pdf-processing",
+    "pdf-tools",
+    "pdf-viewer",
+    "rust"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

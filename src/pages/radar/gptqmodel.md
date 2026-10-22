@@ -1,11 +1,13 @@
 ---
 layout: "../../layouts/Layout.astro"
+title: "GPTQModel - README の要点（原文）"
+description: "ModelCloud/GPTQModel の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-09"
+updatedDate: "2026-10-22"
 tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/ModelCloud/GPTQModel"
 repoCreatedAt: "2024-06-17"
 stars: 1270
-updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "ライセンス表記を LICENSE ファイル（Apache License 2.0）に基づき訂正。根拠のない比較表現と費用の削減率を削除"
@@ -13,35 +15,30 @@ corrections:
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
   - date: "2026-10-22"
     note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
-title: "GPTQModel - GPT-QModel は、LLM の量子化・検証・デプロイのための拡張可能なプラットフォームです"
-description: "GPT-QModel は、LLM の量子化・検証・デプロイのための拡張可能なプラットフォームです。"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
 # GPTQModel: 概要
 
 ModelCloud/GPTQModel は 2024-06-17 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 1,270 です。
 
-- GPT-QModel は、LLM の量子化・検証・デプロイのための拡張可能なプラットフォームです。
-  - 原文（README）: GPT-QModel ⚡ An extensible platform for LLM quantization, validation, and deployment.
-- GPTQ・AWQ・ParoQuant・GGUF・FP8・EXL3・QQQ などに、NVIDIA CUDA・AMD ROCm・Huawei Ascend・Intel XPU・CPU で、Transformers・vLLM・SGLang とともに対応します。
-  - 原文（README）: GPTQ, AWQ, ParoQuant, GGUF, FP8, EXL3, QQQ, and more—across NVIDIA CUDA, AMD ROCm, Huawei Ascend, Intel XPU, and CPU, with Transformers, vLLM, and SGLang.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: GPT-QModel ⚡ An extensible platform for LLM quantization, validation, and deployment.
+- 原文（README）: GPTQ, AWQ, ParoQuant, GGUF, FP8, EXL3, QQQ, and more—across NVIDIA CUDA, AMD ROCm, Huawei Ascend, Intel XPU, and CPU, with Transformers, vLLM, and SGLang.
 
 ## 🎯 成熟度の目安（README の記載）
 
 README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-## 主な機能と構成（README の要約）
+## 主な機能と構成（README の原文）
 
-- GPT-QModel は、キャリブレーション・量子化・品質評価・モデル変換・高速化した推論のための一貫した API を提供します。
-  - 原文（README）: GPT-QModel provides a consistent API for calibration, quantization, quality evaluation, model conversion, and accelerated inference.
-- 手法・形式・バックエンド・カーネルの層はモジュール化されており、必要なところでは手法ごとの制御を使いつつ、実装は同じモデルのライフサイクルを共有します。
-  - 原文（README）: Its method, format, backend, and kernel layers are modular: method-specific controls remain available where needed, while implementations share the same model lifecycle.
-- すべての量子化手法は、キャリブレーション・量子化・検証・保存・読み込み・提供という共通のライフサイクルを共有し、手法ごとの制御も残します。
-  - 原文（README）: Every quantization method shares a common lifecycle—calibrate, quantize, validate, save, load, and serve—while retaining method-specific controls where they matter.
-- GGUF・FP8・EXL3・ParoQuant・VPTQ は、現在 GPT-QModel 独自の量子化・実行の経路です。
-  - 原文（README）: GGUF, FP8, EXL3, ParoQuant, and VPTQ are currently native GPT-QModel quantization/runtime paths.
-- SGLang での読み込みは、METHOD.GPTQ（FORMAT.GPTQ、FORMAT.GPTQ_V2、FORMAT.MARLIN）と METHOD.AWQ（FORMAT.GEMM、FORMAT.MARLIN）に限られます。
-  - 原文（README）: SGLang loading is limited to METHOD.GPTQ with FORMAT.GPTQ, FORMAT.GPTQ_V2, or FORMAT.MARLIN, and METHOD.AWQ with FORMAT.GEMM or FORMAT.MARLIN.
+- 原文（README）: GPT-QModel provides a consistent API for calibration, quantization, quality evaluation, model conversion, and accelerated inference.
+- 原文（README）: Its method, format, backend, and kernel layers are modular: method-specific controls remain available where needed, while implementations share the same model lifecycle.
+- 原文（README）: Every quantization method shares a common lifecycle—calibrate, quantize, validate, save, load, and serve—while retaining method-specific controls where they matter.
+- 原文（README）: GGUF, FP8, EXL3, ParoQuant, and VPTQ are currently native GPT-QModel quantization/runtime paths.
+- 原文（README）: SGLang loading is limited to METHOD.GPTQ with FORMAT.GPTQ, FORMAT.GPTQ_V2, or FORMAT.MARLIN, and METHOD.AWQ with FORMAT.GEMM or FORMAT.MARLIN.
 
 ## インストール（README からの転記）
 

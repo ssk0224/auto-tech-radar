@@ -1713,5 +1713,26 @@
       "lang": "",
       "code": "DSH_HOME= dsh --profile  --dump-config | grep our-free-model"
     }
+  ],
+  "publication": {
+    "date": "2026-10-13",
+    "stars": 12121,
+    "gain7d": null
+  },
+  "topics": [
+    "ai-agents",
+    "deepseek",
+    "deepseek-harness",
+    "developer-tools",
+    "dsh",
+    "dsh-plugin",
+    "free-model",
+    "llm",
+    "model-provider",
+    "openai-compatible"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "LAz5G4Y4kjeC"
   ]
 }

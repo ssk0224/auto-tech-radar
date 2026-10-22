@@ -566,5 +566,25 @@
     "SB=sans bold",
     "SS=snap store"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-19",
+    "stars": 5717,
+    "gain7d": null
+  },
+  "topics": [
+    "3d-modeling",
+    "brep",
+    "cad",
+    "egui",
+    "mcp",
+    "parametric-cad",
+    "rust",
+    "step",
+    "wasm"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "xhaOd1Fp6G-6"
+  ]
 }

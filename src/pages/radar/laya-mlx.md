@@ -1,11 +1,13 @@
 ---
 layout: "../../layouts/Layout.astro"
+title: "laya-mlx - README の要点（原文）"
+description: "mizorewww/laya-mlx の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-17"
+updatedDate: "2026-10-22"
 tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/mizorewww/laya-mlx"
 repoCreatedAt: "2026-09-19"
 stars: 6956
-updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-21"
     note: "採用判定のラベルと根拠のない比較表現を削除し、README のベンチマーク値（M3 Max）に基づく記述に訂正"
@@ -13,35 +15,30 @@ corrections:
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
   - date: "2026-10-22"
     note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
-title: "laya-mlx - 重みが公開された型つきの判断モデルを、Apple Silicon でネイティブに動かします"
-description: "重みが公開された型つきの判断モデルを、Apple Silicon でネイティブに動かします。"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
 # laya-mlx: 概要
 
 mizorewww/laya-mlx は 2026-09-19 に GitHub で作成されたリポジトリです。2026-10-17 時点のスター数は 6,956 です。
 
-- 重みが公開された型つきの判断モデルを、Apple Silicon でネイティブに動かします。
-  - 原文（README）: Open-weight typed decisions, running natively on Apple Silicon.
-- MLX によるローカルの推論で、PyTorch・Transformers のランタイム・クラウドの API は使いません。
-  - 原文（README）: Local MLX inference, with no PyTorch, Transformers runtime, or cloud API.
-- Apple Silicon、Python 3.11 以降、macOS 14 以降が必要です。
-  - 原文（README）: Apple Silicon, Python 3.11+, macOS 14+.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: Open-weight typed decisions, running natively on Apple Silicon.
+- 原文（README）: Local MLX inference, with no PyTorch, Transformers runtime, or cloud API.
+- 原文（README）: Apple Silicon, Python 3.11+, macOS 14+.
 
 ## 🎯 成熟度の目安（README の記載）
 
 README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-## 主な機能と構成（README の要約）
+## 主な機能と構成（README の原文）
 
-- MLX 版は、独自のエンコーダーと判断ヘッド、CPU/GPU のストリーム、dtype、batch_size などの制御を備えます。
-  - 原文（README）: MLX keeps its native encoder/decision head, CPU/GPU streams, dtype, row batch_size, pad_to_multiple, native compile=True, and bounded cache_prompts=True controls.
-- Rust のトークナイザーと推論の経路は、PyTorch も Transformers も必要としません。
-  - 原文（README）: The Rust tokenizer and inference path do not require PyTorch or Transformers.
-- 初回の読み込みでチェックポイントをダウンロードし、その後の推論はすべてローカルで行います。
-  - 原文（README）: First load downloads the checkpoint; later inference is fully local.
-- 追加の extras として serve・mcp・structured・calibration・langchain・langgraph・llamaindex・crewai・agno があります。
-  - 原文（README）: Optional extras are serve, mcp, structured, calibration, langchain, langgraph, llamaindex, crewai, and agno.
+- 原文（README）: MLX keeps its native encoder/decision head, CPU/GPU streams, dtype, row batch_size, pad_to_multiple, native compile=True, and bounded cache_prompts=True controls.
+- 原文（README）: The Rust tokenizer and inference path do not require PyTorch or Transformers.
+- 原文（README）: First load downloads the checkpoint; later inference is fully local.
+- 原文（README）: Optional extras are serve, mcp, structured, calibration, langchain, langgraph, llamaindex, crewai, and agno.
 
 ## インストール（README からの転記）
 

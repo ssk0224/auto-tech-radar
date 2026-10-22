@@ -3849,5 +3849,23 @@
       "lang": "py",
       "code": "from gptqmodel import GPTQModel\n\nmodel = GPTQModel.load(\"ModelCloud/Qwen2.5-0.5B-Instruct-gptqmodel-w4a16\")\nprint(model.generate(prompt=\"The capital of France is\", max_tokens=16))"
     }
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 1270,
+    "gain7d": null
+  },
+  "topics": [
+    "gptq",
+    "optimum",
+    "peft",
+    "quantization",
+    "sglang",
+    "transformers",
+    "vllm"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "kV90dueQsyGQ"
   ]
 }

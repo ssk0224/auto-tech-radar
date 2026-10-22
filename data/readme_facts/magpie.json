@@ -1058,5 +1058,22 @@
       "lang": "sh",
       "code": "magpie provider add deepseek sk-…              # a preset needs only the key\nmagpie claude deepseek/deepseek-v4-pro          # Claude Code on DeepSeek\nmagpie codex moonshot/kimi-k2.5                 # Codex on Kimi\nmagpie group add \"Opus anywhere\" models=claude/claude-opus-5-5,copilot/claude-opus-5.5 routing=smart\nmagpie claude group/opus-anywhere               # fails over between subscriptions\nmagpie save work && magpie use work             # profiles\nmagpie quota                                    # what's left on every plan\nmagpie tui                                      # the whole thing, in a terminal"
     }
+  ],
+  "publication": {
+    "date": "2026-10-14",
+    "stars": 11503,
+    "gain7d": null
+  },
+  "topics": [
+    "claude-code",
+    "codex",
+    "deepseek",
+    "gemini-cli",
+    "llm",
+    "macos"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "V_CPXbWriOIw"
   ]
 }

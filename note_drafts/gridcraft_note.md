@@ -1,27 +1,21 @@
-# 海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「gridcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
 ## はじめに
 
 storytold/gridcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-18 時点のスター数は 5,729 です。
 
-## 主な機能とアーキテクチャ概要
+## README の要点（原文）
 
-- 純粋な Rust で作られた、オープンソースのスプレッドシートアプリケーションです。
-  - 原文（README）: Spreadsheets and data; an open-source, high-performance modern spreadsheet application, built in pure Rust.
-- macOS・Windows・Linux・BSD でネイティブに動作し、WebAssembly によりブラウザでも動作します。
-  - 原文（README）: It runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
-- デスクトップとウェブで 1 つの Rust のコードベースを使います。
-  - 原文（README）: One Rust codebase for desktop and the web.
-- 500 以上の関数、動的配列、LET と LAMBDA、構造化テーブル参照に対応します。
-  - 原文（README）: 500+ functions, dynamic arrays, LET and LAMBDA, structured table references.
-- XLSX がネイティブの形式で、スタイル・テーマ・数式（動的配列を含む）・テーブル・条件付き書式・入力規則・コメント・ハイパーリンク・グラフ・画像・スパークライン・ピボットテーブル・印刷設定を扱います。
-  - 原文（README）: XLSX is the native format: styles, themes, formulas (including dynamic arrays), tables, conditional formats, validation, comments, hyperlinks, charts, pictures, sparklines, pivot tables and print settings round-trip.
-- 97-2003 形式の .xls ブックは、値・数式・数値の書式とともに開けます（書式設定とオブジェクトはまだ対象外です）。
-  - 原文（README）: Legacy 97-2003 .xls workbooks open with their values, formulas and number formats (formatting and objects not yet).
-- コピーオンライトのブック、差分の再計算、画面に見える部分だけを配置する仮想化されたグリッドを備えます。
-  - 原文（README）: Copy-on-write workbooks (undo snapshots are nearly free), incremental recalculation, and a virtualised grid that only lays out what's on screen.
-- リボンのボタン・メニューの項目・ダイアログ・キー操作・マウス操作はすべてコマンドで、エージェントは JSON の制御チャネル・MCP サーバー・CLI から実行できます。
-  - 原文（README）: Every ribbon button, menu item, dialog, keystroke and mouse gesture is a command that agents can run over a JSON control channel, an MCP server, or the CLI.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: Spreadsheets and data; an open-source, high-performance modern spreadsheet application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- 原文（README）: One Rust codebase for desktop and the web.
+- 原文（README）: 500+ functions, dynamic arrays, LET and LAMBDA, structured table references.
+- 原文（README）: XLSX is the native format: styles, themes, formulas (including dynamic arrays), tables, conditional formats, validation, comments, hyperlinks, charts, pictures, sparklines, pivot tables and print settings round-trip.
+- 原文（README）: Legacy 97-2003 .xls workbooks open with their values, formulas and number formats (formatting and objects not yet).
+- 原文（README）: Copy-on-write workbooks (undo snapshots are nearly free), incremental recalculation, and a virtualised grid that only lays out what's on screen.
+- 原文（README）: Every ribbon button, menu item, dialog, keystroke and mouse gesture is a command that agents can run over a JSON control channel, an MCP server, or the CLI.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）
@@ -41,5 +35,5 @@ storytold/gridcraft は 2026-10-07 に GitHub で作成されたリポジトリ�
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #GitHub

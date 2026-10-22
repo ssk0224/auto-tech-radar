@@ -1238,5 +1238,34 @@
       "lang": "bash",
       "code": "npm install --global rea-agents\nrea --help"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-22",
+    "stars": 354932,
+    "gain7d": null
+  },
+  "topics": [
+    "agent-skills",
+    "ai-agents",
+    "binary-analysis",
+    "claude-code",
+    "cli",
+    "codex",
+    "cordis",
+    "decompiler",
+    "developer-tools",
+    "dsh",
+    "dsh-plugin",
+    "ghidra",
+    "hopper",
+    "llm",
+    "mcp",
+    "model-context-protocol",
+    "rea",
+    "reverse-engineering",
+    "static-analysis",
+    "touhou"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

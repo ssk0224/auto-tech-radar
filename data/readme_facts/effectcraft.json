@@ -1382,5 +1382,21 @@
       "lang": "sh",
       "code": "git clone https://github.com/storytold/effectcraft\ncd effectcraft\ncargo run --release -p effectcraft          # the app (add `-- --demo` to open the demo project)\ncargo run --release -p effectcraft-cli -- render --out intro.mp4    # render the demo headless\ncargo xtask web --serve 8765                # the browser build on http://127.0.0.1:8765/ (docs/web.md)"
     }
+  ],
+  "publication": {
+    "date": "2026-10-18",
+    "stars": 7161,
+    "gain7d": null
+  },
+  "topics": [
+    "art",
+    "compositing",
+    "compositing-software",
+    "motion-graphics",
+    "rust"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "LDNQNzcipai1"
   ]
 }

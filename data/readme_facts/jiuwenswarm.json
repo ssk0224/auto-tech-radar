@@ -921,5 +921,15 @@
       "lang": "text",
       "code": "Conduct an in-depth research on the new energy vehicle industry and generate an analysis report."
     }
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 5978,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "fg9pri_zzdSg"
   ]
 }

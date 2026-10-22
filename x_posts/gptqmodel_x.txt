@@ -1,25 +1,35 @@
-===============================================================================
-🐦 X (旧Twitter) スレッド投稿用原稿 (GPTQModel)
-===============================================================================
+==================================================
+📱 GPTQModel X (Twitter) 投稿用スレッド
+==================================================
 
-💡 【ワンクリック投稿 URL】(ブラウザで開くと1ツイート目が自動入力されます)
-https://twitter.com/intent/tweet?text=%F0%9F%94%A5%20LLM%E3%81%AEGPU%E3%83%A1%E3%83%A2%E3%83%AA%E6%B6%88%E8%B2%BB%E3%82%92%E5%8A%87%E7%9A%84%E3%81%AB%E5%9C%A7%E7%B8%AE%E3%81%99%E3%82%8B%E9%87%8F%E5%AD%90%E5%8C%96%E5%9F%BA%E7%9B%A4%E3%80%8CGPTQModel%E3%80%8D%E3%81%8C%E6%B3%A8%E7%9B%AE%EF%BC%81%0A%0AGPTQ%20%2F%20AWQ%20%2F%20GGUF%20%2F%20FP8%20%2F%20EXL3%20%E3%82%92%E5%8D%98%E4%B8%80API%E3%81%A7%E7%B5%B1%E5%90%88%E3%81%97%E3%80%81CUDA%E3%83%BBROCm%E3%83%BBApple%20Silicon%E3%83%BBCPU%E3%81%A7%E9%AB%98%E9%80%9F%E6%8E%A8%E8%AB%96%EF%BC%86vLLM%E9%80%A3%E6%90%BA%E3%81%8C%E5%8F%AF%E8%83%BD%E3%80%82%0A%0A%F0%9F%93%96%20%E3%82%A2%E3%83%BC%E3%82%AD%E3%83%86%E3%82%AF%E3%83%81%E3%83%A3%E8%A7%A3%E8%AA%AC%E3%83%BB%E5%B0%8E%E5%85%A5%E6%89%8B%E9%A0%86%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fgptqmodel%2F%0A%23OSS%20%23AI%20%23%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%20%23GitHub
-
--------------------------------------------------------------------------------
-【1ツイート目（フック：興味付け ＆ 記事カード表示）】
-🔥 LLMのGPUメモリ消費を劇的に圧縮する量子化基盤「GPTQModel」が注目！
-
-GPTQ / AWQ / GGUF / FP8 / EXL3 を単一APIで統合し、CUDA・ROCm・Apple Silicon・CPUで高速推論＆vLLM連携が可能。
-
-📖 アーキテクチャ解説・導入手順はこちら👇
+--------------------------------------------------
+【ツイート 1】
+【OSS の README を読む】
+GitHub で★1,270（2026-10-09 時点）の「GPTQModel」の README の要点を、原文のまま紹介しています。
+▼ 無料の解説はこちら👇
 https://ssk0224.github.io/auto-tech-radar/radar/gptqmodel/
-#OSS #AI #エンジニア #GitHub
 
--------------------------------------------------------------------------------
-【2ツイート目（リプライツリー：技術ポイントと活用シナリオ）】
-GPTQModel の注目ポイント：
-・公式READMEに基づくアーキテクチャと既存スタックとの比較
-・社内導入や検証環境構築の具体的なステップ
-・実務導入向けの提案書テンプレートや工数試算表はnote有料版で公開中
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90OSS%20%E3%81%AE%20README%20%E3%82%92%E8%AA%AD%E3%82%80%E3%80%91%0AGitHub%20%E3%81%A7%E2%98%851%2C270%EF%BC%882026-10-09%20%E6%99%82%E7%82%B9%EF%BC%89%E3%81%AE%E3%80%8CGPTQModel%E3%80%8D%E3%81%AE%20README%20%E3%81%AE%E8%A6%81%E7%82%B9%E3%82%92%E3%80%81%E5%8E%9F%E6%96%87%E3%81%AE%E3%81%BE%E3%81%BE%E7%B4%B9%E4%BB%8B%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82%0A%E2%96%BC%20%E7%84%A1%E6%96%99%E3%81%AE%E8%A7%A3%E8%AA%AC%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fgptqmodel%2F
+--------------------------------------------------
 
-詳細レポート：https://ssk0224.github.io/auto-tech-radar/radar/gptqmodel/
+--------------------------------------------------
+【ツイート 2】
+【README より（原文）】
+GPT-QModel ⚡ An extensible platform for LLM quantization, validation, and deployment.
+
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90README%20%E3%82%88%E3%82%8A%EF%BC%88%E5%8E%9F%E6%96%87%EF%BC%89%E3%80%91%0AGPT-QModel%20%E2%9A%A1%20An%20extensible%20platform%20for%20LLM%20quantization%2C%20validation%2C%20and%20deployment.
+--------------------------------------------------
+
+--------------------------------------------------
+【ツイート 3】
+【note の有料版】
+この記事の有料版の内容: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答。
+▼ 無料の解説はこちら👇
+https://ssk0224.github.io/auto-tech-radar/radar/gptqmodel/
+
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90note%20%E3%81%AE%E6%9C%89%E6%96%99%E7%89%88%E3%80%91%0A%E3%81%93%E3%81%AE%E8%A8%98%E4%BA%8B%E3%81%AE%E6%9C%89%E6%96%99%E7%89%88%E3%81%AE%E5%86%85%E5%AE%B9%3A%20%E5%B0%8E%E5%85%A5%E6%8F%90%E6%A1%88%E6%9B%B8%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%EF%BC%88Markdown%EF%BC%89%E3%80%81%E5%B7%A5%E6%95%B0%E3%83%BB%E8%A6%8B%E7%A9%8D%E8%A1%A8%E3%80%81%E6%B4%BB%E7%94%A8%E3%83%BB%E5%8F%8E%E7%9B%8A%E5%8C%96%E3%81%AE%E8%80%83%E3%81%88%E6%96%B9%E3%80%81%E5%B0%8E%E5%85%A5%E6%99%82%E3%81%AE%E6%83%B3%E5%AE%9A%E5%95%8F%E7%AD%94%E3%80%82%0A%E2%96%BC%20%E7%84%A1%E6%96%99%E3%81%AE%E8%A7%A3%E8%AA%AC%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fgptqmodel%2F
+--------------------------------------------------
+

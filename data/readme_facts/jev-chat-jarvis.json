@@ -597,5 +597,23 @@
     "WU=windows users",
     "XS=xiaoyou store"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-16",
+    "stars": 7815,
+    "gain7d": null
+  },
+  "topics": [
+    "accessibility-service",
+    "ai-assistant",
+    "android",
+    "chat-assistant",
+    "chat-copilot",
+    "llm",
+    "ocr",
+    "qq",
+    "whatsapp"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

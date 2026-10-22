@@ -220,5 +220,18 @@
     "TCOPYING=the copying",
     "TCREDITS=the credits"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": null,
+    "stars": null,
+    "gain7d": null
+  },
+  "topics": [
+    "mediawiki",
+    "php",
+    "wiki",
+    "wikipedia"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

@@ -1,17 +1,16 @@
-# 【最新OSS解体新書】Internships-2027とは？機能解説とビジネス活用・マネタイズ実践法
+# 「Internships-2027」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
 ## はじめに
 
 zapplyjobs/Internships-2027 は 2018-03-11 に GitHub で作成されたリポジトリです。
 
-## 主な機能とアーキテクチャ概要
+## README の要点（原文）
 
-- 学生向けの、テック・ビジネス・ヘルスケアなどのインターンシップの一覧で、10 分ごとに更新されます。
-  - 原文（README）: 🚀 Internships across tech, business, healthcare, and more for students, updated every 10 minutes.
-- Chrome 拡張機能で、求人への応募フォームを自動入力します。
-  - 原文（README）: Our Chrome extension, which autofills job applications in seconds.
-- 一覧には、会社・職種・勤務地・掲載時期・ビザ・応募先の欄があります。
-  - 原文（README）: Company / Role / Location / Posted / Visa / Apply
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: 🚀 Internships across tech, business, healthcare, and more for students, updated every 10 minutes.
+- 原文（README）: Our Chrome extension, which autofills job applications in seconds.
+- 原文（README）: Company / Role / Location / Posted / Visa / Apply
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）
@@ -26,5 +25,9 @@ zapplyjobs/Internships-2027 は 2018-03-11 に GitHub で作成されたリポ�
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: internships-2027_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
+### 🎁 【メンバーシップのご案内】
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+
+---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #HTML #applications #college #hiring

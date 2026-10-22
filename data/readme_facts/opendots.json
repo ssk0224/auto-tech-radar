@@ -1090,5 +1090,15 @@
       "lang": "sh",
       "code": "npx copilotkit@latest login\nnpx copilotkit@latest project select"
     }
+  ],
+  "publication": {
+    "date": "2026-10-19",
+    "stars": 5570,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "Wh3ijeLvXWaa"
   ]
 }

@@ -692,5 +692,19 @@
       "lang": "bash",
       "code": "uv pip install opensandbox"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 15739,
+    "gain7d": null
+  },
+  "topics": [
+    "ai",
+    "ai-agent",
+    "ai-infra",
+    "kubernetes",
+    "sandbox"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

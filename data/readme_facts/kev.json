@@ -2211,5 +2211,17 @@
       "lang": "python",
       "code": "from typesafe_sdk import Choice, Noul, Score, TypeSafeClient\n\nclient = TypeSafeClient(\n    api_key=\"local\",\n    base_url=\"http://127.0.0.1:8009\",\n    model=\"kev-latest\",\n)\nresponse = client.system_one(\n    state=\"I was charged twice. Please fix this ASAP.\",\n    questions={\n        \"billing\": Noul(instructions=\"Is this ticket about billing?\"),\n        \"tone\": Choice(\n            instructions=\"What is the customer's tone?\",\n            criteria={\"calm\": None, \"frustrated\": None, \"angry\": None},\n        ),\n        \"urgency\": Score(\n            instructions=\"How urgent is this ticket?\",\n            criteria=[\"can wait\", \"this week\", \"today\"],\n        ),\n    },\n)\nprint(response.nouls[\"billing\"].noul)\nprint(response.choices[\"tone\"].choice)\nprint(response.scores[\"urgency\"].score)"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-14",
+    "stars": 9128,
+    "gain7d": null
+  },
+  "topics": [
+    "decision-model",
+    "jev",
+    "qwen3"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

@@ -87,5 +87,13 @@
     "TC=the cargo",
     "TCB=the cargo book"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": null,
+    "stars": null,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

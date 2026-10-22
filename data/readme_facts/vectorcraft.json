@@ -1215,5 +1215,20 @@
       "lang": "sh",
       "code": "claude mcp add vectorcraft -- /path/to/vectorcraft-cli mcp --automation-read-root /work/project --automation-write-root /work/project"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-15",
+    "stars": 8898,
+    "gain7d": null
+  },
+  "topics": [
+    "art",
+    "rust",
+    "rust-lang",
+    "svg",
+    "svg-editor",
+    "vector-graphics"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

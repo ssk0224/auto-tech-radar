@@ -1,25 +1,20 @@
-# 海外急上昇OSS「Strata」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「Strata」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
 ## はじめに
 
 Niko1221/Strata は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 19,544 です。
 
-## 主な機能とアーキテクチャ概要
+## README の要点（原文）
 
-- Strata は、通常はサーバーが必要なモデル Qwen3.8-Flash-Next（125-billion-parameter）を、一般的な PC で動かします。
-  - 原文（README）: Strata runs Qwen3.8-Flash-Next, a 125-billion-parameter model that normally needs a server, on a normal PC.
-- チャットとファイルは手元の PC に残ります。
-  - 原文（README）: Your chats and files stay on your PC.
-- OpenAI と Anthropic の API を話すため、Claude Code・Codex CLI・OpenCode などのエージェントから接続できます。
-  - 原文（README）: It speaks the OpenAI and Anthropic APIs, so Claude Code, Codex CLI, OpenCode and other agents connect to it.
-- RAM とグラフィックスメモリ（VRAM）を合わせて 32 GB 以上が必要です。Mac や Ryzen AI Max では統合メモリがこれにあたります。
-  - 原文（README）: You need at least 32 GB of RAM and graphics memory (VRAM) together. On a Mac or a Ryzen AI Max, that is the unified memory.
-- 同じメーカーのカード 2〜3 枚でモデルを分担できます（multi-GPU）。NVIDIA と AMD のカードにまたがってモデルを分けることはしません。
-  - 原文（README）: Two or three cards of the same make can share a model (multi-GPU). Strata never splits a model across NVIDIA and AMD cards.
-- アプリにはエンジンが内蔵されており、インストールしてモデルを選べばチャットできます。
-  - 原文（README）: The app has the engine inside: install it, pick a model, chat.
-- Strata が何をダウンロードし、いつインターネットを使い、ダウンロードをどう検証するかは docs/SAFETY.md にあります。
-  - 原文（README）: What Strata downloads, when it uses the internet and how it checks downloads is in docs/SAFETY.md.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: Strata runs Qwen3.8-Flash-Next, a 125-billion-parameter model that normally needs a server, on a normal PC.
+- 原文（README）: Your chats and files stay on your PC.
+- 原文（README）: It speaks the OpenAI and Anthropic APIs, so Claude Code, Codex CLI, OpenCode and other agents connect to it.
+- 原文（README）: You need at least 32 GB of RAM and graphics memory (VRAM) together. On a Mac or a Ryzen AI Max, that is the unified memory.
+- 原文（README）: Two or three cards of the same make can share a model (multi-GPU). Strata never splits a model across NVIDIA and AMD cards.
+- 原文（README）: The app has the engine inside: install it, pick a model, chat.
+- 原文（README）: What Strata downloads, when it uses the internet and how it checks downloads is in docs/SAFETY.md.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）
@@ -38,5 +33,5 @@ Niko1221/Strata は 2026-09-25 に GitHub で作成されたリポジトリで�
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Cpp #GitHub

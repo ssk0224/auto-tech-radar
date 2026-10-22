@@ -2923,5 +2923,33 @@
     "YT=your tv",
     "YTV=your tv"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-21",
+    "stars": 11608,
+    "gain7d": null
+  },
+  "topics": [
+    "adb",
+    "adblock",
+    "android-tv",
+    "android-tv-launcher",
+    "apple-tv",
+    "bloatware-removal",
+    "claude-code",
+    "debloat",
+    "fire-tv",
+    "google-tv",
+    "launcher",
+    "privacy",
+    "smart-tv",
+    "sony-bravia",
+    "tcl",
+    "vibe-coding",
+    "xiaomi"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "k1Ucpn2bAqDJ"
+  ]
 }

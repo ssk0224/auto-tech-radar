@@ -1225,5 +1225,27 @@
       "lang": "bash",
       "code": "git clone --depth 1 https://github.com/QingYunA/answer-me-with-html.git /tmp/answer-me-with-html\ncp -R /tmp/answer-me-with-html/skills/answer-me-with-html ~/.claude/skills/answer-me-with-html"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 2358,
+    "gain7d": null
+  },
+  "topics": [
+    "agent-skill",
+    "ai-agent",
+    "claude-code",
+    "claude-code-skill",
+    "claude-skill",
+    "claude-skills",
+    "cli",
+    "diagram",
+    "dsh-plugin",
+    "explainer",
+    "html",
+    "llm",
+    "ste100"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

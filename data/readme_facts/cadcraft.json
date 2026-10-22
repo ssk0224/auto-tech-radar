@@ -1571,5 +1571,15 @@
       "lang": "text",
       "code": "line 0,0 @10,0 @0,5 c          a closed triangle\ncircle 5,2 1                    a circle\noffset 0.25                     then pick the circle and a side\nzoom e                          zoom to extents"
     }
+  ],
+  "publication": {
+    "date": "2026-10-18",
+    "stars": 5766,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "vajvvGi7YdMo"
   ]
 }

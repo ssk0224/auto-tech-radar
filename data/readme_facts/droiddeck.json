@@ -1054,5 +1054,13 @@
     "XD=xr dev",
     "XRD=xr dev"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-15",
+    "stars": 8333,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

@@ -2,21 +2,34 @@
 📱 jiuwenswarm X (Twitter) 投稿用スレッド
 ==================================================
 
-[TWEET 1]
-【海外OSS解説: AIスウォーム基盤】
-GitHubで★5,900の「jiuwenswarm」がヤバい。
-タスクを渡すだけでリーダーAIが専門エージェントチームを自動編成＆自己進化。社内閉域で安全に自律稼働。
+--------------------------------------------------
+【ツイート 1】
+【OSS の README を読む】
+GitHub で★5,978（2026-10-09 時点）の「jiuwenswarm」の README の要点を、原文のまま紹介しています。
 ▼ 無料の解説はこちら👇
 https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
 
-[TWEET 2]
-【従来の単一エージェントとの決定的な差】
-・Swarmflowによる決定論的ワークフロー制御
-・失敗やユーザーFBからスキル定義を自動最適化
-・外部クラウドに依存せず社内環境で動かせる
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90OSS%20%E3%81%AE%20README%20%E3%82%92%E8%AA%AD%E3%82%80%E3%80%91%0AGitHub%20%E3%81%A7%E2%98%855%2C978%EF%BC%882026-10-09%20%E6%99%82%E7%82%B9%EF%BC%89%E3%81%AE%E3%80%8Cjiuwenswarm%E3%80%8D%E3%81%AE%20README%20%E3%81%AE%E8%A6%81%E7%82%B9%E3%82%92%E3%80%81%E5%8E%9F%E6%96%87%E3%81%AE%E3%81%BE%E3%81%BE%E7%B4%B9%E4%BB%8B%E3%81%97%E3%81%A6%E3%81%84%E3%81%BE%E3%81%99%E3%80%82%0A%E2%96%BC%20%E7%84%A1%E6%96%99%E3%81%AE%E8%A7%A3%E8%AA%AC%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fjiuwenswarm%2F
+--------------------------------------------------
 
-[TWEET 3]
-【💡 実務キットは note で】
-導入提案書テンプレート・工数見積表・公式READMEに基づく導入手順は note の有料記事で公開中。
-▼ 詳細レポートはこちら
+--------------------------------------------------
+【ツイート 2】
+【README より（原文）】
+JiuwenSwarm is an Agent system that makes multi-agent collaboration truly work.
+
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90README%20%E3%82%88%E3%82%8A%EF%BC%88%E5%8E%9F%E6%96%87%EF%BC%89%E3%80%91%0AJiuwenSwarm%20is%20an%20Agent%20system%20that%20makes%20multi-agent%20collaboration%20truly%20work.
+--------------------------------------------------
+
+--------------------------------------------------
+【ツイート 3】
+【note の有料版】
+この記事の有料版の内容: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答。
+▼ 無料の解説はこちら👇
 https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/
+
+👉 ワンクリックで投稿画面を開く:
+https://twitter.com/intent/tweet?text=%E3%80%90note%20%E3%81%AE%E6%9C%89%E6%96%99%E7%89%88%E3%80%91%0A%E3%81%93%E3%81%AE%E8%A8%98%E4%BA%8B%E3%81%AE%E6%9C%89%E6%96%99%E7%89%88%E3%81%AE%E5%86%85%E5%AE%B9%3A%20%E5%B0%8E%E5%85%A5%E6%8F%90%E6%A1%88%E6%9B%B8%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%EF%BC%88Markdown%EF%BC%89%E3%80%81%E5%B7%A5%E6%95%B0%E3%83%BB%E8%A6%8B%E7%A9%8D%E8%A1%A8%E3%80%81%E6%B4%BB%E7%94%A8%E3%83%BB%E5%8F%8E%E7%9B%8A%E5%8C%96%E3%81%AE%E8%80%83%E3%81%88%E6%96%B9%E3%80%81%E5%B0%8E%E5%85%A5%E6%99%82%E3%81%AE%E6%83%B3%E5%AE%9A%E5%95%8F%E7%AD%94%E3%80%82%0A%E2%96%BC%20%E7%84%A1%E6%96%99%E3%81%AE%E8%A7%A3%E8%AA%AC%E3%81%AF%E3%81%93%E3%81%A1%E3%82%89%F0%9F%91%87%0Ahttps%3A%2F%2Fssk0224.github.io%2Fauto-tech-radar%2Fradar%2Fjiuwenswarm%2F
+--------------------------------------------------
+

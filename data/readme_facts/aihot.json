@@ -293,5 +293,26 @@
     "TC=tailwind css",
     "TCSS=tailwind css"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-16",
+    "stars": 7887,
+    "gain7d": null
+  },
+  "topics": [
+    "ai",
+    "chinese",
+    "content-curation",
+    "daily-digest",
+    "docker-compose",
+    "llm",
+    "mcp",
+    "news-aggregator",
+    "postgresql",
+    "rss",
+    "self-hosted",
+    "typescript"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

@@ -1,30 +1,31 @@
 ---
 layout: "../../layouts/Layout.astro"
+title: "vectorcraft - README の要点（原文）"
+description: "storytold/vectorcraft の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-15"
+updatedDate: "2026-10-22"
 tags: ["Rust","OSS","GitHub"]
 repoUrl: "https://github.com/storytold/vectorcraft"
 repoCreatedAt: "2026-09-30"
 stars: 8898
-updatedDate: "2026-10-22"
 corrections:
   - date: "2026-10-22"
     note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
   - date: "2026-10-22"
     note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
-title: "vectorcraft - 純粋な Rust で作られた、オープンソースのベクターイラストのアプリケーションです"
-description: "純粋な Rust で作られた、オープンソースのベクターイラストのアプリケーションです。"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
 # vectorcraft: 概要
 
 storytold/vectorcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 8,898 です。
 
-- 純粋な Rust で作られた、オープンソースのベクターイラストのアプリケーションです。
-  - 原文（README）: Vector illustration; an open-source, modern vector art application, built in pure Rust.
-- macOS・Windows・Linux・FreeBSD でネイティブに動作し、WebAssembly によりブラウザでも動作します。
-  - 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
-- デスクトップアプリとブラウザで、1 つのコードベースと同じ UI を使います。
-  - 原文（README）: One codebase for the desktop apps and the same UI in the browser.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: Vector illustration; an open-source, modern vector art application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- 原文（README）: One codebase for the desktop apps and the same UI in the browser.
 
 ## 🎯 成熟度の目安（README の記載）
 
@@ -33,16 +34,12 @@ README にある開発段階の記載を、原文のまま示します（当サ�
 - 原文（README）: VectorCraft is under active development.
 - 原文（README）: Where we are (2026-10-10): alpha.
 
-## 主な機能と構成（README の要約）
+## 主な機能と構成（README の原文）
 
-- 描画はマルチスレッドの SIMD で、UI のスレッドとは別に行います。
-  - 原文（README）: Multithreaded SIMD rendering off the UI thread.
-- ネイティブの形式（.vectorcraft、JSON）は文書化されており、SVG と PDF（PDF 互換の .ai を含む）の読み書き、PNG/JPEG/WebP の書き出しに対応します。
-  - 原文（README）: A documented native format (.vectorcraft, JSON), first-class SVG, PDF (and PDF-compatible .ai) import and export, PNG/JPEG/WebP export, Export for Screens, and SVGZ, templates, GIF, TIFF and BMP on open.
-- メニューの項目・ツールの操作・パネル・ダイアログはすべて JSON の制御チャネルと MCP サーバーから操作でき、Claude などのエージェントが人と同じように描画・編集・書き出しを行えます。
-  - 原文（README）: Every menu item, tool gesture, panel and dialog can be driven over a JSON control channel and an MCP server, so Claude and other agents can draw, edit and export the way a person does.
-- VectorCraft のコマンド API は、MCP サーバーがエージェントに公開しているものと同じです。
-  - 原文（README）: Every piece below was built entirely through VectorCraft's command API, the same one the MCP server exposes to agents, and exported by VectorCraft's own renderer.
+- 原文（README）: Multithreaded SIMD rendering off the UI thread.
+- 原文（README）: A documented native format (.vectorcraft, JSON), first-class SVG, PDF (and PDF-compatible .ai) import and export, PNG/JPEG/WebP export, Export for Screens, and SVGZ, templates, GIF, TIFF and BMP on open.
+- 原文（README）: Every menu item, tool gesture, panel and dialog can be driven over a JSON control channel and an MCP server, so Claude and other agents can draw, edit and export the way a person does.
+- 原文（README）: Every piece below was built entirely through VectorCraft's command API, the same one the MCP server exposes to agents, and exported by VectorCraft's own renderer.
 
 ## インストール（README からの転記）
 

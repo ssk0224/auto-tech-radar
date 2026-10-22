@@ -316,5 +316,19 @@
       "lang": "sh",
       "code": "curl -fsSL 'https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.sh' -o /tmp/dsh-tavern-install.sh && DSH_TAVERN_HOST=cli sh /tmp/dsh-tavern-install.sh"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 819,
+    "gain7d": null
+  },
+  "topics": [
+    "agent",
+    "dsh-plugin",
+    "game",
+    "role-play",
+    "sillytavern"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

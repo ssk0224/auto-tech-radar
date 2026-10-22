@@ -740,5 +740,15 @@
     "TF=the flights",
     "UC=use cloud"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-10",
+    "stars": 22480,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "OdpL4BRXDYEi"
+  ]
 }

@@ -375,5 +375,13 @@
     "UIP=ui plugin",
     "UP=ui plugin"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-15",
+    "stars": 7854,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

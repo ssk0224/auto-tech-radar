@@ -418,5 +418,15 @@
       "lang": "bash",
       "code": "python examples/offline_inference.py"
     }
+  ],
+  "publication": {
+    "date": "2026-10-21",
+    "stars": 12071,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": [
+    "2_wDRhSIZJDa"
   ]
 }

@@ -1830,5 +1830,21 @@
       "lang": "sh",
       "code": "ditto -x -k photocraft-cli-<version>-macos-universal.zip .\nspctl --assess --type install -vv photocraft-cli-<version>-macos-universal/photocraft-cli\n# ... accepted, source=Notarized Developer ID"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-10",
+    "stars": 35313,
+    "gain7d": null
+  },
+  "topics": [
+    "art",
+    "image-editing",
+    "image-editing-software",
+    "image-editor",
+    "images",
+    "photo-editing",
+    "rust"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

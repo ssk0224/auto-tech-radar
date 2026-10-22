@@ -1197,5 +1197,24 @@
       "lang": "bash",
       "code": "um fal key set                                                   # hidden prompt\nexport FAL_KEY=\"$(secret-tool lookup service fal.ai key api)\"    # Linux: before starting the agent"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-15",
+    "stars": 7929,
+    "gain7d": null
+  },
+  "topics": [
+    "age-of-empires",
+    "claude-code",
+    "claude-code-plugin",
+    "fal",
+    "game-assets",
+    "game-modding",
+    "mcp",
+    "modding",
+    "reverse-engineering",
+    "tmodloader"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

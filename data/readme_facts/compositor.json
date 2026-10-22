@@ -765,5 +765,13 @@
       "lang": "sh",
       "code": "brew install --cask robbietilton-compositor"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-11",
+    "stars": 15455,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

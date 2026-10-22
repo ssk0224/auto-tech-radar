@@ -2441,5 +2441,20 @@
       "lang": "sh",
       "code": "git clone https://github.com/storytold/craft-fonts ../craft-fonts\nCRAFT_FONTS_DIR=../craft-fonts cargo run --release -p lightcraft"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-12",
+    "stars": 10183,
+    "gain7d": null
+  },
+  "topics": [
+    "art",
+    "photography",
+    "raw",
+    "raw-editor",
+    "raw-processing",
+    "rust"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

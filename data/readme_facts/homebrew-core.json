@@ -82,5 +82,19 @@
     "HC=homebrew core",
     "MD=more documentation"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": null,
+    "stars": null,
+    "gain7d": null
+  },
+  "topics": [
+    "core",
+    "formulae",
+    "homebrew",
+    "ruby",
+    "tap"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

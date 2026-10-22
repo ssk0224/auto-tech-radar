@@ -1479,5 +1479,18 @@
       "lang": "sh",
       "code": "mkdir -p ~/.gemini/antigravity/skills/anatomy && curl -L https://github.com/wheresryan22/anatomy/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C ~/.gemini/antigravity/skills/anatomy"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-14",
+    "stars": 9975,
+    "gain7d": null
+  },
+  "topics": [
+    "agent-skill",
+    "open-source",
+    "svg",
+    "vizualization"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

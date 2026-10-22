@@ -4335,5 +4335,27 @@
       "lang": "bash",
       "code": "python -m pip install laya"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-10",
+    "stars": 31976,
+    "gain7d": null
+  },
+  "topics": [
+    "calibration",
+    "classification",
+    "decision-model",
+    "huggingface",
+    "jev",
+    "modernbert",
+    "multilingual",
+    "nlp",
+    "python",
+    "pytorch",
+    "routing",
+    "typed-decisions",
+    "zero-shot"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

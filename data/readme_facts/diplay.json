@@ -646,5 +646,13 @@
     "WU=wired usb",
     "WUSB=wired usb"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-14",
+    "stars": 10296,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

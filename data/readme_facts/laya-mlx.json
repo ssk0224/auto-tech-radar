@@ -1796,5 +1796,26 @@
       "lang": "bash",
       "code": "gh repo clone mizorewww/laya-mlx\ncd laya-mlx\nuv sync --extra demo\nuv run --extra demo laya-snake"
     }
+  ],
+  "publication": {
+    "date": "2026-10-17",
+    "stars": 6956,
+    "gain7d": null
+  },
+  "topics": [
+    "apple-silicon",
+    "decision-model",
+    "inference",
+    "laya",
+    "local-ai",
+    "machine-learning",
+    "mlx",
+    "modernbert",
+    "system-one",
+    "typed-decisions"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "Re7Omou3EpvQ"
   ]
 }

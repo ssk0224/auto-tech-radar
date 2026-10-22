@@ -1425,5 +1425,13 @@
       "lang": "sh",
       "code": "strata launch --model q2_0 --yes --no-tui"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-10",
+    "stars": 19544,
+    "gain7d": null
+  },
+  "topics": [],
+  "usage_lines": [],
+  "corrections_keys": []
 }

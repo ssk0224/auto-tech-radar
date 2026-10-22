@@ -4477,5 +4477,34 @@
     "YU=york united",
     "YUS=york united states"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": null,
+    "stars": null,
+    "gain7d": null
+  },
+  "topics": [
+    "2027",
+    "applications",
+    "college",
+    "early-career",
+    "hiring",
+    "internship",
+    "internships",
+    "interviews",
+    "job-search",
+    "jobboard",
+    "jobs",
+    "jobs-2027",
+    "junior",
+    "new-grad-jobs",
+    "newgrad",
+    "remote-job",
+    "summer-internship",
+    "swe",
+    "tech-internship",
+    "university"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

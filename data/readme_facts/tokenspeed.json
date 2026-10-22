@@ -460,5 +460,36 @@
     "TT=tokenspeed team",
     "VR=vera rubin"
   ],
-  "install_blocks": []
+  "install_blocks": [],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 2201,
+    "gain7d": null
+  },
+  "topics": [
+    "b200",
+    "b300",
+    "blackwell",
+    "deepseek",
+    "gb200",
+    "gb300",
+    "glm",
+    "gpt-oss",
+    "inkling",
+    "kimi",
+    "lightseek",
+    "llm",
+    "mi355x",
+    "mi455x",
+    "minimax",
+    "qwen",
+    "rubin",
+    "speed-of-light",
+    "tokenspeed",
+    "vlm"
+  ],
+  "usage_lines": [],
+  "corrections_keys": [
+    "OFAZ5NePCEC2"
+  ]
 }

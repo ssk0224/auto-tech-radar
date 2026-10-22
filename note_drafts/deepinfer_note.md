@@ -1,27 +1,21 @@
-# 海外急上昇OSS「DeepInfer」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
+# 「DeepInfer」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
 ## はじめに
 
 deepseek-ai/DeepInfer は 2026-10-16 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 12,071 です。
 
-## 主な機能とアーキテクチャ概要
+## README の要点（原文）
 
-- このオープンソース版は、大規模な提供に必要な中核機能を備えたオフライン推論を提供します。
-  - 原文（README）: This open-source release provides offline inference with the core features needed for serving at scale.
-- NVIDIA SM100 GPU に対応しています。
-  - 原文（README）: NVIDIA SM100 GPUs
-- Huawei Ascend 950 NPU に対応しています。
-  - 原文（README）: Huawei Ascend 950 NPUs
-- チューニングされたカーネルとして、FlashMLA、DeepGEMM、DeepEP、TileKernels、DeepSelect と独自の TileLang カーネルを使います。
-  - 原文（README）: Optimized kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, and custom TileLang kernels.
-- DSpark と信頼度に基づく検証: ドラフトトークンでデコードを速め、信頼度の推定で検証の時期を決めます。
-  - 原文（README）: DSpark and confidence-scheduled verification: accelerate decoding with draft tokens and use confidence estimates to schedule verification.
-- 非同期スケジューリング: CPU でのバッチのスケジューリングとデバイスでの実行を重ねます。既定で有効です。
-  - 原文（README）: Asynchronous scheduling: overlap CPU batch scheduling with device execution. Enabled by default.
-- バッチ不変の推論: バッチの構成が違ってもモデルの結果を同じに保ちます。
-  - 原文（README）: Batch-invariant inference: keep model results identical across different batch compositions.
-- 構造化出力: 生成を正規表現・JSON スキーマ・EBNF 文法に沿うよう制約します。
-  - 原文（README）: Structured outputs: constrain generation to a regex, JSON schema, or EBNF grammar.
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
+
+- 原文（README）: This open-source release provides offline inference with the core features needed for serving at scale.
+- 原文（README）: NVIDIA SM100 GPUs
+- 原文（README）: Huawei Ascend 950 NPUs
+- 原文（README）: Optimized kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, and custom TileLang kernels.
+- 原文（README）: DSpark and confidence-scheduled verification: accelerate decoding with draft tokens and use confidence estimates to schedule verification.
+- 原文（README）: Asynchronous scheduling: overlap CPU batch scheduling with device execution. Enabled by default.
+- 原文（README）: Batch-invariant inference: keep model results identical across different batch compositions.
+- 原文（README）: Structured outputs: constrain generation to a regex, JSON schema, or EBNF grammar.
 
 ### 🔒 有料エリアの内容
 - 導入提案書テンプレート（Markdown）
@@ -42,4 +36,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Python #GitHub

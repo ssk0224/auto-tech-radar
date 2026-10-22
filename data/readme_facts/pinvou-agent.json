@@ -915,5 +915,24 @@
       "lang": "bash",
       "code": "git submodule update --init --recursive"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-09",
+    "stars": 2399,
+    "gain7d": null
+  },
+  "topics": [
+    "ai-agent",
+    "automation",
+    "desktop-app",
+    "llm",
+    "local-first",
+    "mcp",
+    "open-source",
+    "react",
+    "rust",
+    "tauri"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }

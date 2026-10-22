@@ -1993,5 +1993,20 @@
       "lang": "sh",
       "code": "git clone https://github.com/storytold/craft-fonts ../craft-fonts\nCRAFT_FONTS_DIR=\"$PWD/../craft-fonts\" cargo run --release -p filmcraft"
     }
-  ]
+  ],
+  "publication": {
+    "date": "2026-10-12",
+    "stars": 10085,
+    "gain7d": null
+  },
+  "topics": [
+    "art",
+    "rust",
+    "video",
+    "video-editing",
+    "video-editor",
+    "video-processing"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
 }
