@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
+import { jstDaysAgo } from '../src/utils/dates.js';
 
 // IndexNow で検索エンジン（Bing など IndexNow 参加エンジン）に新規・更新ページを通知する。
 // Bing のサイトマップ ping（bing.com/ping）は廃止済みのため使わない。
@@ -11,7 +12,8 @@ const KEY = '3f9a7b21e84c40d99a5e2f7b8c1d3e5a';
 const RECENT_DAYS = 2;
 
 export function recentArticleUrls(radarDir, now = new Date(), days = RECENT_DAYS) {
-  const since = new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
+  // 記事の pubDate は日本時間の暦日。直近 days 日（日本時間・今日を含む）だけを送る（UTC の日付と比べると 3〜4 日分になっていた）
+  const since = jstDaysAgo(days - 1, now);
   return fs.readdirSync(radarDir)
     .filter(f => f.endsWith('.md'))
     .map(f => {

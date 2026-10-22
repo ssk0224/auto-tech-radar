@@ -3,6 +3,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
+import { jstDate, jstDaysAgo, jstClock } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -46,8 +47,8 @@ function getTopPosts() {
     return { slug, title, desc, tags, stars, pubDate };
   });
 
-  // 直近7日に公開した記事をスター数順に。7本に満たなければ新しい順で補う
-  const since = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  // 直近7日（日本時間・今日を含む。サイトの週間ダイジェストと同じ範囲）に公開した記事をスター数順に。7本に満たなければ新しい順で補う
+  const since = jstDaysAgo(6);
   const recent = posts.filter(p => p.pubDate >= since).sort((a, b) => b.stars - a.stars);
   const rest = posts.filter(p => !(p.pubDate >= since)).sort((a, b) => b.pubDate.localeCompare(a.pubDate));
   return [...recent, ...rest];
@@ -60,14 +61,13 @@ if (topPosts.length === 0) {
   process.exit(1);
 }
 
-const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
-const today = jstNow.toISOString().split('T')[0];
-const timeStr = `${String(jstNow.getUTCHours()).padStart(2, '0')}:${String(jstNow.getUTCMinutes()).padStart(2, '0')}`;
+const today = jstDate();
+const timeStr = jstClock().slice(6);
 const outputFile = path.join(xDir, `weekly_summary_${today}.txt`);
 
 // X重複検知を100%回避する動的フィーチャー（上位2つの具体的なOSS名を埋め込み）
 const featuredNames = topPosts.slice(0, 2).map(p => p.title.split(' - ')[0].split(':')[0].trim()).join(' / ');
-const dateLabel = `${jstNow.getUTCMonth() + 1}月${jstNow.getUTCDate()}日`;
+const dateLabel = `${Number(today.slice(5, 7))}月${Number(today.slice(8, 10))}日`;
 
 let threadText = `今週取り上げた GitHub 急上昇OSS ${topPosts.length}選（${dateLabel}）\n\n`;
 threadText += `注目: ${featuredNames} など。README をもとに技術構成と使いどころを日本語で解説しています。\n`;

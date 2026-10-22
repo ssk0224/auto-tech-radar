@@ -3,12 +3,13 @@
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
+import { jstDate as jstDateOf } from "../../src/utils/dates.js";
 
 // rejected: 生成した記事が CI の品質ゲート（npm test）に通らず、取り除いた（workflow の Post-Crawl Quality Test Gate が記録する）
 export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "error", "cap_reached", "rejected"];
 
 export function jstDate(now = Date.now()) {
-  return new Date(new Date(now).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return jstDateOf(now);
 }
 
 export function runStatusFile(rootDir, date) {
