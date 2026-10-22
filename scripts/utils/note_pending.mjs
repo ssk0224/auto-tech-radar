@@ -1,6 +1,8 @@
 // [U] の一覧に、CI が公開中の note で見つけた問題を出すかどうか。
 // 「差し替えた」と記録した時刻が、CI の最新の確認より後のときだけ隠す（次の確認で直っていなければ、また出す）。
 // 日付だけで比べると、同じ日に「更新する」を押し忘れた記事がその日いっぱい隠れてしまう（2026-10-21 に実際に起きた）
+import { findHype } from "./hype_check.mjs";
+
 export function hiddenAfterOwnerFix(noteUpdatedAt, checkedAt) {
   return Boolean(noteUpdatedAt && checkedAt && noteUpdatedAt > checkedAt);
 }
@@ -20,82 +22,52 @@ export function oldRingWordingSpot(status) {
   return m ? { excerpt, words: m[0] } : null;
 }
 
-// 公開中の note に残った、直すべき表現の一覧。[E]（note_browser.mjs maintain）が編集画面で from を選んで to に打ち替え、
-// CI（sync_note_urls.mjs）が detect で見つけて issue の文言で記録する。
-// ランチャーは issue の文言で「[E] で自動修正できる問題」かを見分けるので、CI とこの表で文言を必ずそろえる（この表から取る）
+// 公開中の note に残っていると CI が名前を付けて知らせる表現（検出だけ。直すのは [E] が無料部分を原稿の描画に置き換えて行う）。
+// 以前は語ごとの置き換え規則（from → to）で直していたが、規則に無い書き方・規則を足し忘れた語は直らないまま残った
+// （2026-10-22: 公開中の 37 本中 27 本の無料部分が原稿と違った）。正本は原稿で、規則表ではない
 const RING_ISSUE = "第三者（ThoughtWorks）の評価のような表現";
 // オーナーはインボイス発行事業者に登録していないので、購入者が受け取れるのは通常の領収書だけ（note 公式ヘルプ: 設定 → 購入・チップ履歴から発行）
 const INVOICE_ISSUE = "インボイス対応領収書の案内（インボイス発行事業者に未登録のため事実と異なる）";
 const COPIPE_ISSUE = "「コピペで本番〜」の表現（動作を確かめていない手順・設定を、そのまま本番で使えるかのように案内）";
-const HYPE_ISSUE = "根拠のない誇張・成約を保証するかのような表現（爆発的・即決・驚異的・怪物級）";
-// 文字列そのものだけを検出する正規表現（原稿の雛形から入った決まった言い回しだけを直す規則に使う）
-const exact = (s) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-// (d) の規則: [from, to]。生成スクリプトの検査（utils/hype_check.mjs）で禁止した誇張のうち、公開中の note に残っている決まった言い回し。
-// 雛形由来の 3 つ（見出し・提案シナリオ・営業トーク）と、記事ごとの文（原稿 note_drafts/ にある形そのまま）
-const HYPE_FIXES = [
-  ["hype-heading", "世界中で爆発的に注目されている", "注目されている"],
-  ["hype-close-client", "クライアントを即決させる", "クライアントへの"],
-  ["hype-close-order", "発注即決を勝ち取る", "商談で使える"],
-  ["hype-explosive-demand", "需要が爆発的に高まっています", "需要が高まっています"],
-  ["hype-explosive-stars", "GitHubで爆発的なスター", "GitHubで多くのスター"],
-  ["hype-explosive-forks", "爆発的な勢いでフォークされている", "活発にフォークされている"],
-  ["hype-monster-engine", "突破した怪物級の", "突破した"],
-  ["hype-monster-oss", "記録した怪物級OSS", "記録したOSS"],
-  ["hype-amazing-project", "再実装された驚異的なプロジェクト", "再実装されたプロジェクト"],
-  ["hype-amazing-secret", "の驚異的な速度の秘密", "の速さの秘密"],
-  ["hype-amazing-speed", "という驚異的な速度で", "という速度で"],
-  ["hype-amazing-run", "驚異的な速度で実行されます", "高速に実行されます"],
-  ["hype-amazing-cost", "高速性と驚異的なコスト削減", "高速性とコスト削減"],
+const HYPE_ISSUE = "根拠のない誇張・成約を保証するかのような表現（生成時に禁止した表現: utils/hype_check.mjs）";
+export const NOTE_TEXT_CHECKS = [
+  { id: "ring", detect: (t) => /ThoughtWorks/.test(t), issue: RING_ISSUE },
+  { id: "invoice", detect: (t) => /インボイス対応領収書/.test(t), issue: INVOICE_ISSUE },
+  { id: "copipe", detect: (t) => /コピペで本番/.test(t), issue: COPIPE_ISSUE },
+  // 誇張は生成時の禁止表現（HYPE_RULES）と同じ定義で見る。「コピペで本番」は上の名前で知らせる
+  { id: "hype", detect: (t) => findHype(t).some((h) => !/コピペで本番/.test(h)), issue: HYPE_ISSUE },
 ];
-export const NOTE_TEXT_RULES = [
-  // (a) 古い成熟度の表現。以前の [U] / [E] と同じく、途中まで直して「ThoughtWorks」だけ残った形も直す
-  { id: "ring-judge", detect: /ThoughtWorks/, from: "ThoughtWorks成熟度リング判定", to: NEW_RING_WORDS, issue: RING_ISSUE },
-  { id: "ring", detect: /ThoughtWorks/, from: "ThoughtWorks成熟度リング", to: NEW_RING_WORDS, issue: RING_ISSUE },
-  { id: "ring-judge-short", detect: /ThoughtWorks/, from: "ThoughtWorks判定", to: NEW_RING_WORDS, issue: RING_ISSUE },
-  { id: "ring-leftover", detect: /ThoughtWorks/, from: "ThoughtWorks", to: NEW_RING_WORDS, issue: RING_ISSUE },
-  // (b) インボイス対応領収書。直した後の文は「※noteは購入後、「購入・チップ履歴」から領収書を発行できます。…」になる
-  {
-    id: "invoice",
-    detect: /インボイス対応領収書/,
-    from: "マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。",
-    to: "「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。",
-    issue: INVOICE_ISSUE,
-  },
-  // 長い文が編集画面で段落をまたいで選べないときの予備（インボイスの部分だけ直す）
-  { id: "invoice-short", detect: /インボイス対応領収書/, from: "インボイス対応領収書が即時発行可能です", to: "領収書を発行できます", issue: INVOICE_ISSUE },
-  // (c) 動作未検証の手順・設定を「コピペで本番〜」と案内しない。原稿の「コピペで本番一発起動できる「…キット」」は「できる」ごと直す（「…を含む）できる」と文が崩れるため）。
-  // 「実稼働 …キット」（opendots）は「実稼働」も外す（「動作未検証」と並べない）。
-  // 検出は「コピペで本番」全体（どの規則にも当たらない書き方は [E] では直せないものとして [U] に回す）
-  { id: "copipe-kit-live", detect: /コピペで本番/, from: "コピペで本番一発起動できる「実稼働 ", to: "公式READMEに基づく導入手順（動作未検証の例を含む）の「", issue: COPIPE_ISSUE },
-  { id: "copipe-kit", detect: /コピペで本番/, from: "コピペで本番一発起動できる", to: "公式READMEに基づく導入手順（動作未検証の例を含む）の", issue: COPIPE_ISSUE },
-  { id: "copipe", detect: /コピペで本番/, from: "コピペで本番一発起動", to: "公式READMEに基づく導入手順（動作未検証の例を含む）", issue: COPIPE_ISSUE },
-  // 「コピペで本番投入できる環境構築・設定ファイル…完全版」（16 本）と「コピペで本番検証できる…」（filmcraft）
-  { id: "copipe-deploy", detect: /コピペで本番/, from: "コピペで本番投入できる", to: "動作未検証の例を含む", issue: COPIPE_ISSUE },
-  { id: "copipe-verify", detect: /コピペで本番/, from: "コピペで本番検証できる", to: "動作未検証の例を含む", issue: COPIPE_ISSUE },
-  // (d) 根拠のない誇張・成約の保証（決まった言い回しだけ。検出もその文字列だけにして、ほかの書き方の記事を [U] に回さない）
-  ...HYPE_FIXES.map(([id, from, to]) => ({ id, detect: exact(from), from, to, issue: HYPE_ISSUE })),
-];
-export const NOTE_TEXT_ISSUES = new Set(NOTE_TEXT_RULES.map((r) => r.issue));
 
-// 本文 text に規則を当てる。長い from から順に置き換え、置き換えた箇所（置き換え後の語を含む）を短い規則でもう一度置き換えない
-function rewrite(text) {
-  let out = String(text || "");
-  const rules = [];
-  for (const r of [...NOTE_TEXT_RULES].sort((a, b) => b.from.length - a.from.length)) {
-    if (!out.includes(r.from)) continue;
-    out = out.split(r.from).join(`\u0000${rules.length}\u0001`);
-    rules.push(r);
+// 本文 text に当てはまる表現の名前（issue の文言）
+export const noteTextIssues = (text) => NOTE_TEXT_CHECKS.filter((c) => c.detect(String(text || ""))).map((c) => c.issue);
+// 本文 text に、知らせる表現が残っているか
+export const hasNoteTextIssue = (text) => noteTextIssues(text).length > 0;
+
+// 段落の比較用の正規化（全角・半角の揺れ、空白・改行・ゼロ幅文字は違いとして扱わない）。空の段落は除く。
+// [E] の編集画面での比較（note_browser.mjs）と、置き換えの計画（planFreePartReplace）で同じものを使う
+export const normBlock = (b) => String(b).normalize("NFKC").replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, "");
+export const normBlocks = (blocks) => (blocks || []).map(normBlock).filter(Boolean);
+
+// 公開中の無料部分 live を、原稿の無料部分を描画したもの want に合わせる計画（どちらも normBlocks 済みの段落の配列）。
+// 段落の数が同じなら、違う段落を丸ごと原稿の段落に置き換える（段落の区切り＝有料ラインの位置の基準は変えない）。
+// 段落の数が違う（有料ラインの位置・段落の構成が原稿と違う）ものは、自動では置き換えない（manual）
+export function planFreePartReplace(live, want) {
+  if (!want?.length) return { action: "manual", reason: "原稿の無料部分が空のため置き換えられません" };
+  if (!live?.length) return { action: "manual", reason: "公開中の無料部分を読めないため置き換えられません" };
+  if (live.length !== want.length) {
+    return { action: "manual", reason: `無料部分の段落の数が原稿と違います（公開中 ${live.length} / 原稿 ${want.length}。有料ラインの位置か段落の構成が違うため [U] で差し替えてください）` };
   }
-  return { rules, text: out.replace(/\u0000(\d+)\u0001/g, (_, i) => rules[i].to) };
+  const changes = want.map((w, i) => (w === live[i] ? -1 : i)).filter((i) => i >= 0);
+  return changes.length ? { action: "replace", changes } : { action: "same" };
 }
 
-// 本文 text に当てはまる規則（長い from から順。同じ箇所に 2 つの規則を当てない）
-export const applicableNoteRules = (text) => rewrite(text).rules;
-// 規則をすべて当てた後の本文（[E] が編集画面で行う置き換えと同じ結果）
-export const applyNoteRules = (text) => rewrite(text).text;
-
-// 本文 text に、直すべき表現（detect）が残っているか
-export const hasNoteTextIssue = (text) => NOTE_TEXT_RULES.some((r) => r.detect.test(String(text || "")));
+// [E] で直す記事を決める。notes: [{ slug, key, plan }]（plan は planFreePartReplace の結果。note_urls.json の順）。
+// 置き換える記事を上限 max まで選び、残りの本数と、自動では直せない記事（manual: [{ slug, reason }]）を返す
+export function planFreePartFixes(notes, max = NOTE_FIX_MAX) {
+  const targets = notes.filter((n) => n.plan?.action === "replace").map((n) => ({ slug: n.slug, key: n.key, changes: n.plan.changes }));
+  const manual = notes.filter((n) => n.plan?.action === "manual").map((n) => ({ slug: n.slug, reason: n.plan.reason }));
+  return { fix: targets.slice(0, max), remaining: Math.max(0, targets.length - max), manual };
+}
 
 // note の API が返す本文（HTML）を、編集画面の innerText に近い文字列にする（段落の区切りは改行、太字などの書式は外してつなぐ）
 export function noteHtmlText(html) {
@@ -131,18 +103,9 @@ export function noteFixBudget(history, now = Date.now(), max = NOTE_FIX_MAX, win
   return { left, used: recent.length, nextAt };
 }
 
-// [E] で直す記事を決める。notes: [{ slug, key, body(HTML) }]（note_urls.json の順）。
-// 直すべき表現が残っている記事を上限まで選び、残りの本数を返す。
-// 規則をすべて当てても表現が残る記事（想定外の書き方）は、編集画面を開かずに manual として返す（毎回同じ記事で止まらないように）
-export function planNoteFixes(notes, max = NOTE_FIX_MAX) {
-  const found = notes.map((n) => ({ slug: n.slug, key: n.key, text: noteHtmlText(n.body) })).filter((n) => hasNoteTextIssue(n.text));
-  const manual = found.filter((n) => hasNoteTextIssue(applyNoteRules(n.text))).map((n) => n.slug);
-  const targets = found.filter((n) => !manual.includes(n.slug)).map((n) => ({ slug: n.slug, key: n.key, rules: applicableNoteRules(n.text).map((r) => r.id) }));
-  return { fix: targets.slice(0, max), remaining: Math.max(0, targets.length - max), manual };
-}
-
-// CI の検査で見つかった問題が、すべて [E] で自動修正できる表現か
-export const autoFixableByMaintain = (status) => Boolean(status?.issues?.length) && status.issues.every((i) => NOTE_TEXT_ISSUES.has(i));
+// CI の検査で見つかった問題を [E] で直せるか。CI（sync_note_urls.mjs）が「無料部分を原稿の描画に置き換えた後の記事に問題が残らない」ときに
+// maintainFixes: true を記録する。記録が無い（古い形式の検査結果・取得できなかった記事）は直せるとみなさない
+export const autoFixableByMaintain = (status) => Boolean(status?.issues?.length) && status.maintainFixes === true;
 
 // [E] の実行記録（scripts/note_browser_log.json）のうち、CI の最新の確認より後に直した記事。次の確認までは「直した」として扱う
 export function fixedByMaintainSince(log, checkedAt) {

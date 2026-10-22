@@ -18,6 +18,7 @@
 // - ATR_NOTE_MOCK_UNPUBLISHED の記事は公開されていない下書きで、最後のボタンは「更新する」ではなく「投稿する」（押すと新規出品になる）
 // - ATR_NOTE_MOCK_CLOSE の記事は、「更新する」で公開された直後に編集画面の窓が閉じられる（オーナーが窓を閉じた・ブラウザが落ちた）
 import fs from "fs";
+import path from "path";
 import { mdToNoteHtml } from "../../scripts/utils/note_html.mjs";
 
 const INVOICE_HTML = "マイページより<strong>インボイス対応領収書</strong>が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。";
@@ -49,6 +50,40 @@ export const RICH_MD = [
   "最後の段落です。",
 ].join("\n");
 
+// [E] の正本（note_drafts/ の原稿）の代わり。模擬の公開中の本文（下の live）と同じ段落の構成で、直した後の文にした原稿（Markdown）。
+// [E] は公開中の無料部分を、この原稿の無料部分を描画したものに置き換える
+const RECEIPT_MD = "※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。";
+export const FIXED_RICH_MD = RICH_MD.replace("世界中で爆発的に注目されている", "注目されている")
+  .replace("GitHubで爆発的なスター", "GitHubで多くのスター")
+  .replace("コピペで本番投入できる", "動作未検証の例を含む")
+  .replace("※noteは購入後、マイページより**インボイス対応領収書**が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。", RECEIPT_MD);
+// 模擬の部品のうち、公開中の本文と原稿で文が違うもの（ATR_NOTE_MOCK_<名前> で記事キーを指定する）
+export const DRAFT_PARTS = {
+  ATR_NOTE_MOCK_RICH: FIXED_RICH_MD,
+  ATR_NOTE_MOCK_WORDING: "これらの状況を鑑み、成熟度の目安（AI による見立て）では「TRIAL」と判定します。",
+  ATR_NOTE_MOCK_COPIPE: "- 公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & .env 設定キット」",
+  // 規則表には無い書き方の古い文（語の置き換えでは直らなかった種類）
+  ATR_NOTE_MOCK_STALE: "需要が伸びている理由を、公開情報から説明します。",
+  ATR_NOTE_MOCK_INVOICE: `> ${RECEIPT_MD}`,
+};
+export function mockDraftMd(flags, { paid = true } = {}) {
+  const parts = Object.keys(DRAFT_PARTS).filter((k) => flags.has(k)).map((k) => DRAFT_PARTS[k]);
+  const paidLine = paid ? ["【有料ライン（推奨販売価格: 980円）ここから先は有料会員限定】\n<!-- PAID_SEALED: mock_note.paid.enc 有料エリアは暗号化保存されています -->"] : [];
+  return ["# 模擬の記事", "## 概要\n無料部分の本文です。", ...parts, ...paidLine].join("\n\n") + "\n";
+}
+// 記事ごとの原稿を dir に書く（keys: slug → 記事キー、env: 部品を指定した環境変数）。ATR_NOTE_MOCK_NODRAFT の記事は原稿を書かない
+export function writeMockDrafts(dir, keys, env) {
+  fs.mkdirSync(dir, { recursive: true });
+  const has = (name, k) => (env[name] || "").split(",").filter(Boolean).includes(k);
+  for (const [slug, key] of Object.entries(keys)) {
+    if (has("ATR_NOTE_MOCK_NODRAFT", key)) continue;
+    const flags = new Set(Object.keys(DRAFT_PARTS).filter((n) => has(n, key)));
+    const free = slug === "LEAD_MAGNET_CHEAT_SHEET";
+    fs.writeFileSync(path.join(dir, free ? `${slug}.md` : `${slug}_note.md`), mockDraftMd(flags, { paid: !free }));
+  }
+  return dir;
+}
+
 export default async function install(ctx) {
   const sessionFile = process.env.ATR_NOTE_MOCK_SESSION;
   const state = { draft: "", published: "", editorSession: false, live: {}, updated: {} };
@@ -62,6 +97,7 @@ export default async function install(ctx) {
       has("ATR_NOTE_MOCK_RICH", k) ? mdToNoteHtml(RICH_MD).html : "",
       has("ATR_NOTE_MOCK_WORDING", k) ? "<p>これらの状況を鑑み、ThoughtWorksでは「TRIAL」と判定します。</p>" : "",
       has("ATR_NOTE_MOCK_COPIPE", k) ? "<ul><li><p>コピペで本番一発起動できる「Docker Compose &amp; .env 設定キット」</p></li></ul>" : "",
+      has("ATR_NOTE_MOCK_STALE", k) ? "<p>需要が<strong>爆発的に</strong>伸びている理由を、独自の調査から断言します。</p>" : "",
       // 引用は実機と同じく figure で包む（この形で出品している: scripts/utils/note_html.mjs の引用の変換）
       has("ATR_NOTE_MOCK_INVOICE", k) ? `<figure name="q1" id="q1"><blockquote><p>※noteは購入後、${INVOICE_HTML}</p></blockquote><figcaption></figcaption></figure>` : "",
       PAID_HTML,

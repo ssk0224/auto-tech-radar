@@ -7,6 +7,7 @@ import path from "path";
 import { spawnSync } from "child_process";
 import { readText } from "./helpers/read_src.mjs";
 import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
+import { writeMockDrafts } from "./fixtures/note_mock.mjs";
 
 
 // CI の検査結果（note_status.json）の代わり。実データは CI が毎回書き換える（公開中の記事に要修正の表現があれば issues が入る）ので、
@@ -116,11 +117,14 @@ function runMaintain(extraEnv, { history } = {}) {
     fs.mkdirSync(path.dirname(historyFile), { recursive: true });
     fs.writeFileSync(historyFile, JSON.stringify(history));
   }
+  // 正本の原稿（模擬の公開中の本文と同じ構成で、直した後の文）。[E] は無料部分をこの原稿の描画に置き換える
+  const extra = extraEnv(keys);
+  const drafts = writeMockDrafts(path.join(home, "drafts"), keys, extra);
   try {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", "maintain"], {
       encoding: "utf8",
       timeout: 240000,
-      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump, ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile(home, {}), ...extraEnv(keys) },
+      env: { ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1", ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump, ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile(home, {}), ATR_NOTE_DRAFTS: drafts, ...extra },
     });
     const live = fs.existsSync(dump) ? JSON.parse(readText(dump)) : {};
     const fixes = fs.existsSync(historyFile) ? JSON.parse(readText(historyFile)) : [];
@@ -133,8 +137,8 @@ function runMaintain(extraEnv, { history } = {}) {
 test("[E] 古い表現だけ置き換えて「更新する」まで行い、公開中の本文で反映を確かめる。閲覧数も取得する", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_WORDING: k.zcode }));
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: zcode（ring-leftover）/);
-  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 0\n/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: zcode（1 段落）/);
+  assert.match(r.out, /無料部分の置き換え: 修正 1 \/ 失敗 0\n/);
   assert.match(r.out, /note の閲覧数: 合計 12 \/ スキ 1/);
 });
 
@@ -142,7 +146,7 @@ test("[E] 編集画面の下書きが公開中と違う記事は、置き換え�
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_WORDING: k.zcode, ATR_NOTE_MOCK_DRIFT: k.zcode }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
-  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して/);
+  assert.doesNotMatch(r.out, /✓ 無料部分を原稿の内容に置き換えて/);
   assert.deepEqual(r.live, {}, "何も公開していない");
 });
 
@@ -150,11 +154,11 @@ test("[E] インボイス対応領収書の案内と「コピペで本番一発�
   // aihot と anatomy の 2 本に残っているが、上限を 1 本にして実行する（note_urls.json の順で aihot が先）
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_COPIPE: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice, copipe-kit）/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot（2 段落）/);
   // 上限（24 時間に 1 本）を使い切ったので、残りは次に直せる時刻以降の [E] で
-  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 0 \/ 残り 1 本は\d\d-\d\d \d\d:\d\d（日本時間） 以降の \[E\]で直します（24時間に 1 本まで）/);
+  assert.match(r.out, /無料部分の置き換え: 修正 1 \/ 失敗 0 \/ 残り 1 本は\d\d-\d\d \d\d:\d\d（日本時間） 以降の \[E\]で直します（24時間に 1 本まで）/);
   assert.deepEqual(r.fixes.map((f) => f.slug), ["aihot"], "直した記事と時刻をオーナー端末に記録する");
-  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して更新: anatomy/);
+  assert.doesNotMatch(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: anatomy/);
   const { noteHtmlText } = await import("../scripts/utils/note_pending.mjs");
   const aihot = noteHtmlText(r.live[r.keys.aihot]);
   assert.match(aihot, /※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。/);
@@ -166,7 +170,7 @@ test("[E] インボイス対応領収書の案内と「コピペで本番一発�
 test("[E] 前回の実行で下書きだけ直してある記事はそのまま公開し、下書きが公開中と違う文になっている記事は公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_RESUME: k.aihot, ATR_NOTE_MOCK_OTHER: k.anatomy }));
   assert.notEqual(r.status, 0, r.out);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice）/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot（1 段落）/);
   assert.match(r.out, /✕ anatomy: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません（3 段落目が違います。公開はしていません）/);
   assert.deepEqual(Object.keys(r.live), [r.keys.aihot]);
   assert.match(r.live[r.keys.aihot], /「購入・チップ履歴」から領収書を発行できます。/);
@@ -176,8 +180,8 @@ test("[E] 下書きが公開中と違う記事は飛ばし、次の記事は直�
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_DRIFT: k.aihot }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /✕ aihot: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: anatomy（invoice）/);
-  assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 1\n/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: anatomy（1 段落）/);
+  assert.match(r.out, /無料部分の置き換え: 修正 1 \/ 失敗 1\n/);
   assert.deepEqual(Object.keys(r.live), [r.keys.anatomy], "anatomy だけ更新する");
 });
 
@@ -186,7 +190,7 @@ test("[E] 下書きに公開していない文が残っている記事は、ほ�
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: k.aihot, ATR_NOTE_MOCK_COPIPE: k.aihot, ATR_NOTE_MOCK_OTHER: k.aihot }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /✕ aihot: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
-  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して/);
+  assert.doesNotMatch(r.out, /✓ 無料部分を原稿の内容に置き換えて/);
   assert.deepEqual(r.live, {}, "何も公開していない");
   assert.deepEqual(r.fixes, []);
 });
@@ -205,12 +209,12 @@ test("[E] 直近 24 時間に上限の本数を直していれば、記事を読
   const history = Array.from({ length: 12 }, (_, i) => ({ at: new Date(now - (60 - i) * 60 * 1000).toISOString(), slug: `s${i}` }));
   const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: k.aihot }), { history });
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /要修正の表現の修正: 直近24時間で 12 本直したため、今回は行いません（上限 12 本。次は \d\d-\d\d \d\d:\d\d（日本時間） 以降の \[E\] で直します）/);
-  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して/);
+  assert.match(r.out, /無料部分の置き換え: 直近24時間で 12 本直したため、今回は行いません（上限 12 本。次は \d\d-\d\d \d\d:\d\d（日本時間） 以降の \[E\] で直します）/);
+  assert.doesNotMatch(r.out, /✓ 無料部分を原稿の内容に置き換えて/);
   assert.deepEqual(r.live, {});
   // 24 時間を過ぎた記録は数えない
   const old = history.map((h) => ({ ...h, at: new Date(Date.parse(h.at) - 24 * 3600 * 1000).toISOString() }));
   const r2 = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: k.aihot }), { history: old });
   assert.equal(r2.status, 0, r2.out);
-  assert.match(r2.out, /✓ 要修正の表現を直して更新: aihot（invoice）/);
+  assert.match(r2.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot（1 段落）/);
 });

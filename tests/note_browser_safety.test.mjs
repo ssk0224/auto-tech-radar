@@ -6,9 +6,9 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
-import { PAID_HEAD_HTML, RICH_MD } from "./fixtures/note_mock.mjs";
-import { applyNoteRules, hasNoteTextIssue, noteHtmlText } from "../scripts/utils/note_pending.mjs";
-import { mdToNoteHtml } from "../scripts/utils/note_html.mjs";
+import { PAID_HEAD_HTML, mockDraftMd, writeMockDrafts } from "./fixtures/note_mock.mjs";
+import { hasNoteTextIssue, noteHtmlText } from "../scripts/utils/note_pending.mjs";
+import { renderDraftFree } from "../scripts/utils/free_part.mjs";
 import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
 
 const skip = !chrome && "Chrome が無い環境では未実施";
@@ -28,6 +28,9 @@ function runNote(cmd, extraEnv, { history, status = {} } = {}) {
   }
   const statusFile = path.join(home, "note_status.json");
   fs.writeFileSync(statusFile, JSON.stringify({ checkedAt: "2026-10-21T00:00:00.000Z", notes: Object.fromEntries(Object.entries(status).map(([s, issues]) => [s, { issues }])) }));
+  // 正本の原稿（模擬の公開中の本文と同じ構成で、直した後の文）
+  const extra = extraEnv(keys);
+  const drafts = writeMockDrafts(path.join(home, "drafts"), keys, extra);
   try {
     const r = spawnSync(process.execPath, ["scripts/note_browser.mjs", cmd], {
       encoding: "utf8",
@@ -35,7 +38,7 @@ function runNote(cmd, extraEnv, { history, status = {} } = {}) {
       env: {
         ...process.env, ...ownerEnv(home), CHROME_PATH: chrome, ATR_NOTE_HEADLESS: "1",
         ATR_NOTE_MOCK: path.resolve("tests/fixtures/note_mock.mjs"), ATR_NOTE_MOCK_TARGET: "none", ATR_NOTE_MOCK_DUMP: dump,
-        ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile, ATR_NOTE_LOG: logFile, ...extraEnv(keys),
+        ATR_NOTE_WAIT_SCALE: "0.01", ATR_NOTE_STATUS: statusFile, ATR_NOTE_LOG: logFile, ATR_NOTE_DRAFTS: drafts, ...extra,
       },
     });
     const read = (f, d) => (fs.existsSync(f) ? fs.readFileSync(f, "utf8") : d);
@@ -85,16 +88,30 @@ test("[E] 下書きに段落以外の要素（div など）で公開していな
   assert.match(r.out, /✕ aihot: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
 });
 
-test("[E] note_html.mjs の構造（見出し・太字・リンク・改行・箇条書き・表・引用・コード）の記事を直し、公開後の本文は公開中の本文に規則を当てたものと同じ", { skip }, () => {
+test("[E] note_html.mjs の構造（見出し・太字・リンク・改行・箇条書き・表・引用・コード）の記事を直し、公開後の本文は「原稿の無料部分の描画＋公開中の有料部分」と同じ", { skip }, () => {
   const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_RICH: k.aihot }));
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot/);
   const text = (html) => noteHtmlText(html).replace(/\s+/g, "");
-  const published = text(r.live[r.keys.aihot]);
+  const html = r.live[r.keys.aihot];
+  const published = text(html);
   assert.ok(!hasNoteTextIssue(published), "直す表現が残っていない");
-  // 公開中だった本文（模擬の note と同じ組み立て）に規則を当てたものと、文字が 1 字も違わない
-  const before = `<h2>概要</h2><p>無料部分の本文です。</p>${mdToNoteHtml(RICH_MD).html}<p>有料部分の本文です。導入手順と見積表。</p>`;
-  assert.equal(published, applyNoteRules(text(before)));
+  // 原稿の無料部分を描画したもの＋公開中だった有料部分（変えない）と、文字が 1 字も違わない
+  const want = `${renderDraftFree(mockDraftMd(new Set(["ATR_NOTE_MOCK_RICH"])))}<p>有料部分の本文です。導入手順と見積表。</p>`;
+  assert.equal(published, text(want));
+  // 置き換えた段落の書式（太字・リンク）を残す（文字だけ打ち込むとリンクが消える）
+  assert.match(html, /<a href="https:\/\/example\.com"[^>]*>公式サイト<\/a>/);
+  assert.match(html, /<strong>概要<\/strong>/);
+});
+
+test("[E] 規則表に無い書き方の古い文も、原稿の段落に置き換える。原稿が無い記事は直さず手作業として知らせる", { skip }, () => {
+  const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_STALE: k.aihot, ATR_NOTE_MOCK_NODRAFT: k.anatomy }));
+  assert.equal(r.status, 0, r.out);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot（1 段落）/);
+  assert.match(noteHtmlText(r.live[r.keys.aihot]), /需要が伸びている理由を、公開情報から説明します。/);
+  assert.doesNotMatch(noteHtmlText(r.live[r.keys.aihot]), /爆発的|断言/);
+  assert.match(r.out, /… anatomy: 原稿（正本）が無いため、自動では直しません/);
+  assert.deepEqual(Object.keys(r.live), [r.keys.aihot]);
 });
 
 test("[E] 「更新する」の直後に窓が閉じられても（オーナーが閉じた・ブラウザが落ちた）、その記事を 24 時間の本数に数える", { skip }, () => {
@@ -122,7 +139,7 @@ test("[E] テスト用の上限 ATR_NOTE_FIX_MAX でも 24 時間に 12 本を�
 test("[E] 下書きが公開中と違って直せない記事は、その回の本数の枠を使わない（後ろの記事を直す）", { skip }, () => {
   const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_DRIFT: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
   assert.match(r.out, /✕ aihot: 編集画面の下書き/);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: anatomy（invoice）/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: anatomy（1 段落）/);
   assert.deepEqual(Object.keys(r.live), [r.keys.anatomy]);
 });
 
@@ -181,7 +198,7 @@ nb.on("exit", (code) => { holder.kill(); console.log(JSON.stringify({ code, out 
 test("[E] 実行記録（GitHub に送る公開の記録）に有料部分の文が入らない。有料ラインを動かすボタンは押さない", { skip }, () => {
   const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_INVOICE: k.aihot, ATR_NOTE_MOCK_PAIDHEAD: k.aihot }));
   assert.equal(r.status, 0, r.out);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: aihot/);
+  assert.match(r.out, /✓ 無料部分を原稿の内容に置き換えて更新: aihot/);
   assert.ok(r.log.length > 0, "記録を書いた");
   assert.match(r.log, /"after-update"/);
   const paidTexts = [...`<p>有料部分の本文です。導入手順と見積表。</p>${PAID_HEAD_HTML}`.matchAll(/>([^<]+)</g)].map((m) => m[1]);

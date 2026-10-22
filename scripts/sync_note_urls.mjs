@@ -8,7 +8,7 @@ import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { splitPaid } from './utils/note_vault.mjs';
-import { NOTE_TEXT_RULES, applyNoteRules, noteHtmlText, autoFixableByMaintain } from './utils/note_pending.mjs';
+import { noteTextIssues, noteHtmlText, autoFixableByMaintain } from './utils/note_pending.mjs';
 import { draftFileFor, freePartVerdict, isPaidSlug, renderDraftFree, PAST_MARGIN_CHARS } from './utils/free_part.mjs';
 import { BAD, UNKNOWN, annotation, readJsonStrict, tally, unknown } from './utils/verdict.mjs';
 
@@ -103,14 +103,9 @@ export async function fetchAllNotes({ fetchImpl = globalThis.fetch, delayMs = 10
 export function publishedNoteIssues(d) {
   const text = `${d.name || ''}\n${String(d.body || '').replace(/<[^>]+>/g, ' ')}`;
   const issues = findForbiddenClaims(text);
-  // [E] で自動修正する表現（ThoughtWorks・インボイス対応領収書・コピペで本番〜・決まった言い回しの誇張）。
-  // 文言は規則の issue と同じにする（ランチャーがこの文言で [E] の対象と見分け、本文の全差し替え [U] に回さない）。
-  // 規則を当てても残る書き方は [E] では直せないので、別の文言にして [U] に回す
-  const rulesText = `${d.name || ''}\n${noteHtmlText(d.body)}`;
-  const fixed = applyNoteRules(rulesText);
-  for (const r of NOTE_TEXT_RULES) {
-    if (!r.detect.test(rulesText)) continue;
-    const issue = r.detect.test(fixed) ? `${r.issue}（[E] では直せない書き方）` : r.issue;
+  // 名前を付けて知らせる表現（ThoughtWorks・インボイス対応領収書・コピペで本番〜・生成時に禁止した誇張）。書き方によらず検出する。
+  // [E] で直せるかは表現ではなく、無料部分を原稿の描画に置き換えた後に問題が残らないか（inspectPublishedNotes の maintainFixes）で決める
+  for (const issue of noteTextIssues(`${d.name || ''}\n${noteHtmlText(d.body)}`)) {
     if (!issues.includes(issue)) issues.push(issue);
   }
   if (/^\s*#/.test(d.name || '')) issues.push('タイトルが # で始まる');
