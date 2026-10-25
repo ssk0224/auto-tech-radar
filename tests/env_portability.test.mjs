@@ -257,6 +257,18 @@ test("一時ディレクトリ: テストのプロセスごとに別の os.tmpdi
   }
 });
 
+test("一時ディレクトリ: テストが起動した子孫のプロセスは、入れ子の新しい一時ディレクトリを作らず、起動した側のものを使う（深くなるとパスが長くなり、Linux の Chrome が Unix ソケットのパスの長さ上限で起動できない）", () => {
+  const f = probeFile("tmp_nested_probe.mjs", `import os from "os"; import { spawnSync } from "child_process";
+const ask = (cmd) => spawnSync(process.execPath, ["-e", cmd], { encoding: "utf8" }).stdout.trim();
+const grandchild = "const { spawnSync } = require('child_process'); console.log(spawnSync(process.execPath, ['-e', 'console.log(require(\\"os\\").tmpdir())'], { encoding: 'utf8' }).stdout.trim())";
+console.log(JSON.stringify({ self: os.tmpdir(), child: ask("console.log(require('os').tmpdir())"), grandchild: ask(grandchild) }));`);
+  const r = runProbe(f, { withPreload: true, env: cleanEnv({ fakeGitHome: false }) });
+  assert.equal(r.status, 0, r.stderr);
+  const t = JSON.parse(r.stdout.trim().split("\n").pop());
+  assert.equal(t.child, t.self, "子プロセスが入れ子の一時ディレクトリを作っている");
+  assert.equal(t.grandchild, t.self, "孫プロセスが入れ子の一時ディレクトリを作っている");
+});
+
 test("リンク: fs を通さずに作ったリンク（OS のコマンド）も、テストのプロセスの終了時に見つけて失敗にする（Windows）", { skip: process.platform !== "win32" && "Windows 専用（Linux・macOS のリンクは権限が要らない。Windows の CI は管理者で動くので symlink が作れてしまい、owner PC との違いが出る）" }, () => {
   const f = probeFile(
     "oslink_probe.mjs",
@@ -293,6 +305,13 @@ test("リポへの書き込み: テストが作業ツリーにファイルを残
   const inTest = run(`test("writes", () => { fs.mkdirSync("out", { recursive: true }); fs.writeFileSync("out/f.json", "{}"); });`);
   assert.notEqual(inTest.status, 0, "テストの中でリポへ書いたのに失敗にならない");
   assert.match(inTest.stdout, /out\/f\.json/);
+});
+
+test("生成スクリプトのテスト用モック（mock_setup）は、--require で読む test_env.mjs と同じプロセスで動く（Node 22 は別スレッドの非同期フックの下で require した ESM を解決できず落ちる）", () => {
+  const setup = pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href;
+  const r = spawnSync(process.execPath, ["--import", setup, "-e", "import('@google/genai').then((m) => console.log(typeof m.GoogleGenAI))"], { cwd: root, encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr.slice(-800));
+  assert.equal(r.stdout.trim(), "function", "@google/genai がモックに差し替わっていない");
 });
 
 test("サイトのビルド用コピーは、一時フォルダが短い名前（8.3 形式の RUNNER~1 など）で渡されても、長い名前の実パスに作る", async () => {

@@ -45,8 +45,11 @@ function install() {
   const nested = process.env.ATR_TEST_RUN === "1" && !isTestFile; // テストが起動した子孫（テストファイルの設定を受け継ぐ）
 
   // ---- 5. プロセスごとの一時ディレクトリ ----
-  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "atr-proc-"));
-  for (const k of ["TMPDIR", "TMP", "TEMP"]) process.env[k] = tmpRoot;
+  // テストが起動した子孫は、起動した側の一時ディレクトリをそのまま使う（消すのも起動した側）。子孫ごとに入れ子を作るとパスが長くなり、
+  // Linux では Chrome の Unix ソケットのパス（SingletonSocket）が長さの上限（約 108 文字）を超えて起動できない
+  const ownsTmp = !nested;
+  const tmpRoot = ownsTmp ? fs.mkdtempSync(path.join(os.tmpdir(), "atr-proc-")) : os.tmpdir();
+  if (ownsTmp) for (const k of ["TMPDIR", "TMP", "TEMP"]) process.env[k] = tmpRoot;
   // リンクの登録簿（下の fs.symlink* が、作った junction を書く）。入れ子のテストプロセスは外側のものを使う
   if (!process.env.ATR_LINK_REGISTRY) process.env.ATR_LINK_REGISTRY = path.join(tmpRoot, ".links");
 
@@ -67,7 +70,7 @@ function install() {
   }
   if (!nested || !process.env.ATR_FAKE_HOME || !fs.existsSync(process.env.ATR_FAKE_HOME)) {
     const home = path.join(tmpRoot, "home");
-    fs.mkdirSync(home);
+    fs.mkdirSync(home, { recursive: true }); // 子孫が起動した側の一時ディレクトリを共有するので、すでにあってもよい
     process.env.ATR_FAKE_HOME = home;
     process.env.ATR_OWNER_DIR = path.join(home, ".auto-tech-radar");
   }
@@ -203,13 +206,16 @@ function install() {
   const shared = [];
   if (!isTestFile && !nested && workerThreads.isMainThread && process.execArgv.includes("--test")) {
     const existing = new Set(fs.readdirSync(tmpRoot));
+    // Windows は、atr-proc-* の中を 8.3 形式の短い名前（ATR-PR~1）のパスで触ると、その別名で変更の通知を出す。別名は実在する名前ではなく、外に書いたことにならない
+    const procAlias = process.platform === "win32" ? /^ATR-PR~\d+$/i : /(?!)/;
     const watcher = fs.watch(tmpRoot, (event, name) => {
-      if (name && !existing.has(name) && !name.startsWith("atr-proc-") && name !== path.basename(process.env.ATR_LINK_REGISTRY) && !shared.includes(name)) shared.push(name);
+      if (name && !existing.has(name) && !name.startsWith("atr-proc-") && !procAlias.test(name) && name !== path.basename(process.env.ATR_LINK_REGISTRY) && !shared.includes(name)) shared.push(name);
     });
     watcher.unref();
   }
 
   process.on("exit", () => {
+    if (!ownsTmp) return; // 子孫が使った一時ディレクトリの後始末・リンクの検査は、起動した側のプロセスが全体に対して行う
     if (shared.length) {
       process.exitCode = 1;
       fs.writeSync(2, `\nテストが、テストファイルのプロセスの一時ディレクトリの外（npm test 全体の一時ディレクトリ・並列のテストファイルと共有）に書いた。os.tmpdir() の中に作る:\n${shared.map((n) => `  - <npm test の一時ディレクトリ>/${n}\n`).join("")}`);
