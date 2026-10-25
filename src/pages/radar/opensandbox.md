@@ -1,104 +1,63 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "OpenSandbox - Secure, Fast, and Extensible Sandbox runtime for AI agents."
-description: "Secure, Fast, and Extensible Sandbox runtime for AI agents."
+title: "OpenSandbox - README の要点（原文）"
+description: "opensandbox-group/OpenSandbox の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-09"
-tags: ["Python", "OSS", "GitHub"]
+updatedDate: "2026-10-22"
+tags: ["Python","OSS","GitHub"]
 repoUrl: "https://github.com/opensandbox-group/OpenSandbox"
 repoCreatedAt: "2025-12-17"
 stars: 15739
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# OpenSandbox: 概要と革新性
+# OpenSandbox: 概要
 
-OpenSandboxは、AIエージェント向けに設計された、セキュア、高速、かつ拡張可能なサンドボックスランタイムです。AIアプリケーションがコード実行、コマンド実行、ファイル管理、ブラウザ/デスクトップ操作を隔離された環境で実行することを可能にします。Dockerでのローカル開発からKubernetesへのデプロイメントまで、統一されたサンドボックスAPIを通じてシームレスな運用を提供します。
+opensandbox-group/OpenSandbox は 2025-12-17 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 15,739 です。
 
-本プロジェクトは、OpenSSF Best PracticesおよびCNCF Landscapeに掲載されており、その信頼性とコミュニティにおける重要性が示されています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-主要機能は以下の通りです。
+- 原文（README）: Run AI agents in sandboxes on your own infrastructure.
+- 原文（README）: OpenSandbox gives AI applications isolated environments to execute code, run commands, manage files, and operate browsers or desktops.
+- 原文（README）: Start locally with Docker and deploy on Kubernetes through a unified sandbox API.
 
-*   **Fast Sandbox runtime**: Firecrackerベースの高速かつ高密度なサンドボックス実行環境。64 ms P50 (シリアル) / 125.4 ms P99 (10並行) の起動性能を誇り、メモリとディスク状態を保持した一時停止/再開をサポートします。
-*   **Agent working environments**: エージェントがコード実行、コマンド実行、ファイル管理を行うための組み込みAPIを提供し、コーディングエージェント、ブラウザ、デスクトップのサンドボックス内実行を可能にします。
-*   **Network access control**: 統一されたイングレスゲートウェイによるインバウンドトラフィックルーティングと、サンドボックスごとのエグレスポリシーによるアウトバウンドアクセス制御を実現します。
-*   **Credential Vault**: エージェントが外部サービスを呼び出す際に、実際の認証情報をサンドボックスワークロードに公開することなく安全に利用できるメカニズムを提供します。
-*   **Local to cluster**: Dockerでのローカル開発からKubernetesへのデプロイメントまで、統一されたライフサイクルAPIを提供。リソースプールとバッチ作成により、エージェント評価や強化学習（RL）トレーニングワークロードをサポートします。
-*   **SDKs, CLI, and MCP**: Python, Java/Kotlin, TypeScript/JavaScript, C#/.NET, Go向けのSDK、ターミナルCLI (`osb`)、およびMCP (Model Context Protocol) を通じたエージェント接続をサポートします。
-*   **Extensible sandbox protocol**: 定義されたサンドボックスライフサイクルおよび実行APIに基づき、カスタムランタイム統合を構築するための拡張性を提供します。
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart TD
-    UntrustedCode["AI生成コード / 外部実行スクリプト"] --> Manager["OpenSandbox デーモン"]
-    Manager --> Cgroup["Firecracker MicroVM / 隔離カーネル"]
-    Cgroup --> MicroVM["ミリ秒単位の軽量セキュア隔離環境"]
-    MicroVM --> CleanReturn["安全な実行結果のみ返却"]
-```
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-### 従来の技術スタックにおける問題点
+## 主な機能と構成（README の原文）
 
-AIエージェントが自律的にコードを実行したり、外部リソースにアクセスしたりする際、以下の課題が顕在化します。
+- 原文（README）: Firecracker sandboxes support pause/resume with memory and disk state preserved.
+- 原文（README）: Network access control / Route inbound traffic through a unified ingress gateway and control outbound access with per-sandbox egress policies.
+- 原文（README）: Credential Vault / Let agents call external services without exposing real credentials to sandbox workloads.
+- 原文（README）: SDKs, CLI, and MCP / Integrate with Python, Java/Kotlin, TypeScript/JavaScript, C#/.NET, or Go SDKs. Use osb from the terminal or connect agents through MCP.
 
-1.  **セキュリティリスク**: エージェントがホストシステムに直接アクセスしたり、機密情報を含む環境で実行されたりすると、悪意のあるコード実行や情報漏洩のリスクが高まります。特に、生成AIが生成したコードの安全性を保証することは困難です。
-2.  **環境の分離と一貫性**: 複数のAIエージェントが同時に動作する場合、互いの環境に影響を与えたり、依存関係の競合が発生したりする可能性があります。また、エージェントの評価やトレーニングにおいて、毎回クリーンで一貫した環境を迅速にプロビジョニングすることが課題となります。
-3.  **パフォーマンスとリソース効率**: 従来の仮想マシン（VM）は起動に時間がかかり、リソース消費も大きいため、多数のAIエージェントを並行して実行する際のボトルネックとなります。コンテナは軽量ですが、カーネル共有によるセキュリティ上の懸念が残ります。
-4.  **資格情報の管理**: AIエージェントが外部APIやサービスを利用する際、APIキーや認証情報を安全に管理し、サンドボックス環境に漏洩させずに利用させるメカニズムが不足しています。
-5.  **開発からデプロイメントへの移行**: ローカルでの開発環境と本番環境（特にKubernetesのような分散環境）でのサンドボックスの管理・運用に一貫性がなく、移行プロセスが複雑になりがちです。
+## インストール（README からの転記）
 
-### 本ツールが採用するアプローチと仕組み
-
-OpenSandboxはこれらの課題に対し、以下の技術的アプローチとアーキテクチャで解決策を提供します。
-
-1.  **マイクロVMベースのサンドボックス化 (Firecracker)**:
-    *   AWSが開発した軽量仮想化技術であるFirecrackerを基盤とし、従来のVMよりもはるかに高速な起動（P50で64ms）と、コンテナよりも高いセキュリティ分離（カーネルレベルでの分離）を両立します。
-    *   メモリとディスクの状態を保持したまま環境を一時停止・再開できるため、エージェント評価や強化学習における環境リセットのオーバーヘッドを大幅に削減します。
-2.  **統一されたサンドボックスAPIと制御プレーン**:
-    *   Dockerでのローカル開発環境からKubernetesクラスターへの大規模デプロイメントまで一貫したライフサイクルAPIを提供します。
-3.  **厳格なネットワーク制御とCredential Vault**:
-    *   エグレスポリシーによるアウトバウンド通信制御と、APIキーをサンドボックス内に直接露出させないCredential Vault機能により、機密情報の漏洩を防ぎます。
-
-## 競合ツール/商用SaaSとの徹底比較
-
-| 比較項目 | OpenSandbox (OSS) | 商用サンドボックスSaaS (E2B等) | 標準Dockerコンテナ |
-| :--- | :--- | :--- | :--- |
-| **隔離レベル** | Firecracker MicroVM (独立カーネル) | Firecracker MicroVM | ホストOSカーネル共有 |
-| **起動速度** | P50 64ms / 一時停止・再開対応 | 数百ms (クラウド通信含む) | 数百ms〜数秒 |
-| **データ主権・閉域運用** | オンプレミス / 自社VPC完結可能 | 外部クラウド送信が必要 | 自社環境可能だが隔離性に課題 |
-| **資格情報保護** | Credential Vault による非露出注入 | 環境変数渡し中心 | 環境変数渡し中心 |
-| **ライセンス・コスト** | Apache-2.0 (ソフトウェア利用料無料) | 実行時間に応じた従量課金 | OSS (管理基盤は別途構築) |
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1.  **企業向けAIコーディング・データ分析エージェントのセキュア実行基盤構築**:
-    *   社内LLMや自律型AIエージェントがPythonスクリプトやシェルコマンドを自動実行する際、ホストOSや社内ネットワークから隔離されたマイクロVM環境をKubernetesまたはオンプレミスサーバー上に構築します。
-2.  **ブラウザ自動操作（Playwright/Chrome）エージェントの並列実行クラスター**:
-    *   Web調査やE2Eテストを自動化するAIエージェント向けに、セッションごとにクリーンなブラウザ環境をミリ秒単位で立ち上げ、エグレスポリシーで通信先をホワイトリスト制御する基盤を提供します。
-3.  **AI生成コードの評価・検証パイプライン（CI/CD統合）**:
-    *   社内開発チームがAIで生成したコードのビルド・単体テスト・セキュリティ検証を隔離サンドボックス内で並列実行する検証基盤を構築します。
-
-## インストール & クイックスタート手順
-
-### 1. CLI および Python SDK のインストール
+以下は [README](https://github.com/opensandbox-group/OpenSandbox#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
 ```bash
-# Python SDK のインストール
-pip install opensandbox
+uvx opensandbox-server init-config ~/.sandbox.toml --example docker
 
-# CLI ツール (osb) でローカルサンドボックスを起動（Docker バックエンド利用時）
-osb init
-osb run --image python:3.12-slim -- python -c "print('Hello from OpenSandbox!')"
+uvx opensandbox-server
+
+# Show help
+# uvx opensandbox-server -h
 ```
 
-### 2. Python SDK によるサンドボックス操作例
-
-```python
-from opensandbox import Sandbox
-
-# 隔離サンドボックスの起動とコード実行
-with Sandbox.create(template="python-3.12") as sb:
-    result = sb.run_code("import platform; print(platform.platform())")
-    print(result.stdout)
+```bash
+uv pip install opensandbox
 ```
 
-## 商用利用可否 & ライセンス考察
+## ライセンス
 
-OpenSandboxは **Apache License 2.0** の下で公開されています。商用利用、社内システムへの組み込み、改変、および独自サービスとしての提供が認められており、特許権の明示的な付与条項も含まれているため、エンタープライズ領域でも導入しやすいライセンス形態です。導入時は著作権表示およびライセンス条文の保持を行ってください。
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/opensandbox-group/OpenSandbox/blob/main/LICENSE)
+
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

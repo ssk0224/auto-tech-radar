@@ -1,49 +1,32 @@
-# 海外急上昇OSS「JiuwenSwarm」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「jiuwenswarm」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-JiuwenSwarmは、オープンソースのAIエージェントシステムであり、大規模言語モデル（LLM）の能力を日常のコミュニケーションアプリを通じて直接利用可能にするインテリジェントなプラットフォームです。GitHubで5900以上のスターを獲得し、その革新的なアプローチが注目されています。
+## はじめに
 
-このプロジェクトの核心は、「マルチエージェントコラボレーション」を現実のものにすること。複雑なタスクを自然言語で指示するだけで、AIエージェントが自律的に分解し、専門エージェントチームを編成、協調してタスクを完遂します。さらに、エージェントの「スキル自己進化」機能により、エラーやユーザーの不満を検知して自動的にスキル定義を最適化し、継続的な改善を実現します。
+openJiuwen-ai/jiuwenswarm は 2026-03-05 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 5,978 です。
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart TD
-    Task["大タスク / ゴール"] --> Orchestrator["JiuwenSwarm スウォーム司令塔"]
-    Orchestrator --> AgentA["調査エージェント"]
-    Orchestrator --> AgentB["コード生成エージェント"]
-    Orchestrator --> AgentC["テスト＆監査エージェント"]
-    AgentA & AgentB & AgentC --> Memory["共有スウォームメモリ"]
-    Memory --> Result["高精度な最終納品物自動生成"]
-```
+## README の要点（原文）
 
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-現代のビジネス環境では、複雑なタスクの自動化と効率化が喫緊の課題です。しかし、従来のAIエージェントは単一タスクに特化しがちで、複数のステップや専門知識を要する複雑なプロセスには対応が困難でした。JiuwenSwarmは以下の課題を解決します。
+- 原文（README）: JiuwenSwarm is an Agent system that makes multi-agent collaboration truly work.
+- 原文（README）: It runs on a single machine or across a cluster, and you can reach it from a browser, a terminal, or the chat apps you already use.
+- 原文（README）: JiuwenSwarm supports multiple model platforms: Huawei Cloud MaaS, OpenAI, DeepSeek, DashScope, SiliconFlow, OpenRouter and other OpenAI-compatible APIs, as well as local model deployment.
+- 原文（README）: Multi-Agent Collaboration / The Leader decomposes a complex task and assembles teams, multi agents specialize and negotiate dynamically.
+- 原文（README）: Distributed Agent Swarm / Leader and Teammates deploy across processes and machines, coordinating at scale.
+- 原文（README）: Skill Self-Evolution / Automatically detects error signals and user dissatisfaction, then optimizes Skill definitions
+- 原文（README）: Tool Permissions & Security / Every step is under your control, tools require approval before execution, file access goes through a whitelist, and sensitive operations are intercepted
 
-*   **複雑なタスクの分解と実行:** リーダーエージェントが複雑なタスクを分解し、専門エージェントチームを動的に編成。各エージェントが連携し、タスクをエンドツーエンドで実行します。
-*   **エージェント間の協調とスケーラビリティ:** 分散型エージェントスウォームアーキテクチャにより、リーダーとチームメイトがプロセスやマシンを跨いでデプロイされ、大規模な協調作業を可能にします。
-*   **スキルの継続的な最適化:** 「Skill Self-Evolution」機能により、エージェントは実行結果やユーザーフィードバックから学習し、自身のスキル定義を自動で改善します。これにより、一度構築したスキルが陳腐化することなく、常に最新の状態に保たれます。
-*   **ヒューマン・イン・ザ・ループ (HITL) の統合:** SwarmflowというPythonスクリプトによる決定論的なマルチステージワークフローを通じて、人間による介入（`human` / `human_session`）を組み込むことができ、AIの自律性と人間の制御のバランスを取ります。
-*   **幅広いAIインフラ互換性:** Huawei Cloud MaaS、OpenAI互換API、ローカルモデルなど、多様なAIプラットフォームに対応し、既存のインフラを最大限に活用できます。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-## 競合ツール/商用SaaSとの徹底比較
-
-JiuwenSwarmは、既存の商用AIエージェントSaaSや他のオープンソースフレームワークと比較して、いくつかの明確な優位性を持っています。
-
-| 比較項目 | JiuwenSwarm (OSS) | 一般的な商用マルチエージェントSaaS | 単一タスク型AIエージェント |
-|---|---|---|---|
-| **自律的タスク分解** | ◎ リーダーエージェントによる動的編成 | ○ 定型テンプレート依存 | × 単一指示のみ対応 |
-| **スキル自己進化** | ◎ 実行結果・FBからの自動最適化 | × ベンダー側の更新待ち | × なし |
-| **デプロイ環境** | ◎ 完全社内閉域・オンプレミス/VPC対応 | × クラウドSaaS固定（機密漏洩リスク） | △ クラウド依存大 |
-| **HITL (人間介入)** | ◎ Swarmflowによる決定論的制御 | △ 設定柔軟性が低い | × 制御困難 |
-| **導入・運用コスト** | ◎ OSSのためライセンス料ゼロ・API費のみ | × 月額従量課金＋高額シート費用 | △ 機能に対して割高 |
-
----
-
-
---------------------------------------------------
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
+--------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: jiuwenswarm_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
@@ -51,5 +34,5 @@ JiuwenSwarmは、既存の商用AIエージェントSaaSや他のオープンソ
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub #Agent
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Python #GitHub

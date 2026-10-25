@@ -1,56 +1,28 @@
-# 海外急上昇OSS「filmcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「filmcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-動画マーケティングの内製化を進める企業や、YouTube・TikTok・SNS広告を大量展開するスタートアップが直面している最大のボトルネックをご存知でしょうか？
+storytold/filmcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-12 時点のスター数は 10,085 です。
 
-それは、**「動画生成AIツールがどれだけ進化しても、最終的なカット割り・字幕調整・BGMミックス・書き出しのワークフローが自動化できない」** という点です。
+## README の要点（原文）
 
-現在、多くの現場では「スクリプトで動画素材を生成したあと、結局人間の編集者がAdobe Premiere Proを開いて手作業で並べる」または「高額な外部SaaSの低機能な編集APIに毎月数十万円を払い、フレームズレやサーバー描画待ちに悩まされる」という深刻な課題を抱えています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-そんな中、GitHubで公開されるや否やスター数10,000を突破し、シリコンバレーのエンジニアたちを熱狂させているのが**「FilmCraft」**です。
+- 原文（README）: Video editing, color and sound; an open-source, professional non-linear video editor, built in pure Rust.
+- 原文（README）: An open-source, modern non-linear video editing workflow: native on macOS, Windows and Linux, and in the browser via WebAssembly.
+- 原文（README）: The H.264, HEVC, ProRes and AAC codecs are our own, written in Rust from the public specifications.
+- 原文（README）: A GPU compositor works in linear light.
+- 原文（README）: Frame math runs on exact integer time, so edits never drift.
+- 原文（README）: And every action in the app is a command that an AI agent can drive as precisely as you can.
+- 原文（README）: Saves are atomic, auto-save keeps a rolling set of versions, and a crash-recovery journal written about a second after each edit brings back unsaved changes after a crash or power cut.
 
-FilmCraftは、**Adobe Premiere ProのUIと編集機能をピュアRustで再実装したオープンソースのノンリニア動画編集基盤**です。FFmpegに一切依存せず、Rust独自の超高速コーデック・描画パイプラインを内蔵。そして何より、**AnthropicのMCP（Model Context Protocol）とJSON-RPC APIをネイティブサポート**しています。つまり、「AI（Claude等）がPremiere Proを直接触るかのように、タイムラインの切り貼り、カラー調整、書き出しまでをミリ秒単位で自律実行できる」のです。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-### この記事で受託・DX案件の提案材料がそろう理由
-本記事では、このFilmCraftを活用して、
-- クライアント企業の「広告動画量産コストを削減する内製自動化システム」を**受託開発として提案する手法**
-- 自社で月額課金を得る**ヘッドレス動画編集マイクロSaaSのアーキテクチャ設計**
-- 動作未検証の例を含む**MCP連携設定・自動化スクリプト**
-を網羅的に解説します。技術調査にかかる数十時間の工数をショートカットし、即座に事業収益へ転換できるパッケージです。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-FilmCraftがプロ仕様の商用システムとして通用する理由は、その妥協のないアーキテクチャにあります。
-
-- **完全なPremiere互換ワークフロー**: ソース・プログラムモニター、3点編集、リップル/ロール/スリップ/スライドトリム、Lumetriスタイルの32bitカラーグレーディング、キーフレーム制御。
-- **絶対時間整数演算**: 毎秒254,016,000,000ティックを採用し、23.976fpsや29.97ドロップフレーム編集でも音声と映像のズレが理論上ゼロ。
-- **外部依存ゼロのRust独自コーデック**: H.264、HEVC、ProRes 422HQ、AAC等をピュアRustで独自実装。
-- **650以上のエンジンコマンドをMCP化**: すべてのUIアクションがAPI/MCP経由で実行可能。
-
-```bash
-# クイックスタート: MCPサーバーの起動
-cargo run --release -p filmcraft-cli -- mcp
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / Web広告代理店 / 縦型ショート動画制作会社 |
-| **商用SaaS化の狙い目** | APIドリブン型 自動動画レンダリング基盤 / 社内特化型NLE |
-| **実装・導入難易度** | 中級（Rustビルド / MCP連携 / TypeScriptまたはPython連携） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（MCP設定 / 自動化スクリプト）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -61,5 +33,5 @@ cargo run --release -p filmcraft-cli -- mcp
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #art #video #video_editing

@@ -32,3 +32,23 @@ export function findHype(text) {
   }
   return hits;
 }
+
+// 公開する文面（Web 記事・note の無料部分・X）に書かない、確かめられない評価の語（leakhunt C3、2026-10-22）。
+// README と照合できない最上級・絶対の評価や、根拠の無い評判（注目・熱狂など）は、README に同じ主張があっても訳語の誇張になりやすい。
+// HYPE_RULES と違い、生成時の検査に加えて掲載中のすべての Web 記事と note の無料部分にも使う（tests/hype_check.test.mjs）
+export const UNVERIFIABLE_PRAISE_RULES = [
+  [/革新的|革命的|画期的|劇的|飛躍的|極限|究極|最高峰|最強|世界(?:初|最高|最速|一)|史上(?:初|最)|業界(?:初|最|唯一)|唯一無二|完璧|無敵|神ツール|爆速|超高速|超軽量|妥協のない/, "確かめられない最上級・絶対の評価"],
+  [/完全(?:に)?(?:排除|除去|防止|防ぐ|防げ|解決|保証|互換|準拠|自動化|再現|無料)|ゼロクラッシュ|(?:ハルシネーション|幻覚)[^\n。]{0,6}(?:ゼロ|0%|完全)/, "確かめられない絶対の保証"],
+  [/シリコンバレー|震撼|熱狂|席巻|独走|世界中(?:の|で)[^\n。]{0,12}(?:注目|話題|エンジニア)|注目を集め/, "根拠の無い評判・注目度"],
+];
+export const UNVERIFIABLE_PRAISE_PROMPT_RULE = "- 「革新的」「劇的」「極限」「最高峰」「完全に排除」「超高速」のような最上級・絶対の評価や、「シリコンバレーで話題」「注目を集めている」のような評判は書かないこと。README に書かれている事実（機能・数値）だけを書くこと。";
+
+export function findUnverifiablePraise(text) {
+  if (!text) return [];
+  const hits = [];
+  for (const [re, why] of UNVERIFIABLE_PRAISE_RULES) {
+    const m = String(text).replace(/```[\s\S]*?```/g, "").match(re);
+    if (m) hits.push(`${why} ("${m[0]}")`);
+  }
+  return hits;
+}

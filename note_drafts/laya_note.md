@@ -1,63 +1,28 @@
-# 海外急上昇OSS「laya」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「laya」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-「LLMを使った社内自動化を進めているが、APIコストが膨らみすぎて費用対効果が合わない」
-「問い合わせの自動トリアージを構築したが、レスポンスに2秒かかり、さらに月に数回JSONパースエラーでパイプラインが止まる」
+NandhaKishorM/laya は 2026-09-18 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 31,976 です。
 
-現在、企業のAI推進部門や受託開発の現場で、このような**「LLM疲れ」**とも呼べる現象が起きています。
+## README の要点（原文）
 
-GitHubスター数31,000を突破した**「laya」**は、この課題に対する決定打です。
-「テキストを生成させずに、33ミリ秒・単一フォワードパスで型安全な判定を行う」という**Non-autoregressive（非自己回帰型）System 1意思決定エンジン**という独自のアプローチをとっています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-> **💡 この記事を読めば、クライアントへの受託開発・AI導入の提案材料がそろう理由**
-> 多くの企業は「分類やルーティングのためだけに毎月数十万〜数百万円のOpenAI API代」を払っています。
-> 本記事のアーキテクチャと提案ロジックを活用すれば、**「APIコストを90%削減」「判定速度を30倍に高速化」「ハルシネーション完全排除」**という、経営陣・DX部門長が断る理由のないバリュープロポジションを提示できるからです。
+- 原文（README）: Multilingual, non-autoregressive System 1 decision engine.
+- 原文（README）: With uv, run uv add laya in a uv project or uv pip install laya in a virtual environment. Python 3.10 or newer.
+- 原文（README）: Long documents. laya-multilingual reads up to 8,192 tokens with max_len=8192.
+- 原文（README）: Laya evaluates typed questions (choice, score, noul) over any state (text, email, ticket or JSON document) in a single forward pass — 33 ms for one question, 7.2 ms/question batched, measured on a T4.
+- 原文（README）: Three checkpoints, and a Router that picks between them per request:
+- 原文（README）: The Router detects the script and language and sends non-English text to laya-multilingual:
+- 原文（README）: predict_batch in the Python HTTP SDK, one POST /v1/systemone/batch for a list of states, results in input order, no splitting and no fallback to single requests (#1297).
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ概要
-
-`laya`は、ModernBERTおよびmmBERTをベースに、厳密適格スコアリングルール（RLCD）を用いて強化学習された意思決定特化型モデルです。
-
-1. **単一フォワードパスでの複数判定**: 1回の推論（約33ms）で、「カテゴリ分類（Choice）」「スコアリング（Score）」「確信度付きYes/No（Noul）」を同時に確定。
-2. **多言語自動ルーティング**: 日本語、英語を含む100以上の言語を内蔵ルーターがサブミリ秒で判別し、最適なモデルへディスパッチ。
-3. **長文サポート**: 従来の分類モデル（512トークン制限）と異なり、最大8,192トークンまで処理可能。
-
-```python
-from laya import Router
-
-router = Router()
-result = router.predict(
-    "請求書が重複しています。今日中に返金されなければ解約します。",
-    questions={
-        "dept": {"type": "choice", "instructions": "担当部門", "criteria": {"billing": "請求", "tech": "技術"}},
-        "churn": {"type": "noul", "instructions": "解約リスクがあるか"}
-    }
-)
-# result["answers"]["dept"]["choice"] -> 'billing'
-# result["answers"]["churn"]["noul"]  -> 0.982
-```
-
----
-
-### 📊 商用化・受託開発シミュレーション早見表
-
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / カスタマーサポート部門 / スタートアップ |
-| **商用SaaS化の狙い目** | 高速トリアージAPI / CGM向けリアルタイムモデレーションSaaS |
-| **実装・導入難易度** | 中級（Docker / Python / FastAPI / TypeScript） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（Docker/FastAPI/TypeScript）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -68,5 +33,5 @@ result = router.predict(
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Python #calibration #classification #huggingface

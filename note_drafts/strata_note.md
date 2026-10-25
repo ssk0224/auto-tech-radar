@@ -1,65 +1,28 @@
-# 海外急上昇OSS「Strata」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「Strata」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-GitHubで瞬く間に19,000スターを突破したC++推論エンジン「**Strata**」。
-その正体は、これまでクラウド上のA100/H100クラスタでしか動かなかった**1250億パラメータ（125B）級AI「Qwen3.8-Flash-Next」を、市販の12GBゲーミングPCでサクサク動作させる画期的なエンジン**です。
+Niko1221/Strata は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-10 時点のスター数は 19,544 です。
 
-多くの企業が直面している壁があります：
-- 「Claude CodeやCursorを全社導入したいが、ソースコードや顧客データが海外クラウドに飛ぶためセキュリティ審査で却下された」
-- 「月額数万円〜数十万円におよぶAPI従量課金が膨らみ、開発コストを圧迫している」
-- 「かといってローカルLLMを試すと、スペック不足で7Bや8Bの小型モデルしか動かず、回答精度が実用に耐えない」
+## README の要点（原文）
 
-Strataは、このジレンマを完全に破壊しました。**12GB VRAMの一般的なGPUと32〜64GBのメモリがあれば、超巨大モデルが毎秒50〜90トークンという人間の読書速度を遥かに超えるスピードで動作**します。さらに、OpenAI互換およびAnthropic互換APIを標準実装しているため、開発者が使い慣れたコーディングエージェントへノーコードで即座に差し替え可能です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-### 💡 なぜこの記事が受託・DX案件の提案材料になるのか？
-企業の情シス部門やDX推進チームが喉から手が出るほど求めているのは、「**情報漏洩リスク完全ゼロで、商用SaaS並みに賢いAI開発環境の社内構築**」です。
-Strataを使えば、高額なクラウドサーバーを契約することなく、既存の社内PCや安価なワークステーション数台に導入するだけで完全オンプレミスのAI環境が完成します。
+- 原文（README）: Strata runs Qwen3.8-Flash-Next, a 125-billion-parameter model that normally needs a server, on a normal PC.
+- 原文（README）: Your chats and files stay on your PC.
+- 原文（README）: It speaks the OpenAI and Anthropic APIs, so Claude Code, Codex CLI, OpenCode and other agents connect to it.
+- 原文（README）: You need at least 32 GB of RAM and graphics memory (VRAM) together. On a Mac or a Ryzen AI Max, that is the unified memory.
+- 原文（README）: Two or three cards of the same make can share a model (multi-GPU). Strata never splits a model across NVIDIA and AMD cards.
+- 原文（README）: The app has the engine inside: install it, pick a model, chat.
+- 原文（README）: What Strata downloads, when it uses the internet and how it checks downloads is in docs/SAFETY.md.
 
-本記事では、このStrataをコアにした受託開発提案シナリオ、自社マイクロSaaS化のビジネスモデル、本番環境構成テンプレート、そしてクライアントの役員会をそのまま通過させる「導入企画・提案書テンプレート」を完全パッケージとして提供します。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
----
-
-## 主な機能とアーキテクチャ概要
-
-Strataが12GB GPUで125Bモデルを動作させられる秘密は、独自の3階層オフロードと投機的デコーディングにあります。
-
-1. **MoE（Mixture of Experts）最適配置**: 24,576エキスパートのうち、頻出エキスパートのみをGPU VRAM（12GB）に、全体をメインメモリ（32〜64GB）に配置し、ディスク（NVMe SSD）を巨大キャッシュテーブルとして連動。
-2. **投機的デコーディング**: 小型モデルが予測したトークンを巨大モデルが一括検証することで、推論時間を1.6〜1.8倍に短縮。
-3. **OpenAI / Anthropic デュアル互換API**: `http://127.0.0.1:8080/v1` で起動し、Claude Code（`ANTHROPIC_BASE_URL`）やCursorから直接呼び出し可能。
-4. **マルチモーダル対応**: 画像入力（Vision）にも対応し、図面やUIスクリーンショットの解析が可能。
-
-### クイックスタート（3分で検証環境を起動）
-```bash
-# リポジトリ取得
-git clone https://github.com/Niko1221/Strata.git
-cd Strata
-
-# Windowsの場合: START-HERE.bat を実行
-# Linuxの場合:
-chmod +x setup.sh
-./setup.sh
-```
-画面の対話形式プロンプトに従ってモデル（Coder / IQ2_XS / IQ3_S）を選択するだけで、ブラウザから `http://127.0.0.1:8080` のダッシュボードとAPIが即時立ち上がります。
-
----
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | セキュリティ基準の厳しい製造業・金融・医療・受託開発企業 |
-| **商用SaaS化の狙い目** | 機密ソースコード監査・オフライン特化型ドキュメント検索アプライアンス |
-| **実装・導入難易度** | 中級（Docker / API連携 / インフラ構築） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -70,5 +33,5 @@ chmod +x setup.sh
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Cpp #GitHub

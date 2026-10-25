@@ -1,55 +1,30 @@
-# 海外急上昇OSS「OpenDots」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「OpenDots」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-いま、シリコンバレーのAIエンジニアたちの間で「チャットボットの時代は終わった」と公然と言われ始めています。
+CopilotKit/OpenDots は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-19 時点のスター数は 5,570 です。
 
-画面の向こうにいるAIにテキストを打ち込み、返ってきた回答を人間がコピー＆ペーストしてSlackに貼り、Googleドキュメントに清書する――そんな「AIを使っているはずの人間が作業員化している」状況に、多くの企業が限界を感じています。
+## README の要点（原文）
 
-その突破口としてGitHubでスター数5,500を超え、活発にフォークされているのが**「OpenDots」**です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-OpenDotsの本質を一言で言えば、**「各エージェントが自分専用のパソコン（コンテナ・ブラウザ・ファイル環境）を持ち、Web画面・音声通話・Slackの間を自由に移動しながら自律作業する常駐型AI同僚基盤」**です。
+- 原文（README）: An open-source template for persistent AI agents, each with its own computer.
+- 原文（README）: Built with CopilotKit and AG-UI.
+- 原文（README）: A template, not a hosted product. You run the application and configure its infrastructure.
+- 原文（README）: Each Dot can have its own computer, using OpenBot's container supervisor and computer service.
+- 原文（README）: The application keeps service credentials on the server and derives a different computer credential for each Dot.
+- 原文（README）: Give a Dot tools from any MCP server, such as email, calendar, GitHub, or your own services. Read-only tools run on their own.
+- 原文（README）: Any other tool pauses for an Approve & run card in chat, and only your approval runs it.
+- 原文（README）: Pages stay in the local workspace database.
 
-### なぜこの記事が受託案件の提案材料になるのか？
-企業のDX担当者や経営層が求めているのは「ChatGPTのラッパー」ではありません。
-- **「自社のSlackに常駐して、指示を出したら勝手にWebで競合調査してドラフトを作ってくれる仕組み」**
-- **「重大な決定や外部送信の時だけ、人間のスマホに『承認しますか？』と通知をくれる仕組み」**
-- **「機密情報を外部SaaSに吸われない、自社専用インフラで動くAI基盤」**
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-これらを最初からアーキテクチャとして備えているのがOpenDotsです。このオープンソースをベースに自社向けにカスタマイズする形で、クライアントに提案できます。期間と費用の目安は、有料エリアの工数見積表で前提とあわせて示しています。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-OpenDotsは、CopilotKitが提唱する「AG-UI（Agent-User Interface）」と「OpenBot（コンテナスーパーバイザー）」の上に構築されています。
-
-1. **Spaces（ドキュメントワークスペース）**:
-   Notionのようにスラッシュコマンド、自動保存、バージョン管理が可能なドキュメント基盤。AIが作業した成果物が自動的にここに蓄積されます。
-2. **Dot Computers（エージェント専用PC）**:
-   各AI同僚（Dot）に独立したDockerコンテナと専用ブラウザプロファイルを付与。ファイルの永続化はもちろん、ターミナルでのコマンド実行まで隔離環境で行います。
-3. **Omni-Channel（Web / Realtime Voice / Slack）**:
-   Web上の画面操作だけでなく、WebRTC経由の音声通話で指示を出し、外出先からはSlackのメンションでタスクの進捗を確認・承認できます。
-4. **Human-in-the-Loop（人間の承認介入）**:
-   破壊的な操作や外部通信を行う際、UI上に「Approve & Run」カードが自動出現。人間が承認ボタンを押すまでエージェントが待機します。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / 法人リサーチ部門 / 社内情シス / スタートアップ |
-| **商用SaaS化の狙い目** | 業界特化型バーティカルAI社員（法務・知財調査・マーケ等） |
-| **実装・導入難易度** | 中級（Docker / TypeScript / API連携） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへそのまま提出できる「社内DX・AI導入提案書 Markdown完全版」
-- 根拠を詰めた「詳細工数・見積シミュレーション表」
-- 公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & .env 設定キット」
-- 2026年最新規格「Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 定義」
-- CTOや経営層のセキュリティ懸念を突破する「キラー営業トーク ＆ 想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -60,4 +35,5 @@ OpenDotsは、CopilotKitが提唱する「AG-UI（Agent-User Interface）」と�
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #TypeScript #GitHub

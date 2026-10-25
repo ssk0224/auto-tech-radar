@@ -1,55 +1,39 @@
-# 海外急上昇OSS「universal-modder」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「universal-modder」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-GitHubで瞬く間に★7,900を突破した**「universal-modder」**。一見すると「AIを使ってゲームのModを全自動で作る趣味向けハッカーツール」に見えるかもしれません。
+rehan-remade/universal-modder は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 7,929 です。
 
-しかし、シリコンバレーのトップエンジニアや受託開発企業が注目している理由は、まったく別の次元にあります。このOSSの本質は、**「ソースコードが存在しない、あるいはブラックボックス化したバイナリソフトウェアを、AIエージェントが自律的に逆コンパイル・解析し、APIフックやパッチを当て、画面操作と描画キャプチャで動的検証まで完了させる《自律型リバースエンジニアリング＆QA基盤》」**であるという点です。
+## README の要点（原文）
 
-これまで数百万円の予算と数ヶ月の期間が必要だった「レガシーアプリの解析」「Windowsネイティブソフトウェアの自動化」「ゲーム・3D空間内でのコンテンツプロトタイピング」が、**Claude Code等の最新LLMと連携させるだけで、わずか数時間〜数日で完結**する時代が到来しました。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-この記事では、この「universal-modder」のアーキテクチャをビジネスに応用し、**クライアントへ「レガシーシステム自動化・AI自律QAシステム導入」を受託提案するための実践ノウハウ**をまとめています。
+- 原文（README）: Skills, tools and a shared knowledge base that let any AI coding agent mod almost any PC game you own.
+- 原文（README）: Each gets the same skills (Agent Skills format), the fal MCP server, and the um CLI.
+- 原文（README）: You also need Git, Python 3.10+ and ffmpeg. uv is recommended.
+- 原文（README）: Inside a clone, each agent finds the skills where it looks for them: .agents/skills (Codex, Gemini CLI, Copilot, Cursor, OpenCode) and .claude/skills (Claude Code) are copies of skills/.
+- 原文（README）: For assets, get a fal API key. It powers both the fal MCP server and um fal.
+- 原文（README）: Blender is needed for 3D → sprite renders.
+- 原文（README）: Windows games are driven natively or from WSL.
+- 原文（README）: The agent starts with the mod-any-game skill and runs the same loop every time:
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-## 主な機能とアーキテクチャ概要
-
-`universal-modder`の中核機能は、以下の4つの自律モジュールに集約されます。
-
-1. **`um scan` & 逆コンパイルエンジン**:
-   実行ファイルからエンジン種別（Unity、Unreal、.NET、Native C++）、アンチチート、依存関係を瞬時に特定。ILSpyやCpp2IL、Ghidraを裏側でキックしてコード構造をマップ化。
-3. **`um win` 低レイヤーOS自動制御**:
-   DirectInputレベルのマウス/キーボードエミュレーション、DirectX/Vulkanフレームキャプチャ、プロセス単位の排他的オーディオキャプチャ。
-4. **自己増殖型ナレッジベース（Knowledge Base）**:
-   AIが遭遇したバグやエンジンの落とし穴をMarkdown形式の知見として自動蓄積。次回の解析効率を指数関数的に向上。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / ゲーム開発スタジオ / 産業シミュレータ運用企業 / 製造業（Windows専用CAD・旧世代CAM連携） |
-| **商用SaaS化の狙い目** | レガシーバイナリAPI化基盤 / 自律探索型インゲームQAプラットフォーム |
-| **実装・導入難易度** | 中級（Docker / Python / PowerShell / LLMプロンプトエンジニアリング） |
-
----
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへそのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- 意思決定者を唸らせる「詳細工数・見積シミュレーション表」
-- 公式のビルド手順をもとにした「Docker コンテナ化の例」（動作要検証）
-- 受注率を極限まで高める「キラー営業トーク ＆ 想定問答集」
-- 独自マイクロSaaS（API化基盤・自動テスト基盤）の設計図
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**  
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
----
+--------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: universal-modder_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
+---
 ### 🎁 【メンバーシップのご案内】
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub #ClaudeCode
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Python #fal #mcp #modding

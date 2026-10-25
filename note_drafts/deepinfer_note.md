@@ -1,46 +1,30 @@
-# 海外急上昇OSS「DeepInfer」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
+# 「DeepInfer」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
-近年、大規模言語モデル（LLM）のビジネス活用が加速する一方で、その推論コストとパフォーマンスが大きな課題となっています。特に、DeepSeekモデルのような高性能なLLMを実サービスに導入する際、いかに高速かつ効率的に推論を実行するかが、サービスの成否を分けます。
+## はじめに
 
-今回ご紹介する「DeepInfer」は、DeepSeek AIが自社の大規模プロダクションサービスを支えるために開発し、オープンソース化した高性能推論フレームワークです。GitHubで12,000を超えるスターを獲得し、その革新的な最適化技術と実運用実績から、世界中のエンジニアと企業から熱い注目を集めています。
+deepseek-ai/DeepInfer は 2026-10-16 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 12,071 です。
 
-**この記事では、DeepInferをあなたのビジネスに導入・活用するための実践的なノウハウを凝縮しました。クライアントへの導入提案に必要な材料（提案書・工数見積・導入手順）がこの1記事で全て揃います。** これを読めば、あなたはDeepInferを活用した新規事業の立ち上げや、既存サービスのAI推論基盤強化を自信を持って提案できるようになるでしょう。
+## README の要点（原文）
 
-## 主な機能とアーキテクチャ概要
-DeepInferは、DeepSeekモデルの推論を極限まで最適化するために設計されています。その核となるのは、GPU/NPUに特化した低レベルカーネル最適化、高度な並列処理、そしてインテリジェントなバッチスケジューリングです。これにより、高いスループットと低いレイテンシを両立させ、大規模なAIサービスを安定稼働させることが可能になります。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-**主要な機能:**
-*   **最適化されたカーネル:** FlashMLA, DeepGEMMなど、DeepSeekモデルに特化した高性能カーネル群。
-*   **高度な並列処理:** Attention DP, MoE EPなど、大規模モデルの効率的な分散推論を可能にする技術。
-*   **DSparkと信頼度に基づく検証:** ドラフトトークンと信頼度推定による高速デコーディング。
-*   **非同期スケジューリング:** CPUとデバイス実行のオーバーラップによるゼロオーバーヘッドバッチ処理。
-*   **構造化出力:** 正規表現やJSONスキーマに基づいた出力制御。
+- 原文（README）: This open-source release provides offline inference with the core features needed for serving at scale.
+- 原文（README）: NVIDIA SM100 GPUs
+- 原文（README）: Huawei Ascend 950 NPUs
+- 原文（README）: Optimized kernels: FlashMLA, DeepGEMM, DeepEP, TileKernels, DeepSelect, and custom TileLang kernels.
+- 原文（README）: DSpark and confidence-scheduled verification: accelerate decoding with draft tokens and use confidence estimates to schedule verification.
+- 原文（README）: Asynchronous scheduling: overlap CPU batch scheduling with device execution. Enabled by default.
+- 原文（README）: Batch-invariant inference: keep model results identical across different batch compositions.
+- 原文（README）: Structured outputs: constrain generation to a regex, JSON schema, or EBNF grammar.
 
-**クイックスタート手順（概要）:**
-DeepInferの導入は、Linux環境とPython 3.12、そしてNVIDIA CUDA 13またはHuawei CANN 9.2があれば比較的シンプルです。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-1.  Python 3.12環境を準備・アクティベート。
-2.  `DEEPINFER_ACCELERATOR` 環境変数を設定（`nvidia` または `ascend`）。
-3.  `./build.sh` スクリプトを実行してビルド。
-4.  `python examples/offline_inference.py` でオフライン推論を実行。初回実行時にDeepSeek-V4.1-Flashモデルが自動ダウンロードされます。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 約360万円（詳細工数見積表に基づく） |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ / 大規模LLM活用企業 |
-| **商用SaaS化の狙い目** | DeepSeekモデル特化型推論APIサービス / 独自ワークフロー特化型マイクロSaaS |
-| **実装・導入難易度** | 中級（Python, GPU/NPU環境構築, API連携） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- クライアント提示用「詳細工数・見積シミュレーション表」
-- 公式READMEに基づく「導入手順（Docker Compose は対応している場合のみ）」
-- 導入検討で出る懸念への「想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -52,4 +36,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Python #GitHub

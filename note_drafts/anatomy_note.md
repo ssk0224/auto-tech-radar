@@ -1,61 +1,29 @@
-# 海外急上昇OSS「anatomy」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「anatomy」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-「システムアーキテクチャや製品の内部構造を、もっと直感的にクライアントへ伝えられないか？」
+wheresryan22/anatomy は 2026-10-08 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 9,975 です。
 
-DX推進やクラウド移行の現場で、必ず直面するのが「**見えない複雑性をどう可視化するか**」という巨大な壁です。従来のMermaidやDraw.ioで描かれた四角と線のダイアグラムでは、非エンジニアの経営層やクライアント企業の意思決定者にシステムの本質的な価値（堅牢性、並列処理、リアルタイム性）が伝わりません。結果として、「なぜこれほど開発費がかかるのか」を納得してもらえず、失注や値引き圧力に晒されることになります。
+## README の要点（原文）
 
-その膠着状態を一撃で打破するOSSとして、今シリコンバレーを中心にGitHubで多くのスター（★9,900超）を集めているのが**「anatomy」**です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-anatomyは、Claude Codeなどの次世代AIエージェントと直結し、**「抽象的な技術概念を、精密な動く物理機械（SVG / WebGL / 3D）に落とし込んで完全自動生成する」**という異次元の能力を持ちます。
+- 原文（README）: A Claude skill that explains an idea by building it as a real, working object.
+- 原文（README）: Also runs in Antigravity, OpenCode, Codex and MiniMax Code.
+- 原文（README）: Crafted, interactive isometric figures with many small precise parts, in SVG, WebGL and 3D.
+- 原文（README）: Ask Claude for a figure that explains a technical idea, and Anatomy has it invent a physical thing whose working is the concept.
+- 原文（README）: Then Claude builds that thing out of dozens of small, solid, shaded parts, puts it in a framed card with a title, a hint and a live readout, makes it move calmly under the pointer and the keyboard, and checks its own work by zooming in on every joint.
+- 原文（README）: Every number the figure shows comes from the same small model that moves its parts.
+- 原文（README）: No API keys and nothing to npm install: the kit uses only Node's built-in modules.
+- 原文（README）: Anatomy is a standard Agent Skill: a folder with a SKILL.md at its root. This repository is that folder.
 
-### なぜこの記事が受託案件の提案材料になるのか？
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-通常、Web上で動くインタラクティブなアイソメトリック（等角投影）図や3Dグラフィックを制作する場合、以下のような膨大なコストがかかります：
-- 専門3Dデザイナーへの発注：50万〜100万円
-- WebGL / Three.js フロントエンド実装：80万〜120万円
-- 制作期間：1〜2ヶ月
-
-anatomyを活用すれば、AIエージェントに「アルゴリズムの仕様とパラメータ」を入力するだけで、**わずか数時間で商用品質のインタラクティブ動的モデル（HTML/React）が完成**します。
-
-本記事では、このコスト面の強みを活かし、企業の開発部門やDX推進チームへ受託案件を提案するためのシナリオ、自社マイクロSaaSへの転用設計、そして実務で使える設定一式をまとめています。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-anatomyの真骨頂は、単なるイラスト生成ではなく「**動作する物理モデルの幾何学的コード生成**」にあります。
-
-1. **メタファー生成力**: レート制限を「水門とバケット」、CDNキャッシュを「物理的なピンタンブラー錠」など、動的な機械構造へ自律変換。
-2. **ゼロ依存の精密描画（Zero-Dependency）**: React、Vueはもちろん、単一の静的HTMLやスタンドアロンSVGとして出力可能。npmパッケージの依存トラブルがゼロ。
-3. **自己修復型の幾何監査（Audit Engine）**: 部品同士の衝突やパイプのズレをヘッドレスブラウザで自動検証し、破綻のない図面をAI自ら反復修正。
-
-```bash
-# 1行でClaude Codeにスキルを導入
-npx skills add wheresryan22/anatomy -g -a claude-code
-
-# プロンプト実行例（トークンバケット制限器を動的機械として生成）
-/anatomy explain how a token bucket rate limiter works, interactive
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | 大手SaaS企業（製品解説LP）/ DX推進企業 / 金融・IoT製造業 |
-| **商用SaaS化の狙い目** | 「アーキテクチャ・動的インフォグラフィック生成」マイクロSaaS |
-| **実装・導入難易度** | 中級（Node.js / Claude Code / React または 静的Web統合） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -66,5 +34,5 @@ npx skills add wheresryan22/anatomy -g -a claude-code
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #JavaScript #svg #vizualization #agent_skill

@@ -1,58 +1,38 @@
-# 海外急上昇OSS「answer-me-with-html」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「answer-me-with-html」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、世界中で注目されているのか？
+## はじめに
 
-「AIエージェントに質問したら、ターミナルが文字化けしたような巨大なテキストで埋め尽くされて読む気を失った」
-「LLMにHTMLで回答させたら、生成に1分近くかかり、APIトークン代も跳ね上がった」
+QingYunA/answer-me-with-html は 2026-10-02 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,358 です。
 
-Claude CodeやCursorなどの自律型AIエージェントを使い倒しているエンジニアなら、誰もが一度はこの壁に直面したことがあるはずです。
+## README の要点（原文）
 
-今、GitHubで急激にスター数を伸ばしているオープンソースソフトウェアが **`answer-me-with-html`**（スター数2,300超）です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-このツールのコンセプトは極めて明快です。
-**「AIエージェントのテキストの壁を、人間が一瞬で理解できる1ページの美麗なHTMLに変える」**
+- 原文（README）: An agent skill. Ask a hard question, get a page you can actually read instead of a wall of text.
+- 原文（README）: The agent writes a short Markdown draft and hands it to the CLI that ships with the skill.
+- 原文（README）: With this skill the model writes only a Markdown draft.
+- 原文（README）: This skill answers the whole question as one page: text, tables, code and diagrams, from a Markdown draft, in any agent that can run a shell command.
+- 原文（README）: You need Node.js 20 or newer. There is no npm install step. The CLI is bundled inside the skill.
+- 原文（README）: The buttons in the top-right corner switch the theme and light/dark mode, collect your reply, and copy the Markdown that produced the page.
+- 原文（README）: The voice is inside the page, so it plays offline.
+- 原文（README）: Change settings with a slash command. There are no config files to edit by hand.
 
-しかし、単なる「HTML出力プロンプト」ではありません。
-LLMの出力トークン数を**従来の約1/8に激減させ、生成速度を2.6倍に高速化**する画期的なアーキテクチャが実装されている点こそが、シリコンバレーをはじめとする世界中のテックコミュニティで熱狂されている理由です。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
----
-
-## 主な機能とアーキテクチャ
-
-### 1. なぜ「手書きHTML」ではなく「Markdownドラフト」なのか？
-LLMがHTMLを直書きする場合、トークンの大半は「CSSスタイル」「SVGのパス座標」「タグの閉じ忘れ防止」に浪費されます。これはAPI費用の増大だけでなく、生成速度の致命的な低下を招きます。
-
-`answer-me-with-html` では、LLMは最小限のMarkdown構造（シーケンス定義、フロー図の接続関係、テキスト）のみを出力します。その出力をローカルの専用CLIが受け取り、わずか50ミリ秒で完全なシングルページHTMLにコンパイルします。
-
-| 項目 | HTMLを直書きさせた場合 | answer-me-with-html |
-| :--- | :--- | :--- |
-| **出力トークン数** | 平均 4,893 tokens | **平均 612 tokens (約88%削減)** |
-| **応答待ち時間** | 約31秒 | **約12秒 (2.6倍高速)** |
-| **図の正確性** | 座標ズレ・矢印崩れ多発 | **Dagreエンジンにより完全自動整列** |
-
-### 2. 多彩なコンポーネントと3Blue1Brown風の動画生成
-HTML内には以下の要素が美しくレンダリングされます：
-- **シーケンス図 / フロー図 / ER図**: エンジニアリング品質の作図
-- **実ファイルコード引用**: プロジェクト内の実コードを行番号指定で直接インライン表示
-- **インタラクティブ決定機能 (`ask`)**: 画面上で選択肢を選び、ボタン1つでエージェントへの返信プロンプトをクリップボードにコピー
-- **解説動画生成機能**: 数式やアルゴリズムを、3Blue1Brown風のアニメーション＋音声ナレーション付き動画（WebM/MP4）として自動出力
-
-### 3. クイックスタート手順
-導入は極めてシンプルです。お使いのエージェント（Claude Code等）に以下を指示するだけです。
-
-```text
-Install Answer me with HTML: read https://raw.githubusercontent.com/QingYunA/answer-me-with-html/main/INSTALL.md and follow it.
-```
-
-インストール後、エージェントに「TCPの3ウェイハンドシェイクを図解して」「このリポジトリの依存関係を可視化して」と頼むだけで、ブラウザ上に美しくレイアウトされた1枚のHTMLが立ち上がります。
-
---------------------------------------------------
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
-【有料ライン（推奨販売価格: 500円〜980円）ここから先は有料会員限定】
+--------------------------------------------------
+【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: answer-me-with-html_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
+### 🎁 【メンバーシップのご案内】
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+
+---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #JavaScript #cli #diagram #explainer

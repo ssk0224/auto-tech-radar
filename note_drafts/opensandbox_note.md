@@ -1,45 +1,32 @@
-# 海外急上昇OSS「OpenSandbox」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「OpenSandbox」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## 🎯 成熟度の目安（AI による見立て）
+## はじめに
 
-- **判定リング**: **ADOPT（積極採用・本番導入推奨）**
-- **判定根拠**: AWS製の軽量仮想化基盤 Firecracker を用いたマイクロVM隔離と、Dockerローカル開発からKubernetesクラスター運用まで統一されたAPIを備え、CNCF Landscape および OpenSSF Best Practices にも掲載されている信頼性の高いAIエージェント用サンドボックスランタイムです。Apache-2.0 ライセンスで商用・社内基盤への導入に適しています。
+opensandbox-group/OpenSandbox は 2025-12-17 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 15,739 です。
 
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定クライアント** | 自律型AIエージェント（コード実行・ブラウザ自動操作）を安全に社内導入したい企業 |
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **置き換え対象の商用SaaS** | 外部クラウド型コード実行サンドボックスSaaS（E2B等） |
-| **ライセンス** | **Apache-2.0**（商用利用・改変・社内システム組み込みすべて可能） |
+## README の要点（原文）
 
----
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-## 解決する主要な課題とアーキテクチャ
+- 原文（README）: Run AI agents in sandboxes on your own infrastructure.
+- 原文（README）: OpenSandbox gives AI applications isolated environments to execute code, run commands, manage files, and operate browsers or desktops.
+- 原文（README）: Start locally with Docker and deploy on Kubernetes through a unified sandbox API.
+- 原文（README）: Firecracker sandboxes support pause/resume with memory and disk state preserved.
+- 原文（README）: Network access control / Route inbound traffic through a unified ingress gateway and control outbound access with per-sandbox egress policies.
+- 原文（README）: Credential Vault / Let agents call external services without exposing real credentials to sandbox workloads.
+- 原文（README）: SDKs, CLI, and MCP / Integrate with Python, Java/Kotlin, TypeScript/JavaScript, C#/.NET, or Go SDKs. Use osb from the terminal or connect agents through MCP.
 
-AIエージェントが自律的にPythonコードやシェルコマンド、ブラウザ操作を実行する際、ホストOS上で直接実行すると機密漏洩や環境破壊のリスクが生じます。OpenSandboxは以下の仕組みでこれを解決します。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-- **Firecracker マイクロVMによるカーネル分離**: P50 64ms の高速起動と独立カーネルによる高強度な隔離を両立し、メモリ・ディスク状態を保った一時停止・再開にも対応。
-- **エグレス制御と Credential Vault**: アウトバウンド通信をポリシーで制限し、外部APIキーをサンドボックス内に直接露出させずに安全に注入。
-- **マルチ言語SDKとMCP連携**: Python / TypeScript / Go / Java / C# SDK、CLI（`osb`）、および MCP 接続をサポート。
-
----
-
-## 🔒 有料エリアで公開する実践ナレッジ（980円 / メンバーシップ特典）
-
-無料エリアでは **OpenSandbox** のアーキテクチャと選定理由を解説しました。続く有料エリアでは、社内稟議や受託提案、実環境への導入にそのまま使える実務資料を公開しています。
-
-1. **商用化・受託提案シナリオ（セキュアAIエージェント実行基盤モデル）**
-2. **【コピペで使える】社内DX・AI導入提案書テンプレート（Markdown完全版）**
-3. **【クライアント提示用】詳細工数・見積シミュレーション表（人日×単価の積算根拠付き）**
-4. **公式READMEに基づくインストール・SDK連携・セキュリティ設定手順**
-5. **クライアントへの想定問答（Q&A）**
-
---------------------------------------------------
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
+--------------------------------------------------
 【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: opensandbox_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
@@ -48,4 +35,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Python #ai #kubernetes #sandbox

@@ -1,70 +1,29 @@
-# 海外急上昇OSS「laya-mlx」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「laya-mlx」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-この記事を読めば、クライアントへの受託開発・AI導入の提案材料がそろう理由が明確になります。その鍵は、今、世界中のApple Siliconユーザーが熱狂しているオープンソースプロジェクト「laya-mlx」にあります。
+mizorewww/laya-mlx は 2026-09-19 に GitHub で作成されたリポジトリです。2026-10-17 時点のスター数は 6,956 です。
 
-従来のAI導入、特にLLM（大規模言語モデル）を活用したソリューションは、高額なクラウドAPI利用料、数秒単位の応答遅延、そしてデータプライバシーの懸念という三重苦に悩まされてきました。しかし、`laya-mlx`はこれらの課題を一掃します。
+## README の要点（原文）
 
-このOSSは、Appleが開発した機械学習フレームワークMLXを基盤とし、Apple Siliconデバイス上でLayaの「型付き意思決定モデル」をネイティブに実行します。その結果、M3 Maxチップ上でわずか **7〜14ミリ秒** という速度で、顧客からの問い合わせ分類、金融取引のリスク判定、ゲームAIの行動決定といった「意思決定」タスクを瞬時に処理します。しかも、PyTorchやTransformersランタイム、クラウドAPIへの依存は一切ありません。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-つまり、`laya-mlx`は、LLMのような汎用的なテキスト生成は行わないものの、特定の「判断」タスクにおいては、**「超高速」「超低コスト」「完全オフライン」** という圧倒的な優位性を提供します。これは、リアルタイム性が求められるビジネス、データプライバシーが重視される業界、そしてLLMの運用コストに頭を悩ませる企業にとって、まさにゲームチェンジャーとなる技術です。
+- 原文（README）: Open-weight typed decisions, running natively on Apple Silicon.
+- 原文（README）: Local MLX inference, with no PyTorch, Transformers runtime, or cloud API.
+- 原文（README）: Apple Silicon, Python 3.11+, macOS 14+.
+- 原文（README）: MLX keeps its native encoder/decision head, CPU/GPU streams, dtype, row batch_size, pad_to_multiple, native compile=True, and bounded cache_prompts=True controls.
+- 原文（README）: The Rust tokenizer and inference path do not require PyTorch or Transformers.
+- 原文（README）: First load downloads the checkpoint; later inference is fully local.
+- 原文（README）: Optional extras are serve, mcp, structured, calibration, langchain, langgraph, llamaindex, crewai, and agno.
 
-本記事では、この`laya-mlx`をいかにビジネスに活用し、高単価の受託案件を獲得し、あるいは自社サービスとしてマネタイズしていくか、その具体的な戦略と実践的なノウハウを徹底解説します。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-## 主な機能とアーキテクチャ概要
-
-`laya-mlx`は、以下の3つの「型付き意思決定」に特化しています。
-
-*   **`choice`**: 複数の選択肢の中から最適なものを確率的に選択します。（例: 問い合わせを「経理」「技術」「営業」のいずれにルーティングするか）
-*   **`score`**: 段階的な評価基準に基づいてスコアを算出します。（例: 顧客の要望の緊急度を「低」「中」「高」で評価）
-*   **`noul`**: ある命題が真である確率を判定します。（例: 「この取引は不正である」という命題の真偽）
-
-これらのタスクは、Apple SiliconのGPU上でMLXによって最適化された双方向エンコーダと意思決定ヘッドを通じて、高速に実行されます。Hugging FaceのRust製トークナイザーも利用し、高速な前処理を実現しています。
-
-**クイックスタート手順:**
-
-1.  **インストール**:
-    ```bash
-    pip install laya-mlx
-    ```
-2.  **Pythonコードでの利用例**:
-    ```python
-    import laya_mlx as laya
-
-    agent = laya.load("aac6fef/laya-mlx") # 初回実行時にモデルをダウンロード
-    result = agent.predict(
-        "I was billed twice. Please refund the duplicate.", # 意思決定のコンテキスト
-        {
-            "department": { # 質問の定義
-                "type": "choice",
-                "instructions": "Who should handle this?",
-                "criteria": ["billing", "technical", "sales"],
-            }
-        },
-    )
-    print(result["answers"]["department"]) # 結果: {'answer': 'billing', 'act_probability': 0.9876, ...}
-    ```
-
-### 📊 商用化・受託開発シミュレーション早見表
-
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ |
-| **商用SaaS化の狙い目** | 独自ワークフロー特化型マイクロSaaS |
-| **実装・導入難易度** | 中級（macOS / API連携 / Python） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-
--   そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
--   クライアント提示用「詳細工数・見積シミュレーション表」
--   Apple Silicon の Mac 上で API 化する「本番導入手順（FastAPI）」
--   商談で使える「キラー営業トーク ＆ 想定問答集」
--   Claude Desktop / Cursor 用 MCP サーバー構築 ＆ .cursorrules 完全定義
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -76,4 +35,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Python #inference #laya #mlx

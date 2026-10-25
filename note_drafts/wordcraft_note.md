@@ -1,55 +1,28 @@
-# 海外急上昇OSS「wordcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「wordcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-GitHub上で瞬く間にスター数11,000超えを記録し、世界中のエンジニアとエンタープライズDX担当者の度肝を抜いているOSSがあります。それが **「WordCraft」** です。
+storytold/wordcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 11,077 です。
 
-一言で言えば、**「Microsoft Word を、依存ゼロの純粋な Rust でゼロから完全再実装した怪物プロジェクト」**。
+## README の要点（原文）
 
-しかも単なるデスクトップクローンではありません。最初から **「AIエージェント（LLM）によって制御されること」を前提に設計されており、Model Context Protocol（MCP）と422個のコマンドAPIを標準装備** しています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-### なぜ、これが受託案件・DX提案の材料になるのか？
-現在、多くの大企業や自治体、金融機関、士業ファームは以下の「オフィスドキュメントのジレンマ」で頭を抱えています。
+- 原文（README）: Writing and document design; an open-source, modern word processor, built in pure Rust.
+- 原文（README）: It reads and writes .docx, runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- 原文（README）: Spelling, grammar and everything else work offline.
+- 原文（README）: Opens and saves .docx (OOXML), and also .odt, .rtf, .html, .md, .tex (LaTeX), .txt; opens legacy 97-2003 .doc; exports PDF with real, selectable text, links and bookmarks.
+- 原文（README）: No Electron, no Tauri: native egui on the GPU.
+- 原文（README）: Every action is a command with an id. The same 422 commands drive the ribbon, keyboard shortcuts, the command search, a command-line tool, a JSON control channel and an MCP server.
+- 原文（README）: Clean-room: built from public specifications and observation, with every asset original or openly licensed.
 
-1. **セキュリティの壁**: クラウドOffice（Microsoft 365 / Google Workspace）に機密契約書や顧客データを渡したくない。
-2. **既存自動化の限界**: Python-docxやLibreOfficeのヘッドレス変換は、フォントやレイアウトの再現性が低く、改ページがズレて使い物にならない。
-3. **AI連携の断絶**: ChatGPTなどのAIに文章を書かせても、最終的な「Wordのリボン操作」「スタイルの微調整」「変更履歴（Track Changes）付きの赤入れ」を自動化するプロトコルが存在しなかった。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-WordCraftは、この3大ペインを **「完全オンプレミス」「ミリ秒単位の描画速度」「ネイティブMCPサーバー連携」** によって一撃で解決します。
-
-「社内の機密文書作成ワークフローをAI化し、工数を削減するオンプレミス基盤」として、中小〜中堅企業にも提案できます。費用の目安は、有料エリアの工数見積表で前提とあわせて示しています。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-WordCraftのアーキテクチャは、Rustの設計思想を極限まで活かしたレイヤード構造です。
-
-- **GPUネイティブ描画（egui）**: Electron製アプリのようなメモリ肥大化が一切なく、数十MBの超軽量フットプリント。
-- **1.4msの爆速レイアウトエンジン**: 188ページに及ぶ大作レポートも1.4ミリ秒で再計算。タイピング時の引っかかりがゼロ。
-- **422のコマンドとMCPネイティブ対応**: `select_text`, `format.bold`, `inspect_document`, `track_changes` などの操作がすべてJSON/CLI/MCP経由で実行可能。
-
-```bash
-# ヘッドレスで起動し、Claudeなどのエージェントと即時接続
-wordcraft-cli mcp
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | 金融・証券 / 法律・特許事務所 / 製造業DX部門 / 医療法人 |
-| **商用SaaS化の狙い目** | 機密保持特化型ローカルAI文書校正・自動生成エージェント |
-| **実装・導入難易度** | 中級（Rustバイナリビルド / Docker / Python・Node連携） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -60,5 +33,5 @@ wordcraft-cli mcp
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #GitHub

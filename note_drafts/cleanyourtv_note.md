@@ -1,46 +1,31 @@
-# 海外急上昇OSS「cleanyourtv」商用化マニュアル｜社内DX提案書・工数見積 ＆ 自社SaaS構築手順付き
+# 「cleanyourtv」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
-Android TVやGoogle TVデバイスをお使いの皆さん、ホーム画面に表示される邪魔な広告や、プリインストールされた不要なアプリ（ブロートウェア）にうんざりしていませんか？デバイスの動作が重く、思い通りの快適な視聴体験が得られないと感じている方も少なくないでしょう。
+## はじめに
 
-今回ご紹介するGitHubで11,000以上のスターを獲得し、注目されているOSS「cleanyourtv」は、まさにこの課題を根本から解決する画期的なソリューションです。Wi-Fi経由で簡単にAndroid TV/Google TVのブロートウェアを無効化し、まるでApple TVのような洗練されたミニマルなホーム画面に一新します。しかも、root化不要、ケーブル接続不要、アプリのアンインストールも不要で、いつでも元の状態に復元できる安全設計です。
+Gathin23/cleanyourtv は 2026-10-17 に GitHub で作成されたリポジトリです。2026-10-21 時点のスター数は 11,608 です。
 
-**この記事では、この革新的なOSSをビジネスに活用するための実践的なノウハウを凝縮しました。クライアントへの導入提案に必要な材料（提案書・工数見積・導入手順）がすべて揃い、社内DX推進や新規事業立ち上げの強力な武器となるでしょう。**
+## README の要点（原文）
 
-## 主な機能とアーキテクチャ概要
-cleanyourtvは、Android TV/Google TVのユーザーエクスペリエンスを劇的に向上させるための多岐にわたる機能を提供します。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-**主な機能:**
-*   **広告・ブロートウェアの除去:** メーカーやGoogleがプリインストールした不要なアプリや広告サービスを無効化し、デバイスのリソースを解放します。
-*   **Apple TV風のホーム画面:** ピッチブラックの背景に、お気に入りのアプリを配置できるドック、現在フォーカスされているアプリを大きく表示するトップシェルフなど、洗練されたUIを提供します。
-*   **軽量設計:** 約390KBのネイティブAndroid TVアプリとして構築されており、1GB RAMのデバイスでも軽快に動作します。
-*   **高いカスタマイズ性:** `config.xml`やテーマを通じて、ドックのアプリ順序、隠しアプリ、カラム数、壁紙などを自由に設定できます。
-*   **多言語対応:** 英語、ドイツ語、スペイン語、日本語（※READMEには記載なしだが、Androidのロケール設定で対応可能と想定）など、多様な言語に対応しています。
-*   **安全な復元機能:** 変更を加える前にTVの状態を記録し、ワンラインコマンドでいつでも元の状態に復元できます。
+- 原文（README）: Android TVs have the same debug bridge as Android phones.
+- 原文（README）: No root, no cable, nothing uninstalled, and a one-line restore if you change your mind.
+- 原文（README）: You need a computer on the same Wi-Fi as the TV and a coding assistant with shell access.
+- 原文（README）: Disable / The manufacturer's telemetry, ad services, content rows and preloaded junk, with pm disable-user.
+- 原文（README）: Nothing is uninstalled, so a restore script can undo every step.
+- 原文（README）: Install / A small native launcher, made the default home screen.
+- 原文（README）: The bloat differs by brand, so the prompt has your coding assistant discover it on your TV and ask before touching anything you might use.
+- 原文（README）: Anything running Android TV or Google TV.
+- 原文（README）: Fire TV / The debloat half only, since Fire OS will not hand Home to a third-party launcher.
 
-**クイックスタート手順（概要）:**
-1.  **TV側:** 「設定」→「デバイス設定」→「バージョン情報」で「ビルド」を7回タップし、開発者オプションを有効化。「開発者オプション」で「USBデバッグ」をオンにします。
-2.  **PC側:** Python 3環境を準備し、GitHubリポジトリをクローン。Claude CodeなどのAIアシスタントに`PROMPT.md`の内容を渡し、TVモデル情報を入力します。
-3.  **指示に従う:** TV画面に表示される「USBデバッグを許可しますか？」を承認し、AIアシスタントの指示に従って、使用するアプリ、ドックに配置するアプリなどを選択します。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-これにより、AIアシスタントがTVのバックアップ、デブロット、ランチャーのビルドとインストールを自動的に実行し、約15分で快適なTV環境が手に入ります。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 100万円〜200万円程度 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ / ホテル・商業施設運営企業 / 広告代理店 |
-| **商用SaaS化の狙い目** | 独自ワークフロー特化型マイクロSaaS / TVデバイス管理プラットフォーム |
-| **実装・導入難易度** | 中級（Pythonスクリプト、Java/Android開発、ADB連携の理解が必要） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- クライアント提示用「詳細工数・見積シミュレーション表」
-- 公式READMEに基づく「導入手順（Docker Compose は対応している場合のみ）」
-- 導入検討で出る懸念への「想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -52,4 +37,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Java #adb #adblock #debloat

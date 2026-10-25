@@ -1,56 +1,30 @@
-# 海外急上昇OSS「cadcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「cadcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-「CADソフトの年間ライセンス料が高すぎる」「レガシーなCADソフトのせいで、設計部門の業務自動化・DXが絶望的に進まない」──。
-製造業、建設業、不動産、プラント業界のDXを担当したことのあるエンジニアやコンサルタントなら、誰もが一度はこの巨大な壁にぶつかった経験があるはずです。
+storytold/cadcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-18 時点のスター数は 5,766 です。
 
-AutoCADをはじめとする商用CADツールは、1ライセンスあたり年額数十万円。全社で数百シート抱えれば、それだけで数千万円規模の固定費が吹き飛びます。しかも、それらのツールはGUI操作前提で作られており、現代のクラウドアーキテクチャやAIエージェントとの連携が極めて困難でした。
+## README の要点（原文）
 
-この課題を一瞬で過去のものにする革命的オープンソースが、いま海外テック界隈で★5,700を超え猛烈な勢いでスターを獲得している**「CADCraft」**です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-CADCraftは、**Pure Rustでスクラッチから開発されたAutoCAD風2D/3D CADエンジン**です。Electronや重量級のC++ライブラリを排除して軽量・高速起動を目指し、DXFや一部DWGの読み書き、コマンドラインやスナップ操作などAutoCAD風の操作体系を備えています（開発者自身もまだ alpha 版と明言しており、実務置き換えには検証が必要です）。
+- 原文（README）: Computer-aided design and drafting; an open-source, modern 2D and 3D CAD application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- 原文（README）: CADCraft is in early, fast development.
+- 原文（README）: DXF is read and written natively (ASCII and binary, R12 through 2018), and DWG files (R13 through 2018) open and save through the open-source acadrust library.
+- 原文（README）: Pure Rust and egui, no Electron, no web view.
+- 原文（README）: Every menu item, tool and prompt is a command. Agents can type at the command line exactly like a person, call any command with JSON, inspect the drawing to verify their work, and render it — over MCP, a JSON control channel, or the CLI.
+- 原文（README）: Export to SVG and PNG today.
+- 原文（README）: CADCraft has no fonts in its repository; it uses the TrueType/OpenType fonts installed on your system.
 
-さらに最大の強みは、**「AIエージェントが自律的にコマンドを入力し、図面を読み書きするためのプロトコル（MCP / JSON API）」を標準装備している点**です。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-**なぜ、この記事が受託・DX案件の提案材料になるのか？**
-CADCraftの登場により、これまで「人間が手作業で行っていたCADトレース、フォーマット変換、パラメータ変更、寸法チェック」といった図面業務を、**完全自動化する社内AIシステム**が安価に構築可能になったからです。本記事では、この技術をどうビジネスに変え、クライアントへ提案して案件化するかまでのロードマップを完全公開します。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-CADCraftが従来のOSS CAD（FreeCADやLibreCADなど）と決定的に異なるポイントは、そのエンジニアリング品質とAPIファーストの構造にあります。
-
-- **Pure Rust + egui / wgpu**: メモリ安全性を保証しつつ、OSネイティブの超高速描画（60fps固定）を実現。
-- **ヘッドレスCLI & MCP Server**: GUIなしで図面操作を行う `cadcraft-cli` と、Claude DesktopやCursorから直接ツール操作できるMCP（Model Context Protocol）を内蔵。
-- **Copy-on-Write データストア**: 設計履歴をCoWで管理するため、極めて低コストなUndo/Redoと並列処理が可能。
-- **クロスプラットフォーム & WebAssembly**: 1つのコードベースからMac/Windows/Linuxデスクトップアプリ、およびブラウザ単体で動くWeb版を生成。
-
-```bash
-# わずか数秒でサンプル図面を起動
-cargo run --release -p cadcraft -- --sample
-```
-
-コマンドラインで `L 0,0 @100<0` と打ち込めば、AutoCADと全く同一の感覚で作図が完了します。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | ハウスメーカー、機械部品メーカー、内装設計、DX推進部門 |
-| **商用SaaS化の狙い目** | WEB上で完結する「図面自動生成・見積積算マイクロSaaS」 |
-| **実装・導入難易度** | 中級（Rustバイナリ運用 / Docker / Node.js or Pythonラッパー） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- クライアント提示用「詳細工数・見積シミュレーション表」
-- 公式のビルド手順をもとにした「Docker コンテナ化の例」（動作要検証）
-- 【2026年最新】Claude Desktop / Cursor 用 MCPサーバー連携設定 ＆ .cursorrules 完全定義
-- 商談で使える「キラー営業トーク ＆ 想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -61,5 +35,5 @@ cargo run --release -p cadcraft -- --sample
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub #Rust #CAD
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #GitHub

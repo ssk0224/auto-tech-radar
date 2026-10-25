@@ -1,126 +1,75 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "dsh-tavern - 基于DSH的Agent酒馆。类酒馆文字游戏Agent。兼容SillyTavern生态，人物卡直接导入就能玩。更快、更稳、更鲜活。所有模型都能用。手机也能玩。"
-description: "基于DSH的Agent酒馆。类酒馆文字游戏Agent。兼容SillyTavern生态，人物卡直接导入就能玩。更快、更稳、更鲜活。所有模型都能用。手机也能玩。"
+title: "dsh-tavern - README の要点（原文）"
+description: "flizzywine/dsh-tavern の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-09"
-tags: ["JavaScript", "OSS", "GitHub"]
+updatedDate: "2026-10-22"
+tags: ["JavaScript","OSS","GitHub"]
 repoUrl: "https://github.com/flizzywine/dsh-tavern"
 repoCreatedAt: "2026-08-16"
 stars: 819
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# dsh-tavern: 概要と革新性
+# dsh-tavern: 概要
 
-**dsh-tavern**は、LLMを活用したテキストロールプレイングおよび対話型AIエージェントプラットフォームです。オープンソースのロールプレイ環境としてデファクトスタンダードである「SillyTavern（酒館）」のエコシステム（キャラクターカード、World Info / 世界書、正規表現ルール、MVUなど）との互換性を維持しながら、アーキテクチャを根本から再設計しています。
+flizzywine/dsh-tavern は 2026-08-16 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 819 です。
 
-最大の特徴は、**「DSH（DeepSeek Harness）」を基盤としたマルチエージェント型タスク分割アーキテクチャ**の採用です。従来のSillyTavernが抱えていた「プロンプト肥大化による出力崩れ」「変数ステータス計算の失敗」「キャッシュ効率の悪さによるレイテンシ・トークンコストの増大」といったペインポイントを、洗練されたオーケストレーションによって解決しています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-### 主な革新点
-- **フロントとバックエンドのタスク分離**: 本文生成と変数処理（好感度、HPなどの数値計算）を別々のエージェントに分担させ、文筆クオリティの向上とステータス管理の厳密性を両立。
-- **Prompt Caching（プロンプトキャッシュ）の極限最適化**: 構造の固定化によりキャッシュヒット率95%以上を達成し、長文セッションでも1ターン約10秒の超高速応答を実現。
-- **対話型メンテナンス・デバッグAgent**: キャラクターカードの調整や正規表現の不具合解析を、自然言語で自律エージェントに指示可能。
+- 原文（README）: 基于 DSH(DeepSeek Harness)的 Agent 酒馆。
+- 原文（README）: 兼容 SillyTavern 生态,人物卡导入就能玩。
+- 原文（README）: 当前版本适配 DSH 0.2.1-rc.2(官方 DeepSeek Harness 或独立命令行;Android 使用独立 APK),安装见快速开始。
 
----
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
-```mermaid
-flowchart LR
-    Browser["Web UI"] --> Server["dsh-tavern Core"]
-    Server --> LLM["ローカル推論 (vLLM / Ollama / API)"]
-    Server --> State["キャラクター状態・コンテキストメモリ"]
-```
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
+## 主な機能と構成（README の原文）
 
-### 1. 従来アーキテクチャの課題（モノリシック・プロンプティング）
-従来のSillyTavern等では、1回の大規模なプロンプト要求に対して「物語の地の文・会話文」「ステータスバーの変数更新」「プレイヤー用選択肢の提示」を同時にLLMに指示していました。これにより以下の致命的な欠陥が生じていました。
-- **コンテキストの注意分散（Attention Dilution）**: フォーマット指定や数値計算に注意が割かれ、文章の表現力やキャラクター性が劣化する。
-- **フォーマット崩れの頻発**: 会話が進むにつれてステータス枠のマークダウンが破損する。
-- **全損リトライ**: 選択肢だけ直したい場合でも、本文全体を再生成（抽卡）する必要があり、APIコストと時間が無駄になる。
+- 原文（README）: 变量由后台按规则结算,每轮附更新结果,失败可单独重试;更新与重装都保留数据。
+- 原文（README）: 因为前台模型只管写正文,变量结算等任务性工作交给后台模型。
+- 原文（README）: 剧本按片段读取,再长的小说也不用整本塞进上下文。
+- 原文（README）: 不用懂卡片字段,告诉 Agent 哪里不喜欢、想改成什么样,它先给方案,你确认后才写入。
+- 原文（README）: DSH 插件:酒馆运行在 DSH 上,可以直接安装其他 DSH 插件一起使用,例如手机访问的 dsh-pocket、远程登录认证的 dsh-webui-auth、语音朗读插件等。
 
-### 2. dsh-tavernのパイプライン・アーキテクチャ
-dsh-tavernでは、ワークフローを有向グラフ（DAG）のように分割しています。
+## インストール（README からの転記）
 
-```text
-[ユーザー入力] 
-      │
-      ├─► [本文生成Agent (Frontend)] ──► 小説クオリティの描写に専念
-      │          │
-      │          ▼ (生成完了本文を渡す)
-      ├─► [変数決済Agent (Backend)] ──► ルール・MVU定義に基づきステータス更新 (UI側で固定レンダリング)
-      │          │
-      └─► [選択肢生成Agent]         ──► 次の展開の選択肢をツールコール形式でバリデーション
-```
-
-- **部分リトライと指示付き再生成（Feedback Rewrite）**: 本文のみ、選択肢のみのエラー修復が可能。「描写を減らして心理描写を増やして」といった差分ディレクションにも対応。
-- **自律的メモリ検索（Tool-based Memory Retrieval）**: 毎ターン要約をプロンプトにねじ込むのではなく、エージェントが必要に応じて過去ログを検索ツール経由で取得。これにより数万トークンに及ぶ長期セッションでも初期設定の齟齬が発生しません。
-
----
-
-## 競合ツール/商用SaaSとの徹底比較
-
-| 評価軸 | SillyTavern (従来型) | 一般的な商用AIチャットSaaS | **dsh-tavern** |
-| :--- | :--- | :--- | :--- |
-| **アーキテクチャ** | 単一プロンプト・一括生成 | ブラックボックス単一API | **マルチエージェント・パイプライン** |
-| **キャッシュ効率** | 低い（動的変数が先頭に入りキャッシュ破損） | ベンダー依存（最適化不可） | **極めて高い（95%以上のCache Hit率）** |
-| **ステータス管理** | LLMのテキスト出力（破損率 高） | なし or 独自API実装要 | **固定テンプレート×バックエンド決済（完全堅牢）** |
-| **拡張性・カード資産** | 膨大な既存資産あり | 互換性なし | **既存のSillyTavern資産を即座にインポート可能** |
-| **モバイル対応** | WebUIのレスポンシブ / リバースプロキシ | アプリ提供（閉鎖的） | **AndroidネイティブAPK / QRコード即時共有** |
-
----
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-### 1. ゲーム開発スタジオ向け「NPC自律対話・ステータス連動プロトタイピング環境」の受託
-- **概要**: インディー〜中規模ゲームスタジオ向けに、RPGやノベルゲームのNPCとの対話システムを構築。
-- **実践**: dsh-tavernの「本文生成とパラメータ更新の分離」機構をそのまま活用し、ゲームエンジン（Unity/Unreal Engine）とWebhookで連動するNPCバックエンドとして提供。好感度やフラグ管理が破綻しないAI会話エンジンを受託開発可能。
-
-### 2. IP保有企業向け「ファンエンゲージメント専用AIキャラクター基盤」の構築
-- **概要**: 出版社やアニメ制作会社が持つキャラクター資産のインタラクティブ化。
-- **実践**: キャラクター設定、原作エピソード（スクリプトモード）を読み込ませ、原作のストーリーラインに沿いながらファンが対話できるクローズド環境をサブスクリプション型で提供。
-
-### 3. 社内教育・シミュレーション向け「インタラクティブ・ロールプレイ研修SaaS」
-- **概要**: 営業研修やハラスメント防止研修におけるAI対戦相手環境。
-- **実践**: クライアント企業のシナリオに沿ったGuideを注入し、営業トークの成否をバックエンドAgentがスコアリングしてステータス更新する社内研修システムをオンプレミスで構築。
-
----
-
-## インストール & クイックスタート手順
-
-### 動作要件
-- OS: Windows 10/11 (x64), macOS, Linux, Android 11+
-- Node.js: 22.19+ (CLI環境の場合)
-- 推奨: DSH Desktop 2.0.13 または Node.js CLI
-
-### Windows (一発インストーラー / PowerShell)
-最も推奨されるのはGitHub ReleasesからのEXEインストーラー利用ですが、CLIからもワンライナーで環境構築が可能です。
+以下は [README](https://github.com/flizzywine/dsh-tavern#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
 ```powershell
-$env:DSH_TAVERN_HOST='desktop'
-$tavernInstaller = [Text.Encoding]::UTF8.GetString((New-Object Net.WebClient).DownloadData('https://cdn.jsdelivr.net/gh/flizzywine/dsh-tavern@main/install.ps1'))
-Invoke-Expression $tavernInstaller
+     $env:DSH_TAVERN_HOST='desktop'; $tavernInstaller=[Text.Encoding]::UTF8.GetString((New-Object Net.WebClient).DownloadData('https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.ps1')); Invoke-Expression $tavernInstaller
 ```
 
-### Linux / macOS (Bash)
-```bash
-# DSH Desktop端末またはローカル環境で実行
-curl -fsSL https://cdn.jsdelivr.net/gh/flizzywine/dsh-tavern@main/install.sh | DSH_TAVERN_HOST=cli sh
+> ⚠️ 注意: インターネットから取得したスクリプトをそのまま実行する手順です。実行前にスクリプトの中身を確認し、可能であればバージョン（タグやコミット）を固定してください。
 
-# 起動コマンド
-dsh-tavern open
+```sh
+   curl -fsSL 'https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.sh' -o /tmp/dsh-tavern-install.sh && DSH_TAVERN_HOST=desktop sh /tmp/dsh-tavern-install.sh
 ```
 
-起動後、ブラウザで管理画面（またはDSH UI）が立ち上がります。**「設定 → モデル」**から利用したいAPI（OpenAI互換、DeepSeek、Claude、ローカルOllama等）のベースURLとAPIキーを入力し、SillyTavern形式のキャラクターカード（PNG/JSON）をドラッグ＆ドロップするだけで即座に開始可能です。
+> ⚠️ 注意: インターネットから取得したスクリプトをそのまま実行する手順です。実行前にスクリプトの中身を確認し、可能であればバージョン（タグやコミット）を固定してください。
 
----
+```powershell
+$env:DSH_TAVERN_HOST='cli'; $tavernInstaller=[Text.Encoding]::UTF8.GetString((New-Object Net.WebClient).DownloadData('https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.ps1')); Invoke-Expression $tavernInstaller
+```
 
-## 商用利用可否 & ライセンス考察
+> ⚠️ 注意: インターネットから取得したスクリプトをそのまま実行する手順です。実行前にスクリプトの中身を確認し、可能であればバージョン（タグやコミット）を固定してください。
 
-dsh-tavernは **GNU Affero General Public License v3.0 (AGPL-3.0)** の下でライセンスされています。
+```sh
+curl -fsSL 'https://raw.githubusercontent.com/flizzywine/dsh-tavern/main/install.sh' -o /tmp/dsh-tavern-install.sh && DSH_TAVERN_HOST=cli sh /tmp/dsh-tavern-install.sh
+```
 
-### ライセンス上の重要留意点
-1. **ネットワーク経由での提供（SaaS利用）**:
-   AGPL-3.0では、本ソフトウェアを改変してネットワーク経由（WebサービスやSaaS）でエンドユーザーにサービス提供する場合、**そのサービス自体のソースコード全体をAGPL-3.0で開示する義務**が生じます。
-2. **社内利用・受託インフラ構築**:
-   企業内のイントラネットで自社利用する場合や、受託開発においてクライアント環境に独立して納品する場合は、公衆へのネットワーク提供には当たらないためソース開示義務を回避できるケースがあります。
-3. **商用化の安全なアプローチ**:
-   コアエンジン（dsh-tavern）自体をクローズドSaaSに組み込むのではなく、「導入支援コンサルティング」「キャラクターカード・スクリプトの作成代行」「独自の外部API連携プラグインの受託開発」といった**プロフェッショナルサービス型**のビジネスモデルが最も法的リスクを回避できます。
+> ⚠️ 注意: インターネットから取得したスクリプトをそのまま実行する手順です。実行前にスクリプトの中身を確認し、可能であればバージョン（タグやコミット）を固定してください。
+
+## ライセンス
+
+- ライセンス: GNU Affero General Public License v3.0（SPDX: AGPL-3.0）
+- 確認先: [LICENSE ファイル](https://github.com/flizzywine/dsh-tavern/blob/main/LICENSE)
+
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

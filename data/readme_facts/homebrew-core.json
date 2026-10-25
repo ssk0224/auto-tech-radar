@@ -1,0 +1,100 @@
+{
+  "repo": "Homebrew/homebrew-core",
+  "created_at": "2016-03-01T06:58:36Z",
+  "language": "Ruby",
+  "license": {
+    "spdx": "BSD-2-Clause",
+    "name": "BSD 2-Clause \"Simplified\" License",
+    "url": "https://github.com/Homebrew/homebrew-core/blob/main/LICENSE.txt",
+    "status": "resolved",
+    "sourceAvailable": false,
+    "extraNotices": []
+  },
+  "sentences": [
+    "A4GRbXxoWgVD",
+    "ChFmRcKiMvul",
+    "Tm0GONTwYw0D",
+    "ep1SW9bKR32j",
+    "kXOUTuJ7A0vO",
+    "mrh85hBz-qGP",
+    "o0n1wFHV5WOl",
+    "sKlVZCLb13Op",
+    "yhT2gmxOQRIc"
+  ],
+  "status_lines": [],
+  "words": [
+    "and",
+    "brew",
+    "built",
+    "built-from-source",
+    "by",
+    "community",
+    "contributing",
+    "core",
+    "default",
+    "discussions",
+    "do",
+    "documentation",
+    "donations",
+    "everywhere",
+    "for",
+    "formulae",
+    "forum",
+    "from",
+    "homebrew",
+    "how",
+    "i",
+    "in",
+    "install",
+    "installed",
+    "is",
+    "just",
+    "license",
+    "manager",
+    "more",
+    "oss",
+    "package",
+    "packages",
+    "readme",
+    "s",
+    "sections",
+    "security",
+    "see",
+    "source",
+    "sponsors",
+    "tap",
+    "the",
+    "these",
+    "this",
+    "troubleshooting"
+  ],
+  "diagrams": [],
+  "quantities": [],
+  "hosts": [
+    "github.com"
+  ],
+  "commands": [
+    "brew",
+    "formula",
+    "install"
+  ],
+  "expansions": [
+    "HC=homebrew core",
+    "MD=more documentation"
+  ],
+  "install_blocks": [],
+  "publication": {
+    "date": null,
+    "stars": null,
+    "gain7d": null
+  },
+  "topics": [
+    "core",
+    "formulae",
+    "homebrew",
+    "ruby",
+    "tap"
+  ],
+  "usage_lines": [],
+  "corrections_keys": []
+}

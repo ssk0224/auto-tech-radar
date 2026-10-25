@@ -1,5 +1,6 @@
 // 生成スクリプトのテスト用: Gemini と外部 API（GitHub・レジストリ）をモックする
 import { register } from "node:module";
+import { MOCK_README } from "./mock_readme.mjs";
 register("./mock_hooks.mjs", import.meta.url);
 // MOCK_REPO（JSON）があれば、検索結果の 1 件目の項目をその値で上書きする（リポジトリ名・説明文など実データの揺れの再現用）
 const repo = { name: "testtool", full_name: "acme/testtool", html_url: "https://github.com/acme/testtool", description: "A test tool for verifying the generation pipeline end to end", language: "Go", topics: ["cli", "devops", "hacktoberfest"], stargazers_count: 1234, created_at: "2026-01-15T00:00:00Z", fork: false, owner: { login: "acme" }, license: { spdx_id: "MIT" }, ...(process.env.MOCK_REPO ? JSON.parse(process.env.MOCK_REPO) : {}) };
@@ -14,7 +15,8 @@ const items = process.env.MOCK_SECOND_REPO ? [repo, { ...repo, name: "othertool"
 globalThis.fetch = async (url) => {
   url = String(url);
   if (url.includes("/search/repositories")) return new Response(JSON.stringify({ items }), { status: 200 });
-  if (url.includes("/readme")) return new Response("# testtool\nInstall: go install acme/testtool@latest", { status: 200 });
+  // README（MOCK_README があればその本文）。生成モデルの出力（tests/generator.test.mjs の output()）の原文はこの README の文から選ぶ
+  if (url.includes("/readme")) return new Response(process.env.MOCK_README ?? MOCK_README, { status: 200 });
   // LICENSE ファイル（/repos/{o}/{r}/license）。MOCK_LICENSE_TEXT があればその本文を GitHub の判定 "Other"（NOASSERTION）で返し、無ければ 404（LICENSE ファイル無し）
   if (url.includes("/license") && process.env.MOCK_LICENSE_TEXT) {
     return new Response(JSON.stringify({ html_url: "https://github.com/acme/testtool/blob/main/LICENSE", encoding: "base64", content: Buffer.from(process.env.MOCK_LICENSE_TEXT).toString("base64"), license: { key: "other", spdx_id: "NOASSERTION", name: "Other" } }), { status: 200 });

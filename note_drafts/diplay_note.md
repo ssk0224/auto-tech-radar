@@ -1,45 +1,30 @@
-# 海外急上昇OSS「DiPlay」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「DiPlay」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-いま、車載ソフトウェアおよびモビリティDXの世界で異例の事態が起きています。GitHubで瞬く間にスター数10,000を突破したオープンソースプロジェクト**「DiPlay」**です。
+shihabal3amri/DiPlay は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 10,296 です。
 
-これまで、Androidベースの車載機（IVI）でApple CarPlayを動かすには、**「怪しい中国製USBドングル（約1万円）」を挟む以外に現実的な選択肢がありませんでした。** しかしDiPlayは、追加のハードウェアを一切排除し、**純粋なAndroidネイティブアプリ（APK）単体で完全なワイヤレスCarPlayレシーバー機能**を実現して見せました。
+## README の要点（原文）
 
-### なぜこれが受託開発・DX案件になるのか？
-現在、商用フリート（配送業者・タクシー・路線バス）、EVバス、特殊車両（キャンピングカー・建機）、さらにはBYDをはじめとするグローバルEVの国内流通において、**「車載機のCarPlay未対応」「純正ナビの操作性への不満」**が深刻なペインになっています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-本記事で解説するアーキテクチャを活用すれば、以下の高単価案件を即座に組成できます：
-1. **フリート向け車載Android端末のCarPlayネイティブ統合（受託開発：120万〜250万円）**
-2. **中古EV・並行輸入車の車載インフォテインメント日本語化＆CarPlay後付けパッケージ（施工・インテグレーション：80万〜150万円）**
-3. **物流・ラストワンマイル配送ドライバー向けスマートコンソール開発（月額課金型マイクロSaaS化）**
+- 原文（README）: CarPlay for compatible BYD Android head units. Wired and wireless, with the familiar DiAuto interface.
+- 原文（README）: BYD support scope: These projects focus on BYD cars. They may work on other brands, but other brands are unsupported and there are no plans to add support or fix brand-specific incompatibilities.
+- 原文（README）: Install on the car, not the iPhone. No jailbreak, dongle, Mac, account or authentication server is required for use.
+- 原文（README）: Core CarPlay does not require ADB; optional dashboard, battery, wheel-speed and parked-video features do.
+- 原文（README）: The APK supports Android 7.0+ (API 24); Android 7.0–8.1 support is not yet confirmed on a vehicle.
+- 原文（README）: Wireless supports Wi-Fi Direct, the car’s existing hotspot or Existing Wi-Fi / Same LAN.
+- 原文（README）: This is not an Apple-certified product.
+- 原文（README）: The APK bundles an experimental accessory identity recovered from public Carlinkit firmware, not a newly provisioned MFi identity for DiPlay. A bundled private key is extractable.
+- 原文（README）: Broader head-unit and iOS compatibility is not guaranteed.
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ概要
-
-DiPlayは、KotlinおよびAndroid NDK（C++）スタックで構成され、以下の機能をすべてソフトウェア単体で完結させます。
-
-- **完全ソフトウェアエミュレーション**: 外付けドングル不要。USB有線接続およびWi-Fi Direct / 車載AP / 既存LAN経由のワイヤレスCarPlay接続。
-- **車両ハードウェア直接連携（HUD / CAN-Bus）**: 車両のメータークラスタやヘッドアップディスプレイ（HUD）に交差点案内・ストリート名をリアルタイム投影。
-- **超低遅延・高音質ストリーミング**: `MediaCodec`ハードウェアアクセラレーションによるH.264映像デコード、Opus/AACソフトウェアジッターバッファリング。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | 物流・運送事業者 / 特殊車両ビルダー / EVディーラー / タクシー会社 |
-| **商用SaaS化の狙い目** | フリート遠隔キオスク管理 ＋ CarPlay統合コンソールSaaS |
-| **実装・導入難易度** | 中級〜上級（Android/AOSP / Kotlin / CAN-Bus連携 / ADB） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -50,5 +35,5 @@ DiPlayは、KotlinおよびAndroid NDK（C++）スタックで構成され、以
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub #Android #CarPlay
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Kotlin #GitHub

@@ -1,46 +1,29 @@
-# 海外急上昇OSS「DroidDeck」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「DroidDeck」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
-この記事を読めば、クライアントへの受託開発・AI導入の提案材料がそろう理由が明確になります。
+## はじめに
 
-今、世界中のゲーマーやテック愛好家の間で、あるオープンソースプロジェクトが急速に注目を集めています。その名は「DroidDeck」。GitHubで8,300を超えるスターを獲得し、その勢いは止まりません。DroidDeckは、AndroidデバイスにValveのSteamOS体験をもたらし、ARM64版Protonを介してWindowsゲームを直接実行可能にするという、まさにゲームチェンジャーです。
+Droid-Deck/DroidDeck は 2026-09-25 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 8,333 です。
 
-なぜこれがこれほどまでに注目されているのでしょうか？それは、高価な専用ゲーミングハードウェアや、ネットワークに依存するクラウドゲーミングサービスに代わる、**既存のAndroidデバイス資産を最大限に活用する画期的なソリューション**だからです。あなたの手元の高性能Androidスマートフォンやタブレットが、Steam DeckのようなポータブルゲーミングPCに変貌する。この可能性は、個人ユーザーだけでなく、企業にとっても大きなビジネスチャンスを意味します。
+## README の要点（原文）
 
-本記事では、このDroidDeckの技術的な深掘りから、具体的な商用化戦略、クライアントへの受託開発提案シナリオ、さらには自社マイクロSaaSとしての構築手順までを徹底解説します。この情報を活用すれば、あなたはすぐにでもクライアントに高額なDX提案を行い、新たな収益源を確立できるでしょう。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-## 主な機能とアーキテクチャ概要
-DroidDeckの核心は、Androidデバイス上でLinuxランタイムを動作させ、その上でSteamクライアントとProtonを実行することにあります。これにより、以下のような主要機能が実現されます。
+- 原文（README）: DroidDeck brings the SteamOS experience to Android: Valve's Steam client in Big Picture on your Adreno handheld, with Windows games through Valve's ARM64 Proton.
+- 原文（README）: Use Android 9 or newer on a supported Adreno device (730 or newer, or 8xx).
+- 原文（README）: No root is required.
+- 原文（README）: Allow about 3 GB for the runtime and 1.1 GB more for the desktop and emulators.
+- 原文（README）: Install the APK from Releases, install the Linux runtime, then press Play and sign in. Steam downloads on first launch.
+- 原文（README）: The Store installs Linux apps and games from Flathub (ARM64 builds) with Flatpak; with additional options to install Appimages and set up scripts.
+- 原文（README）: Stores (Setup › Stores › "Show Stores in the rail") signs in to GOG, Epic Games and Amazon Games and downloads games into the Games storage.
+- 原文（README）: On Android 14 and newer, before Steam launches, you must turn on Disable child process restrictions in Developer options.
 
-*   **Steam Big Pictureモード:** AndroidデバイスでSteamのゲーミングUIをフルスクリーンで利用。
-*   **Windowsゲームの実行:** ValveのProton（ARM64版）を介して、多くのWindowsゲームをAndroidデバイス上でプレイ可能。
-*   **多様なストア連携:** FlathubからのLinuxアプリ、GOG、Epic Games、Amazon Gamesのゲームを統合管理。
-*   **デスクトップ環境:** Linuxデスクトップとエミュレータの利用。
-*   **Adreno GPU最適化:** 高性能Adreno GPU（730以降）を活用し、DirectX 11/12ゲームのパフォーマンスを最大化。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-**クイックスタート手順:**
-1.  Android 9+、Adreno 730+搭載デバイスを用意。
-2.  GitHub ReleasesからAPKをダウンロードしインストール。
-3.  アプリ起動後、Linuxランタイムをインストール。
-4.  Steamアカウントでサインインし、ゲームをダウンロード。
-5.  Android 14+の場合、開発者オプションで「Disable child process restrictions」を有効化。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ / ゲーミングデバイスメーカー / ゲーミングカフェ |
-| **商用SaaS化の狙い目** | 独自ワークフロー特化型マイクロSaaS / ゲーミングデバイス向けカスタムOS |
-| **実装・導入難易度** | 中級（Android開発、Linux環境、Docker、API連携の知識が必要） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -52,4 +35,4 @@ Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバ�
 
 ---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Kotlin #GitHub

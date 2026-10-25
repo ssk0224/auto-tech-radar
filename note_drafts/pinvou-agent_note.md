@@ -1,72 +1,38 @@
-# 海外急上昇OSS「pinvou-agent」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「pinvou-agent」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、世界中で注目されているのか？
+## はじめに
 
-「ChatGPTやClaudeにプロンプトを打ち込んでも、返ってくるのは単なるテキストの塊。結局そこからコードをコピペし、ドキュメントに貼り直し、デザインツールを立ち上げて整形する羽目になる……」
+Pinvou/pinvou-agent は 2026-07-24 に GitHub で作成されたリポジトリです。2026-10-09 時点のスター数は 2,399 です。
 
-そんなAI活用の「最後の1マイル問題」に頭を抱えていませんか？
+## README の要点（原文）
 
-GitHubで2,400スター目前、世界のAIコミュニティで急速に注目を集めている最新OSS**「pinvou-agent」**は、この非効率を根本から覆す次世代のデスクトップAIワークスペースです。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-![](https://raw.githubusercontent.com/Pinvou/pinvou-agent/main/docs/assets/screenshots/mode-work.webp)
+- 原文（README）: An open-source desktop AI agent workspace for work, design, and coding.
+- 原文（README）: Use a local model for a fully private loop, connect any OpenAI-compatible endpoint, and extend the agent with MCP servers, CLI connectors, Skills, and workflows.
+- 原文（README）: Whether data leaves your machine depends on the model and tools you enable. A local model with local tools stays fully local.
+- 原文（README）: Use Codex, Claude Code, or Kimi through ACP in the same desktop workspace. The coding agent can read and edit a real project or an isolated temporary workspace, run commands, and surface plans, tool steps, permission requests, and file changes.
+- 原文（README）: Artifact panel automatically collects every file the agent creates or edits; preview, locate, and open them in one place
+- 原文（README）: Local knowledge base with file management, full-text and vector retrieval; attach multiple collections to one chat, enable or disable each independently, and retain collection and file provenance in answers
+- 原文（README）: Remote control — scan a QR code from your phone to view and steer the running workspace
+- 原文（README）: Sessions, settings, knowledge, and runtime extensions all live under ~/.pinvou3/
 
-単なるチャットアプリではありません。**RustとTauri 2**を基盤にビルドされたこのツールは、ビジネス文書、デザインアセット、そしてソースコードといった**「実納品物（Real Deliverables）」の生成と編集に完全に最適化**されています。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-- **Workモード**: 複数ドキュメントや社内ナレッジ（RAG）を読み込み、完成されたファイルを生成
-- **Designモード**: プロンプトからバナーやデータ可視化グラフィックを生成し、UI上で直接フォントや色を微調整
-- **Codeモード**: ACP規格を通じて、Claude CodeやCodexをローカルプロジェクトに安全に接続・自律実行
-
-さらに、**ローカル推論（vLLM）とMCP（Model Context Protocol）**を標準サポートしているため、完全オフラインで企業の機密情報を一切外に出さずに動かすことも可能です。
-
----
-
-## 主な機能とアーキテクチャ
-
-### 1. 3つの統合ワークスペース
-pinvou-agentの最大の特徴は、業務内容に応じたシームレスなモード切り替えです。
-- **成果物（Artifact）管理**: エージェントが生成したMarkdownや図解はリアルタイムでサイドパネルに集約され、ユーザー自身がGUI上で手動修正を加えたり、選択箇所だけを再指示できます。
-- **Plan / YOLO モード**: 危険な破壊的操作を防ぐために事前に実行ステップを確認・承認する「Planモード」と、一気呵成にタスクを完遂させる「YOLOモード」を切り替え可能。
-
-### 2. 強固なエンジニアリング設計（Tauri 2 + CodeWhale）
-Electronではなく**Tauri 2（Rust）**を採用したことで、メモリ使用量を極限まで抑え、OSネイティブなファイルアクセスと高速なベクター検索を実現しています。エージェントエンジンは独立サブモジュール`CodeWhale`として疎結合化されており、独自のMCPサーバーやAPIコネクタを容易にプラグインできます。
-
-```text
-┌────────────────────────────────────────────────────────┐
-│               React 19 + Vite 8 UI                     │
-└───────────────────────────┬────────────────────────────┘
-                            │ Tauri IPC (Commands / Events)
-┌───────────────────────────▼────────────────────────────┐
-│      pinvou3-app (Rust Core / Desktop Orchestration)   │
-└───────────────────────────┬────────────────────────────┘
-                            │ EngineHandle / AgentHarness
-┌───────────────────────────▼────────────────────────────┐
-│          CodeWhale (Agent Core Submodule)               │
-│  ├─ Multi-LLM Routing (vLLM / OpenAI-compatible / MCP) │
-│  ├─ Knowledge Retrieval (Full-Text & Vector DB)        │
-│  └─ Execution Engine (ACP, CLI Connectors, Sandbox)   │
-└────────────────────────────────────────────────────────┘
-```
-
-### 3. クイックスタート手順
-エンジニアであれば、以下の数行でローカル起動が可能です。
-
-```bash
-git clone --recursive https://github.com/Pinvou/pinvou-agent.git
-cd pinvou-agent/pinvou3-app
-npm ci
-cd ..
-./pinvou3-app/run-dev.sh
-```
-
-ローカルのvLLMやOllamaはもちろん、DeepSeek、OpenAI、AnthropicなどのエンドポイントをUIから登録するだけで即座に稼働します。
-
---------------------------------------------------
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
-【有料ライン（推奨販売価格: 500円〜980円）ここから先は有料会員限定】
+--------------------------------------------------
+【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: pinvou-agent_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
+### 🎁 【メンバーシップのご案内】
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+
+---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #Rust #automation #llm #mcp

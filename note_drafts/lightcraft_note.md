@@ -1,63 +1,29 @@
-# 海外急上昇OSS「lightcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「lightcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-GitHubで瞬く間にスター数10,000を突破し、シリコンバレーのエンジニアコミュニティやプロクリエイター界隈で激震を巻き起こしているオープンソースプロジェクトがあります。それが**「LightCraft」**です。
+storytold/lightcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-12 時点のスター数は 10,183 です。
 
-LightCraftは、長年クリエイティブ市場を独占してきた**Adobe Lightroomのコアエンジンを、純度100%のRust（Pure Rust）でゼロから完全再実装したモンスターOSS**です。
+## README の要点（原文）
 
-しかし、単なる「無料の代替ツール」ではありません。世界中のテックリードが熱狂している真の理由は、**「LLM（大規模言語モデル）やAIエージェントが、外部から現像・画像補正の全工程をミリ秒単位で完全にプログラミング制御できるアーキテクチャ（MCP & JSON-RPC）」**を備えている点にあります。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-### この記事で受託・DX案件の提案材料がそろう理由
-現在、アパレルEC、不動産ポータル、学校写真スタジオ、ネット広告代理店などの現場では、以下のような悲鳴が上がっています。
-- *「毎月数十万円のAdobeライセンスを支払っているが、作業の大半はルーチンの明るさ・トリミング補正だけ」*
-- *「大量の撮影データを外部クラウドに預けるのは、プライバシーや情報漏洩ポリシー上絶対に許されない」*
-- *「撮影後のレタッチ作業に人員が忙殺され、ECサイトへの出品が2〜3日遅延している」*
+- 原文（README）: Photo library and raw development; an open-source, non-destructive photo library and raw developer, built in pure Rust.
+- 原文（README）: Native on macOS, Windows and Linux. In the browser via WebAssembly.
+- 原文（README）: Drivable end to end by AI agents over MCP.
+- 原文（README）: Every adjustment is non-destructive, so your originals are never touched.
+- 原文（README）: Every slider renders through a scene-referred, wide-gamut, 32-bit float pipeline: highlights roll off like film, shadows open up without halos, and colour stays clean from capture to export.
+- 原文（README）: White balance by temperature and tint (Kelvin for raw, relative for JPEG) with presets, Auto and a click-to-neutralise eyedropper.
+- 原文（README）: All of it is computed in OkLCh, a modern perceptual colour space.
+- 原文（README）: Curves are monotone by construction, so you never get an accidental tone inversion.
 
-これまで、これらの課題を解決する手段は「高額なプロ向け現像ソフトを手作業で動かす」か「粗悪なPythonスクリプトで画質を落として一括リサイズする」かの二者択一でした。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-**LightCraftを使えば、自社専用の高速・安全な「AI自動現像パイプライン」を月額インフラ数千円で構築できます。**
-本記事では、このLightCraftを核として、クライアントのレガシーな現像・写真管理業務を刷新する**受託開発の提案パッケージ**をまとめています。
-
----
-
-## 主な機能とアーキテクチャ概要
-
-### 1. 圧倒的なスペック
-- **Pure Rust & メモリ安全性**: C/C++のレガシーコードゼロ。メモリ破壊クラッシュのリスクを構造的に排除。
-- **プロ仕様の色空間処理**: 内部はすべて32-bit浮動小数点リファレンス空間（Rec.2020）で演算。OkLCh色空間による高精度なカラーグレーディング。
-- **爆速GPUアクセラレーション**: `wgpu`（Metal / Vulkan / DirectX 12）を活用し、2400万画素のRAW画像の現像処理をわずか数ミリ秒で実行。
-- **MCP（Model Context Protocol）ネイティブ**: Anthropicが提唱するMCPサーバーを標準搭載。ClaudeなどのAIが「目（画像プレビュー）」を持ちながら現像パラメータを自律調整可能。
-
-### クイックスタート（動作検証）
-```bash
-# リポジトリ取得とビルド
-git clone https://github.com/storytold/lightcraft.git
-cd lightcraft
-
-# CLIを使った露出補正とJPEGレンダリング
-cargo run --release -p lightcraft-cli -- render input.jpg -o output.jpg --set light.exposure=0.75
-```
-
----
-
-### 📊 商用化・受託開発シミュレーション早見表
-
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | EC・アパレル通販企業 / 不動産仲介DX部門 / 広告代理店 / 撮影スタジオ |
-| **商用SaaS化の狙い目** | EC特化型バッチ現像API / 機密保持特化型ローカル画像現像SaaS |
-| **実装・導入難易度** | 中級（Rust CLI / Docker / TypeScript / Python API連携） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -68,5 +34,5 @@ cargo run --release -p lightcraft-cli -- render input.jpg -o output.jpg --set li
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #art #photography #raw

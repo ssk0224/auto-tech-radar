@@ -1,152 +1,76 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "vectorcraft - VectorCraft: An open-source, vector art tool written by scratch in pure Rust"
-description: "VectorCraft: An open-source, vector art tool written by scratch in pure Rust"
+title: "vectorcraft - README の要点（原文）"
+description: "storytold/vectorcraft の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-15"
-tags: ["Rust", "OSS", "GitHub"]
+updatedDate: "2026-10-22"
+tags: ["Rust","OSS","GitHub"]
 repoUrl: "https://github.com/storytold/vectorcraft"
 repoCreatedAt: "2026-09-30"
 stars: 8898
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# vectorcraft: 概要と革新性
+# vectorcraft: 概要
 
-近年、クリエイティブツールの世界ではプロプライエタリなSaaSベンダーによる価格改定やライセンス形態の囲い込みに対する反発が強まっています。その中で突如登場し、すでにGitHubスター数8,800超えの熱狂的な支持を集めているのが**VectorCraft**です。
+storytold/vectorcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 8,898 です。
 
-VectorCraftは、Adobe IllustratorのワークフローをピュアRust（ゼロからのフルスクラッチ）で完全クリーンルーム再実装したオープンソースのベクターグラフィックツールです。macOS、Windows、Linux、FreeBSD上でネイティブ動作するだけでなく、WebAssembly（WASM）によってブラウザ上でも全く同じインターフェースと描画エンジンが稼働します。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-さらに最大の特徴は、**MCP（Model Context Protocol）サーバーを内包した「エージェント・ネイティブ」な構造**です。Claude CodeなどのLLM/自律型AIエージェントが、JSON制御プロトコル経由で人間のオペレーターと全く同じようにツール操作、描画、レイヤー編集、書き出しを行える設計となっています。
+- 原文（README）: Vector illustration; an open-source, modern vector art application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- 原文（README）: One codebase for the desktop apps and the same UI in the browser.
 
----
+## 🎯 成熟度の目安（README の記載）
 
-## 解決する主要な課題とアーキテクチャ
+README にある開発段階の記載を、原文のまま示します（当サイトによる評価ではありません）。
 
-従来のベクターグラフィックソフトウェア（IllustratorやInkscapeなど）は、数十年にわたるレガシーC/C++コードベースを抱えており、以下の課題を抱えていました：
+- 原文（README）: VectorCraft is under active development.
+- 原文（README）: Where we are (2026-10-10): alpha.
 
-1. **メインスレッド描画のブロッキング**: 複雑なパス演算や万単位のオブジェクト配置によるUIのフリーズ
-2. **ヘッドレス・自動化の困難さ**: GUI前提で設計されているため、CI/CDパイプラインやバックエンド処理でのベクター生成・レンダリングが重厚かつ不安定
-3. **AIエージェント連携の不在**: スクリプティング言語（ExtendScript等）のAPI制限が厳しく、自律AIエージェントが自在に図面を操作できない
+## 主な機能と構成（README の原文）
 
-VectorCraftは、これらの課題をモダンRustの並列処理アーキテクチャとマイクロクレート設計により根本から解決しています。
+- 原文（README）: Multithreaded SIMD rendering off the UI thread.
+- 原文（README）: A documented native format (.vectorcraft, JSON), first-class SVG, PDF (and PDF-compatible .ai) import and export, PNG/JPEG/WebP export, Export for Screens, and SVGZ, templates, GIF, TIFF and BMP on open.
+- 原文（README）: Every menu item, tool gesture, panel and dialog can be driven over a JSON control channel and an MCP server, so Claude and other agents can draw, edit and export the way a person does.
+- 原文（README）: Every piece below was built entirely through VectorCraft's command API, the same one the MCP server exposes to agents, and exported by VectorCraft's own renderer.
 
-### アーキテクチャとデータフロー
+## インストール（README からの転記）
 
-VectorCraftはコアエンジンとUIレイヤーが完全に分離されており、eguiを採用したUIスレッドとは独立したバックグラウンドスレッドでSIMD並列レンダリングを実行します。さらにCLIやMCPサーバーからの入力を共通の`Control Protocol`を経由して直接`Engine`に伝達します。
+以下は [README](https://github.com/storytold/vectorcraft#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
-```mermaid
-graph TD
-    subgraph Clients ["入力インターフェース"]
-        UI["GUI (egui / WebAssembly)"]
-        CLI["vectorcraft-cli"]
-        Agent["AI Agent (Claude Code等)"]
-    end
-
-    subgraph InterfaceLayer ["制御・連携レイヤー"]
-        MCP["MCP Server (stdio)"]
-        Socket["JSON Control Protocol (TCP:7979)"]
-    end
-
-    subgraph CoreEngine ["VectorCraft Core (Rust Workspace)"]
-        Engine["engine / tools crate"]
-        Doc["doc crate (Document Model & Undo)"]
-        PathOps["pathops & geom (Exact Booleans)"]
-        Render["render crate (Multi-thread SIMD)"]
-    end
-
-    subgraph Output ["出力・ファイルシステム"]
-        Screen["Screen (120fps / Retina)"]
-        IO[".vectorcraft / SVG / PDF / AI / Affinity"]
-    end
-
-    Agent --> MCP
-    MCP --> Socket
-    Socket --> Engine
-    CLI --> Engine
-    UI --> Engine
-
-    Engine --> Doc
-    Doc --> PathOps
-    Doc --> Render
-    Render --> Screen
-    Doc --> IO
-```
-
-- **SIMD並列オフスレッドレンダリング**: 20,000個のベクターシェイプをRetina解像度においてわずか約27msで描画。UIフレームレートは120fpsを堅持。
-- **堅牢な幾何演算エンジン**: 構造共有（Structural Sharing）による無限Undo/Redoと、厳密な幾何ブール演算（パスファインダー処理での「演算不能エラー」を徹底排除）。
-- **完全なファイル相互運用性**: ネイティブJSON（`.vectorcraft`）に加え、SVG、PDF/X、AI（PDF互換層）、Affinity（`.afdesign`, `.afpub`等）のダイレクトインポートに対応。
-
----
-
-## 競合ツール/商用SaaSとの徹底比較
-
-| 機能・指標 | Adobe Illustrator | Inkscape | Figma | **VectorCraft** |
-| :--- | :--- | :--- | :--- | :--- |
-| **開発言語** | C++ (レガシー) | C++ / GTK | C++ / WebAssembly | **Pure Rust** |
-| **ライセンス形態** | 月額課金（プロプライエタリ） | GPL v3 | 月額課金（SaaS） | **MIT / Apache-2.0** |
-| **描画性能** | 大規模パスで遅延発生 | 大規模パスで低速 | WebGL高速描画 | **SIMDマルチスレッド (27ms/2万パス)** |
-| **エージェント親和性 (MCP)** | 不可 (ExtendScriptのみ) | 不可 (Pythonプラグイン) | プラグインAPI経由 | **ネイティブMCP / JSON RPC対応** |
-| **ヘッドレス実行** | 難（デスクトップ起動必須） | 可能（CLI対応） | 外部API依存（制限有） | **CLIネイティブで高速バッチ書き出し** |
-| **プラットフォーム** | macOS / Windows | デスクトップ各種 | Web中心 / Electron | **macOS / Win / Linux / BSD / Web** |
-
----
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-VectorCraftの真価は単なる「無料のIllustrator代替」にとどまりません。**Rust製ネイティブバイナリ＋MCP/CLI完備**という性質を活かした、次世代のビジネスモデルが成立します。
-
-1. **AIネイティブなベクター生成・組版自動化エンジン**:
-   - Claude Codeや自社エージェントを組み合わせ、自然言語指示から印刷用パンフレット、名刺、ポスターのパスデータを動的に自動生成する受託開発。
-2. **オンプレミス型プライベートベクターSaaSの構築**:
-   - WebAssembly版を活用し、機密情報を外部クラウドに送信できない官公庁・金融機関・製造業向けに、社内完結型ベクター編集プラットフォームを構築・保守提供。
-3. **CI/CD組み込み型グラフィックアセット自動最適化パイプライン**:
-   - GitHub Actions等のCIパイプライン上で`vectorcraft-cli`をヘッドレス動作させ、SVG/PDFの自動バリデーションやフォーマット変換バッチサービスを受託。
-
----
-
-## インストール & クイックスタート手順
-
-### 1. ソースコードからのビルドと起動
-
-Rustツールチェーンがインストールされている環境であれば、数コマンドで起動できます。
-
-```bash
-# リポジトリのクローン
+```sh
 git clone https://github.com/storytold/vectorcraft
 cd vectorcraft
 
-# デスクトップアプリのネイティブ起動 (Releaseビルド)
-cargo run --release -p vectorcraft
-
-# 付属のサンプルファイルを開く
+cargo run --release -p vectorcraft                          # desktop app
 cargo run --release -p vectorcraft -- examples/dusk-poster.vectorcraft
-
-# JSON制御チャネルを有効化して起動 (ポート7979)
-cargo run --release -p vectorcraft -- --control 7979
+cargo run --release -p vectorcraft -- --control 7979        # + JSON control channel
+cargo run --release -p vectorcraft-cli -- mcp               # MCP server (stdio)
+cargo run --release -p vectorcraft-cli -- run --in examples/ribbons.vectorcraft --export out.pdf   # headless batch
+cargo run --release -p vectorcraft-cli -- bench examples/neon-drive.vectorcraft                   # render timing
+cargo xtask bundle                                        # dist/VectorCraft.app (macOS)
+cd apps/vectorcraft-web && trunk build --release            # web build → dist/web
+cargo xtask ci                                            # fmt, clippy, tests, layering, wasm, vendor names
 ```
 
-### 2. MCPサーバーをClaude Codeに登録する
-
-AIエージェントからVectorCraftを直接操作可能にします。
-
-```bash
-# MCPサーバーのバイナリをClaude CLIに登録
-claude mcp add vectorcraft -- cargo run --release -p vectorcraft-cli -- mcp
+```sh
+claude mcp add vectorcraft -- /path/to/vectorcraft-cli mcp
 ```
 
-### 3. ヘッドレスバッチ書き出し（CLI）
-
-GUIを立ち上げることなく、CIサーバー上でPDFや各種ラスタ形式へレンダリングできます。
-
-```bash
-cargo run --release -p vectorcraft-cli -- run --in examples/ribbons.vectorcraft --export out.pdf
+```sh
+claude mcp add vectorcraft -- /path/to/vectorcraft-cli mcp --automation-read-root /work/project --automation-write-root /work/project
 ```
 
----
+## ライセンス
 
-## 商用利用可否 & ライセンス考察
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/storytold/vectorcraft/blob/main/LICENSE-APACHE)
 
-VectorCraftのコードベースは **MIT License または Apache License 2.0 のデュアルライセンス** で公開されています。
-
-- **商用利用**: 自社プロダクトへの組み込み、受託開発での納品、自社SaaSのバックエンドエンジンとしての活用が完全に認められています。
-- **フォークと再配布**: 商用クローズドソース製品への静的リンクや独自拡張バイナリの販売もライセンス条項（著作権表示等）を遵守する限り問題ありません。
-- **商標に関する注意**: 「ArtCraft」「VectorCraft」のロゴおよびブランドマークは保護されており、商用フォークや独自配布を行う場合は独自アイコンへの差し替えが必要です。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

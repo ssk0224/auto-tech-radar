@@ -200,8 +200,9 @@ test("「商用・マネタイズ分析付き」「活用領域」の表示は�
   const hasSection = (slug) => /^##\s+.*マネタイズ/m.test(read(path.join(radarDir, `${slug}.md`)));
   const withSection = slugs.filter(hasSection);
   const without = slugs.filter((s) => !hasSection(s));
-  assert.ok(withSection.length > 0 && without.length > 0, "節のある記事と無い記事の両方で確かめる");
-  for (const slug of [withSection[0], ...without]) {
+  // 2026-10-22 から、マネタイズの節は README で確かめられないため全記事から削除した（leakhunt C3）。節のある記事が無い間は、節の無い全記事に表示が無いことを確かめる
+  assert.ok(without.length > 0, "節の無い記事で確かめる");
+  for (const slug of [...withSection.slice(0, 1), ...without]) {
     const doc = await runArticleScripts(read(path.join(siteOut, "radar", slug, "index.html")));
     const bar = doc.querySelector(".reading-meta-bar");
     assert.ok(bar, `${slug}: メタバーが作られていない`);

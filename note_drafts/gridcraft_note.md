@@ -1,54 +1,30 @@
-# 海外急上昇OSS「gridcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「gridcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-**「Excelのマクロや集計作業をAIエージェントに完全自動化させたいが、既存のSaaSは月額が高く、セキュリティ上クラウドにデータを預けられない……」**
+storytold/gridcraft は 2026-10-07 に GitHub で作成されたリポジトリです。2026-10-18 時点のスター数は 5,729 です。
 
-エンタープライズから地方の中堅企業に至るまで、現在あらゆる現場がこのジレンマに直面しています。Pythonの`openpyxl`では数式の動的再計算やチャート描画が弱く、LibreOfficeはコンテナで動かすには重すぎてクラッシュする。そしてMicrosoft 365 Copilotは1アカウントあたり月額4,000円超の追加コストが発生する上、機密データを閉域網から出す必要があります。
+## README の要点（原文）
 
-この課題を根底から覆す破壊的OSSが、世界で5,700スターを突破した**「GridCraft」**です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-GridCraftは、**ピュアRustでゼロから再実装されたオープンソースのExcel互換エンジン**です。起動時間はわずか数ミリ秒、Copy-on-Write設計による超軽量メモリフットプリント、そして何より**「Model Context Protocol (MCP)」を公式標準搭載**しています。
+- 原文（README）: Spreadsheets and data; an open-source, high-performance modern spreadsheet application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and BSD, and in the browser via WebAssembly.
+- 原文（README）: One Rust codebase for desktop and the web.
+- 原文（README）: 500+ functions, dynamic arrays, LET and LAMBDA, structured table references.
+- 原文（README）: XLSX is the native format: styles, themes, formulas (including dynamic arrays), tables, conditional formats, validation, comments, hyperlinks, charts, pictures, sparklines, pivot tables and print settings round-trip.
+- 原文（README）: Legacy 97-2003 .xls workbooks open with their values, formulas and number formats (formatting and objects not yet).
+- 原文（README）: Copy-on-write workbooks (undo snapshots are nearly free), incremental recalculation, and a virtualised grid that only lays out what's on screen.
+- 原文（README）: Every ribbon button, menu item, dialog, keystroke and mouse gesture is a command that agents can run over a JSON control channel, an MCP server, or the CLI.
 
-この記事では、**「社内データを外部に出さず、AIが数式を組み、集計し、グラフを作ってXLSXを出力する自律型Excel自動化基盤」**を、クライアント企業への**受託案件として提案するための材料**をまとめています。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-技術選定の解説にとどまらず、受託獲得に必要な「提案書テンプレート」「工数見積表」「Docker構築手順」「MCP連携設定」を完全パッケージとして提供します。
-
-## 主な機能とアーキテクチャ概要
-
-GridCraftは単なるUIクローンではありません。バックエンドで動作する堅牢な計算エンジンです。
-
-1. **513種のExcel関数と動的配列の完全サポート**:
-   `LET`, `LAMBDA`, `MAP`, `REDUCE`, `XLOOKUP`などの最新Excel関数に対応。数式エンジンが単体で動作するため、Excelがインストールされていないサーバー上でも数式結果を正確に評価します。
-2. **ネイティブMCP（Model Context Protocol）サーバー**:
-   `gridcraft-cli mcp`を立ち上げるだけで、Claude DesktopやCursor、自作のLangChain/LlamaIndexエージェントから「セルの読み書き」「書式設定」「グラフ生成」「数式実行」がAPIレベルで直ちに叩けます。
-3. **ピュアRust ＆ マルチプラットフォーム**:
-   単一バイナリでLinux、macOS、Windows、さらにはWebAssembly（ブラウザ）上で動作。コンテナイメージサイズは数十MBに収まります。
-
-```bash
-# ヘッドレスでの数式評価例（一瞬で結果が返る）
-gridcraft-cli eval '=XLOOKUP("Target", A1:A10, B1:B10)'
-
-# コマンドパイプラインによるセル太字化とファイル出力
-gridcraft-cli run --sample budget --cmd 'home.bold={"range":"B4:F4"}' --out result.xlsx
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / 金融・会計系企業 / 製造業サプライチェーン / AI内製化チーム |
-| **商用SaaS化の狙い目** | 完全閉域型AIデータアナリスト / 帳票自動集計マイクロSaaS |
-| **実装・導入難易度** | 中級（Rustバイナリ配置 / Docker Compose / MCP設定） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- クライアント提示用「詳細工数・見積シミュレーション表」
-- 公式のビルド手順をもとにした「Docker コンテナ化の例」（動作要検証）
-- 商談で使える「キラー営業トーク ＆ 想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -59,5 +35,5 @@ gridcraft-cli run --sample budget --cmd 'home.bold={"range":"B4:F4"}' --out resu
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #GitHub

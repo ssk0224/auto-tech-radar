@@ -1,99 +1,51 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "jev-chat-jarvis - 返信前の「意図・炎上リスク判定」に特化した次世代チャット意思決定アシスタント"
-description: "単なるテキスト自動生成ではなく、相手の真意やリスクを事前判定してから最適な返信候補を提示するOSS「jev-chat-jarvis」のアーキテクチャと商用展開を徹底解説。"
+title: "jev-chat-jarvis - README の要点（原文）"
+description: "jev-chat/jev-chat-jarvis の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-16"
-tags: ["Kotlin", "OSS", "GitHub", "Android", "LLM", "Human-in-the-loop"]
+updatedDate: "2026-10-22"
+tags: ["Kotlin","OSS","GitHub"]
 repoUrl: "https://github.com/jev-chat/jev-chat-jarvis"
 repoCreatedAt: "2026-09-21"
 stars: 7815
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# jev-chat-jarvis: 概要と革新性
+# jev-chat-jarvis: 概要
 
-チャットコミュニケーションにおいて最も重大なインシデントは、「タイピングの遅さ」ではなく「相手の真意の誤読による不適切な返答」や「感情的な即レスによる炎上・トラブル」です。従来のAIチャットアシスタントは、文脈を考慮せずに定型的な返信を自動生成するものが大半であり、ビジネスやセンシティブな対話では誤送信リスクを抱えていました。
+jev-chat/jev-chat-jarvis は 2026-09-21 に GitHub で作成されたリポジトリです。2026-10-16 時点のスター数は 7,815 です。
 
-GitHubでスター数7,800を突破した**jev-chat-jarvis**（jev-chat）は、この課題を根本から解決する「チャット意思決定アシスタント（Chat Decision Assistant）」です。
-最大の特徴は、**「書く前に、まず相手を看破・判定する（Judge before writing）」** という設計思想にあります。画面上のメッセージをリアルタイムに解析し、相手の「真の意図（Intent）」「リスク度（Risk）」「本質的ニーズ」を判定した上で、複数の返答シナリオをスコアリングして提示します。さらに、AIが勝手に送信することは一切なく、**「入力欄へのワンタップ挿入にとどめ、送信ボタンを押すのは常に人間」** という厳格なHuman-in-the-loop設計を貫いています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-## 解決する主要な課題とアーキテクチャ
+- 原文（README）: Before you answer, Jev works out what the other person really means, how risky the moment is and how to respond, then drafts replies you can fill in with one tap.
+- 原文（README）: Whether to send is always up to you.
+- 原文（README）: You press send — jev-chat only fills the input box and never sends on its own
 
-多くの企業や個人が直面しているチャット上の課題は以下の3点です。
-1. **コンテキストと感情の誤読**: 皮肉、クレームの前兆、駆け引きを見落とし、火に油を注ぐ返信をしてしまう。
-2. **AIの暴走・誤送信不安**: フルオートのチャットボットを導入すると、規約違反や不適切な回答を即座に送信してしまうリスクがある。
-3. **プライバシーとデータ主権**: SaaS型ツールでは社内外の機密チャットログが外部ベンダーのサーバーに蓄積されてしまう。
+## 🎯 成熟度の目安（README の記載）
 
-`jev-chat-jarvis` は、クライアントサイド（AndroidのAccessibility API、デスクトップのローカルOCR/画面キャプチャ、iOSのカスタムキーボード）でチャットテキストを取得し、BYOK（Bring Your Own Key）方式で指定LLMにダイレクト接続します。自社サーバーを一切介さないため、プライバシーリスクを最小化しています。
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
 
-```mermaid
-graph TD
-    subgraph ClientDevice ["ユーザー端末 (Android / Desktop / iOS)"]
-        ChatApp["対象チャットUI: WhatsApp / Slack / Feishu / LINE等"]
-        Accessibility["アクセシビリティ / 画面OCR / キーボード"]
-        JevEngine[Jev判定・スコアリングエンジン]
-        OverlayUI[オーバーレイ推薦UI]
-    end
+## 主な機能と構成（README の原文）
 
-    subgraph LLMProvider ["LLM API / 自社プライベートモデル"]
-        JudgeModel["判定モデル: 意図解析・リスク検知"]
-        DraftModel["生成モデル: 複数トーン返信起草"]
-    end
+- 原文（README）: Its Jev judgment model reads the conversation and works out the other person's intent, the risk in the moment and the best way to respond.
+- 原文（README）: Works where you chat — WhatsApp, QQ, Feishu and X on Android; chat windows on Windows and macOS; any app through the iOS keyboard
+- 原文（README）: Your keys, no server of ours — requests go only to the model provider you configure, with your own key
+- 原文（README）: Windows / Jev for Windows / Sits beside your chat window and reads it with screenshots and on-device OCR / Released
+- 原文（README）: Android: Android 11 or later (the Chinese edition needs an ARM64 phone)
 
-    ChatApp -->|リアルタイム描画取得| Accessibility
-    Accessibility -->|未返信メッセージ抽出| JevEngine
-    JevEngine -->|1. 意図・リスク・コンテキスト送信| JudgeModel
-    JudgeModel -->|意図タグ & リスクスコア| JevEngine
-    JevEngine -->|2. リスク回避プロンプト付与| DraftModel
-    DraftModel -->|複数パターンの返信案| JevEngine
-    JevEngine -->|整合性検証・ランキング| OverlayUI
-    OverlayUI -->|ワンタップで入力欄にペースト| ChatApp
-    ChatApp -.->|【人間が手動確認】最終送信| ChatApp
-```
+## インストール（README からの転記）
 
-### アーキテクチャの特長
-- **非侵襲型インターフェース**: チャットアプリ自体の改変やリバースエンジニアリングを行わず、OS標準のアクセシビリティ機能やオーバーレイ、カスタムキーボードで動作。
-- **2フェーズ評価パイプライン**: 「判定（意図/リスク）」→「ドラフト生成・スコア付け」の2段階を実行し、最も安全で効果的な文面を上位表示。
-- **ゼロ・トラスト・データフロー**: プロジェクト運営側のバックエンドサーバーは存在せず、APIコールはユーザー自身のキーまたは社内ゲートウェイへ直接送信。
+README にインストール手順のコードブロックが見つかりませんでした。導入方法は [README](https://github.com/jev-chat/jev-chat-jarvis#readme) を確認してください。
 
-## 競合ツール/商用SaaSとの徹底比較
+## ライセンス
 
-| 評価項目 | jev-chat-jarvis (OSS) | 一般的なAIキーボード/ブラウザ拡張 | 大手CS向け自動返信SaaS |
-| :--- | :--- | :--- | :--- |
-| **返信生成の起点** | **相手の意図・リスク分析結果が前提** | 直前の文字や入力プロンプト | FAQマッチング・定型シナリオ |
-| **リスク制御** | 炎上スコア・相手の真意を事前可視化 | なし（言い換え機能のみ） | ルールベースのNGワード判定 |
-| **送信権限** | 人間のみ（Human-in-the-loop） | 人間（ツールによる） | 完全自動（誤爆リスク高） |
-| **データプライバシー** | 完全ローカル/自社キー直結（中継なし） | ベンダーサーバーへログ送信 | ベンダーDBに会話全体を蓄積 |
-| **対応環境** | Android, Win, macOS, iOS | モバイルまたはブラウザ限定 | Webブラウザ・特定CRM限定 |
-| **導入コスト** | **無料（MITライセンス）＋LLM従量課金** | 月額$10〜$30 / ユーザー | 初期数十万＋月額数十万円〜 |
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/jev-chat/jev-chat-jarvis/blob/main/LICENSE)
 
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-### 1. カスタマーサポート（CS）炎上防止・オペレータ支援システム
-企業の問い合わせ窓口（LINE公式アカウント、WhatsApp、Slack対応）に導入。経験の浅い一次受けオペレータ向けに、顧客のクレーム温度感や法的なリスク度をリアルタイムで警告し、適切な「丁重な謝罪」「代替案提示」「エスカレーション推奨」の返信テンプレートを提示する仕組みを受託開発。
-
-### 2. エグゼクティブ・VIP専用「失言防止」チャットアシスタント（月額制マイクロSaaS）
-多忙な経営者や政治家、インフルエンサー向けに、SNSのDMやメッセージアプリでの失言・コンプライアンス違反・炎上リスクを検知するセキュアなデスクトップ＆モバイル常駐アプリを構築。自社のプライベートLLMと接続したクローズド環境を提供し、月額3,000円〜10,000円/席の高付加価値SaaSとして展開。
-
-### 3. 法人営業・インサイドセールス専用「商談獲得アシスタント」
-顧客からの断り文句（「今は予算がない」「他社を使っている」）の真意を判定し、「予算期末の再アプローチ」「他社比較の切り返し」など、勝率の高いスクリプトを即座に下書き提示する営業DXパッケージ。
-
-## インストール & クイックスタート手順
-
-### Android版（グローバル版 WhatsApp / 中国版 各種チャット）
-1. リポジトリの Releases より最新の `jev-whatsapp-vX.X.X-release.apk` をダウンロード。
-2. 端末にインストール後、アプリを起動。
-3. ガイドに従い、Androidの「ユーザー補助（Accessibility Service）」および「他のアプリの上に重ねて表示（Overlay）」の権限を許可。
-4. 設定画面でOpenAI / Claude / 自社エンドポイントのAPIキーおよびベースURLを設定。
-
-### Windows / macOS版
-デスクトップ版は独立したリポジトリ（`jev-chat-windows`, `jev-chat-jarvis-mac`）で管理されています。
-- **macOS**: Apple Silicon（M1/M2/M3/M4）対応。画面認識を行い、ローカルモデルまたはAPI経由で判定を実行。
-- **Windows**: 画面上のチャットウィンドウを検知し、オンデバイスOCRでテキスト抽出を実行。
-
-## 商用利用可否 & ライセンス考察
-
-`jev-chat-jarvis` は **MITライセンス** を採用しています。
-- **商用利用**: 個人・法人を問わず、商用利用、改変、再配布、自社プロダクトへの組み込みが許可されています。
-- **著作権表示義務**: 配布時にはオリジナルの `LICENSE` および `NOTICE` ファイルを保持し、製品の「About」画面やドキュメントにクレジット（例: `Based on Jev Chat Assistant (https://github.com/jev-chat/jev-chat-jarvis)`）を明記する必要があります。
-- **商標・名称の制限**: 「Jev Chat Assistant」や「chatjevs.com」の名称を、原作者が公認・推奨しているかのように誤認させる形で使用することは禁止されています。自社ソリューションとしてリブランドして提供する際は、独自ブランド名を冠して展開することが推奨されます。
-- **利用先アプリの規約**: サードパーティアプリ（WhatsApp、X、Slack等）の規約に配慮し、自己責任での運用設計が必要です。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

@@ -1,49 +1,28 @@
-# 海外急上昇OSS「Compositor」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「Compositor」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-GitHubで瞬く間にスター数15,000件を突破し、クリエイティブ業界とエンジニアコミュニティの双方で話題をさらっているSwift製OSS「**Compositor**」。
-一言で言えば、「**Photoshopの代替となるApple Siliconネイティブな高機能画像編集環境であり、外部スクリプトやAIエージェントからリアルタイムに操作できるオープンソース**」です。
+robbietilton/Compositor は 2026-09-17 に GitHub で作成されたリポジトリです。2026-10-11 時点のスター数は 15,455 です。
 
-これまで、企業のクリエイティブ制作現場では以下のような深刻なペインが存在していました：
-- **Adobe CCの莫大なライセンス費**: 1シートあたり年間数万〜十数万円。数百人規模の制作会社や事業会社では年間数千万円規模の固定費負担。
-- **AI生成パイプラインと人間デザイナーの断絶**: MidjourneyやStable Diffusionで生成した画像をデザイナーが手動でPhotoshopに取り込み、切り抜きや配置を泥臭く行っている非効率。
-- **既存OSS（GIMP等）の運用限界**: UIが独特すぎて現場デザイナーが受け入れず、導入プロジェクトが頓挫する。
+## README の要点（原文）
 
-Compositorはこのすべてを解決します。MITライセンスのため完全無料・改変自由であり、UIはPhotoshopそのもの。さらに最大の武器は、**「`.comp`プロジェクトをファイルシステム経由で操作すれば、開いているアプリが即座に同期・再描画される」**という、AI時代のために作られたオープン仕様です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-**【この記事を読めば、クライアントへの受託開発・AI導入の提案材料がそろう理由】**
-本記事では、Compositorを単なる「無料お絵描きアプリ」として終わらせず、企業の制作ワークフローを自動化する**「ローカル完結型バナー/アセット自動生成システム」**として商用提案するための全設計図を公開します。高額クラウドAPIを使わず、社内のMac端末をバッチワーカー化して年間コストを大幅削減する提案は、制作会社やEC事業者の経営陣に驚くほど刺さります。
+- 原文（README）: I used to use Photoshop for compositing and post-processing, so Compositor is built around that workflow - with the tools needed to create a pixel-perfect final image.
+- 原文（README）: Compositor is macOS only.
+- 原文（README）: macOS 26.0 or later on a Mac with Apple silicon
+- 原文（README）: Layers and folders, with opacity and Photoshop's full set of blend modes in its order — a folder's opacity dims everything inside it
+- 原文（README）: Layer effects: Stroke, Drop Shadow, Color Overlay, Inner Shadow, Outer Glow and Inner Glow, rendered on the GPU and editable at any time
+- 原文（README）: Import JPEG, PNG, HEIC, TIFF, WebP, SVG, PDF (every page its own layer, at 300 DPI or fitted to the canvas), camera RAW (with a develop step first) and Photoshop PSD and PSB (8-bit RGB; not CMYK).
+- 原文（README）: AI agents and scripts can build and edit projects directly: a .comp is a folder of PNG layers and a manifest, and an open project updates live as it's written.
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ概要
-
-- **Photoshop同等の編集能力**: 全ブレンドモード、調整レイヤー（トーンカーブ/レベル/色相）、レイヤーマスク、Camera Raw風カラーグレーディングをGPU（Metal）描画で高速実行。
-- **PSD/PSB高精度互換**: 既存の資産（Photoshopファイル）を崩さずにインポート可能。
-- **Agent-Ready アーキテクチャ**: プロジェクト実体はJSONマニフェスト＋レイヤー画像フォルダ。Python等のスクリプトでファイルを上書きするだけで、GUIエディタがリアルタイム更新。
-
-### クイックインストール
-```bash
-brew install --cask robbietilton-compositor
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | ECメガベンチャー / 広告代理店 / ゲーム制作会社 / D2Cブランド |
-| **商用SaaS化の狙い目** | ローカル駆動型バナー量産エンジン / プライベートAIレタッチ基盤 |
-| **実装・導入難易度** | 中級（macOS環境 / Python連携 / JSONマニフェスト操作） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書（2つの具体的なプロダクト案）
-- 動作未検証の例を含む環境構築・自動生成スクリプト（Pythonによる`.comp`完全制御コード）
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -54,4 +33,5 @@ brew install --cask robbietilton-compositor
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Swift #GitHub

@@ -1,44 +1,34 @@
-# 【最新OSS解体新書】mediawikiとは？機能解説とビジネス活用・マネタイズ実践法
+# 「mediawiki」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、世界中で注目されているのか？
+## はじめに
 
-「社内情報がNotionやSlack、個人のローカルファイルに散乱し、どこに何があるかわからない」
-「商用SaaSのシート課金（月額1人1,500円〜）が積み重なり、社員数百人規模で年間数百万円単位のコスト負担になっている」
+wikimedia/mediawiki は 2012-11-02 に GitHub で作成されたリポジトリです。
 
-そんな悩みを抱える企業が今、改めて原点にして頂点である**「MediaWiki」**に回帰しています。
+## README の要点（原文）
 
-MediaWikiは、Wikipediaを支え続ける伝説的なオープンソースソフトウェアです。月間数十億アクセスに耐えうる高い可用性と、350以上の言語に対応する柔軟性、そして改ざんを許さない厳密な履歴管理機能を備えています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-最新のモダンフロントエンドツールが次々と登場しては消えていく中で、20年以上エンタープライズの第一線で戦い続けているMediaWikiの設計思想は、DXや社内ナレッジ管理を本質的に成功させたいエンジニア・ITコンサルタントにとって「最強の武器」になります。
+- 原文（README）: MediaWiki is a free and open-source wiki software package written in PHP.
+- 原文（README）: It serves as the platform for Wikipedia and the other Wikimedia projects, used by hundreds of millions of people each month.
+- 原文（README）: For system requirements, installation, and upgrade details, see the files RELEASE-NOTES, INSTALL, and UPGRADE.
+- 原文（README）: The CREDITS file lists technical contributors to the project.
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ
-
-MediaWikiが数あるナレッジツールの中で別格とされる理由は以下の3点に集約されます。
-
-1. **イミュータブル（不変）な差分追跡**: すべての変更は過去履歴として保存され、誰でも過去バージョンへのロールバックが可能。情報統制と監査ログの観点で極めて優れています。
-2. **階層化されたキャッシュ構造**: Memcached/Redis、Varnishとの親和性が極めて高く、低スペックサーバーでも膨大な同時アクセスを処理可能。
-3. **拡張性とAPIエコシステム**: REST APIはもちろん、数百の拡張機能（VisualEditor、Semantic MediaWiki、認証プラグイン等）が用意されており、要件に合わせた自由なカスタマイズが可能です。
-
-### クイックスタート手順（Dockerで5分で立ち上げ）
-
-```bash
-# プロジェクト用ディレクトリの作成
-mkdir my-wiki && cd my-wiki
-
-# 公式コンテナを起動
-docker run --name mediawiki -p 8080:80 -d mediawiki
-```
-ブラウザで `http://localhost:8080` にアクセスするだけで、Wikipediaと同等のエンジンがローカル環境で動き始めます。
-
---------------------------------------------------
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『公式READMEに基づく導入手順』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
-【有料ライン（推奨販売価格: 500円〜980円）ここから先は有料会員限定】
+--------------------------------------------------
+【有料ライン（推奨販売価格: 980円 / 月額1,980円メンバーシップ特典）ここから先は有料会員限定】
 <!-- PAID_SEALED: mediawiki_note.paid.enc 有料エリアは暗号化保存されています（復号はオーナー端末のみ: npm run vault:open） -->
 ---
+### 🎁 【メンバーシップのご案内】
+Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
+
+---
 **【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+#OSS #PHP #mediawiki #wiki #wikipedia

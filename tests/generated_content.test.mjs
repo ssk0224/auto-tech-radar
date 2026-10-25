@@ -65,7 +65,8 @@ test("保存前の最終検査: frontmatter をビルドと同じ方法で読め
   assert.ok((await finalWebArticleProblems(ok.replace("stars: 1", 'stars: "1"'))).some((p) => /stars/.test(p)));
   assert.ok((await finalWebArticleProblems(ok.replace('A["a"]', "A[a (b)]"))).length > 0);
   assert.ok((await finalWebArticleProblems(ok + "```js\nx\n")).some((p) => /閉じていない/.test(p)));
-  assert.ok((await finalWebArticleProblems(ok.replace(/```mermaid[\s\S]*```\n/, ""))).some((p) => /Mermaid/.test(p)));
+  // 図は生成モデルに描かせず、README にある図だけを転記する（leakhunt C3、2026-10-22）。図の無い記事は問題ではない
+  assert.deepEqual(await finalWebArticleProblems(ok.replace(/```mermaid[\s\S]*```\n/, "")), []);
   // 品質ゲート（audit_quality）の Web 記事の検査と同じ: 有料キットの見出し・異常な長大空白
   assert.ok((await finalWebArticleProblems(ok + "## 見積シミュレーション表\n")).some((p) => /有料キット/.test(p)));
   assert.ok((await finalWebArticleProblems(ok + "\n".repeat(600))).some((p) => /長大空白/.test(p)));

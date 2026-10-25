@@ -1,53 +1,28 @@
-# 海外急上昇OSS「vectorcraft」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「vectorcraft」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-**「月額制デザインツールの高額なライセンス費用を削減したい」**
-**「自社システム内に、セキュアで自動化可能なベクター描画エンジンを組み込みたい」**
-**「生成AIエージェントに、直接ベクターデータ（SVG/PDF）を描画・編集させたい」**
+storytold/vectorcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-15 時点のスター数は 8,898 です。
 
-いま、世界中のデザインテック界隈およびエンタープライズDX部門でこのような要望が急増しています。しかし、従来の商用デザインツールはデスクトップGUI前提で構築されており、クラウド連携やCI/CDバッチ処理、自律型AIエージェントとの親和性は極めて低いのが現状でした。
+## README の要点（原文）
 
-その課題を完全に打破したのが、Rustフルスクラッチで実装され、GitHubでスター8,800超えを記録したOSS**「vectorcraft」**です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-### この記事を読めば、クライアントへの受託開発・AI導入の提案材料がそろう理由
-VectorCraftは単なるお絵描きツールではありません。**「MCP（Model Context Protocol）ネイティブ対応」**かつ**「ヘッドレスCLIで動作する純Rust製幾何計算エンジン」**です。
-つまり、「AIエージェントにプロ仕様のデザインアセットを自動生成させる自動化システム」や「オンプレミス環境で完全に動作する自社専用ベクターエディタ」を極めて低コストに開発し、高単価なDXソリューションとしてクライアントへ提案することが可能になります。
+- 原文（README）: Vector illustration; an open-source, modern vector art application, built in pure Rust.
+- 原文（README）: It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WebAssembly.
+- 原文（README）: One codebase for the desktop apps and the same UI in the browser.
+- 原文（README）: Multithreaded SIMD rendering off the UI thread.
+- 原文（README）: A documented native format (.vectorcraft, JSON), first-class SVG, PDF (and PDF-compatible .ai) import and export, PNG/JPEG/WebP export, Export for Screens, and SVGZ, templates, GIF, TIFF and BMP on open.
+- 原文（README）: Every menu item, tool gesture, panel and dialog can be driven over a JSON control channel and an MCP server, so Claude and other agents can draw, edit and export the way a person does.
+- 原文（README）: Every piece below was built entirely through VectorCraft's command API, the same one the MCP server exposes to agents, and exported by VectorCraft's own renderer.
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ概要
-
-VectorCraftは、Adobe Illustratorの全ワークフローを徹底研究して再実装されたプロジェクトです。
-
-- **20,000シェイプを27msで描画**: Rust + SIMD並列処理により、超高解像度Retina環境でも120fpsの滑らかな操作性を実現。
-- **MCPサーバー標準内包**: Claude CodeなどのLLMエージェントから、標準入力/出力経由でパスの描画、整列、色変更、エクスポートを全自動制御。
-- **WebAssembly対応**: デスクトップ（Mac/Win/Linux）だけでなく、Webブラウザ上でも同一のRustバイナリが完全動作。
-- **広範なファイル対応**: SVG、PDF、Illustrator互換ファイル、さらにはAffinity Designerデータまでネイティブ読み込みに対応。
-
-```bash
-# わずか数秒でCLI・MCPサーバーをローカル検証可能
-git clone https://github.com/storytold/vectorcraft
-cd vectorcraft
-cargo run --release -p vectorcraft-cli -- mcp
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / スタートアップ / 印刷・製造業 |
-| **商用SaaS化の狙い目** | 独自ワークフロー特化型マイクロSaaS / Web組版エンジン |
-| **実装・導入難易度** | 中級（Docker / API連携 / TypeScript/Python / Rust基礎） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -58,5 +33,5 @@ cargo run --release -p vectorcraft-cli -- mcp
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Rust #art #svg #rust_lang

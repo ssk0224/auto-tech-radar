@@ -1,47 +1,30 @@
-# 海外急上昇OSS「jev-chat-jarvis」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「jev-chat-jarvis」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方、導入時の想定問答
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-「ChatGPTを導入したが、社内チャットや顧客対応で炎上や誤送信が怖くて現場が使えない」
-「生成AIに返信を書かせると、相手の機微や皮肉を読み違えてトンチンカンな回答を出してしまう」
+jev-chat/jev-chat-jarvis は 2026-09-21 に GitHub で作成されたリポジトリです。2026-10-16 時点のスター数は 7,815 です。
 
-企業の現場で生成AI導入が踊り場を迎えている最大の原因は、**「書く能力」の不足ではなく、「相手の意図とリスクを看破する能力」の欠如**にあります。
+## README の要点（原文）
 
-いまGitHubで急速にスター数を伸ばし、海外の開発者コミュニティで話題を独占しているのが **「jev-chat-jarvis」**（jev-chat）です。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-このOSSの思想は極めて明快かつ実用的です。
-**「いきなり返信を書かない。まず相手の真意とリスクを判定し、人間が選んだ1手だけを入力欄に流し込む。送信ボタンを押すのは常に人間である。」**
+- 原文（README）: Before you answer, Jev works out what the other person really means, how risky the moment is and how to respond, then drafts replies you can fill in with one tap.
+- 原文（README）: Whether to send is always up to you.
+- 原文（README）: You press send — jev-chat only fills the input box and never sends on its own
+- 原文（README）: Its Jev judgment model reads the conversation and works out the other person's intent, the risk in the moment and the best way to respond.
+- 原文（README）: Works where you chat — WhatsApp, QQ, Feishu and X on Android; chat windows on Windows and macOS; any app through the iOS keyboard
+- 原文（README）: Your keys, no server of ours — requests go only to the model provider you configure, with your own key
+- 原文（README）: Windows / Jev for Windows / Sits beside your chat window and reads it with screenshots and on-device OCR / Released
+- 原文（README）: Android: Android 11 or later (the Chinese edition needs an ARM64 phone)
 
-本記事では、このjev-chatのアーキテクチャを活用し、**「企業のカスタマーサポート部門や営業チーム、経営層向けのAI導入・受託開発案件」**を提案するためのビジネスモデル、提案書、見積工数、そして本番稼働に向けたAPI中継の構成例（Docker は公式未提供の自作例・要検証）をまとめています。
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
+- 導入時の想定問答
 
-## 主な機能とアーキテクチャ概要
-
-jev-chat-jarvisは、Kotlin（Android）を中心に、Windows、macOS、iOS向けに展開されているマルチプラットフォームの意思決定アシスタントです。
-
-1. **画面内テキストの非侵襲的キャプチャ**: アクセシビリティAPIやオンデバイスOCRを用い、チャットアプリのAPI制限を受けることなく画面上の対話を取得。
-2. **2段階LLMプロンプティング（Judge & Draft）**:
-   - Step 1: 相手の発言の「意図（本音）」「リスク度（炎上・コンプライアンス）」「真の課題」を特定。
-   - Step 2: その分析に基づき、トーンの異なる3〜4種類の返信案を生成・ランキング。
-3. **ワンタップ入力・人間送信（Strict Human-in-the-loop）**: AIがチャットを勝手に送信する事故を物理的に遮断。
-4. **完全なBYOK（Bring Your Own Key）構造**: ベンダー側の中継サーバーを持たず、企業のセキュアなプライベートLLMエンドポイントに直接接続可能。
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | カスタマーサクセス・サポート部門 / 不動産・金融等の高単価営業 / 医療・士業 |
-| **商用SaaS化の狙い目** | 炎上防止特化型「エグゼクティブ・ガード」 / BtoB営業切り返しアシスタント |
-| **実装・導入難易度** | 中級（Androidビルド / Python・FastAPIゲートウェイ構築 / プロンプト調整） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発シナリオ ＆ マイクロSaaS設計モデル
-- そのまま出せる「社内DX・AI導入提案書 Markdown完全版」
-- クライアント提示用「詳細工数・見積シミュレーション表」
-- 公式のビルド手順をもとにした「Docker コンテナ化の例」（動作要検証）
-- 経営層・情報システム部門の懸念を粉砕する「キラー営業トーク ＆ 想定問答集」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -52,5 +35,5 @@ jev-chat-jarvisは、Kotlin（Android）を中心に、Windows、macOS、iOS向�
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Kotlin #android #llm #ocr

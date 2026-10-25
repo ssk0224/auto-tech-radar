@@ -1,131 +1,64 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "filmcraft - FilmCraft: An open-source, nonlinear video editor written by scratch in pure Rust"
-description: "FilmCraft: An open-source, nonlinear video editor written by scratch in pure Rust"
+title: "filmcraft - README の要点（原文）"
+description: "storytold/filmcraft の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-12"
-tags: ["Rust", "OSS", "GitHub"]
+updatedDate: "2026-10-22"
+tags: ["Rust","OSS","GitHub"]
 repoUrl: "https://github.com/storytold/filmcraft"
 repoCreatedAt: "2026-09-30"
 stars: 10085
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# filmcraft: 概要と革新性
+# filmcraft: 概要
 
-**FilmCraft**は、Adobe Premiere ProのUIおよびワークフローをピュアRustでゼロからクリーンルーム再実装したオープンソースのノンリニアビデオ編集（NLE）システムです。
+storytold/filmcraft は 2026-09-30 に GitHub で作成されたリポジトリです。2026-10-12 時点のスター数は 10,085 です。
 
-従来のオープンソース動画編集ソフト（Shotcut、Kdenlive、Blenderなど）の多くは、動画デコード・エンコード処理をFFmpegなどのC/C++ライブラリに全面的に依存していました。しかし、FilmCraftは**FFmpeg非依存**を掲げ、H.264、HEVC、ProRes、AACなどの主要コーデックやコンテナパーサーをITU-T/ISO/IETFの公式仕様書に基づきピュアRustで独自実装しています。
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-最大の革新性は、全UI操作および編集パイプラインが650以上の厳密に型定義されたコマンドとして抽象化されており、標準で**MCP (Model Context Protocol)** サーバーおよびJSON-RPC制御ソケットを備えている点です。人間が触るPremiere互換のネイティブGUIを持ちながら、Claudeなどの自律型AIエージェントがヘッドレスまたはリアルタイム描画付きでタイムライン配置・カラーコレクション・音声ミックス・書き出しをミリ秒精度の完全自律操作で行える「AIネイティブ・ビデオ編集基盤」を実現しています。
+- 原文（README）: Video editing, color and sound; an open-source, professional non-linear video editor, built in pure Rust.
+- 原文（README）: An open-source, modern non-linear video editing workflow: native on macOS, Windows and Linux, and in the browser via WebAssembly.
 
-## 解決する主要な課題とアーキテクチャ
+## 🎯 成熟度の目安（README の記載）
 
-FilmCraftは、長年プロフェッショナル映像制作業界と自動化エンジニアリングを悩ませてきた以下の課題を解決します。
+README にある開発段階の記載を、原文のまま示します（当サイトによる評価ではありません）。
 
-1. **高額なプロ向けNLEのライセンス縛りと自動化の難しさ**: Premiere Pro等のExtendScript/CEP/UXPは低速でヘッドレス運用が難しく、クラウド自動レンダリングに不向き。
-2. **フレーム落ち・音ズレ問題（浮動小数点ドリフト）**: ドロップフレーム（29.97fps）や混在フレームレートの計算に浮動小数点数を用いると、長時間シーケンスで1フレーム未満の累積誤差（ドリフト）が発生する。
-3. **C/C++製マルチメディアライブラリの脆弱性とクラッシュ**: 外部メモリ破壊やセグフォをRustの所有権・型システムで完全排除。
+- 原文（README）: FilmCraft is in alpha.
 
-### アーキテクチャとデータフロー
+## 主な機能と構成（README の原文）
 
-FilmCraftは、UIフレームワークやOS APIに依存しないレイヤードアーキテクチャを採用しています。タイムベースには毎秒`254,016,000,000`ティック（24, 25, 30, 23.976, 29.97, 59.94fpsおよび44.1kHz, 48kHz, 96kHzの公倍数）の固定小数点整数を使用し、絶対的な時間精度を保証します。
+- 原文（README）: The H.264, HEVC, ProRes and AAC codecs are our own, written in Rust from the public specifications.
+- 原文（README）: A GPU compositor works in linear light.
+- 原文（README）: Frame math runs on exact integer time, so edits never drift.
+- 原文（README）: And every action in the app is a command that an AI agent can drive as precisely as you can.
+- 原文（README）: Saves are atomic, auto-save keeps a rolling set of versions, and a crash-recovery journal written about a second after each edit brings back unsaved changes after a crash or power cut.
 
-```mermaid
-graph TD
-    subgraph Control_Layer ["制御・インターフェース層"]
-        UI["Desktop UI / egui"]
-        Web["WebAssembly / Web Browser"]
-        CLI[filmcraft-cli]
-        MCP["MCP Server / AI Agent Claude"]
-        Socket[TCP JSON-RPC Control Server]
-    end
+## インストール（README からの転記）
 
-    subgraph Engine_Layer ["コアエンジン層"]
-        Registry["Command Registry: 650+ Typed Commands"]
-        Session["Session / Undo-Redo / Crash Journal"]
-        TimeBase["Exact Integer Timebase: 254G ticks/sec"]
-    end
+以下は [README](https://github.com/storytold/filmcraft#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
 
-    subgraph Pipeline_Layer ["レンダリング & DSP層"]
-        GPU["wgpu Linear Light Compositor: Metal/Vulkan/DX12/WebGPU"]
-        DSP["Audio DSP: BS.1770 / EBU R128 Loudness / Mixdown"]
-        Color[Lumetri-Style 32-bit Float Pipeline]
-    end
-
-    subgraph Pure_Rust_Codecs ["完全独自 Rust コーデック層"]
-        Dec["Decoders: H.264 / HEVC / ProRes / VP9 / AV1 / AAC"]
-        Enc["Encoders: H.264 / ProRes 422HQ / DNxHR / AAC"]
-        Mux["Demux/Mux: ISOBMFF MP4 / MOV / Matroska"]
-    end
-
-    UI --> Registry
-    Web --> Registry
-    CLI --> Registry
-    MCP --> Registry
-    Socket --> Registry
-
-    Registry --> Session
-    Session --> TimeBase
-    Session --> Pipeline_Layer
-    
-    Pipeline_Layer --> Pure_Rust_Codecs
-    Pure_Rust_Codecs --> Storage[("Disk / Export File")]
+```sh
+cargo run --release -p filmcraft                           # the desktop app, with a demo project
+cargo run --release -p filmcraft -- --control 9876         # plus the JSON-lines control server
+cargo run --release -p filmcraft-cli -- commands           # list every engine command
+cargo run --release -p filmcraft-cli -- mcp                # MCP server (headless)
 ```
 
-## 競合ツール/商用SaaSとの徹底比較
-
-| 機能・指標 | Adobe Premiere Pro | FFmpeg (CLI/スクリプト) | FilmCraft (本作) |
-|---|---|---|---|
-| **コア言語** | C++ | C / ASM | **Pure Rust** |
-| **ライセンス** | 商用プロプライエタリ (月額サブスク) | LGPL / GPL | **Apache 2.0 / MIT** |
-| **AIエージェント操作 (MCP)** | 非対応 (プラグイン開発が必要) | 非対応 (CLIパラメータ生成のみ) | **公式標準対応 (MCP Server内蔵)** |
-| **タイムラインUI** | 業界標準 (高機能) | なし (CLIのみ) | **Premiere互換 UI (egui/Wasm)** |
-| **外部依存性** | 重厚なランタイム必須 | 多数のCライブラリ依存 | **ゼロ依存 (Self-contained)** |
-| **時間精度** | 高精度 | 浮動小数点計算による丸め誤差リスク | **完全整数演算 (2540億ticks/秒)** |
-| **WebAssembly実行** | 不可 | 一部可能だが重厚 (ffmpeg.wasm) | **ネイティブ対応 (Wasmビルド公式提供)** |
-
-## 💡 ビジネス・マネタイズ活用アイデア（実践例）
-
-1. **AI動画自動生成・広告量産パイプラインの受託開発**:
-   ECサイトの商品データやプロンプトから、ClaudeがMCP経由でFilmCraftを駆動。字幕、テロップ、BGMダッキング、カラーコレクションを自動調整した縦型動画（Reels/TikTok/Shorts）をヘッドレスサーバー上で1日数万本バッチ生成するバックエンド基盤を企業へ提供。
-2. **インフラコストゼロのブラウザ完結型動画編集SaaS**:
-   WebAssemblyバイナリを活用し、クライアントPCのブラウザ（WebGPU）上でレンダリングが完結する社内向け動画編集ツールを構築。高額なAWS EC2/GPUインスタンスコストを完全に排除した高粗利SaaSを展開。
-3. **放送局・制作会社向けコンプライアンス自動修正ゲートウェイ**:
-   ITU-R BS.1770 / EBU R128準拠のラウドネス正規化処理と自動モザイク・テロップ差し替えを、AAF/EDL連携を交えて完全自動化するオンプレミスDXシステムを受託導入。
-
-## インストール & クイックスタート手順
-
-### 1. 必要環境の準備
-Rustツールチェーン（MSRV最新安定版）がインストールされていることを確認します。
-
-### 2. リポジトリのクローンとデスクトップアプリの起動
-```bash
-git clone https://github.com/storytold/filmcraft.git
-cd filmcraft
-
-# デスクトップアプリをリリースビルドで起動
-cargo run --release -p filmcraft
+```sh
+git clone https://github.com/storytold/craft-fonts ../craft-fonts
+CRAFT_FONTS_DIR="$PWD/../craft-fonts" cargo run --release -p filmcraft
 ```
 
-### 3. MCPサーバー / ヘッドレス制御モードの起動
-AIエージェント（Claude Desktop等）から制御するためのMCPサーバーを起動する場合：
-```bash
-# ヘッドレスMCPサーバーの起動
-cargo run --release -p filmcraft-cli -- mcp
+## ライセンス
 
-# またはTCP経由のJSON制御サーバーをポート9876で起動
-cargo run --release -p filmcraft -- --control 9876
-```
+- ライセンス: Apache License 2.0（SPDX: Apache-2.0）
+- 確認先: [LICENSE ファイル](https://github.com/storytold/filmcraft/blob/main/LICENSE-APACHE)
 
-### 4. コマンドラインからの全機能確認
-```bash
-cargo run --release -p filmcraft-cli -- commands
-```
-
-## 商用利用可否 & ライセンス考察
-
-FilmCraftは **Apache License 2.0 および MIT License のデュアルライセンス** で公開されています。
-
-- **商用利用**: 完全に許可されています。自社製プロプライエタリな商用製品やSaaSのバックエンドに組み込んで有償提供することが法的に可能です。
-- **改変と再配布**: ソースコードの改変やバイナリ配布が自由です。著作権表示およびライセンス通知を保持する義務があります。
-- **特許権**: Apache 2.0に基づき、コントリビューターからの明示的な特許ライセンス供与が含まれています。
-- **コーデック特許の注意点**: ソフトウェアのライセンス自体はオープンですが、H.264やHEVC等の商用エンコード/デコードを大規模に製品化する場合は、各コーデックの特許プール（MPEG LA / Via Licensing等）のライセンス条項に留意する必要があります。なお、ProResや非特許コーデック（VP9、AV1等）を中心としたワークフローを構築することで特許リスクを極小化できます。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

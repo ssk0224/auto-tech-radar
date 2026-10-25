@@ -28,9 +28,9 @@ test("note の記事と原稿の対応: タイトル一致を優先し、曖昧�
   assert.equal(projectNameOf("【最新OSS解体新書】crates.io-indexとは？"), "crates.io-index");
 });
 
-test("有料版の内容一覧は見出しだけから作り、未検証の手順はそう表示する", () => {
+test("有料版の内容一覧は節の題（古い原稿の見出しを含む）だけから作り、無料の Web 記事に README から転記している導入手順は売りにしない", () => {
   const s = paidContentSummary("## 📋 【コピペで即提案】社内DX・AI導入提案書 Markdown完全版\n本文\n## 🛠️ Docker の例（公式未提供・動作未検証）\n### 起動手順\n");
-  assert.deepEqual(s.features, ["導入提案書テンプレート（Markdown）", "導入手順（公式未提供・動作未検証の例を含む）"]);
+  assert.deepEqual(s.features, ["導入提案書テンプレート（Markdown）"]);
   assert.equal(s.chars, [..."##📋【コピペで即提案】社内DX・AI導入提案書Markdown完全版本文##🛠️Dockerの例（公式未提供・動作未検証）###起動手順"].length);
 });
 

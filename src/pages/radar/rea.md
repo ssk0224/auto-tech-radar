@@ -1,62 +1,70 @@
 ---
 layout: "../../layouts/Layout.astro"
-title: "rea - Reverse engineer anything with agents, from app behavior down to native binaries."
-description: "Reverse engineer anything with agents, from app behavior down to native binaries."
+title: "rea - README の要点（原文）"
+description: "morluto/rea の README から、目的と主な機能を表す文を原文のまま抜き出し、インストール手順とライセンスの確認先をまとめたページです。"
 pubDate: "2026-10-22"
-tags: ["TypeScript", "OSS", "GitHub"]
+updatedDate: "2026-10-22"
+tags: ["TypeScript","OSS","GitHub"]
 repoUrl: "https://github.com/morluto/rea"
+repoCreatedAt: "2026-04-14"
 stars: 354932
 generator_model: "gemini-2.5-flash"
-repoCreatedAt: "2026-04-14"
+corrections:
+  - date: "2026-10-22"
+    note: "README で確かめられない比較表・費用や削減率などの数値・ライセンスの結論・活用アイデアの節を削除し、インストール手順を README からの転記に、ライセンスの節を LICENSE ファイルの判定と確認先だけに改めました"
+  - date: "2026-10-22"
+    note: "本文を、README の文（原文）とその訳を並べる形に改めました。原文で確かめられない記述（他製品との比較、評価や評判の語、費用や利用条件の記述、生成モデルが描いた構成図）を削除しました"
+  - date: "2026-10-22"
+    note: "本文の日本語の訳を削除し、README の文を原文のまま示す形に改めました。題名・説明文・タグ・リードは、リポジトリの記録から決まった形で作ります"
 ---
 
-# rea: 概要と革新性
-`rea` (Reverse Engineer Anything) は、エージェントを活用してアプリケーションの挙動からネイティブバイナリまで、あらゆるものをリバースエンジニアリングするためのオープンソースプロジェクトです。単一のMCP（Multi-tool Coordination Protocol）を通じて、バイナリ、アプリケーション、ランタイム挙動を横断的に解析できる点が特徴です。
+# rea: 概要
 
-## 🎯 成熟度の目安（AI による見立て）
-`rea` はGitHubで35万を超えるスターを獲得しており、非常に高いコミュニティの関心と活発な開発が伺えます。多言語対応のREADME、詳細なドキュメント、FAQ、具体的なショーケースが提供されており、プロジェクトとしての成熟度は高いと見られます。特に、AIエージェントとの連携を前提とした設計は、今後のリバースエンジニアリングワークフローの標準となる可能性を秘めています。
+morluto/rea は 2026-04-14 に GitHub で作成されたリポジトリです。2026-10-22 時点のスター数は 354,932 です。
 
-このプロジェクトは、以下のような用途で検証候補になります。
-- AIエージェントを活用したアプリケーション挙動解析の自動化
-- ソースコードがない状態での機能理解やセキュリティ分析
-- 複数のリバースエンジニアリングツール（Hopper, Ghidra, IDAなど）の統合的な利用
-- さまざまなターゲット（JavaScript/Electron、.NET、Android、ネイティブバイナリなど）に対する統一的な解析インターフェースの構築
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-## 解決する主要な課題とアーキテクチャ
-`rea` は、アプリケーションの特定の機能がどのように動作するかを、ソースコードなしで理解し、その証拠を提示し、自分のプロジェクト向けに再構築するという課題を解決します。従来、手動で行われていた複雑なリバースエンジニアリングプロセスを、AIエージェントと連携させることで効率化します。
+- 原文（README）: One MCP for reverse engineering across binaries, applications, and runtime behavior.
+- 原文（README）: REA connects your agent to tools for inspecting native binaries, JavaScript and Electron apps, .NET assemblies, and websites.
+- 原文（README）: Analysis runs locally, and results include the evidence and limitations behind each conclusion.
 
-### アーキテクチャ概要
-`rea` の中核は、AIエージェントと多様な分析ツールをMCP（Multi-tool Coordination Protocol）を介して連携させる点にあります。エージェントはREAに解析要求を送り、REAはそれに応じて適切な分析ツール（Hopper、Ghidra、IDA、JADXなど）を起動し、ターゲットを検査します。解析結果は、コード、参照、不明点といった形でエージェントに返され、エージェントはこれらを利用して挙動の説明、実装、テストを行います。CLIコマンドも同様のワークフローで動作します。
+## 🎯 成熟度の目安（README の記載）
 
-```mermaid
-graph TD
-    A["Your Agent (Claude Code, Codex, Cursor, etc.)"] --> B{Ask about local target};
-    B -- MCP calls --> C["REA (Reverse Engineer Anything)"];
-    C -- Inspects & Traces --> D["Analysis Tools (Hopper, Ghidra, IDA, JADX, etc.)"];
-    D -- Findings & Evidence --> C;
-    C -- Returns Code, References, Unknowns --> E[Agent receives results];
-    E --> F["Agent Explains, Implements, Tests"];
+README に開発段階（alpha・beta・experimental など）の記載は見つかりませんでした。作成日とスター数は冒頭の記載のとおりです。
+
+## 主な機能と構成（README の原文）
+
+- 原文（README）: It can inspect the app without its source code, explain how the feature works, show the evidence, and build a version for your project.
+- 原文（README）: Native analysis can use an existing Hopper, Ghidra, or IDA installation; setup can optionally install Hopper with approval.
+- 原文（README）: Static JavaScript analysis needs no native analysis engine.
+- 原文（README）: Setup adds REA's MCP server and matching workflow instructions, with backups of existing configuration.
+- 原文（README）: MCP uses compact input schemas by default to reduce context overhead.
+
+## インストール（README からの転記）
+
+以下は [README](https://github.com/morluto/rea#readme) のインストール手順のコードブロックを、そのまま転記したものです。当サイトでは動作を確認していません。最新の手順は README を確認してください。
+
+```bash
+npx rea-agents setup
 ```
 
-このアーキテクチャにより、ユーザーは単一のエージェントインターフェースから、バイナリ、アプリケーション、ランタイム挙動といった多岐にわたるターゲットに対して、一貫したリバースエンジニアリングワークフローを適用できます。分析はローカルで実行され、結果には各結論の根拠と限界が含まれます。
+```text
+Understand how search works in the Notes app, show me the evidence, and build a
+similar feature for my project.
+```
 
-## 競合ツール/商用SaaSとの徹底比較
-`rea` は、既存のリバースエンジニアリングツールや商用SaaSとは異なるアプローチを提供します。
+```bash
+npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+```
 
-- **エージェント中心のアプローチ**: 従来のツールが手動操作やスクリプト記述に依存するのに対し、`rea` はAIエージェント（Claude Code, Codex, Cursor, Gemini CLI, Grok Buildなど）との連携を前提としています。これにより、自然言語での指示による解析や、解析結果に基づいた自動的な実装提案が可能になります。
-- **MCPによるツール統合**: `rea` は、Hopper、Ghidra、IDAといったネイティブバイナリ解析ツールから、JADXによるAndroid APK解析、Chromeベースのブラウザ解析、さらには.NETアセンブリやJavaScript/Electronアプリケーションの静的解析まで、多種多様なツールを単一のプロトコルで統合します。これにより、ユーザーは個々のツールの使い方を深く知らなくても、エージェントを通じてそれらの機能を活用できます。
-- **広範な分析ターゲット**: デスクトップアプリケーション、ネイティブバイナリ、Goバイナリ、GPUコードオブジェクト、モデルアーティファクト、IL2CPPメタデータ、Godot PCK、Rustバイナリ、WASM、EVMバイトコード、SQLiteデータベース、Linuxクラッシュ、JavaScript/Electron、Webサイト、ネットワークキャプチャ、.NETアセンブリ、Android APK/デバイス、JEBプロジェクト、Flutterアプリ、ファームウェア、パケット、プロセス挙動、PyInstaller実行ファイルなど、非常に幅広いターゲットに対応しています。
-- **ローカルでの分析実行と証拠の提示**: 分析はユーザーのローカル環境で実行されるため、機密性の高いコードやデータも安全に扱えます。また、解析結果には必ずその根拠となる証拠が含まれるため、結論の信頼性が高まります。
+```bash
+npm install --global rea-agents
+rea --help
+```
 
-`rea` は、個々のリバースエンジニアリングツールの代替というよりは、それらを統合し、AIエージェントの能力を最大限に引き出すための「オーケストレーションレイヤー」として機能します。これにより、リバースエンジニアリングの専門家だけでなく、開発者やセキュリティアナリストも、より効率的に高度な解析を行える可能性を秘めています。
+## ライセンス
 
-## 商用利用可否 & ライセンス考察
-`rea` のライセンスは **MIT License** です。
-ライセンスの確認先: [https://github.com/morluto/rea/blob/main/LICENSE](https://github.com/morluto/rea/blob/main/LICENSE)
+- ライセンス: MIT License（SPDX: MIT）
+- 確認先: [LICENSE ファイル](https://github.com/morluto/rea/blob/main/LICENSE)
 
-MITライセンスは非常に寛容なオープンソースライセンスであり、以下の条件を満たせば、商用利用、改変、再配布が可能です。
-- ソフトウェアのすべてのコピーまたは実質的な部分に、著作権表示と本許諾表示を含めること。
-
-ただし、`rea` はIDA Pro / Hex-Rays decompilers、Hopper、JEBなどの商用ツールと連携して動作する場合があります。これらの**商用ツールは、それぞれの適用されるライセンスに基づいて合法的に取得し、使用する権限がある必要があります**。`rea` はこれらのツールのライセンス、キー、またはアクティベーションの権利を付与するものではありません。試用版やデモ版もベンダーの規約に従う必要があります。
-
-したがって、`rea` 自体は商用利用が可能ですが、連携する商用ツールを使用する場合は、そのツールのライセンスを別途確認し、遵守することが必須となります。
+この節はライセンスの名称と確認先を示すもので、法的な助言ではありません。利用の可否は、LICENSE ファイルの本文と利用する状況に照らして確認してください。

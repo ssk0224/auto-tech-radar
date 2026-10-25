@@ -1,65 +1,28 @@
-# 海外急上昇OSS「magpie」商用化マニュアル｜社内DX提案書 ＆ 自社SaaS構築手順付き
+# 「magpie」README の要点（原文）｜有料版: 導入提案書テンプレート（Markdown）、工数・見積表、活用・収益化の考え方
 
-## はじめに：なぜ今、注目されているのか？
+## はじめに
 
-いま、世界のトップエンジニアたちの開発環境で「静かな地殻変動」が起きています。
+yetone/magpie は 2026-09-24 に GitHub で作成されたリポジトリです。2026-10-14 時点のスター数は 11,503 です。
 
-GitHubスター数**11,500件**を急速に突破したGo言語製ゲートウェイ**「magpie」**。
-このOSSの登場により、これまで開発者を悩ませてきた「AIツールのバラバラ課金」「クォータ制限による作業中断」「高額なAPIコスト」が一掃されようとしています。
+## README の要点（原文）
 
-### なぜ、クライアントへの導入提案につなげやすいのか？
-企業のDX現場では、以下のような悲鳴が上がっています。
-- 「全社でGitHub Copilotを契約しているのに、一部のシニア層がClaude CodeやCursorを個別契約し、請求が散らばって経費が爆発している」
-- 「月額数千ドルのAPIトークン費用を払っているのに、夕方になるとRate Limit（制限）にかかり、開発チーム全員の作業がストップする」
-- 「社内のセキュリティ規程により、どのアカウントからどんなコードが外部送信されているか監査できない」
+以下の箇条書きは、README の文を訳さずに原文のまま抜き出したものです（当サイトによる要約・評価ではありません）。
 
-**magpieを中核に据えた「全社統合AI開発ゲートウェイ」を構築・導入するだけで、これらの課題を初日ですべて解決できます。**
-「月々のAPI利用料を50%削減」「トークン枯渇によるダウンタイムゼロ」「社内利用監査ログの一元化」を実現できるため、ROI（費用対効果）の提示が極めて容易です。そのため、**初期構築・導入コンサルティング費用を投資しても、クライアント企業側は数ヶ月で元が取れる案件**となります。
+- 原文（README）: One local gateway serves them all, and when a quota runs out, it quietly moves on to the next account.
+- 原文（README）: Each agent keeps its model in its own file, in its own format, with its own keys and base URLs.
+- 原文（README）: Runs on macOS, Windows and Linux (menu bar app, window, TUI, web UI and CLI), in Docker, and on Termux.
+- 原文（README）: Pick any model for any agent from one list. magpie edits the one key that matters in the agent's own config.
+- 原文（README）: Keep going when a quota runs out: a routing group moves to the next account or model, and the agent never sees the error.
+- 原文（README）: The gateway at 127.0.0.1:3425 speaks OpenAI Chat, OpenAI Responses, Anthropic Messages and Gemini, and translates between them, streaming, tool calls and reasoning included.
+- 原文（README）: The agent's config is rewritten atomically, and its comments, order and formatting stay as they were.
 
----
+### 🔒 有料エリアの内容
+- 導入提案書テンプレート（Markdown）
+- 工数・見積表
+- 活用・収益化の考え方
 
-## 主な機能とアーキテクチャ概要
-
-magpieの本質は、**「すべてのAIエージェントの通信を束ねる、超軽量なローカル/オンプレミス型リバースプロキシ」**です。
-
-1. **プロトコル完全自動変換**
-   - Claude Code（Anthropic形式）、Cursor（OpenAI形式）、Gemini CLI（Google形式）などの差異を吸収。どのエージェントからでもDeepSeekやローカルOllama、あるいはChatGPTサブスクを透過的に呼び出せます。
-2. **スマート・ルーティング（Smart, Pace, Usage）**
-   - 複数アカウントを登録しておけば、更新期限が近いクォータを自動消費させたり、使用率の低いアカウントへ自動フェイルオーバー。開発者はAPI切れに一切気づくことなく作業を継続できます。
-3. **Intent Routing（意図解釈ルーティング）**
-   - 開発者の指示を小型モデルが瞬時に解析。「簡単なコメント付けやタイポ修正」は100万トークン数円の格安モデルへ、「大規模リファクタリング」はClaude 3.5 SonnetやOpusへ自動配分します。
-
-### クイックスタート手順
-```bash
-# 1. インストール
-curl -fsSL https://usemagpie.ai/install.sh | sh
-
-# 2. プロバイダ登録
-magpie provider add deepseek sk-your-key-here
-
-# 3. 普段使っているClaude CodeのバックエンドをDeepSeekに変更
-magpie claude deepseek/deepseek-v4-pro
-
-# 4. ルーティンググループを作成（自動フェイルオーバー）
-magpie group add "dev-team" models=deepseek/deepseek-chat,claude/claude-sonnet-4-5 routing=smart
-```
-
-### 📊 商用化・受託開発シミュレーション早見表
-| 項目 | 分析結果 |
-|---|---|
-| **想定受託開発規模** | 有料エリアの工数見積表の合計に基づく概算 |
-| **主な想定クライアント** | DX推進企業 / AI内製化チーム / 受託開発会社 |
-| **商用SaaS化の狙い目** | 企業向けAIコーディング監査＆コスト最適化プロキシ |
-| **実装・導入難易度** | 中級（Docker / Go / Bun / リバースプロキシ） |
-
-### 🔒 有料エリアで完全公開する実践ナレッジ
-- クライアントへの受託開発提案シナリオ（想定見積もり内訳・ペイン解決策）
-- 自社マイクロSaaSとして月額課金化するための設計仕様書
-- 動作未検証の例を含む環境構築・設定ファイル（YAML/JSON/ENV）完全版
-- クライアント向け「導入企画・提案書テンプレート」
-
-> 💡 **【投資対効果（ROI）と会社経費精算について】**
-> 本記事の価格は **980円** です。有料エリアには、受託提案や社内導入の検討にそのまま使える『提案書テンプレート』『工数見積表』『導入手順（公式未提供・動作未検証の例を含む）』をまとめています。
+> 💡 **【価格と経費精算について】**
+> 本記事の価格は **980円** です。
 > ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。
 
 --------------------------------------------------
@@ -70,5 +33,5 @@ magpie group add "dev-team" models=deepseek/deepseek-chat,claude/claude-sonnet-4
 Auto Tech Radar noteメンバーシップ（月額1,980円）では、メンバーシップ特典に追加した有料記事を読むことができます。日々の技術キャッチアップや新規事業のネタ帳としてぜひご活用ください。
 
 ---
-**【note出品時用 推奨ハッシュタグ】**
-#AI #OSS #エンジニア #プログラミング #スタートアップ #最新技術 #GitHub
+**【note出品時用 推奨ハッシュタグ】**（出品時にタグ欄へ貼り付けてください）
+#OSS #Go #codex #deepseek #llm
