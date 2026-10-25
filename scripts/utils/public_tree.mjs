@@ -17,13 +17,20 @@ export const PUBLIC_OUTPUTS = [
   { path: "note_drafts/", writers: ["ci", "owner"], shape: "sealed-note", example: "x_note.md" },
   // 無料の特典（リードマグネット）の原稿と見出し画像は、ランチャーが作る（scripts/generate_lead_magnet_note.mjs）
   { path: "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md", writers: ["owner"], shape: "markdown" },
-  // public/ の直下の静的ファイル（robots.txt など）は手で書くソースで、スクリプトは書かない（.gitignore で名前ごとに許可）
+  // public/ の直下の静的ファイル（robots.txt など）は手で書くソースで、スクリプトは書かない（.gitignore で名前ごとに許可）。
+  // 例外はサイト共通のカードの PNG: 手で書く public/og-card.svg から、オーナー端末で scripts/generate_og_cards.mjs が作り直す
+  { path: "public/og-card.png", writers: ["owner"], shape: "image" },
   { path: "public/ogp/", writers: ["ci"], shape: "image", example: "x.png" },
   { path: "public/ogp/LEAD_MAGNET_CHEAT_SHEET.svg", writers: ["owner"], shape: "image" },
   { path: "public/ogp/LEAD_MAGNET_CHEAT_SHEET.png", writers: ["owner"], shape: "image" },
   { path: "data/run_status/", writers: ["ci"], state: true, shape: "json", example: "2026-01-01.json" },
   { path: "data/ledger/", writers: ["ci"], state: true, shape: "json", example: "2026/01/2026-01-01.jsonl" },
   { path: "data/derived/", writers: ["ci"], state: true, shape: "json", example: "x.json" },
+  // README の事実の集合（記事ごと）。記事を作るときに CI が書く（scripts/crawl_and_generate.mjs）。
+  // 既存記事の作り直し（scripts/build_readme_facts.mjs・reground_pages.mjs）は、記事（src/pages/radar/）と同じく手で流してコミットする保守の道具
+  { path: "data/readme_facts/", writers: ["ci"], state: true, shape: "json", example: "x.json" },
+  // プロフィール類の文面の正本（scripts/live_profile_check.mjs が公開中の文面と比べる）。オーナーが手で直す
+  { path: "data/profile_copy.json", writers: ["owner"], state: true, shape: "json" },
   { path: "scripts/publish_history.json", writers: ["owner"], state: true, merge: "publish-history", shape: "json" },
   { path: "scripts/note_urls.json", writers: ["ci"], state: true, merge: "note-urls", shape: "json" },
   { path: "keys/note_vault_public.pem", writers: ["owner"], shape: "public-key" },
@@ -60,6 +67,8 @@ export const pathsOutsideLedger = (paths, writer) => paths.filter((p) => !isWrit
 // 実在の人と結びつかない、説明・既定のアカウント名（ホームのパスの中で使われる）
 const PLACEHOLDER_USER = /^(?:you|your[-_.]?(?:name|user(?:name)?)?|user|username|name|me|<[^>]*>|\[[^\]]*\]|%\w+%|\$\{?\w+\}?|\{\{?\s*[\w.]+\s*\}?\}|public|default|shared|guest|runner|runneradmin|ubuntu|ec2-user|vagrant|node|root|admin)$/i;
 const EXAMPLE_DOMAIN = /(?:^|\.)(?:example\.(?:com|net|org)|example|test|invalid|localhost)$/i;
+// 最後のラベルがファイルの拡張子で、トップレベルドメインには無いもの（「種類@index.html」のような、ページのファイル名を @ でつないだ書き方）
+const FILE_EXT_DOMAIN = /\.(?:html?|mjs|cjs|jsonl?|txt|css|svg|png|ya?ml)$/i;
 // 上流のライセンス表記の行（行頭がコメント記号のあとの SPDX- / Copyright / (c) 年 / © 年）。行のどこかに (c) があるだけでは通さない
 const LICENSE_LINE = /^\s*(?:(?:\/\/+|\/?\*+|#+|<!--|;+|--|%+|rem\b)\s*)?(?:SPDX-[\w-]+:|Copyright\b|\(c\)\s*\d{4}|©\s*\d{4})/i;
 // 行の途中のコメント（HTML のコメント・コードブロックの中で &lt;!-- と逃がしたもの・/* */）の中で、アドレスの直前にあるライセンス表記
@@ -78,6 +87,7 @@ const RULES = [
       const [local, domain] = m.split("@");
       if (/no-?reply/i.test(local) || /(?:^|\.)noreply\./i.test(domain) || /(?:^|\.)users\.noreply\.github\.com$/i.test(domain)) return true;
       if (EXAMPLE_DOMAIN.test(domain)) return true;
+      if (FILE_EXT_DOMAIN.test(domain)) return true;
       if (local === "git" && /^[\w.-]+$/.test(domain)) return true; // git@github.com:owner/repo（SSH の URL）
       // 上流の SPDX / Copyright ヘッダーの転記。描画した HTML では、コメントが行の途中に来る（同じコメントの中で、アドレスの直前にあるもの）
       return LICENSE_LINE.test(line) || LICENSE_COMMENT_BEFORE.test(line.slice(Math.max(0, index - 200), index));
