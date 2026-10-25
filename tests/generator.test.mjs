@@ -493,14 +493,25 @@ test("Gemini が応答を返さないままでも、時間切れにして次の�
 // テストの実行環境の検査（env_portability: git の作業ツリーと npm test の仕組みを確かめる。生成物の内容の検査ではなく、.git の無い複製では成り立たない）だけ
 const NOT_GATE = new Set(["generator.test.mjs", "gates.test.mjs", "note_browser.test.mjs", "env_portability.test.mjs"]);
 test("生成して保存した記事・原稿は、CI の品質ゲート（監査と npm test のテスト群）にそのまま通る", () => {
-  const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }), MOCK_README: readmeWith(RENDERABLE) }, { keepDates: true });
+  // CI の品質ゲートは、checkout した git の作業ツリーで、生成物が未追跡のまま走る（git の追跡・無視を見る門がある）。
+  // 複製（.git を除いて写す）を git にして元の木をコミットし、生成物は未追跡のまま残す
+  const g = (cwd, ...a) => execFileSync("git", a, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const prepare = (d) => {
+    g(d, "init", "-q", "-b", "main");
+    g(d, "add", "-A");
+    g(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "tree before generation");
+  };
+  // 生成するリポジトリは、ゲートのテストが使う架空の候補（tests/fixtures/mock_setup.mjs の acme/testtool）と別にする。
+  // 同じだと、ゲートの中で生成スクリプトを動かすテスト（paid_boundary など）が「掲載済み」として候補を飛ばし、別の結果を見る（CI の実記事は架空の候補と重ならない）
+  const repo = { name: "gatetool", full_name: "gate/gatetool", html_url: "https://github.com/gate/gatetool", owner: { login: "gate" }, description: TRICKY_DESC };
+  const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify(repo), MOCK_README: readmeWith(RENDERABLE) }, { keepDates: true, prepare });
   try {
-    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+    assert.ok(fs.existsSync(path.join(dir, "src/pages/radar/gatetool.md")), log);
     const audit = spawnSync(process.execPath, ["scripts/audit_quality.mjs"], { cwd: dir, encoding: "utf8" });
     assert.equal(audit.status, 0, (audit.stdout + audit.stderr).split("\n").filter((l) => l.includes("❌")).join("\n") || (audit.stdout + audit.stderr).slice(-1500));
     const files = fs.readdirSync(path.join(dir, "tests")).filter((f) => f.endsWith(".test.mjs") && !NOT_GATE.has(f)).map((f) => `tests/${f}`);
     const t = spawnSync(process.execPath, ["--test", ...files], { cwd: dir, encoding: "utf8" });
-    assert.equal(t.status, 0, t.stdout.split("\n").filter((l) => /^not ok|^\s+not ok|^\s+error:|^\s+(?:expected|actual):/.test(l)).slice(0, 40).join("\n"));
+    assert.equal(t.status, 0, t.stdout.split("\n").filter((l) => /^\s*(?:not ok|✖)|^\s+error:|^\s+(?:expected|actual):|^\s+(?:AssertionError|Error)\b/.test(l)).slice(0, 80).join("\n")); // 中は spec の形（✖ の行がテスト名）
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
