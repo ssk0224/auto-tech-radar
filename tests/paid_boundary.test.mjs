@@ -11,6 +11,7 @@ import os from "os";
 import path from "path";
 import { pathToFileURL } from "url";
 import { linkDir } from "./helpers/links.mjs";
+import { noPrivateKey } from "./helpers/skips.mjs";
 import { PAID_FEATURE_RULES, STANDARD_FOOTER, paidContentSummary, splitPaid, loadPrivateKeys, assembleNote, isSealed, decryptText, sealedFileFor } from "../scripts/utils/note_vault.mjs";
 import { WEB_TEMPLATE_H2, NOTE_FREE_TEMPLATE_H2, sectionLabels, paidHeadingLines } from "../scripts/utils/article_template.mjs";
 import { normalizeEol } from "../scripts/utils/eol.mjs";
@@ -139,7 +140,7 @@ test("生成スクリプトは有料部分の見出しを太字の行にして�
 test("復号可能な環境では、公開中の全 note の有料部分に Markdown の見出しが無い", (t) => {
   let keys = [];
   try { keys = loadPrivateKeys(); } catch {}
-  if (keys.length === 0) return t.skip("秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）");
+  if (keys.length === 0) return t.skip(noPrivateKey());
   const bad = [];
   for (const slug of notes) {
     const f = `note_drafts/${slug}_note.md`;

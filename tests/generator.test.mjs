@@ -489,8 +489,9 @@ test("Gemini が応答を返さないままでも、時間切れにして次の�
 // クラス単位の再発防止: 生成スクリプトが採用して保存したものは、CI の品質ゲート（commit 前の audit_quality と npm test）にそのまま通る。
 // 生成時の検査がゲートより緩いと、その回の生成物はゲートで丸ごと取り除かれ（実行も失敗扱い）、次の便も同じ候補で同じことを繰り返す。
 // ゲートのテストはここで列挙せず tests/ から集める（新しく足した内容検査も自動で対象になる）。
-// 除くのは、このファイル自身・ゲート自体の検証（複製に不具合を入れる gates）・オーナー端末のブラウザ操作（note_browser）だけ
-const NOT_GATE = new Set(["generator.test.mjs", "gates.test.mjs", "note_browser.test.mjs"]);
+// 除くのは、このファイル自身・ゲート自体の検証（複製に不具合を入れる gates）・オーナー端末のブラウザ操作（note_browser）・
+// テストの実行環境の検査（env_portability: git の作業ツリーと npm test の仕組みを確かめる。生成物の内容の検査ではなく、.git の無い複製では成り立たない）だけ
+const NOT_GATE = new Set(["generator.test.mjs", "gates.test.mjs", "note_browser.test.mjs", "env_portability.test.mjs"]);
 test("生成して保存した記事・原稿は、CI の品質ゲート（監査と npm test のテスト群）にそのまま通る", () => {
   const { dir, log } = run(output({ overview: TRICKY_OVERVIEW }), { MOCK_REPO: JSON.stringify({ description: TRICKY_DESC }), MOCK_README: readmeWith(RENDERABLE) }, { keepDates: true });
   try {

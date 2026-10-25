@@ -4,9 +4,10 @@ import assert from "node:assert/strict";
 import fs from "fs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
 import { noteUpdatesFile } from "../scripts/utils/owner_dir.mjs";
+import { noOwnerState } from "./helpers/skips.mjs";
 
 const specFile = noteUpdatesFile();
-const absent = !fs.existsSync(specFile) && "オーナー端末の状態ファイルが無いため未実施（差し替えリストはオーナー端末の ownerDir にだけ置く）";
+const absent = !fs.existsSync(specFile) && noOwnerState(specFile);
 
 test("差し替えリストは note 公開済みの全記事を含み、ノイズ記事だけを非公開にする", { skip: absent }, () => {
   const spec = JSON.parse(fs.readFileSync(specFile, "utf8"));

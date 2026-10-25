@@ -6,6 +6,7 @@ import { parseDraftToNotePayload } from "../scripts/utils/note_html.mjs";
 import { assembleNote, noteDir } from "../scripts/utils/note_vault.mjs";
 import { notePayloadProblems, privateKeysIfPresent } from "../scripts/utils/owner_checks.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
+import { noPrivateKey } from "./helpers/skips.mjs";
 
 test("note_html: リードマグネット（無料）の表を箇条書きに変換し、タイトルに # を残さない", () => {
   const cheatPath = path.join(noteDir, "LEAD_MAGNET_CHEAT_SHEET.md");
@@ -20,7 +21,7 @@ test("note_html: リードマグネット（無料）の表を箇条書きに変
 test("note_html: 非ノイズの有料原稿がすべて揃い、復号した全文が note.com 互換 HTML に正しく変換される", (t) => {
   const keys = privateKeysIfPresent();
   // 秘密鍵の無い環境（CI）では「合格」ではなく「未実施」と表示する（黙って return すると合格に見える）
-  if (keys.length === 0) return t.skip("秘密鍵が無いため未実施（オーナー端末で npm test すると実行される）");
+  if (keys.length === 0) return t.skip(noPrivateKey());
 
   const slug = (f) => f.replace(/_note\.(md|paid\.enc)$/, "");
   const drafts = fs.readdirSync(noteDir).filter((f) => f.endsWith("_note.md") && !isNoise(slug(f)));
