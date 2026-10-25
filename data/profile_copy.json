@@ -5,15 +5,13 @@
     "aiMade": "記事は AI が生成したもので、動作は検証していません。",
     "paidContents": "有料記事では提案書テンプレートと工数・見積表を提供しています。",
     "membership": "メンバーシップ特典に入っている有料記事を読めます。特典に入っていない有料記事は、個別に購入して読めます。",
-    "siteLink": "公式サイト: {site}",
-    "xLink": "公式X: {x}",
     "noteLink": "note の記事: {note}",
     "siteName": "{name}",
     "planName": "{name} メンバーシップ",
     "siteUrl": "{site}"
   },
   "surfaces": {
-    "note.creatorProfile": ["subject", "aiMade", "paidContents", "siteLink", "xLink"],
+    "note.creatorProfile": ["subject", "aiMade", "paidContents"],
     "note.circle.name": ["siteName"],
     "note.circle.description": ["subject", "membership"],
     "note.plan.name": ["planName"],

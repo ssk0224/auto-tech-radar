@@ -27,7 +27,7 @@ export const siteConfig = {
   // 🏢 協賛・受託開発案内のフォームの送信先。メールアドレスは公開ページに出さない（HTML のソースからも読めないように）。
   // FormSubmit がメールアドレスの確認後に発行するランダムな文字列（https://formsubmit.co/<この文字列>）を入れる。
   // 空の間はフォームを出さず、X の DM と GitHub Issues を案内する（tests/contact.test.mjs）
-  contactFormAlias: "",
+  contactFormAlias: "465278180e1cdf3ebf293525046c5578",
   // スポンサー枠は価格を出さない（読者数などの実績データを公開していないため。2026-10-21）
   b2bStartingPrice: "スポンサー枠は読者数を公開した後に募集します",
   singleArticlePrice: "¥980",
