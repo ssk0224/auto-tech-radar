@@ -6,9 +6,7 @@ import assert from "node:assert/strict";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
-import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
-import { findHype } from "../scripts/utils/hype_check.mjs";
-import { CADENCE_CLAIM_RE } from "../src/utils/cadence.js";
+import { imageTextProblems } from "../scripts/utils/image_text.mjs"; // 価格・提供内容・更新頻度などを画像に焼き込まない規則（生成側と共通）
 import { renderOgSvg, categoryLabelOf, readPngText, PNG_SOURCE_KEY, UNCATEGORIZED } from "../scripts/generate_og_cards.mjs";
 import { trackedFiles, readRepo, repoRoot, renderedText } from "./helpers/public_text.mjs";
 import { normalizeEol } from "./helpers/read_src.mjs";
@@ -32,20 +30,6 @@ export const svgRenderedLines = (svg) =>
     .split("\n")
     .map((l) => l.replace(/\s+/g, " ").trim())
     .filter(Boolean);
-
-// 画像は記事やページと一緒に書き換わらないので、価格・提供内容（受託・協賛・収益化）と更新頻度を焼き込まない。
-// 価格は通貨の記号・単位・通貨コード（JPY・USD など）のどの書き方でも拾う
-const OFFER_IN_IMAGE = /[¥￥$€£]|\d\s*(?:円|万円|ドル)|\b(?:JPY|USD|EUR|GBP|yen|dollars?)\b|価格|料金|税込|税別|受託|協賛|スポンサー|\bsponsor|収益化|マネタイズ|単価|\bpric(?:e|es|ing)\b|\bplan\b/i;
-
-function imageTextProblems(texts) {
-  const text = texts.join("\n");
-  const hits = [...findForbiddenClaims(text), ...findHype(text)];
-  const offer = text.match(OFFER_IN_IMAGE);
-  if (offer) hits.push(`画像に価格・提供内容 ("${offer[0]}")`);
-  const cadence = text.match(CADENCE_CLAIM_RE);
-  if (cadence) hits.push(`画像に更新頻度 ("${cadence[0]}")`);
-  return hits;
-}
 
 test("OGP 画像（SVG）の文字に、禁止表現・誇張・価格や提供内容・更新頻度が無い", () => {
   assert.ok(svgs.includes("public/og-card.svg") && svgs.some((f) => f.startsWith("public/ogp/")), "検査の対象が git の追跡ファイルから取れていない");
@@ -114,4 +98,13 @@ test("PNG は、同じ名前の SVG（生成に失敗した記事はサイト共
     if (stamp !== own && !(f.startsWith("public/ogp/") && stamp === siteCard)) stale.push(`${png}: ${stamp ? "SVG と一致しない" : "元の SVG の記録が無い"}`);
   }
   assert.deepEqual(stale, []);
+});
+
+test("取得元の説明文・タグに画像に焼き込めない文字（価格の記号など）があっても、生成する OGP 画像には出さない", () => {
+  const svg = renderOgSvg({ slug: "zz", title: "zz - tool", desc: 'Sync configs and save $$ on hosting', tags: ["Go", "sponsor"], stars: 1 });
+  assert.deepEqual(imageTextProblems(svgRenderedLines(svg)), []);
+  // 問題の無い説明文・タグはそのまま出る
+  const ok = svgRenderedLines(renderOgSvg({ slug: "zz", title: "zz - tool", desc: "Sync configs across machines", tags: ["Go"], stars: 1 })).join("\n");
+  assert.match(ok, /Sync configs across machines/);
+  assert.match(ok, /Go/);
 });

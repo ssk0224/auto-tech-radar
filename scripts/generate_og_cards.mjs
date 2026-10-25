@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pngFromSvg } from './utils/og_png.mjs';
+import { imageTextProblems } from './utils/image_text.mjs';
 import { UNCATEGORIZED } from '../src/utils/categories.js';
 
 export { UNCATEGORIZED };
@@ -196,7 +197,9 @@ export function renderOgSvg(postData) {
   const rawShortTitle = title.split(' - ')[0].split(':')[0].trim();
   const shortTitle = escapeXml(rawShortTitle);
   const starCount = stars ? `★ ${stars.toLocaleString()}` : '★ —';
-  const tagList = Array.isArray(tags) ? tags.slice(0, 3) : ['OSS', 'Tech'];
+  // 説明文とタグは取得元（GitHub の説明・トピック）の文字なので、画像に焼き込めない文字（価格の記号 "$$" など）を含めば画像に出さない（記事のページには残る）
+  const imageSafe = (text) => imageTextProblems([text]).length === 0;
+  const tagList = Array.isArray(tags) ? tags.filter(imageSafe).slice(0, 3) : ['OSS', 'Tech'];
   // 幅 1080px・22px で収まる長さに切る（全角は半角の約 2 倍の幅）。短い説明には … を付けない
   const fitWidth = (text, maxUnits) => {
     let out = '';
@@ -208,7 +211,7 @@ export function renderOgSvg(postData) {
     }
     return out;
   };
-  const safeDesc = escapeXml(fitWidth(desc || '', 88));
+  const safeDesc = escapeXml(fitWidth(desc && imageSafe(desc) ? desc : '', 88));
 
   const archetype = getVisualArchetype(tags, title, desc, slug);
   const bandText = `${pubDate ? `掲載 ${pubDate} ｜ ` : ''}★は記事作成時点の GitHub スター数`;
