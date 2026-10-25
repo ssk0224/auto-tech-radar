@@ -219,13 +219,16 @@ const FAULTS = {
       g("init", "-q", "-b", "main");
       g("config", "user.email", "test@example.invalid");
       g("config", "user.name", "test");
-      fs.writeFileSync(path.join(dir, "a.json"), "{}\n");
-      g("add", "a.json");
+      // コミットするのは、台帳（scripts/utils/public_tree.mjs）でオーナー端末が書く出力（台帳の外は取り込みの前に step: "ledger" で止まる）
+      const state = "scripts/publish_history.json";
+      fs.mkdirSync(path.join(dir, "scripts"));
+      fs.writeFileSync(path.join(dir, state), "{}\n");
+      g("add", state);
       g("commit", "-q", "-m", "init");
       g("remote", "add", "origin", path.join(dir, "no-such-remote"));
       assert.equal(pullLatest(dir).ok, false, "取り込めないのに ok");
-      fs.writeFileSync(path.join(dir, "a.json"), '{"a": 1}\n');
-      const r = commitAndSync(dir, ["a.json"], "test");
+      fs.writeFileSync(path.join(dir, state), '{"a": 1}\n');
+      const r = commitAndSync(dir, [state], "test");
       assert.equal(r.ok, false, "送れないのに ok");
       assert.equal(r.step, "pull");
       assert.ok(r.message, "失敗の理由が空");
