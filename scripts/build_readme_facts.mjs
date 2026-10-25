@@ -14,20 +14,22 @@ import { repoFullNameFromUrl } from "./utils/ledger.mjs";
 const token = process.env.GITHUB_TOKEN || process.env.GH_PAT;
 const headers = { "User-Agent": "Auto-Tech-Radar/2.0", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
 
-async function getJson(url) {
-  const res = await fetch(url, { headers: { ...headers, Accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(20000) });
+async function getJson(url, fetchImpl) {
+  const res = await fetchImpl(url, { headers: { ...headers, Accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
   return res.json();
 }
-async function getReadme(full) {
-  const res = await fetch(`https://api.github.com/repos/${full}/readme`, { headers: { ...headers, Accept: "application/vnd.github.raw" }, signal: AbortSignal.timeout(20000) });
+async function getReadme(full, fetchImpl) {
+  const res = await fetchImpl(`https://api.github.com/repos/${full}/readme`, { headers: { ...headers, Accept: "application/vnd.github.raw" }, signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`README HTTP ${res.status}: ${full}`);
   return res.text();
 }
 
-export async function buildFacts(slug, full) {
+export async function buildFacts(slug, full, { fetchImpl = globalThis.fetch } = {}) {
   const [owner, name] = full.split("/");
-  const [repo, readme, license] = await Promise.all([getJson(`https://api.github.com/repos/${full}`), getReadme(full), resolveLicense(owner, name, { headers })]);
+  const [repo, readme, license] = await Promise.all([getJson(`https://api.github.com/repos/${full}`, fetchImpl), getReadme(full, fetchImpl), resolveLicense(owner, name, { headers, fetchImpl })]);
+  // 必須項目が欠けた応答から、リポジトリ名の無い事実の集合を書かない
+  if (!repo || typeof repo.full_name !== "string" || !repo.full_name) throw new Error(`リポジトリの情報に full_name がありません: ${full}`);
   const { spdx, name: licenseName, url, status, sourceAvailable, extraNotices } = license;
   const facts = readmeFacts(readme, { repo: repo.full_name, created_at: repo.created_at, language: repo.language, description: repo.description, license: { spdx, name: licenseName, url, status, sourceAvailable, extraNotices } });
   facts.diagrams = await renderableDiagrams(facts.diagrams);
