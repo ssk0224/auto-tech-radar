@@ -10,7 +10,7 @@ import path from "path";
 import { pathToFileURL } from "url";
 import "dotenv/config";
 import { trendingSearchQueries, searchReposUrl } from "./utils/github_queries.mjs";
-import { utcDate, ledgerPaths, toLedgerRow, toJsonl, parseJsonl, repoFullNameFromUrl, readLedger, computeVelocity } from "./utils/ledger.mjs";
+import { utcDate, addDays, ledgerPaths, toLedgerRow, toJsonl, parseJsonl, repoFullNameFromUrl, readLedger, computeVelocity } from "./utils/ledger.mjs";
 
 const DEFAULT_DELAY_MS = 400;
 
@@ -153,8 +153,8 @@ export function updateVelocity(rootDir = process.cwd()) {
 // 完了していない日（.partial だけで、その日のファイルが無い）が date から遡って何日続いているか
 export function consecutivePartialDays(rootDir, date) {
   let n = 0;
-  for (let t = Date.parse(`${date}T00:00:00Z`); ; t -= 24 * 60 * 60 * 1000) {
-    const { file, partial } = ledgerPaths(rootDir, utcDate(t));
+  for (let day = date; ; day = addDays(day, -1)) {
+    const { file, partial } = ledgerPaths(rootDir, day);
     if (fs.existsSync(file) || !fs.existsSync(partial)) return n;
     n++;
   }
