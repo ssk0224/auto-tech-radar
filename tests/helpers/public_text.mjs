@@ -34,13 +34,17 @@ export function textFiles(files = trackedFiles(), cwd = repoRoot) {
 export const readRepo = (f) => readText(path.join(repoRoot, f));
 
 // 掲載中の記事の slug（src/pages/radar/<slug>.md）
+// 記事の slug: サイトの記事ページと、README の事実の集合（data/readme_facts/<slug>.json。記事ページの無い note 原稿の分も scripts/build_readme_facts.mjs が作る）
 export function articleSlugs(files = trackedFiles()) {
-  return new Set(files.filter((f) => /^src\/pages\/radar\/[^/]+\.md$/.test(f)).map((f) => path.basename(f, ".md")));
+  const article = (f) => /^src\/pages\/radar\/[^/]+\.md$/.test(f) || /^data\/readme_facts\/[^/]+\.json$/.test(f);
+  return new Set(files.filter(article).map((f) => path.basename(f).replace(/\.(md|json)$/, "")));
 }
 
 // 記事の本文（取り上げた OSS についての文）。記事の slug を名前に持つ Markdown（サイトの記事・note 原稿 <slug>_note・Zenn 原稿 <slug>_zenn・元原稿 <slug>-…）。
 // 運営者自身についての文（更新頻度など）を述べる場所ではない。どのファイルが本文かは、記事の slug（データ）から決める
 export function isArticleBody(f, slugs) {
+  // README の事実の集合は、取り上げた OSS の README から原文のまま抜いた文（運営者の文ではない）
+  if (/^data\/readme_facts\/[^/]+\.json$/.test(f)) return slugs.has(path.basename(f, ".json"));
   if (!/\.(md|markdown)$/i.test(f)) return false;
   const stem = path.basename(f).replace(/\.(md|markdown)$/i, "").replace(/(_note|_zenn)$/, "");
   return [...slugs].some((slug) => stem === slug || stem.startsWith(`${slug}-`));
@@ -51,6 +55,11 @@ export const RULE_QUOTING = (f) =>
   f.startsWith("tests/") ||
   f === "scripts/utils/claims_check.mjs" ||
   f === "scripts/utils/hype_check.mjs" ||
+  // 出品前の検査（owner_checks）の規則と、その規則の語の読み（rule_readings）。禁止表現を「禁止する語」として書く規則の定義
+  f === "scripts/utils/owner_checks.mjs" ||
+  f === "scripts/utils/rule_readings.mjs" ||
+  // 公開中のプロフィール・会員プランの文の検査（live_profile_check）の規則（頻度・全記事読み放題の言い方を「禁止する語」として持つ）
+  f === "scripts/live_profile_check.mjs" ||
   /^scripts\/[a-z_]+_(log|status)\.json$/.test(f);
 
 // 運営者が自分について述べる公開テキスト（README・サイト・画像・投稿文・生成スクリプトが出す文・データ）。

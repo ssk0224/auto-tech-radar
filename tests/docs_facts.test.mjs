@@ -11,6 +11,7 @@ import { classifyLicenseText } from "../scripts/utils/license_resolver.mjs";
 import { MODEL_PREFERENCE } from "../scripts/utils/gemini_models.mjs";
 import { findSitePromises } from "../scripts/utils/claims_check.mjs";
 import { findCadenceClaims } from "../src/utils/cadence.js";
+import { isGitIgnored } from "./helpers/tracked_files.mjs";
 import { trackedFiles, siteChromeSources, operatorTexts, scriptFiles, isCodeFile, stripComments, textViews, readRepo, repoRoot } from "./helpers/public_text.mjs";
 
 const files = trackedFiles();
@@ -33,8 +34,9 @@ export function cadenceClaims(f, text) {
 
 test("更新頻度・掲載本数の主張（毎日・毎夕・デイリー・everyday・1日N本・直近N日の掲載: N本 など）は Cadence の外に書かない。対象は運営者が出す公開テキストのすべて（サイト・README・llms.txt・投稿文・リードマグネット・生成スクリプト）", () => {
   const sources = operatorTexts(files);
-  for (const must of ["src/layouts/Layout.astro", "public/llms.txt", "README.md", "scripts/generate_weekly_thread.mjs", "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md"]) assert.ok(sources.includes(must), `検査の対象に ${must} が無い`);
-  assert.ok(sources.some((f) => f.startsWith("x_posts/")), "投稿文（x_posts）が検査の対象に無い");
+  for (const must of ["src/layouts/Layout.astro", "public/llms.txt", "README.md", "scripts/crawl_and_generate.mjs", "scripts/generate_lead_magnet_note.mjs", "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md"]) assert.ok(sources.includes(must), `検査の対象に ${must} が無い`);
+  // X の投稿文は作らなくなり（85ed57e）、x_posts/ は .gitignore で公開リポに入らない。追跡に戻した投稿文は、ここで検査の対象に入る
+  assert.ok(sources.some((f) => f.startsWith("x_posts/")) || isGitIgnored(repoRoot, "x_posts/probe.txt"), "投稿文（x_posts）が検査の対象にも .gitignore にも無い");
   const hits = sources.filter((f) => !CADENCE_OWNERS.has(f)).flatMap((f) => cadenceClaims(f, readRepo(f)));
   assert.deepEqual(hits, []);
 });
@@ -76,7 +78,8 @@ test("scripts/ のすべてのテキスト（コード・データ）と src の
   const code = all.filter(isCodeFile);
   assert.ok(all.includes("scripts/launcher.mjs") && all.includes("scripts/note_urls.json"), "検査の対象が git のファイル一覧から取れていない");
   const records = machineWrittenData(all, code);
-  assert.ok(records.has("scripts/note_browser_log.json"), "スクリプトが書き出すデータを見分けられていない");
+  // note の操作の実行記録（note_browser_log.json）はオーナー端末の専用フォルダに移した（scripts/utils/owner_dir.mjs）。公開リポに残る実行記録で見分けを確かめる
+  assert.ok(records.has("scripts/publish_history.json"), "スクリプトが書き出すデータを見分けられていない");
   const hits = all.filter((f) => f !== "scripts/note_urls.json" && !records.has(f)).flatMap((f) => noteUrlHits(f, readRepo(f)));
   assert.deepEqual(hits, []);
 });
