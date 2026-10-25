@@ -2,6 +2,8 @@
 //   node scripts/note_vault.mjs seal-all        平文の有料部分を含む原稿をすべて暗号化（公開鍵のみで実行可）
 //   node scripts/note_vault.mjs open <slug>     出品用の完全版を ~/.auto-tech-radar/note_full/ に復号
 //   node scripts/note_vault.mjs open-all        すべて復号
+//   node scripts/note_vault.mjs seal-from <slug> 直した完全版（~/.auto-tech-radar/note_full/）を検査し、通れば暗号化し直す（平文をリポジトリに置かない）
+//   node scripts/note_vault.mjs check           有料本文の出品前検査だけを流す（秘密鍵のある端末）
 //   node scripts/note_vault.mjs reseal [--all]  古い鍵・旧形式の暗号化ファイル（--all: すべて）を現在の公開鍵で暗号化し直す
 //   node scripts/note_vault.mjs keygen          鍵ペアを生成（秘密鍵はオーナー端末、公開鍵は keys/）
 //   node scripts/note_vault.mjs rotate          新しい鍵ペアを作り、すべて暗号化し直す
@@ -12,10 +14,12 @@ import fs from "fs";
 import path from "path";
 import {
   noteDir, publicKeyFile, privateKeyFile, openedDir,
-  isSealed, splitPaid, writeSealedNote, assembleNote, openNoteForPublishing, paidContentSummary, summaryFileFor,
+  isSealed, splitPaid, writeSealedNote, assembleNote, openNoteForEditing, paidContentSummary, summaryFileFor,
   loadPublicKey, loadPrivateKeys, keyId, sealedFileFor, sealedInfo,
 } from "./utils/note_vault.mjs";
 import { paidHeadingsToBold } from "./utils/headings.mjs";
+import { paidNoteProblems, ownerCheckReport, describeReport } from "./utils/owner_checks.mjs";
+import { normalizeEol } from "./utils/eol.mjs";
 
 const [cmd, arg] = process.argv.slice(2);
 
@@ -89,6 +93,30 @@ function summarize() {
   console.log(`✓ 有料版の内容一覧: ${n} 本`);
 }
 
+// 直した完全版を暗号化し直す。出品と同じ検査に通らなければ暗号化しない（直した完全版はリポジトリの外にあるので、止めても平文は残らない）。
+// 公開側（無料部分・末尾）が今のリポジトリの原稿と違えば止める（有料本文だけを直す道具。無料部分の変更は生成・通常のコミットで行う）
+function sealFrom(slug, from = path.join(openedDir, `${slug}_note.md`)) {
+  const noteFile = path.join(noteDir, `${slug}_note.md`);
+  const edited = normalizeEol(fs.readFileSync(from, "utf8"));
+  const problems = paidNoteProblems(edited);
+  if (problems.length) throw new Error(`${slug}: 検査に通らないため暗号化しません（${problems.join(" / ")}）`);
+  const current = splitPaid(normalizeEol(assembleNote(noteFile, loadPrivateKeys())));
+  const next = splitPaid(edited);
+  const same = (a, b) => a.join("\n") === b.join("\n");
+  if (!same(current.head, next.head) || !same(current.tail, next.tail)) {
+    throw new Error(`${slug}: 有料ラインより前・末尾が現在の原稿と違うため暗号化しません（有料本文だけを直してください）`);
+  }
+  writeSealedNote(noteFile, edited, loadPublicKey());
+  console.log(`✓ ${slug}: 検査に通ったので暗号化し直しました`);
+}
+
+// 有料本文の検査（出品前と同じ）。件数と記事名・規則名だけを表示し、赤なら終了コード 1
+function check() {
+  const r = ownerCheckReport();
+  console.log(r.status === "green" ? `✓ 有料本文の検査: ${r.checked} 本すべて合格` : describeReport(r));
+  if (r.status !== "green") process.exitCode = 1;
+}
+
 // 途中で失敗しても、どの段階でも手元の鍵（現在 / .new / .old-*）で復号できる順序で進める
 function rotate() {
   const keys = loadPrivateKeys();
@@ -108,13 +136,15 @@ function rotate() {
 try {
   if (cmd === "seal-all") sealAll();
   else if (cmd === "summarize") summarize();
-  else if (cmd === "open" && arg) console.log(`✓ ${openNoteForPublishing(path.join(noteDir, `${arg}_note.md`))}`);
-  else if (cmd === "open-all") { noteFiles().forEach((f) => openNoteForPublishing(f)); console.log(`✓ 復号先: ${openedDir}`); }
+  else if (cmd === "open" && arg) console.log(`✓ ${openNoteForEditing(path.join(noteDir, `${arg}_note.md`))}`);
+  else if (cmd === "open-all") { noteFiles().forEach((f) => openNoteForEditing(f)); console.log(`✓ 復号先: ${openedDir}`); }
+  else if (cmd === "seal-from" && arg) sealFrom(arg, process.argv[4]);
+  else if (cmd === "check") check();
   else if (cmd === "reseal") reseal(loadPublicKey(), { all: arg === "--all" });
   else if (cmd === "keygen") keygen();
   else if (cmd === "rotate") rotate();
   else {
-    console.log("usage: node scripts/note_vault.mjs seal-all | open <slug> | open-all | reseal | summarize | keygen | rotate");
+    console.log("usage: node scripts/note_vault.mjs seal-all | open <slug> | open-all | seal-from <slug> [file] | check | reseal | summarize | keygen | rotate");
     process.exit(1);
   }
 } catch (e) {

@@ -259,13 +259,14 @@ export function purgeOpenedNotes(maxAgeMs = OPENED_TTL_MS) {
   return n;
 }
 
-export function openNoteForPublishing(noteFile) {
+// 検査をしないで開くのは原稿を直すとき（npm run vault:open）だけ。出品・差し替えは owner_checks.mjs の openNoteForPublishing（検査が green のときだけ開く）を使う
+export function openNoteForEditing(noteFile, { keys = loadPrivateKeys(), outDir = openedDir } = {}) {
   const publicText = fs.readFileSync(noteFile, "utf8");
   if (!isSealed(publicText)) return noteFile;
-  fs.mkdirSync(openedDir, { recursive: true, mode: 0o700 });
-  purgeOpenedNotes();
-  const out = path.join(openedDir, path.basename(noteFile));
+  fs.mkdirSync(outDir, { recursive: true, mode: 0o700 });
+  if (outDir === openedDir) purgeOpenedNotes();
+  const out = path.join(outDir, path.basename(noteFile));
   // 本人以外が読めない権限で書く（Windows では無視される）
-  fs.writeFileSync(out, assembleNote(noteFile), { encoding: "utf8", mode: 0o600 });
+  fs.writeFileSync(out, assembleNote(noteFile, keys), { encoding: "utf8", mode: 0o600 });
   return out;
 }

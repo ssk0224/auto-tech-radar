@@ -3,7 +3,8 @@ import path from 'path';
 import http from 'http';
 import { fileURLToPath } from 'url';
 import { parseDraftToNotePayload } from './utils/note_html.mjs';
-import { assembleNote, loadPrivateKeys, noteDir } from './utils/note_vault.mjs';
+import { assembleNote, noteDir } from './utils/note_vault.mjs';
+import { assertOwnerChecksGreen, privateKeysIfPresent } from './utils/owner_checks.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { isNoteWithdrawn } from './utils/blocklist.mjs';
 import { eyecatchPng, EYECATCH_WIDTH, EYECATCH_HEIGHT } from './utils/eyecatch.mjs';
@@ -20,14 +21,15 @@ export function slugsToCreate(files, noteUrls) {
     .filter((slug) => slug !== 'LEAD_MAGNET_CHEAT_SHEET' && !isNoise(slug) && !isNoteWithdrawn(slug) && !noteUrls[slug]?.url);
 }
 
-export function buildFullSyncTasks() {
-  const keys = loadPrivateKeys();
+// 公開中の note の本文を書き換える・新しく作るので、出品と同じ有料本文の検査が green（秘密鍵があり全原稿が合格）でなければ止める
+export function buildFullSyncTasks({ dir = noteDir, keys = privateKeysIfPresent() } = {}) {
+  assertOwnerChecksGreen({ dir, keys });
   const noteUrlsPath = path.join(REPO, 'scripts/note_urls.json');
   const noteUrls = fs.existsSync(noteUrlsPath) ? JSON.parse(fs.readFileSync(noteUrlsPath, 'utf8')) : {};
 
   const updates = [];
   // 1. LEAD_MAGNET_CHEAT_SHEET
-  const leadPath = path.join(noteDir, 'LEAD_MAGNET_CHEAT_SHEET.md');
+  const leadPath = path.join(dir, 'LEAD_MAGNET_CHEAT_SHEET.md');
   const leadKey = noteUrls.LEAD_MAGNET_CHEAT_SHEET?.url?.match(/\/n\/(n[a-z0-9]+)/i)?.[1];
   if (leadKey && fs.existsSync(leadPath)) {
     const p = parseDraftToNotePayload(fs.readFileSync(leadPath, 'utf8'), false);
@@ -39,7 +41,7 @@ export function buildFullSyncTasks() {
     if (slug === 'LEAD_MAGNET_CHEAT_SHEET' || isNoise(slug)) continue;
     const k = info.url?.match(/\/n\/(n[a-z0-9]+)/i)?.[1];
     if (!k) continue;
-    const noteFile = path.join(noteDir, `${slug}_note.md`);
+    const noteFile = path.join(dir, `${slug}_note.md`);
     if (!fs.existsSync(noteFile)) continue;
     const fullMd = assembleNote(noteFile, keys);
     const payload = parseDraftToNotePayload(fullMd, true);
@@ -51,8 +53,8 @@ export function buildFullSyncTasks() {
 
   // 3. New articles to create dynamically
   const creates = [];
-  for (const slug of slugsToCreate(fs.readdirSync(noteDir), noteUrls)) {
-    const noteFile = path.join(noteDir, `${slug}_note.md`);
+  for (const slug of slugsToCreate(fs.readdirSync(dir), noteUrls)) {
+    const noteFile = path.join(dir, `${slug}_note.md`);
     const fullMd = assembleNote(noteFile, keys);
     const payload = parseDraftToNotePayload(fullMd, true);
     if (!payload.freeBody || !payload.payBody || !payload.separator) {
