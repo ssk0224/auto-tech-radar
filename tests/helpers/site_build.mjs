@@ -10,8 +10,10 @@ import { linkDir } from "./links.mjs";
 export const repoRoot = path.resolve(import.meta.dirname, "..", "..");
 
 // 重い・変わらないものはリンク、サイトの入力（src）と設定はコピー。extra(buildRoot) でビルド前に足せる（記事の追加など）
-export function prepareBuildRoot(prefix, extra) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+// コピーは実パス（長い名前）に作る。Windows の runner の TEMP は 8.3 形式の短い名前（C:\Users\RUNNER~1\…）で、短い名前のパスでビルドすると
+// Layout の CSS の <link> が HTML から抜け、全ページが CSS なしで描画される
+export function prepareBuildRoot(prefix, extra, base = os.tmpdir()) {
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(base, prefix)));
   for (const d of ["public", "scripts", "data", "note_drafts"]) linkDir(path.join(repoRoot, d), path.join(dir, d));
   // node_modules は丸ごとリンクしない。ビルドは node_modules の直下にキャッシュ（.vite・.astro）を書くので、丸ごとリンクすると
   // 並列のビルド（とリポ本体）が同じキャッシュを作り直し合い、Windows では rename が EPERM で落ちる。パッケージだけをリンクし、

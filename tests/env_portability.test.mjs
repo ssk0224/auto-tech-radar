@@ -295,6 +295,26 @@ test("リポへの書き込み: テストが作業ツリーにファイルを残
   assert.match(inTest.stdout, /out\/f\.json/);
 });
 
+test("サイトのビルド用コピーは、一時フォルダが短い名前（8.3 形式の RUNNER~1 など）で渡されても、長い名前の実パスに作る", async () => {
+  // GitHub の Windows の runner は TEMP が C:\Users\RUNNER~1\… で、短い名前のパスでビルドすると Layout の CSS の <link> が HTML から抜け、
+  // 全ページが CSS なしで描画されて 320px の幅を超えた（Linux・owner PC では起きない）
+  const { prepareBuildRoot, removeDir } = await import("./helpers/site_build.mjs");
+  const long = fs.mkdtempSync(path.join(os.tmpdir(), "atr long base "));
+  const short = process.platform === "win32"
+    ? spawnSync("cmd.exe", ["/d", "/c", `for %I in ("${long}") do @echo %~sI`], { encoding: "utf8", windowsVerbatimArguments: true }).stdout.trim()
+    : long;
+  let dir = "";
+  try {
+    assert.ok(fs.existsSync(short), `短い名前を取れない: ${short}`);
+    dir = prepareBuildRoot("atr-short-", undefined, short);
+    assert.equal(dir, fs.realpathSync.native(dir), "ビルド用コピーのパスが実パス（長い名前）でない");
+    assert.ok(dir.startsWith(fs.realpathSync.native(long)), dir);
+  } finally {
+    if (dir) removeDir(dir);
+    removeDir(long);
+  }
+});
+
 test("サイトのビルド用コピーは、ビルド中に書かれる node_modules のキャッシュ（.vite・.astro）をリポ本体・ほかのコピーと共有しない", async () => {
   // node_modules を丸ごとリンクすると、並列の astro build が同じ node_modules/.vite/deps を作り直し合い、Windows で rename が EPERM になる（site_dist が 4 件落ちた）
   const { prepareBuildRoot, removeDir } = await import("./helpers/site_build.mjs");

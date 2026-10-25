@@ -44,6 +44,15 @@ after(() => {
 });
 const assertSiteBuilt = () => assert.equal(siteBuild?.status, 0, `astro build が失敗: ${(siteBuild?.stderr || "") + (siteBuild?.stdout || "")}`.slice(0, 4000));
 
+test("ビルドした全ページが、ビルドが出力した CSS（_astro/*.css）を読み込む（抜けると全ページが CSS なしで描画される）", () => {
+  // Windows の runner で、短い名前（8.3 形式）のパスでビルドしたときに Layout の CSS の <link> が抜け、320px の幅の検査だけが落ちていた
+  assertSiteBuilt();
+  const css = fs.readdirSync(path.join(siteOut, "_astro")).filter((f) => f.endsWith(".css"));
+  assert.ok(css.length > 0, "ビルドが CSS を出力していない");
+  const missing = htmlFiles(siteOut).filter((f) => !css.some((c) => read(f).includes(`/_astro/${c}"`)));
+  assert.deepEqual(missing.map((f) => path.relative(siteOut, f)), []);
+});
+
 test("Layout のスタイルは is:global（Markdown 本文・スクリプトが作る要素・各ページの .post-card に当たる）", () => {
   // スコープ付き（<style>）だと set:html で入れた本文の表・コードにスタイルが当たらず、スマホで表が画面幅を超えた
   const layout = read(path.join(root, "src/layouts/Layout.astro"));
