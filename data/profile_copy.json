@@ -1,0 +1,25 @@
+{
+  "_about": "リポジトリの外にある公開文面（note のクリエイター紹介・メンバーシップとプランの名前と説明・X の自己紹介・GitHub の About）の正本。各面（surfaces）は statements の文の並びで、文は scripts/utils/profile_vocabulary.mjs に根拠つきで登録した語と文法の語だけで書く（数字・URL・サイト名は {site} などの差し込み。プラン名も文として書く）。公開中の文面は scripts/live_profile_check.mjs（.github/workflows/live-check.yml）がこれと比べ、違う・取得できない面を失敗にする。貼り付ける文面は node scripts/live_profile_check.mjs --print で出す",
+  "statements": {
+    "subject": "GitHub で注目を集めているオープンソースを、README などの公開情報をもとに日本語で解説しています。",
+    "aiMade": "記事は AI が生成したもので、動作は検証していません。",
+    "paidContents": "有料記事では提案書テンプレート・工数見積表・導入手順をまとめています。",
+    "membership": "メンバーシップ特典に入っている有料記事を読めます。特典に入っていない有料記事は、個別に購入して読めます。",
+    "siteLink": "公式サイト: {site}",
+    "xLink": "公式X: {x}",
+    "noteLink": "note の記事: {note}",
+    "siteName": "{name}",
+    "planName": "{name} メンバーシップ",
+    "siteUrl": "{site}"
+  },
+  "surfaces": {
+    "note.creatorProfile": ["subject", "aiMade", "paidContents", "siteLink", "xLink"],
+    "note.circle.name": ["siteName"],
+    "note.circle.description": ["subject", "membership"],
+    "note.plan.name": ["planName"],
+    "note.plan.description": ["membership"],
+    "x.bio": ["subject", "noteLink"],
+    "github.description": ["subject"],
+    "github.homepage": ["siteUrl"]
+  }
+}

@@ -5,7 +5,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
 import path from "path";
-import { NOTE_TEXT_RULES, applyNoteRules } from "../scripts/utils/note_pending.mjs";
+import { normBlocks, noteHtmlText, planFreePartReplace } from "../scripts/utils/note_pending.mjs";
+import { freePartVerdict, renderDraftFree } from "../scripts/utils/free_part.mjs";
 import { paidLineReport } from "../scripts/sync_note_urls.mjs";
 import { RECEIPT_LINE, OLD_RECEIPT_CLAIM, normalizeReceiptLine, receiptProblems } from "../scripts/utils/receipt.mjs";
 import { readText } from "./helpers/read_src.mjs";
@@ -35,18 +36,23 @@ test("生成スクリプトの雛形も同じ案内を使い、インボイス�
   assert.match(readText("scripts/crawl_and_generate.mjs"), /renderNoteDraft\(/);
 });
 
-test("[E] が公開中の note で直した後の案内は原稿の案内と同じ文になり、CI の原稿との比較（endPct）が一致する", () => {
-  // 公開中の記事の古い案内は「※noteは購入後、」に [E] の規則の from が続く形。[E] は from だけを to に置き換える
-  const invoice = NOTE_TEXT_RULES.find((r) => r.id === "invoice");
-  const oldLine = `> ※noteは購入後、${invoice.from}`;
-  assert.equal(applyNoteRules(oldLine), RECEIPT);
-  // 案内は無料部分の最後の行なので、ここがずれると CI の paidLineReport が有料ラインの位置を読めなくなる（endPct が null）
+test("[E] が公開中の note の古い案内を原稿の描画に置き換えた後は、CI の比較で原稿と同じになり、有料ラインの位置（endPct）も一致する", () => {
+  // 公開中の記事に古い案内（インボイス対応・経費精算いただけます）が残っている形を、原稿の描画から作る
   const draft = readText("note_drafts/aihot_note.md");
-  const lines = draft.split(/\r?\n/);
-  const at = lines.indexOf(RECEIPT);
-  assert.ok(at > 0);
-  const liveAfterFix = applyNoteRules([...lines.slice(0, at), oldLine].join("\n"));
-  assert.equal(paidLineReport(liveAfterFix, draft).endPct, 100);
+  const free = renderDraftFree(draft);
+  const stale = free.replace("「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。", "マイページよりインボイス対応領収書が即時発行可能です。会社の「技術調査費」「自己研鑽費」として経費精算いただけます。");
+  assert.notEqual(stale, free);
+  const before = freePartVerdict(stale, draft);
+  assert.equal(before.status, "bad");
+  assert.equal(before.kind, "text");
+  // 置き換えの計画: 段落の数は原稿と同じで、案内の段落だけを原稿の段落に置き換える
+  const blocks = (h) => normBlocks(noteHtmlText(h).split("\n"));
+  const plan = planFreePartReplace(blocks(stale), blocks(free));
+  assert.equal(plan.action, "replace");
+  assert.equal(plan.changes.length, 1);
+  // 置き換えた後（＝原稿の描画）は CI の比較で ok、有料ラインの位置も原稿どおり
+  assert.equal(freePartVerdict(free, draft).status, "ok");
+  assert.equal(paidLineReport(free, draft).endPct, 100);
 });
 
 test("生成した原稿の領収書の案内は定型文にそろえ、そろえられない原稿は生成スクリプトが採用しない（CI のテストで落とさない）", () => {

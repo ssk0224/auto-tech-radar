@@ -8,7 +8,9 @@
     console.log(text);
     try {
       await fetch(`${BRIDGE}/log`, { method: "POST", body: JSON.stringify({ text }) });
-    } catch (e) {}
+    } catch (e) {
+      // ブリッジへの記録が送れなくても、結果はコンソールと戻り値（result）に残っている
+    }
   };
   if (location.hostname !== "note.com") {
     console.error("note.com のページ（例: https://note.com/notes）を開いてから実行してください");

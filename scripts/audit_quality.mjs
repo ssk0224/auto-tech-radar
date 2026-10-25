@@ -8,6 +8,7 @@ import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, MIN_
 import { isNoise } from './utils/noise_filter.mjs';
 import { REMOVED_SLUGS, isNoteWithdrawn } from './utils/blocklist.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
+import { readJsonStrict } from './utils/verdict.mjs';
 import { mermaidProblems } from './utils/mermaid.mjs';
 import { mermaidParseErrors } from './utils/mermaid_parse.mjs';
 
@@ -523,10 +524,15 @@ if (fs.existsSync(noteUrlsFile)) {
   // A. 全非ノイズ記事に note 原稿があり、note 公開済みの記事は note_urls.json に載っていることを保証
   const nonNoiseArticles = articles.map(f => f.replace('.md', '')).filter(s => !isNoise(s));
   // 新しく生成した記事は note に出品されるまで URL が無い。URL を求めるのは note 公開済み（publish_history の note: true）の記事だけ
+  // 出品履歴が無い・壊れて読めないときは {} として扱わない（扱うと、この検査が黙って無効になる）
   let publishHistory = {};
   try {
-    publishHistory = JSON.parse(fs.readFileSync(path.join(rootDir, 'scripts', 'publish_history.json'), 'utf8'));
-  } catch (e) {}
+    publishHistory = readJsonStrict(path.join(rootDir, 'scripts', 'publish_history.json'));
+  } catch (e) {
+    console.error(`  ❌ [PUBLISH HISTORY UNREADABLE] scripts/publish_history.json を読めないため、note 公開済みの記事の購入リンクを確かめられません（${e.message}）`);
+    noteUrlsErrors++;
+    errorCount++;
+  }
   nonNoiseArticles.forEach(slug => {
     // note から取り下げた記事（blocklist.mjs）は出品の記録が残っていても URL が無いのが正しい
     if (publishHistory[slug]?.note && !isNoteWithdrawn(slug) && !noteUrlsData[slug]) {

@@ -229,7 +229,9 @@ function getDrafts() {
         const content = fs.readFileSync(fullPath, 'utf8');
         const match = content.match(/^#\s+(.+)$/m);
         if (match) title = match[1].trim();
-      } catch (e) {}
+      } catch (e) {
+        // 見出しを読めなければスラッグを表示名にする（表示だけに使い、判定には使わない）
+      }
 
       const h = history[slug] || {};
 
@@ -260,7 +262,10 @@ function getPendingNoteUpdates() {
   let spec = { since: '9999', items: {} };
   try {
     spec = JSON.parse(fs.readFileSync(noteUpdatesFile(), 'utf8'));
-  } catch (e) {}
+  } catch (e) {
+    // ファイルが無いのは「反映の指示が無い」。壊れて読めないのを「何も無い」として隠さない
+    if (e.code !== 'ENOENT') console.log(`${c.yellow}⚠ 反映の指示（note_updates.json）を読めません。一覧は不完全です: ${e.message}${c.reset}`);
+  }
   const history = loadHistory();
   const noteUrls = loadNoteUrls();
   const fileOf = (slug) => path.join(noteDir, slug === 'LEAD_MAGNET_CHEAT_SHEET' ? `${slug}.md` : `${slug}_note.md`);
@@ -274,7 +279,9 @@ function getPendingNoteUpdates() {
   try {
     const st = JSON.parse(fs.readFileSync(noteStatusFile(), 'utf8'));
     items.push(...statusUpdateItems(st, history, { listed: new Set(items.map((i) => i.slug)), log: loadMaintainLog() }));
-  } catch (e) {}
+  } catch (e) {
+    console.log(`${c.yellow}⚠ CI が確認した note の公開状態（scripts/note_status.json）を読めません。CI が見つけた問題は一覧に出ていません: ${e.message}${c.reset}`);
+  }
   // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
   for (const [slug, v] of Object.entries(noteUrls)) {
     if (!v.duplicates?.length || history[slug]?.noteDedupedAt || items.some((i) => i.slug === slug)) continue;
@@ -341,7 +348,9 @@ function renderHeader() {
   let version = '';
   try {
     version = execSync('git log -1 --format="%h %cd" --date=format:"%m/%d %H:%M"', { cwd: rootDir, encoding: 'utf8' }).trim();
-  } catch (e) {}
+  } catch (e) {
+    version = `不明（${e.message.split(/\r?\n/)[0]}）`;
+  }
   let noteStatusLine = '';
   let autoFix = 0;
   try {
@@ -352,7 +361,9 @@ function renderHeader() {
     const counts = noteIssueCounts(st, loadMaintainLog());
     autoFix = counts.auto;
     noteStatusLine = `note 公開状態（${st.checkedAt.slice(5, 16).replace('T', ' ')} UTC 確認）: 見出し画像なし ${noImg} 本 / 要修正の表現 ${counts.auto} 本（[E] で自動修正）${counts.other ? ` / 要差し替え ${counts.other} 本（[U]）` : ''}`;
-  } catch (e) {}
+  } catch (e) {
+    noteStatusLine = `⚠ note 公開状態を読めません（要修正の本数は不明。0 本ではありません）: ${e.message}`;
+  }
   console.log(`  ${c.dim}ランチャーの版: ${version}${c.reset}`);
   if (noteStatusLine) console.log(`  ${c.dim}${noteStatusLine}${c.reset}`);
   console.log(`  ${c.dim}システム稼働状況:${c.reset} ${c.green}● 全世界LIVE配信中${c.reset}  |  ${c.white}総レポート数:${c.reset} ${c.cyan}${c.bold}${publishedCount} 本${c.reset}  |  ${c.magenta}GitHub Actions 自動巡回中${c.reset}`);
@@ -505,7 +516,9 @@ function runLeadMagnetPublish() {
   if (!fs.existsSync(leadMagnetPath)) {
     try {
       execSync('node scripts/generate_lead_magnet_note.mjs', { cwd: rootDir, stdio: 'inherit' });
-    } catch (e) {}
+    } catch (e) {
+      console.log(`${c.yellow}⚠ 無料記事の原稿を作れませんでした: ${e.message}${c.reset}`);
+    }
   }
 
   console.clear();

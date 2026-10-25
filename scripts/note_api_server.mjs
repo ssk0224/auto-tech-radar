@@ -82,6 +82,22 @@ export function isAllowedRequest(headers) {
   return !headers.origin || ALLOWED_ORIGINS.has(headers.origin);
 }
 
+// ブラウザから届く見出し画像の結果 { set: [], skipped: [], failed: [] } を表示用の行にする。
+// 読めない・形が違う結果は「完了」にしない（以前は読めない結果を黙って捨て、ok を返していた）
+export function eyecatchCompleteReport(body) {
+  let r;
+  try {
+    r = JSON.parse(body);
+  } catch (e) {
+    return { ok: false, readable: false, lines: [`\n🖼 見出し画像: ✕ 結果を読めませんでした（${e.message}）。設定できたかは note で確かめてください`] };
+  }
+  if (!r || !['set', 'skipped', 'failed'].every((k) => Array.isArray(r[k]))) {
+    return { ok: false, readable: false, lines: ['\n🖼 見出し画像: ✕ 結果の形が想定と違います（set / skipped / failed の一覧が無い）。設定できたかは note で確かめてください'] };
+  }
+  const lines = [`\n🖼 見出し画像: 設定 ${r.set.length} / 変更なし ${r.skipped.length} / 失敗 ${r.failed.length}`, ...r.failed.map((f) => `  ✕ ${f}`)];
+  return { ok: r.failed.length === 0, readable: true, lines };
+}
+
 if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
   // --eyecatch-only: 見出し画像の設定だけ行う（秘密鍵は不要）
   const eyecatchOnly = process.argv.includes('--eyecatch-only');
@@ -158,14 +174,13 @@ if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
       let body = '';
       req.on('data', (c) => (body += c));
       req.on('end', () => {
-        try {
-          const r = JSON.parse(body);
-          console.log(`\n🖼 見出し画像: 設定 ${r.set.length} / 変更なし ${r.skipped.length} / 失敗 ${r.failed.length}`);
-          r.failed.forEach((f) => console.log(`  ✕ ${f}`));
-        } catch {}
-        res.writeHead(200);
-        res.end('ok');
-        if (eyecatchOnly) setTimeout(() => process.exit(0), 500);
+        const r = eyecatchCompleteReport(body);
+        for (const l of r.lines) console.log(l);
+        // 結果を読めない・失敗がある回は終了コード 1（呼び出し側が「完了」と扱わないように）
+        if (!r.ok) process.exitCode = 1;
+        res.writeHead(r.readable ? 200 : 400);
+        res.end(r.readable ? 'ok' : 'unreadable');
+        if (eyecatchOnly) setTimeout(() => process.exit(), 500);
       });
       return;
     }
@@ -177,7 +192,10 @@ if (process.argv[1] && process.argv[1].endsWith('note_api_server.mjs')) {
         try {
           const msg = JSON.parse(body);
           console.log(`[Browser] ${msg.text}`);
-        } catch {}
+        } catch (e) {
+          // ログが読めなくても処理は続けるが、読めなかったことは表に出す
+          console.log(`[Browser] ✕ ログを読めませんでした（${body.length} 文字、${e.message}）`);
+        }
         res.writeHead(200);
         res.end('ok');
       });

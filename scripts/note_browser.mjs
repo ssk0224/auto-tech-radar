@@ -1,6 +1,6 @@
 // note.com の操作をオーナーの Chrome で自動実行する（DevTools にスクリプトを貼る手作業をなくす）。
 // 専用プロファイル（~/.auto-tech-radar/chrome-note）を使うので、初回だけ開いた窓で note にログインする。以後はログイン状態が残る。
-// 使い方: node scripts/note_browser.mjs maintain（見出し画像の設定 → 要修正の表現の修正 → 閲覧数の取得。eyecatch は見出し画像だけ）
+// 使い方: node scripts/note_browser.mjs maintain（見出し画像の設定 → 無料部分を原稿の内容に置き換え → 閲覧数の取得。eyecatch は見出し画像だけ）
 import fs from "fs";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
@@ -10,10 +10,13 @@ import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
 import { noteStatusFile, noteBrowserLogFile } from "./utils/owner_dir.mjs";
-import { NOTE_FIX_MAX, applicableNoteRules, applyNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes, noteFixBudget } from "./utils/note_pending.mjs";
+import { NOTE_FIX_MAX, normBlocks, planFreePartReplace, planFreePartFixes, noteFixBudget } from "./utils/note_pending.mjs";
+import { draftFileFor, isPaidSlug, plainText, renderDraftFree } from "./utils/free_part.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROFILE = NOTE_PROFILE;
+// 無料部分の正本（原稿）の置き場所。テスト用: ATR_NOTE_DRAFTS に模擬の原稿のディレクトリ
+const DRAFT_DIR = process.env.ATR_NOTE_DRAFTS || path.join(__dirname, "..", "note_drafts");
 
 // Google などのログインは、自動操作中のブラウザを「安全でない」として拒否する。
 // そのためログインだけは、自動操作なしの普通の Chrome を同じ専用プロファイルで開いて行い、窓が閉じられたら自動操作に戻る
@@ -35,7 +38,9 @@ function readFixHistory() {
   try {
     const h = JSON.parse(raw);
     if (Array.isArray(h)) return { entries: h };
-  } catch (e) {}
+  } catch (e) {
+    return { error: `形式が正しくありません（${e.message.split("\n")[0]}）` };
+  }
   return { error: "形式が正しくありません" };
 }
 // 「更新する」を押す直前に 1 本ずつ書く（押した後に窓が閉じられたり落ちたりしても、押した分は必ず数える）。7 日より古い記録は消す。
@@ -89,7 +94,9 @@ async function serveBridge(ctx) {
     if (u.pathname === "/log") {
       try {
         console.log(`  ${JSON.parse(route.request().postData() || "{}").text}`);
-      } catch (e) {}
+      } catch (e) {
+        // ブラウザ側の途中経過の表示だけ（結果は eyecatch-complete で受け取る）。読めない記録は表示しない
+      }
     }
     return route.fulfill({ body: "ok", headers: { "Access-Control-Allow-Origin": "https://note.com" } });
   });
@@ -212,8 +219,6 @@ const noteBlocks = ({ html } = {}) => {
   return [...groups.values()].filter((t) => t.trim());
 };
 
-// 段落の比較用の正規化（全角・半角の揺れ、空白・改行・ゼロ幅文字は違いとして扱わない）。空の段落は除く
-const normBlocks = (blocks) => (blocks || []).map((b) => String(b).normalize("NFKC").replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, "")).filter(Boolean);
 // want と got（normBlocks 済み）が同じなら null、違えば最初に違う段落の位置と長さ（本文は記録に残さない。記録は公開リポジトリに送られ、有料部分を含みうるため）
 function blockDiff(want, got) {
   const n = Math.max(want.length, got.length);
@@ -223,8 +228,8 @@ function blockDiff(want, got) {
   return null;
 }
 
-// 比較用に、記号・空白・HTML の書式を除く
-const plain = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
+// 字数の記録用（無料部分の検査と同じ正規化）
+const plain = plainText;
 
 const uploadEyecatch = (page, args) =>
   inPage(page, async ({ id, width, height, b64, name }) => {
@@ -296,16 +301,16 @@ async function draftBlocksOf(ed) {
   return (await ed.evaluate(noteBlocks, {})) || [];
 }
 
-// ログインしていない読者が読める無料部分（更新前）と、更新後にあるべき無料部分（rules なら規則を当てたもの、でなければ更新前のまま）。
+// ログインしていない読者が読める無料部分（更新前）。本文を変えない更新（見出し画像）では、更新後もこれと同じであるべき。
 // 更新後に有料ラインの位置が変わっていないことを確かめるため
-async function freePartBefore(page, key, { rules }) {
+async function freePartBefore(page, key) {
   const before = await publicBody(page, key);
   if (before.error) throw new Error(before.error);
-  const blocks = (await inPage(page, noteBlocks, { html: before.body })) || [];
-  return { old: normBlocks(blocks), want: normBlocks(rules ? blocks.map(applyNoteRules) : blocks) };
+  const blocks = normBlocks((await inPage(page, noteBlocks, { html: before.body })) || []);
+  return { old: blocks, want: blocks };
 }
 
-// 「更新する」の後、無料部分が「更新前の無料部分に規則を当てたもの」（規則を当てない更新なら更新前そのもの）と同じであること。
+// 「更新する」の後、無料部分が free.want（無料部分の置き換えなら原稿の無料部分の描画、本文を変えない更新なら更新前そのもの）と同じであること。
 // 反映待ち（更新前のまま）なら少し待って読み直す。違う形（有料部分が見える・無料部分が短くなった）なら、その場で全体を止める
 async function verifyFreePart(page, key, free, steps) {
   let freeDiff = null;
@@ -337,7 +342,7 @@ async function publishDraft(ctx, page, key, steps) {
   const live = await noteBody(page, key);
   if (live.error) throw new Error(live.error);
   const want = normBlocks(await inPage(page, noteBlocks, { html: live.body }));
-  const free = await freePartBefore(page, key, { rules: false });
+  const free = await freePartBefore(page, key);
   const ed = await ctx.newPage();
   try {
     await openEditor(ed, key, steps);
@@ -402,103 +407,139 @@ async function pressPublish(ed, steps, { onUpdate } = {}) {
   }
 }
 
-// 編集画面の本文から文字列 text を探して選択する（見つからなければ false）。
-// 太字などで複数のテキストノードに分かれていても選べるよう、段落ごとにテキストをつないで探す。段落・改行をまたいでは選ばない
-const selectText = (ed, text) =>
-  ed.evaluate((w) => {
-    const roots = [...document.querySelectorAll('[contenteditable="true"]')].sort((a, b) => b.innerText.length - a.innerText.length);
-    const root = roots[0];
+// 描画した原稿の HTML を、noteBlocks と同じ段落の分け方で [{ text, html }] にする（ブラウザ内で実行）。
+// html は段落の要素の中身（太字・リンク・改行の書式を残して打ち込むため）。段落の中に別の段落の要素がある（入れ子の箇条書きなど）ときは null
+const noteBlockParts = ({ html }) => {
+  const BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, pre, figcaption, td, th";
+  const root = new DOMParser().parseFromString(`<!doctype html><html><body>${html}</body></html>`, "text/html").body;
+  const groups = new Map();
+  const w = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    if (n.nodeType === Node.ELEMENT_NODE && n.tagName !== "BR") continue;
+    const el = n.parentElement;
+    if (!el) continue;
+    if (el.closest("figure") && !el.closest("figcaption") && !el.closest("blockquote")) continue;
+    const block = el.closest(BLOCK);
+    const key = block && root.contains(block) ? block : el;
+    groups.set(key, (groups.get(key) || "") + (n.nodeType === Node.TEXT_NODE ? n.data : "\n"));
+  }
+  const norm = (t) => t.normalize("NFKC").replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, "");
+  return [...groups.entries()].filter(([, t]) => norm(t)).map(([el, text]) => ({ text, html: el.querySelector(BLOCK) ? null : el.innerHTML }));
+};
+
+// 編集画面の本文の index 番目の段落（noteBlocks → normBlocks と同じ数え方）の文字を、端から端まで選ぶ。
+// 選んだ範囲に別の段落の文字が入る（入れ子の箇条書きなど）ときは選ばずに false（別の段落を消さない）
+const selectBlock = (ed, index) =>
+  ed.evaluate((i) => {
+    const BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, pre, figcaption, td, th";
+    const root = [...document.querySelectorAll('[contenteditable="true"]')].sort((a, b) => b.innerText.length - a.innerText.length)[0];
     if (!root) return false;
-    const BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, pre, figcaption, td, th, div";
-    const blocks = new Map();
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const groups = new Map();
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
       if (n.nodeType === Node.ELEMENT_NODE && n.tagName !== "BR") continue;
-      const b = n.parentElement?.closest(BLOCK);
-      const key = b && root.contains(b) ? b : root;
-      if (!blocks.has(key)) blocks.set(key, { text: "", parts: [] });
-      const g = blocks.get(key);
+      const el = n.parentElement;
+      if (!el) continue;
+      const fixed = el.closest('[contenteditable="false"]');
+      if (fixed && root.contains(fixed)) continue;
+      if (el.closest("figure") && !el.closest("figcaption") && !el.closest("blockquote")) continue;
+      const block = el.closest(BLOCK);
+      const key = block && root.contains(block) ? block : el;
+      if (!groups.has(key)) groups.set(key, { text: "", nodes: [] });
+      const g = groups.get(key);
       if (n.nodeType === Node.TEXT_NODE) {
-        g.parts.push({ node: n, at: g.text.length });
+        g.nodes.push(n);
         g.text += n.data;
       } else g.text += "\n";
     }
-    for (const g of blocks.values()) {
-      const i = g.text.indexOf(w);
-      if (i === -1) continue;
-      const end = i + w.length;
-      const s = g.parts.find((p) => i >= p.at && i < p.at + p.node.data.length);
-      const e = g.parts.find((p) => end > p.at && end <= p.at + p.node.data.length);
-      if (!s || !e) continue;
-      root.focus();
-      const r = document.createRange();
-      r.setStart(s.node, i - s.at);
-      r.setEnd(e.node, end - e.at);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(r);
-      return true;
+    const norm = (t) => t.normalize("NFKC").replace(/[\s\u200b-\u200d\u2060\ufeff]+/g, "");
+    const g = [...groups.values()].filter((x) => norm(x.text))[i];
+    if (!g || !g.nodes.length) return false;
+    const r = document.createRange();
+    r.setStart(g.nodes[0], 0);
+    const last = g.nodes[g.nodes.length - 1];
+    r.setEnd(last, last.data.length);
+    const mine = new Set(g.nodes);
+    const tw = document.createTreeWalker(r.commonAncestorContainer.nodeType === Node.TEXT_NODE ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+    for (let t = tw.nextNode(); t; t = tw.nextNode()) {
+      if (r.intersectsNode(t) && !mine.has(t) && norm(t.data)) return false;
     }
-    return false;
-  }, text);
+    root.focus();
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    return true;
+  }, index);
 
-// 公開中の記事に残った直すべき表現（NOTE_TEXT_RULES の from）だけを to に置き換えて「更新する」まで行い、置き換えた規則の id を返す。
-// 公開するのは、編集画面の本文が「公開中の記事に規則を当てた文」と段落ごとに一致したときだけ。
-// 編集画面の下書きに公開していない変更（以前の手作業・貼りかけの原稿・価格の書き換えなど）が残っている記事は、
-// 置き換える前に見分けて、何も打ち込まず公開もせずに止める（NotFixed）。
-// 「更新する」の後は、ログインしていない読者が読める無料部分を更新前と比べ、有料ラインの位置が変わっていないことを確かめる
-async function fixNoteText(ctx, page, t, steps, { onUpdate } = {}) {
+// 選んだ段落の文字を、原稿の段落 part で置き換える。書式（太字・リンク・改行）がある段落は HTML のまま、無い段落は文字として打ち込む
+async function insertPart(ed, part) {
+  const html = part.html;
+  if ((html && /<[a-z]/i.test(html)) || part.text.includes("\n")) {
+    const markup = html ?? part.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    const done = await ed.evaluate((h) => document.execCommand("insertHTML", false, h), markup);
+    if (!done) throw new Error("編集画面に書式つきの段落を入れられませんでした（公開はしていません）");
+  } else {
+    await ed.keyboard.insertText(part.text);
+  }
+}
+
+// 公開中の無料部分を、原稿の無料部分を描画したもの（t.rendered）に置き換えて「更新する」まで行い、置き換えた段落の数を返す。
+// 段落の数が同じときだけ、違う段落を丸ごと原稿の段落にする（段落の区切り・有料ラインの位置・有料部分・公開設定は触らない）。
+// 公開するのは、編集画面の本文が「公開中の記事」と段落ごとに一致したとき（または前回の実行で置き換えたまま公開に至らなかった下書き）だけ。
+// 下書きに公開していない変更が残っている記事は、何も打ち込まず公開もせずに止める（NotFixed）。
+// 「更新する」の後は、記事の全文が「原稿の無料部分＋公開中だった有料部分」であること、ログインしていない読者が読める部分が原稿の無料部分であることを確かめる
+async function fixFreePart(ctx, page, t, steps, { onUpdate } = {}) {
   const live = await noteBody(page, t.key);
   if (live.error) throw new Error(live.error);
-  const liveRules = applicableNoteRules(noteHtmlText(live.body));
-  if (!liveRules.length) throw new NotFixed("公開中の記事に直す表現が見つからないため、自動では直しません（公開はしていません）");
-  // 直した後にあるべき本文（公開中の本文に規則を当てたもの）と、無料部分
-  const want = normBlocks((await inPage(page, noteBlocks, { html: live.body })).map(applyNoteRules));
-  const free = await freePartBefore(page, t.key, { rules: true });
+  const anon = await publicBody(page, t.key);
+  if (anon.error) throw new Error(anon.error);
+  const liveFull = normBlocks(await inPage(page, noteBlocks, { html: live.body }));
+  const liveFree = normBlocks(await inPage(page, noteBlocks, { html: anon.body }));
+  const parts = (await inPage(page, noteBlockParts, { html: t.rendered })) || [];
+  const wantFree = normBlocks(parts.map((p) => p.text));
+  // ログインなしで読める部分が全文の先頭と同じでなければ、どこまでが無料部分か分からない
+  if (blockDiff(liveFree, liveFull.slice(0, liveFree.length))) throw new NotFixed("ログインなしで読める本文が全文の先頭と一致しないため、無料部分の範囲が分かりません（公開はしていません）");
+  const plan = planFreePartReplace(liveFree, wantFree);
+  if (plan.action !== "replace") throw new NotFixed(plan.action === "same" ? "公開中の無料部分はすでに原稿どおりです（公開はしていません）" : `${plan.reason}（公開はしていません）`);
+  const want = [...wantFree, ...liveFull.slice(liveFree.length)];
+  const free = { old: liveFree, want: wantFree };
   const ed = await ctx.newPage();
   try {
     await openEditor(ed, t.key, steps);
     const draftBlocks = await draftBlocksOf(ed);
     const liveChars = plain(live.body).length;
     const draftChars = plain(draftBlocks.join("\n")).length;
-    // 下書きに規則を当てた本文が、公開中の本文に規則を当てたものと同じか（前回の実行で置き換えたまま公開に至らなかった下書きも、ここで同じになる）
-    const before = blockDiff(want, normBlocks(draftBlocks.map(applyNoteRules)));
-    steps.push({ at: "wording-editor", url: ed.url(), liveChars, draftChars, rules: liveRules.map((r) => r.id), ...(before ? { diff: before } : {}) });
+    const draftNorm = normBlocks(draftBlocks);
+    // 前回の実行で下書きだけ置き換えて、公開に至らなかった記事は、そのまま公開する
+    const resumed = !blockDiff(want, draftNorm);
+    const before = resumed ? null : blockDiff(liveFull, draftNorm);
+    steps.push({ at: "free-part-editor", url: ed.url(), liveChars, draftChars, changes: plan.changes.length, resumed, ...(before ? { diff: before } : {}) });
     if (before) {
       throw new NotFixed(`編集画面の下書き（${draftChars} 字）が公開中の記事（${liveChars} 字）と違うため、自動では直しません（${before.index + 1} 段落目が違います。公開はしていません）`);
     }
-    // 長い from から順に、その文字列だけを選んで to を打ち込む（前後の文字・有料ライン・公開設定は触らない）
-    const replaced = {};
-    for (const r of applicableNoteRules(draftBlocks.join("\n"))) {
-      replaced[r.id] = 0;
-      while (replaced[r.id] < 5 && (await selectText(ed, r.from))) {
-        await ed.keyboard.insertText(r.to);
+    if (!resumed) {
+      for (const i of plan.changes) {
+        if (!(await selectBlock(ed, i))) throw new Error(`編集画面で ${i + 1} 段落目を選べませんでした（公開はしていません）`);
+        await insertPart(ed, parts[i]);
         await ed.waitForTimeout(500);
-        replaced[r.id]++;
       }
     }
     const afterBlocks = (await ed.evaluate(noteBlocks, {})) || [];
     const after = afterBlocks.join("\n");
     const mismatch = blockDiff(want, normBlocks(afterBlocks));
-    // 段落の取り出し方に漏れがあっても見逃さないよう、編集画面の全文（段落に分けない innerText）でも、
-    // 公開中の記事で見つけた直す表現がすべて消え、置き換え後の語が入っていることを確かめてから公開する
-    const fullAfter = await ed.evaluate(() => [...document.querySelectorAll('[contenteditable="true"]')].map((e) => e.innerText).join("\n"));
-    const missing = liveRules.filter((r) => !fullAfter.includes(r.to)).map((r) => r.id);
-    steps.push({ at: "wording-replaced", replaced, draftChars: plain(after).length, ...(mismatch ? { diff: mismatch } : {}), ...(missing.length ? { missing } : {}) });
-    if (hasNoteTextIssue(after) || hasNoteTextIssue(fullAfter) || missing.length) throw new Error("編集画面で表現を置き換えられませんでした（公開はしていません）");
-    if (mismatch) throw new Error(`置き換えた後の下書きが、公開中の記事に規則を当てた文と一致しません（${mismatch.index + 1} 段落目。公開はしていません）`);
+    steps.push({ at: "free-part-replaced", draftChars: plain(after).length, ...(mismatch ? { diff: mismatch } : {}) });
+    if (mismatch) throw new Error(`置き換えた後の下書きが「原稿の無料部分＋公開中の有料部分」と一致しません（${mismatch.index + 1} 段落目。公開はしていません）`);
     await pressPublish(ed, steps, { onUpdate });
   } finally {
     await ed.close().catch(() => {});
   }
-  // 「更新する」の後、公開中の記事（API）で、直す表現が無く置き換え後の語があることを確かめる
+  // 「更新する」の後、記事の全文が「原稿の無料部分＋公開中だった有料部分」であること
   const updated = await noteBody(page, t.key);
   if (updated.error) throw new Error(updated.error);
-  const text = noteHtmlText(updated.body);
-  if (hasNoteTextIssue(text) || liveRules.some((r) => !text.includes(r.to))) throw new Error("「更新する」の後も記事に反映されていません");
-  // 有料ラインの位置: ログインしていない読者が読める無料部分が「更新前の無料部分に規則を当てたもの」と同じであること
+  if (blockDiff(want, normBlocks(await inPage(page, noteBlocks, { html: updated.body })))) throw new Error("「更新する」の後も記事に反映されていません");
+  // 有料ラインの位置: ログインしていない読者が読める無料部分が、原稿の無料部分と同じであること
   await verifyFreePart(page, t.key, free, steps);
-  return liveRules.map((r) => r.id);
+  return plan.changes.length;
 }
 
 // 自分の記事の閲覧数・スキ数（note の統計。収益ゼロの原因を数字で見るため。非公開の API なので形式が変わりうる → 生の応答も残す）
@@ -538,11 +579,15 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
     // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない。
     // 検査結果はオーナー端末の ownerDir にある（scripts/sync_note_urls.mjs --status-only が書く）。テスト用: ATR_NOTE_STATUS に代わりのファイル
-    let flagged = new Set();
+    // 検査結果が無い・壊れて読めないときは「問題なし」とみなさず、どの記事も問題があるものとして扱う（自動では再公開しない）
+    let flagged;
     try {
       const st = JSON.parse(fs.readFileSync(noteStatusFile(), "utf8"));
       flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
-    } catch (e) {}
+    } catch (e) {
+      flagged = new Set(tasks.map((t) => t.slug));
+      console.log(`  … CI の検査結果（note_status.json）を読めないため、本文に問題が無いか分かりません。見出し画像は下書きに付けるだけにして、自動では再公開しません（${e.code || e.message.split("\n")[0]}）`);
+    }
     const base = async () => tasks.length && page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
     await base();
     for (let i = 0; i < tasks.length; i++) {
@@ -595,8 +640,8 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     console.log(`\n🖼 見出し画像: 設定 ${result.set.length} / 設定済みのため変更なし ${result.skipped.length} / 本文の差し替え待ち ${result.manual.length} / 失敗 ${result.failed.length}`);
     result.manual.forEach((m) => console.log(`  … ${m}`));
 
-    // 要修正の表現の自動修正（scripts/utils/note_pending.mjs の NOTE_TEXT_RULES）。
-    // オーナーとしてログインしているので有料部分を含む全文を読み、当てはまる記事だけ語を置き換えて「更新する」まで行う。
+    // 無料部分の置き換え: 公開中の無料部分を、正本の原稿（note_drafts/）の無料部分を描画したものに置き換える（語ごとの置き換え規則は使わない）。
+    // オーナーとしてログインしているので有料部分を含む全文を読み、無料部分が原稿と違う記事だけ「更新する」まで行う。
     // 直すのは直近 24 時間で NOTE_FIX_MAX 本まで（続けて [E] を押しても増えない。直した時刻はオーナー端末に記録）、
     // 記事の間は約 20 秒あける（短時間に更新を繰り返す機械的な動きにしない）
     if (wording && !result.failed.length) {
@@ -609,21 +654,38 @@ async function eyecatch({ wording = false, stats = false } = {}) {
         // 直した記録が読めないと直近 24 時間の本数が分からない。空として扱うと上限を超えうるので、直さずに知らせる（記録は上書きしない）
         const why = `直した記録のファイル（${FIX_HISTORY}）が読めないため、今回は行いません（${history.error}）。ファイルを確かめてください`;
         result.wording.failed.push(why);
-        console.log(`\n✏ 要修正の表現の修正: ${why}`);
+        console.log(`\n✏ 無料部分の置き換え: ${why}`);
       } else if (!budget.left) {
-        console.log(`\n✏ 要修正の表現の修正: 直近24時間で ${budget.used} 本直したため、今回は行いません（上限 ${max} 本。次は ${jstLabel(budget.nextAt)} 以降の [E] で直します）`);
+        console.log(`\n✏ 無料部分の置き換え: 直近24時間で ${budget.used} 本直したため、今回は行いません（上限 ${max} 本。次は ${jstLabel(budget.nextAt)} 以降の [E] で直します）`);
       } else {
         const notes = [];
         for (const t of tasks) {
+          let draft = null;
+          try {
+            draft = fs.readFileSync(draftFileFor(t.slug, DRAFT_DIR), "utf8");
+          } catch (e) {
+            if (e.code !== "ENOENT") throw e;
+          }
+          const rendered = draft === null ? null : renderDraftFree(draft, { isPaid: isPaidSlug(t.slug) });
+          if (rendered === null) {
+            notes.push({ ...t, plan: { action: "manual", reason: draft === null ? "原稿（正本）が無いため、自動では直しません" : "原稿に有料ラインが無いため、自動では直しません" } });
+            continue;
+          }
           const live = await noteBody(page, t.key);
-          if (live.error) result.wording.failed.push(`${t.slug}: 本文を読めませんでした（${live.error}）`);
-          else notes.push({ ...t, body: live.body });
+          const anon = live.error ? live : await publicBody(page, t.key);
+          if (live.error || anon.error) result.wording.failed.push(`${t.slug}: 本文を読めませんでした（${live.error || anon.error}）`);
+          else {
+            const liveFree = normBlocks(await inPage(page, noteBlocks, { html: anon.body }));
+            const wantFree = normBlocks(((await inPage(page, noteBlockParts, { html: rendered })) || []).map((p) => p.text));
+            notes.push({ ...t, rendered, plan: planFreePartReplace(liveFree, wantFree) });
+          }
           await pause(500);
         }
+        const renderedOf = new Map(notes.map((n) => [n.slug, n.rendered]));
         // 直す候補はすべて並べ、「更新する」を押した本数（published）が残りの枠 budget.left に達したら止める。
         // 下書きの食い違いなどで直せなかった記事（NotFixed。何も公開していない）は枠を使わない（同じ記事が毎回枠を埋めて、後ろの記事が直らなくなるため）
-        const plan = planNoteFixes(notes, notes.length);
-        result.wording.manual = plan.manual;
+        const plan = planFreePartFixes(notes, notes.length);
+        result.wording.manual = plan.manual.map((m) => m.slug);
         let tried = 0;
         let published = 0;
         for (let i = 0; i < plan.fix.length && published < budget.left; i++) {
@@ -637,9 +699,9 @@ async function eyecatch({ wording = false, stats = false } = {}) {
               recordFix(t.slug);
               published++;
             };
-            const ids = await fixNoteText(ctx, page, t, result.steps[`wording:${t.slug}`], { onUpdate });
+            const n = await fixFreePart(ctx, page, { ...t, rendered: renderedOf.get(t.slug) }, result.steps[`wording:${t.slug}`], { onUpdate });
             result.wording.fixed.push(t.slug);
-            console.log(`  ✓ 要修正の表現を直して更新: ${t.slug}（${ids.join(", ")}）`);
+            console.log(`  ✓ 無料部分を原稿の内容に置き換えて更新: ${t.slug}（${n} 段落）`);
           } catch (e) {
             if (e instanceof LoginRequired && !loggedIn) {
               loggedIn = true;
@@ -657,12 +719,12 @@ async function eyecatch({ wording = false, stats = false } = {}) {
           }
         }
         result.wording.remaining = plan.fix.length - tried;
-        plan.manual.forEach((s) => console.log(`  … ${s}: 自動では直せない書き方の表現があります（note の編集画面で手作業）`));
+        plan.manual.forEach((m) => console.log(`  … ${m.slug}: ${m.reason}`));
         if (plan.fix.length || plan.manual.length || result.wording.failed.length) {
           const next = noteFixBudget(readFixHistory().entries || [], Date.now(), max);
           const when = next.left ? "次回の [E]" : `${jstLabel(next.nextAt)} 以降の [E]`;
           const rest = result.wording.remaining ? ` / 残り ${result.wording.remaining} 本は${when}で直します（24時間に ${max} 本まで）` : "";
-          console.log(`✏ 要修正の表現の修正: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}${rest}`);
+          console.log(`✏ 無料部分の置き換え: 修正 ${result.wording.fixed.length} / 失敗 ${result.wording.failed.length}${rest}`);
         }
       }
     }
@@ -692,11 +754,16 @@ function writeLog(entry) {
   let version = "";
   try {
     version = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
-  } catch (e) {}
+  } catch (e) {
+    version = "不明"; // git が無い・リポジトリの外で動いた。記録には残す
+  }
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
-  } catch (e) {}
+  } catch (e) {
+    // 記録が残らないと、[U] の一覧が「直した」ことを知らずに同じ記事を出し続ける。黙らずに知らせる
+    console.log(`⚠ 実行記録（${path.basename(file)}）を書けませんでした: ${e.code || e.message.split("\n")[0]}`);
+  }
 }
 
 if (process.argv[1] && process.argv[1].endsWith("note_browser.mjs")) {

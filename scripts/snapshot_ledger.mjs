@@ -88,6 +88,8 @@ export async function snapshotLedger({
     const r = await getJson(searchReposUrl(q));
     if (r.stop) { stopped = r.stop; break; }
     if (!r.ok) { console.warn(`ledger: 検索に失敗しました (HTTP ${r.status}): ${q}`); incomplete = true; continue; }
+    // GitHub が時間内に探しきれなかった検索結果（incomplete_results: true）は、候補が欠けているので完了にしない
+    if (r.data?.incomplete_results === true) { console.warn(`ledger: 検索結果が途中まで（incomplete_results）です: ${q}`); incomplete = true; }
     for (const item of r.data?.items || []) {
       if (item?.full_name && !rows.has(item.full_name.toLowerCase())) rows.set(item.full_name.toLowerCase(), toLedgerRow(date, item, null));
     }
@@ -148,9 +150,30 @@ export function updateVelocity(rootDir = process.cwd()) {
   return velocity;
 }
 
+// 完了していない日（.partial だけで、その日のファイルが無い）が date から遡って何日続いているか
+export function consecutivePartialDays(rootDir, date) {
+  let n = 0;
+  for (let t = Date.parse(`${date}T00:00:00Z`); ; t -= 24 * 60 * 60 * 1000) {
+    const { file, partial } = ledgerPaths(rootDir, utcDate(t));
+    if (fs.existsSync(file) || !fs.existsSync(partial)) return n;
+    n++;
+  }
+}
+
+// 完了していない日がこの日数続いたら ::error（レート制限・障害が一時的でなく、台帳が欠け続けている）
+export const PARTIAL_ALERT_DAYS = 3;
+// スナップショットの結果を GitHub Actions に出す行。途中までの日は ::warning、続いたら ::error（終了コードはデプロイを止めないよう 0 のまま）
+export function ledgerAnnotations(result, consecutive) {
+  if (result?.status !== "partial") return [];
+  const lines = [`::warning title=Ledger snapshot partial::${result.date}（UTC）の台帳は途中まで（${result.reason}、${result.rows} 件）。次の実行で取り直します`];
+  if (consecutive >= PARTIAL_ALERT_DAYS) lines.push(`::error title=Ledger snapshot incomplete::台帳の完了していない日が ${consecutive} 日続いています（最新 ${result.date}、${result.reason}）。GitHub API の制限・トークンを確認してください`);
+  return lines;
+}
+
 async function main() {
   try {
-    await snapshotLedger();
+    const r = await snapshotLedger();
+    for (const l of ledgerAnnotations(r, r.status === "partial" ? consecutivePartialDays(process.cwd(), r.date) : 0)) console.log(l);
   } catch (e) {
     console.log(`::warning title=Ledger snapshot failed::${e.message}`);
   }

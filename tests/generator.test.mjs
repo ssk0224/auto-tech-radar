@@ -499,3 +499,23 @@ test("生成して保存した記事・原稿は、CI の品質ゲート（監�
     assert.equal(t.status, 0, t.stdout.split("\n").filter((l) => /^not ok|^\s+not ok|^\s+error:|^\s+(?:expected|actual):/.test(l)).slice(0, 40).join("\n"));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("GitHub の検索がすべて失敗した日は「候補なし」にせず、upstream_unavailable として ::error で知らせる", () => {
+  const { dir, log } = run(output(), { MOCK_SEARCH_STATUS: "503" });
+  try {
+    assert.match(log, /::error title=GitHub search::/);
+    const last = runStatusOf(dir).runs.at(-1);
+    assert.equal(last.reason, "upstream_unavailable", log);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("README を取得できない（429 など）候補は「README が不十分」にせず、試行回数も使わない。記事が出なければ upstream_unavailable", () => {
+  const { dir, log } = run(output(), { MOCK_README_STATUS: "429" });
+  try {
+    assert.doesNotMatch(log, /READMEが不十分/);
+    assert.match(log, /README を取得できない/);
+    assert.match(log, /::warning title=GitHub README::/);
+    const last = runStatusOf(dir).runs.at(-1);
+    assert.equal(last.reason, "upstream_unavailable", log);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

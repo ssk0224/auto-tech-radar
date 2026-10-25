@@ -38,6 +38,10 @@ const mutations = [
     const f = path.join(d, "src/layouts/Layout.astro");
     fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace("</script>", "localStorage.setItem('atr_pro_unlocked','true');</script>"));
   }],
+  // 以前は読めない出品履歴を {} として扱い、「note 公開済みなのに購入リンクが無い」記事の検査が黙って無効になった
+  ["出品履歴（publish_history.json）が壊れて読めない", "PUBLISH HISTORY UNREADABLE", (d) => {
+    fs.writeFileSync(path.join(d, "scripts/publish_history.json"), '{"aihot": {"note": true, "x": tr');
+  }],
   ["暗号化ファイルが別記事のものにすり替わる", "SEALED PAID PART INVALID", (d) => {
     const nd = path.join(d, "note_drafts");
     const enc = fs.readdirSync(nd).filter((x) => x.endsWith(".paid.enc"));

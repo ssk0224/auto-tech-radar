@@ -14,9 +14,10 @@ if (process.env.MOCK_NOW) {
 const items = process.env.MOCK_SECOND_REPO ? [repo, { ...repo, name: "othertool", full_name: "other/othertool", html_url: "https://github.com/other/othertool", owner: { login: "other" } }] : [repo];
 globalThis.fetch = async (url) => {
   url = String(url);
-  if (url.includes("/search/repositories")) return new Response(JSON.stringify({ items }), { status: 200 });
+  // MOCK_SEARCH_STATUS / MOCK_README_STATUS: GitHub の検索・README の応答をその HTTP 状態の失敗にする（レート制限・障害の再現）
+  if (url.includes("/search/repositories")) return process.env.MOCK_SEARCH_STATUS ? new Response("upstream", { status: Number(process.env.MOCK_SEARCH_STATUS) }) : new Response(JSON.stringify({ items }), { status: 200 });
   // README（MOCK_README があればその本文）。生成モデルの出力（tests/generator.test.mjs の output()）の原文はこの README の文から選ぶ
-  if (url.includes("/readme")) return new Response(process.env.MOCK_README ?? MOCK_README, { status: 200 });
+  if (url.includes("/readme")) return process.env.MOCK_README_STATUS ? new Response("upstream", { status: Number(process.env.MOCK_README_STATUS) }) : new Response(process.env.MOCK_README ?? MOCK_README, { status: 200 });
   // LICENSE ファイル（/repos/{o}/{r}/license）。MOCK_LICENSE_TEXT があればその本文を GitHub の判定 "Other"（NOASSERTION）で返し、無ければ 404（LICENSE ファイル無し）
   if (url.includes("/license") && process.env.MOCK_LICENSE_TEXT) {
     return new Response(JSON.stringify({ html_url: "https://github.com/acme/testtool/blob/main/LICENSE", encoding: "base64", content: Buffer.from(process.env.MOCK_LICENSE_TEXT).toString("base64"), license: { key: "other", spdx_id: "NOASSERTION", name: "Other" } }), { status: 200 });
