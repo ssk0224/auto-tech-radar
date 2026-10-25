@@ -15,6 +15,9 @@ import { dependencyProblems } from './utils/deps.mjs';
 import { isNoteUrl, openInNoteChrome } from './utils/note_chrome.mjs';
 import { statusUpdateItems, noteIssueCounts, NOTE_FIX_MAX, OLD_RING_WORDS, NEW_RING_WORDS } from './utils/note_pending.mjs';
 import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
+import { noteStatusFile, noteUpdatesFile, noteBrowserLogFile } from './utils/owner_dir.mjs';
+import { outputPathsWrittenBy } from './utils/public_tree.mjs';
+import { onTermination } from './utils/termination.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -22,7 +25,6 @@ const noteDir = path.join(rootDir, 'note_drafts');
 const xDir = path.join(rootDir, 'x_posts');
 const radarDir = path.join(rootDir, 'src', 'pages', 'radar');
 const historyFile = path.join(__dirname, 'publish_history.json');
-const noteUpdatesFile = path.join(__dirname, 'note_updates.json');
 
 // package.json の依存がすべて、package-lock.json と同じ版で入っているかを確かめ、違えば npm ci で入れ直す
 // （取り込んだ更新で増えた依存・版が上がった依存を含む。版を比べないと、メニュー実行前の取り込みで上がった版や、
@@ -252,12 +254,12 @@ function getDrafts() {
     .sort((a, b) => b.mtime - a.mtime);
 }
 
-// note に公開済みで、原稿の修正を note 側へ反映する必要がある記事（scripts/note_updates.json）。
+// note に公開済みで、原稿の修正を note 側へ反映する必要がある記事（オーナー端末の ownerDir/note_updates.json。公開リポには置かない）。
 // 反映したら publish_history の noteUpdatedAt に記録し、一覧から消える
 function getPendingNoteUpdates() {
   let spec = { since: '9999', items: {} };
   try {
-    spec = JSON.parse(fs.readFileSync(noteUpdatesFile, 'utf8'));
+    spec = JSON.parse(fs.readFileSync(noteUpdatesFile(), 'utf8'));
   } catch (e) {}
   const history = loadHistory();
   const noteUrls = loadNoteUrls();
@@ -265,12 +267,12 @@ function getPendingNoteUpdates() {
   const items = Object.entries(spec.items || {})
     .filter(([slug]) => !(history[slug]?.noteUpdatedAt >= spec.since))
     .map(([slug, item]) => ({ slug, ...item }));
-  // CI が公開中の note 本文を検査して見つけた問題（scripts/note_status.json）。
-  // 差し替えたあと次に CI が確認するまでの間は、差し替え済みとして出さない。
+  // 公開中の note 本文を検査して見つけた問題（ownerDir/note_status.json。refreshNoteStatus がこの端末で取り直す）。
+  // 差し替えたあと次に確認するまでの間は、差し替え済みとして出さない。
   // [E] で自動修正できる表現（インボイス対応領収書の案内など）だけが問題の記事は、本文の全差し替えに回さない（見出しに [E] の案内を出す）。
   // 問題が「古い成熟度の表現」だけなら、本文の全差し替え（有料ラインを入れ直す手間と危険がある）ではなく、その語だけ直してもらう
   try {
-    const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
+    const st = JSON.parse(fs.readFileSync(noteStatusFile(), 'utf8'));
     items.push(...statusUpdateItems(st, history, { listed: new Set(items.map((i) => i.slug)), log: loadMaintainLog() }));
   } catch (e) {}
   // CI が見つけた重複出品（scripts/note_urls.json の duplicates）も、片付けるまで一覧に出す
@@ -290,7 +292,7 @@ function getPendingNoteUpdates() {
 // [E]（note 自動メンテ）の前回の実行記録。[E] で直した記事を、次に CI が確認するまで「直した」として扱うため
 function loadMaintainLog() {
   try {
-    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_browser_log.json'), 'utf8'));
+    return JSON.parse(fs.readFileSync(noteBrowserLogFile(), 'utf8'));
   } catch (e) {
     return null;
   }
@@ -343,7 +345,7 @@ function renderHeader() {
   let noteStatusLine = '';
   let autoFix = 0;
   try {
-    const st = JSON.parse(fs.readFileSync(path.join(__dirname, 'note_status.json'), 'utf8'));
+    const st = JSON.parse(fs.readFileSync(noteStatusFile(), 'utf8'));
     const v = Object.values(st.notes || {});
     const noImg = v.filter((n) => n.eyecatch === false).length;
     // [E] で自動修正できる表現の記事と、本文の差し替え（[U]）が必要な記事を分けて数える
@@ -400,14 +402,13 @@ function promptMenu() {
   console.log(`\n  ${c.magenta}${c.bold}【🚀 トラフィック爆発 ＆ 集客ブースト（無料撒き餌）】${c.reset}`);
   console.log(`   ${c.yellow}${c.bold}[M]${c.reset} ${c.yellow}${c.bold}📗 【無料集客リードマグネット】「OSS 15選商用化チートシート」を note に無料出品${c.reset} ${c.dim}(スキ・閲覧爆発)${c.reset}`);
   console.log(`   ${c.cyan}${c.bold}[Z]${c.reset} ${c.bold}Zenn（自動公開は停止中）: 公開中の記事の確認・非公開化${c.reset} ${c.dim}(Zenn の規約に合わせて投稿しません)${c.reset}`);
-  console.log(`   ${c.yellow}${c.bold}[7]${c.reset} ${c.bold}X用「今週の急上昇OSSまとめスレッド」を発行する${c.reset} ${c.dim}(ブックマーク爆弾投下)${c.reset}`);
   console.log(`   ${c.green}${c.bold}[Q]${c.reset} ${c.green}${c.bold}⚡ 【Qiitaマルチポスト】技術記事をQiitaに出品${c.reset} ${c.dim}(国内2大巨頭完全制覇)${c.reset}`);
-  console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(AGENT_RULES準拠)${c.reset}`);
+  console.log(`   ${c.green}${c.bold}[S]${c.reset} ${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset} ${c.dim}(公開してよい出力だけ)${c.reset}`);
 
   console.log(`\n  ${c.magenta}${c.bold}【📊 収益ダッシュボード ＆ 運用管理】${c.reset}`);
   console.log(`   ${c.white}[1] note を開いて売上を確認する ${c.dim}(入金確認)${c.reset}`);
   console.log(`   ${c.white}[2] note メンバーシップ管理画面を開く ${c.dim}(月額1,980円の会員管理)${c.reset}`);
-  console.log(`   ${c.white}[3] 今すぐ手動で最新OSSをクロール＆記事生成する ${c.dim}(緊急・テスト実行)${c.reset}`);
+  console.log(`   ${c.white}[3] 今すぐ最新OSSをクロール＆記事生成する ${c.dim}(GitHub Actions の手動実行を開く)${c.reset}`);
 
   console.log(`\n  ${c.dim}[0] 終了${c.reset}`);
   console.log(`${c.cyan}================================================================================${c.reset}`);
@@ -461,9 +462,6 @@ function handleChoice(choice, pulled = false) {
       console.log(`\n${c.cyan}自社HPを開きます...${c.reset}`);
       openUrl("https://ssk0224.github.io/auto-tech-radar/");
       waitBack();
-      break;
-    case '7':
-      runWeeklyThread();
       break;
     case '9':
       zennFrozenNotice();
@@ -555,6 +553,7 @@ function runLeadMagnetPublish() {
 const skippedUpdates = new Set();
 
 function runNoteUpdates() {
+  refreshNoteStatus();
   const pending = getPendingNoteUpdates().sort((a, b) => skippedUpdates.has(a.slug) - skippedUpdates.has(b.slug));
   console.clear();
   console.log(`${c.red}${c.bold}================================================================================${c.reset}`);
@@ -812,10 +811,8 @@ function runPublishHelper(mode) {
         rlConfirm.close();
         if (cAns.trim() !== '0' && cAns.trim().toLowerCase() !== 's') {
           recordPublish(selected.slug, 'note');
-          console.log(`\n  ${c.green}✓ note出品完了を記録しました。note_urls.json を同期中...${c.reset}`);
-          try {
-            execSync('node scripts/sync_note_urls.mjs', { cwd: rootDir, stdio: 'inherit' });
-          } catch (e) {}
+          // 購入リンクの対応表（scripts/note_urls.json）は CI だけが書く（書き手を 1 つにする。この端末で書くと CI の更新と衝突する）
+          console.log(`\n  ${c.green}✓ note出品完了を記録しました。購入リンクの対応表は、次の GitHub Actions の便で更新されます。${c.reset}`);
         } else {
           console.log(`\n  ${c.yellow}出品をスキップしました（ステータスは未完了のまま保持されます）。${c.reset}`);
         }
@@ -894,12 +891,12 @@ function runPublishHelper(mode) {
 }
 
 // Zenn への自動公開・投稿の補助は停止中（2026-10-21）。Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿を認めない）に沿わないため、
-// articles/*.md と zenn_drafts/*.md はすべて published: false（下書き）にしてあり、ランチャーからも Zenn に投稿する流れは開かない
+// Zenn 用の原稿はリポに置かず（生成もしない）、ランチャーからも Zenn に投稿する流れは開かない
 function zennFrozenNotice() {
   console.clear();
   console.log(`${c.yellow}${c.bold}Zenn への投稿は停止しています（2026-10-21）。${c.reset}`);
   console.log(`  自動生成した記事を Zenn に公開すると、Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないためです。`);
-  console.log(`  articles/ と zenn_drafts/ の原稿はすべて published: false（下書き）です。Zenn に投稿・公開はしないでください。`);
+  console.log(`  Zenn 用の原稿は作っていません。Zenn に投稿・公開はしないでください。`);
   console.log(`  以前に公開した記事が Zenn に残っていれば、メニュー [Z] からダッシュボードを開いて非公開にしてください（GitHub の確認でも警告します）。\n`);
   waitBack();
 }
@@ -911,7 +908,7 @@ function runZennConsole() {
   console.log(`   ${c.yellow}Zenn（自動公開は停止中）${c.reset}`);
   console.log(`${c.cyan}${c.bold}================================================================================${c.reset}`);
   console.log(`  自動生成した記事は Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないため、Zenn には公開しません。`);
-  console.log(`  articles/*.md はすべて published: false（下書き）です。GitHub に push しても Zenn では公開されません。`);
+  console.log(`  Zenn 用の原稿はリポに置いていないため、GitHub に push しても Zenn では公開されません。`);
   console.log(`  以前に公開した記事が Zenn に残っている場合は、ダッシュボードで非公開にしてください。`);
   console.log(`${c.cyan}--------------------------------------------------------------------------------${c.reset}`);
   console.log(`\n  ${c.white}${c.bold}[1]${c.reset} ${c.white}Zenn の GitHub 連携の設定画面を開く${c.reset} ${c.dim}(https://zenn.dev/dashboard/deploys - 連携の確認・解除)${c.reset}`);
@@ -1027,61 +1024,40 @@ function runCloudSync() {
   console.log(`   ${c.green}${c.bold}☁️ 【クラウド同期】変更を自動コミット＆GitHubへ安全同期${c.reset}`);
   console.log(`${c.green}${c.bold}================================================================================${c.reset}\n`);
   try {
-    // 衝突の印が残ったファイル・壊れた出品履歴を、git add . でそのままコミットして GitHub に送らない
+    // 衝突の印が残ったファイル・壊れた出品履歴を、そのままコミットして GitHub に送らない
     reportRestored(repairWorkingTree(rootDir));
     if (historyUnreadable()) {
       execSync('git checkout HEAD -- scripts/publish_history.json', { cwd: rootDir, stdio: 'ignore' });
       console.log(`${c.yellow}⚠ 壊れていた出品履歴（scripts/publish_history.json）を、最後に記録した版に戻しました。${c.reset}\n`);
     }
-    console.log('1. サイトの静的ビルド (npm run build)...');
-    execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
-    console.log('\n2. 変更ファイルをステージング (git add)...');
-    execSync('git add .', { cwd: rootDir, stdio: 'inherit' });
-    console.log('\n3. コミットを作成中...');
-    const today = new Date().toISOString().split('T')[0];
-    try {
-      execSync(`git commit -m "feat(radar): auto-sync intelligence, drafts, and assets (${today})"`, { cwd: rootDir, stdio: 'inherit' });
-    } catch (e) {
-      console.log('コミット対象の新規変更はありませんでした。');
-    }
-    console.log('\n4. 最新のクラウド側の変更を取り込み中 (git pull --rebase)...');
-    // 出品履歴・note の URL 対応表は CI と同じマージドライバで統合する（.gitattributes 参照）。
-    // 取り込みに失敗したら rebase を中止して元の状態に戻す（途中の状態で放置しない。utils/git_sync.mjs）
+    // 最新のクラウド側の変更を先に取り込み、その上でビルドを確かめる（出品履歴などは CI と同じマージドライバで統合する）
     const pulled = pullLatest(rootDir);
     reportRestored(pulled.restored);
     if (!pulled.ok) throw new Error(pulled.message.split('\n').slice(-3).join(' / '));
-    console.log('\n5. リモートへプッシュ中 (git push)...');
-    execSync('git push origin main', { cwd: rootDir, stdio: 'inherit' });
-    console.log(`\n${c.green}${c.bold}✓ クラウド同期（GitHub Pages自動デプロイ開始）が完了しました！${c.reset}\n`);
+    console.log('1. サイトの静的ビルド (npm run build)...');
+    execSync('npm run build', { cwd: rootDir, stdio: 'inherit' });
+    // コミットするのは、公開出力の台帳（scripts/utils/public_tree.mjs）でこの端末が書く出力だけ。
+    // 作業ツリーの全部は送らない: オーナー端末の状態・内部の文書・CI が書く記録（data/ など）が公開リポに混ざるため
+    const paths = outputPathsWrittenBy('owner').filter((p) => fs.existsSync(path.join(rootDir, p)));
+    console.log(`\n2. 公開してよい出力だけをコミットして同期 (${paths.join(' ')})...`);
+    const today = new Date().toISOString().split('T')[0];
+    const r = commitAndSync(rootDir, paths, `chore(owner): sync owner-side outputs (${today})`);
+    reportRestored(r.restored);
+    if (!r.ok) throw new Error(`${r.step}: ${r.message.split('\n').slice(-3).join(' / ')}`);
+    console.log(`\n${c.green}${c.bold}✓ クラウド同期（${r.message === 'pushed' ? 'GitHub Pages自動デプロイ開始' : 'コミット対象の新規変更はありませんでした'}）が完了しました！${c.reset}\n`);
   } catch (err) {
     console.log(`\n${c.red}同期中にエラーが発生しました: ${err.message}${c.reset}\n`);
   }
   waitBack();
 }
 
+// 記事の生成は GitHub Actions だけが行う（生成物・実行記録 data/ の書き手を 1 つにする。この端末で生成すると
+// CI と同じ記録を両側から書き、取り込みが衝突して同期が止まる）。手動で回すときは Actions の手動実行（workflow_dispatch）を開く
 function runCrawlerManual() {
   console.clear();
-  console.log(`${c.yellow}${c.bold}=== 最新OSS手動クロール ＆ 記事自動生成パイプライン ===${c.reset}\n`);
-  console.log(`GitHub Search API ＆ Gemini 2.5 Flashによる日本語解剖を即時実行します...\n`);
-  try {
-    execSync('node scripts/crawl_and_generate.mjs', { stdio: 'inherit' });
-    console.log(`\n${c.green}${c.bold}✓ クロールと記事生成が正常に完了しました！${c.reset}\n`);
-  } catch (err) {
-    console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
-  }
-  waitBack();
-}
-
-function runWeeklyThread() {
-  console.clear();
-  console.log(`${c.yellow}${c.bold}=== 【集客ブースト】X用 週次まとめスレッド発行 ===${c.reset}\n`);
-  console.log(`ストックされた急上昇OSSからTop 7を厳選し、週次まとめスレッドテキストを生成します...\n`);
-  try {
-    execSync('node scripts/generate_weekly_thread.mjs', { stdio: 'inherit' });
-    console.log(`\n${c.green}${c.bold}✓ スレッド生成とX投稿画面の起動が完了しました！${c.reset}\n`);
-  } catch (err) {
-    console.log(`\n${c.red}エラーが発生しました: ${err.message}${c.reset}\n`);
-  }
+  console.log(`${c.yellow}${c.bold}=== 最新OSSクロール ＆ 記事生成（GitHub Actions の手動実行） ===${c.reset}\n`);
+  console.log(`記事の生成は GitHub Actions で行います。開いた画面の「Run workflow」を押してください。\n`);
+  openUrl(`${siteConfig.githubUrl}/actions/workflows/daily-crawl.yml`);
   waitBack();
 }
 
@@ -1136,21 +1112,35 @@ function runNoteEyecatch() {
   console.log(`${c.cyan}${c.bold}=== 🖼 note 自動メンテ（見出し画像・要修正の表現の修正・閲覧数） ===${c.reset}\n`);
   console.log(`専用の Chrome が開いて自動で進みます。ログインが必要なときは、案内に従って普通の Chrome の窓でログインし、その窓を閉じてください（初回だけ）。`);
   console.log(`表現の修正は記事の間を約20秒あけて1本ずつ行うため、数分かかることがあります（24時間に${NOTE_FIX_MAX}本まで。上限に達していれば、次に直せる時刻を表示して表現の修正は行いません）。\n`);
+  refreshNoteStatus();
   try {
     execSync('node scripts/note_browser.mjs maintain', { cwd: rootDir, stdio: 'inherit' });
-    console.log(`\n${c.green}✓ 完了しました。次の GitHub の実行で note 側の反映を確認します（結果は自動で GitHub に送られます。操作はこれで終わりです）。${c.reset}`);
+    console.log(`\n${c.green}✓ 完了しました。操作はこれで終わりです。${c.reset}`);
   } catch (e) {
-    console.log(`\n${c.red}自動でできなかった記事があります（上の ✕）。結果は GitHub に送られるので、こちらで原因を確認して直します。${c.reset}`);
+    console.log(`\n${c.red}自動でできなかった記事があります（上の ✕）。${c.reset}`);
   }
-  // 結果を GitHub に送る（成功・失敗の内容を遠隔で確認できるように）
-  const r = commitAndSync(rootDir, ['scripts/note_browser_log.json'], 'chore(note): eyecatch run log');
-  console.log(r.ok ? `${c.dim}（実行結果を GitHub に送りました）${c.reset}` : `${c.yellow}実行結果を GitHub に送れませんでした: ${r.message.slice(0, 200)}${c.reset}`);
+  // 実行記録（編集画面の URL・ログイン後の閲覧数を含む）は、この端末にだけ残す。公開リポには送らない
+  console.log(`${c.dim}（実行記録: ${noteBrowserLogFile()}）${c.reset}`);
   waitBack();
 }
 
-// 起動時と終了時に、24時間より古い出品用の完全版（平文の有料本文）を消す。終了時はすべて消す
+// 公開中の note の検査結果（ownerDir/note_status.json）を、この端末で取り直す。CI の検査結果は公開リポにコミットしない
+// （公開中の記事に要修正の表現が残っているという一覧そのものを公開しないため）。取得は匿名の公開 API だけ。
+// 購入リンクの対応表（scripts/note_urls.json）は CI だけが書くので、--status-only で検査結果だけを書く
+const NOTE_STATUS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+function refreshNoteStatus() {
+  try {
+    if (Date.now() - fs.statSync(noteStatusFile()).mtimeMs < NOTE_STATUS_MAX_AGE_MS) return;
+  } catch (e) {}
+  console.log(`${c.dim}公開中の note の状態を確認しています（1〜2 分）...${c.reset}`);
+  const r = spawnSync(process.execPath, ['scripts/sync_note_urls.mjs', '--status-only'], { cwd: rootDir, stdio: 'inherit', timeout: 10 * 60 * 1000 });
+  if (r.status !== 0) console.log(`${c.yellow}⚠ note の状態を確認できませんでした（前回の結果で続けます）${c.reset}`);
+}
+
+// 起動時と終了時に、24時間より古い出品用の完全版（平文の有料本文）を消す。終了時はすべて消す。
+// 'exit' だけでは Ctrl+C・窓を閉じる・kill で終わったときに消えないため、シグナルでも消す（utils/termination.mjs）
 purgeOpenedNotes();
-process.on('exit', () => purgeOpenedNotes(0));
+onTermination(() => purgeOpenedNotes(0));
 
 // 起動
 // 更新で開き直したときは、選ばれていた項目をそのまま実行する（取り込みは済んでいる）

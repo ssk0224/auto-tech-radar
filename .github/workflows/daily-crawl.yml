@@ -9,17 +9,11 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      alert_check:
-        description: "最後に「本日の記事が無ければ Issue でアラート」の確認も行う"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
   pages: write
   id-token: write
-  issues: write # 記事が出なかった日のアラート（scripts/alert_if_no_article.mjs）
 
 concurrency:
   group: "pages"
@@ -45,6 +39,12 @@ jobs:
           git config --global user.name "ssk0224"
           git config --global user.email "ssk0224@users.noreply.github.com"
           node scripts/utils/git_sync.mjs configure
+      # 再実行（Re-run）・キューで待った定期便は、起動した時点の古い commit を checkout する。その古い作業ツリーで
+      # 「今日の記録は済んだか」を決めて data/ を書くと、push の段階で main の記録と衝突し、デプロイごと止まる。最新の main に進めてから始める
+      - name: Fast-forward to latest main
+        run: |
+          git fetch origin main
+          git merge --ff-only origin/main
       # 品質ゲートが不具合を本当に止めるかの検証を含むテスト（失敗したら生成・公開しない）
       - run: npm test
       - name: Install Japanese CJK fonts
@@ -78,13 +78,14 @@ jobs:
         run: |
           echo "::warning title=Crawler Warning::Crawler encountered an issue (API rate limit or temporary upstream outage). Pipeline will proceed to build and deploy existing content safely."
 
-      # 記事ごとの note 有料版 URL を取得（失敗しても前回の対応表で続行）
+      # 記事ごとの note 有料版 URL を取得（失敗しても前回の対応表で続行）。
+      # 公開中の note の検査結果はコミットしない（$RUNNER_TEMP に書き、問題は ::error で知らせる。公開リポに「要修正の記事の一覧」を置かない）
       - name: Sync note article URLs
         continue-on-error: true
         timeout-minutes: 20
-        run: |
-          node scripts/sync_note_urls.mjs
-          node scripts/check_zenn.mjs || true
+        env:
+          ATR_NOTE_STATUS: ${{ runner.temp }}/note_status.json
+        run: node scripts/sync_note_urls.mjs
 
       # 新規生成物も含めた品質テスト（禁止表現・暗号化境界・送客リンク整合性）
       # 不合格なら、まず note / Zenn の同期結果（この回に取り直した対応表）を前回のものに戻して確かめ、
@@ -100,9 +101,9 @@ jobs:
             exit 0
           fi
           # note の公開状況の変化（非公開にした・タイトルを変えた記事）で対応表が変わり、テストに通らなくなることがある
-          git checkout -- scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
+          git checkout -- scripts/note_urls.json
           if npm test; then
-            echo "::error title=note sync rejected::note / Zenn の同期結果がテストに通らなかったため、前回の対応表のまま公開します（公開中の note と原稿の対応を確認してください）"
+            echo "::error title=note sync rejected::note の同期結果がテストに通らなかったため、前回の対応表のまま公開します（公開中の note と原稿の対応を確認してください）"
             echo "sync_rejected=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -110,8 +111,8 @@ jobs:
           echo "rejected=true" >> "$GITHUB_OUTPUT"
           # 実行結果の記録（data/run_status）に、生成した記事を取り除いたことを残す（アラートに「ok」だけが載らないように）
           if [ "${{ github.event_name }}" != "push" ]; then node scripts/utils/run_status.mjs rejected || true; fi
-          git checkout -- src/pages/radar note_drafts x_posts zenn_drafts articles public scripts/publish_history.json
-          git clean -fdq -- src/pages/radar note_drafts x_posts zenn_drafts articles public
+          git checkout -- src/pages/radar note_drafts public/ogp
+          git clean -fdq -- src/pages/radar note_drafts public/ogp
           npm test
 
       - name: Build Astro SSG
@@ -119,9 +120,9 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          # data/（実行結果の記録 run_status・日次スナップショット ledger）はサイトのビルド対象外。まだ無い回でも git add が失敗しないように作っておく
-          mkdir -p data
-          git add src/pages/radar/ note_drafts/ x_posts/ zenn_drafts/ articles/ public/ data/ scripts/publish_history.json scripts/note_urls.json scripts/note_status.json scripts/zenn_status.json
+          # 足すのは公開出力の台帳（scripts/utils/public_tree.mjs）で CI が書く出力だけ（tests/public_tree.test.mjs が確かめる）。
+          # data/ の実行記録 run_status・日次スナップショット ledger・velocity はサイトのビルド対象外だが公開する記録
+          git add src/pages/radar/ note_drafts/ public/ogp/ data/run_status/ data/ledger/ data/derived/ scripts/note_urls.json
           if git diff --staged --quiet; then
             echo "No new radar entries to commit."
           else
@@ -173,32 +174,6 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
-      # デプロイ成功後のみ X へ投稿（未デプロイ記事の404リンク投稿を根本遮断）
-      - name: Auto Tweet to X
-        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
-        continue-on-error: true
-        timeout-minutes: 10
-        env:
-          X_API_KEY: ${{ secrets.X_API_KEY }}
-          X_API_SECRET: ${{ secrets.X_API_SECRET }}
-          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-        run: |
-          node scripts/auto_tweet_x.mjs
-          if git diff --quiet scripts/publish_history.json; then
-            echo "No publish history update."
-          else
-            git add scripts/publish_history.json
-            git commit -m "chore: record published tweet history [skip ci]" || true
-            # 失敗しても公開は止めないが、黙って記録を失わない（失敗したら rebase を中止して警告を出す）
-            if git pull --rebase origin main && git push origin main; then
-              echo "Pushed tweet history."
-            else
-              git rebase --abort 2>/dev/null || true
-              echo "::warning title=Tweet history not saved::X 投稿の記録（scripts/publish_history.json）を push できませんでした。次回の実行で同じ記事の投稿を試み、X 側の重複判定で failed として記録されます"
-            fi
-          fi
-
       # 新しい記事が出るのは定期実行だけ。コード修正の push ごとに同じ URL を再送しない
       - name: Notify Search Engines (IndexNow)
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.deployment.outcome == 'success'
@@ -212,14 +187,6 @@ jobs:
           if [ "${{ steps.gate.outputs.rejected }}" = "true" ]; then
             echo "::error::この回に生成した記事はテスト不合格のため公開していません。上の Post-Crawl Quality Test Gate のログを確認してください"
           else
-            echo "::error::note / Zenn の同期結果はテスト不合格のため反映していません（記事の公開は続けています）。上の Post-Crawl Quality Test Gate のログを確認してください"
+            echo "::error::note の同期結果はテスト不合格のため反映していません（記事の公開は続けています）。上の Post-Crawl Quality Test Gate のログを確認してください"
           fi
           exit 1
-
-      # 第3便（12:17 JST）の最後に、日本時間の今日の記事が 1 本も無ければ Issue（ラベル pipeline-alert）でアラートする。
-      # 途中のステップが失敗していても確認する（!cancelled()）。手動実行では alert_check にチェックを入れたときだけ
-      - name: Alert if no article today
-        if: ${{ !cancelled() && ((github.event_name == 'schedule' && github.event.schedule == '17 3 * * *') || (github.event_name == 'workflow_dispatch' && inputs.alert_check)) }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/alert_if_no_article.mjs

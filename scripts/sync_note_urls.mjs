@@ -9,10 +9,14 @@ import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { splitPaid } from './utils/note_vault.mjs';
 import { NOTE_TEXT_RULES, applyNoteRules, noteHtmlText, autoFixableByMaintain } from './utils/note_pending.mjs';
+import { noteStatusFile } from './utils/owner_dir.mjs';
 
 const NOTE_URLNAME = new URL(siteConfig.noteProfileUrl).pathname.replace(/\//g, '');
 const OUT_FILE = path.resolve('scripts/note_urls.json');
-const STATUS_FILE = path.resolve('scripts/note_status.json');
+// 公開中の note の検査結果は公開リポに置かない（オーナー端末の ownerDir。CI は ATR_NOTE_STATUS で $RUNNER_TEMP に書き、::error で知らせる）
+const STATUS_FILE = noteStatusFile();
+// --status-only: 検査結果だけを書き、購入リンクの対応表（scripts/note_urls.json。CI だけが書く）は変えない（オーナー端末のランチャーが使う）
+const STATUS_ONLY = process.argv.includes('--status-only');
 const NOTE_DIR = path.resolve('note_drafts');
 
 // 記号・空白・全角半角の違いを無視して比べる
@@ -187,7 +191,12 @@ async function checkPublishedNotes(map, unlinked = []) {
   const withIssues = Object.keys(status).filter((s) => status[s].issues?.length);
   console.log(`✓ 公開中の note を検査: ${Object.keys(status).length} 本（見出し画像なし ${noImage.length} 本 / 問題のある表現 ${withIssues.length} 本）`);
   if (noImage.length) console.log(`::warning title=note の見出し画像::未設定 ${noImage.length} 本: ${noImage.join(', ')}（ランチャー [E] で設定）`);
-  for (const s of withIssues) console.log(`::warning title=note の公開内容::${s}: ${status[s].issues.join(' / ')}（${autoFixableByMaintain(status[s]) ? 'ランチャー [E] で自動修正' : 'ランチャー [U] で原稿の内容に更新'}）`);
+  // CI のログは公開される。どの記事にどの問題が残っているかの一覧は出さず、本数だけを ::error で知らせる（詳細はオーナー端末のランチャーで取り直す）
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    if (withIssues.length) console.log(`::error title=note の公開内容::直す表現が残っている公開中の note が ${withIssues.length} 本あります（ランチャー [U] / [E] で確認・修正）`);
+  } else {
+    for (const s of withIssues) console.log(`  ✕ ${s}: ${status[s].issues.join(' / ')}（${autoFixableByMaintain(status[s]) ? 'ランチャー [E] で自動修正' : 'ランチャー [U] で原稿の内容に更新'}）`);
+  }
   // 原稿と対応づかない公開中の note（古い版の出品が残っているなど）も記録する。古い表現の検査もする
   const others = [];
   for (const n of unlinked) {
@@ -201,7 +210,8 @@ async function checkPublishedNotes(map, unlinked = []) {
     }
     others.push({ name: n.name, url: n.noteUrl, price: n.price, publishAt: n.publishAt, issues });
   }
-  if (others.length) console.log(`::warning title=原稿と対応づかない公開中の note::${others.length} 本（古い版の出品の可能性。scripts/note_status.json の unlinked）`);
+  if (others.length) console.log(`::warning title=原稿と対応づかない公開中の note::${others.length} 本（古い版の出品の可能性。検査結果の unlinked）`);
+  fs.mkdirSync(path.dirname(STATUS_FILE), { recursive: true });
   fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), notes: status, unlinked: others }, null, 2) + '\n', 'utf8');
 }
 
@@ -227,7 +237,7 @@ async function main() {
   } catch (e) {}
   // note.com から正常に取得できた場合、現在公開中の記事マップを採用する（非公開化された記事が 404 のまま残存するのを防ぐ）
   const finalMap = notes.length > 0 ? mapped : { ...prev, ...mapped };
-  fs.writeFileSync(OUT_FILE, JSON.stringify(Object.fromEntries(Object.entries(finalMap).sort()), null, 2) + '\n', 'utf8');
+  if (!STATUS_ONLY) fs.writeFileSync(OUT_FILE, JSON.stringify(Object.fromEntries(Object.entries(finalMap).sort()), null, 2) + '\n', 'utf8');
   console.log(`✓ note の記事 ${notes.length} 本中 ${Object.keys(mapped).length} 本を原稿と対応づけました（対応表 ${Object.keys(finalMap).length} 本）`);
   // 対応づけられなかったもの（公開情報のタイトルのみ）を記録し、取り違えや未対応を確認できるようにする
   const linked = new Set(Object.values(mapped).flatMap((v) => [v.url, ...(v.duplicates || [])]));

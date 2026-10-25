@@ -1,0 +1,30 @@
+name: Purged history probe
+
+# 履歴の書き換えで消した旧 commit（有料本文を含んでいた）が、GitHub で SHA 指定のまま読めないかを週 1 回、匿名で確かめる。
+# 読める（HTTP 200）・確かめられない間は失敗にする（パージの完了を「依頼した」ではなく HTTP 404 で判定する）。
+# 調べる SHA は Secret PURGED_SHAS にだけ置く（公開リポ・ログには書かない。scripts/probe_purged_shas.mjs）
+on:
+  schedule:
+    - cron: "30 0 * * 1" # 毎週月曜 日本時間 9:30
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "purge-probe"
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Probe purged commits
+        env:
+          PURGED_SHAS: ${{ secrets.PURGED_SHAS }}
+        run: node scripts/probe_purged_shas.mjs

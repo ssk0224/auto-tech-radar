@@ -10,19 +10,16 @@ test("OGP 画像・リードマグネット・README・サイトページとそ�
   const files = [
     "README.md",
     "scripts/note_urls.json",
-    "scripts/note_updates.json",
     "scripts/launcher.mjs",
     "scripts/publish_helper.mjs",
     "src/layouts/Layout.astro",
     "public/og-card.svg",
     "scripts/generate_og_cards.mjs",
     "scripts/generate_lead_magnet_note.mjs",
-    "scripts/generate_weekly_thread.mjs",
     "note_drafts/LEAD_MAGNET_CHEAT_SHEET.md",
     ...fs.readdirSync("src/pages").filter((f) => f.endsWith(".astro")).map((f) => path.join("src/pages", f)),
     ...fs.readdirSync("public/ogp").filter((f) => f.endsWith(".svg")).map((f) => path.join("public/ogp", f)),
     ...fs.readdirSync("note_drafts").filter((f) => f.endsWith(".md")).map((f) => path.join("note_drafts", f)),
-    ...fs.readdirSync("x_posts").filter((f) => f.endsWith(".txt")).map((f) => path.join("x_posts", f)),
   ];
   for (const f of files) {
     if (!fs.existsSync(f)) continue;

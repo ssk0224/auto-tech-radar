@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import { findProLeaks } from './utils/pro_boundary.mjs';
-import { zennCta } from './utils/funnel_copy.mjs';
+import { RETIRED_OUTPUTS } from './utils/public_tree.mjs';
 import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, MIN_PUBLIC_NOTE_CHARS, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { REMOVED_SLUGS, isNoteWithdrawn } from './utils/blocklist.mjs';
@@ -39,7 +39,7 @@ if (!gitignoreContent.includes('.env')) {
 }
 
 trackedFiles.forEach(f => {
-  if (f === '.env.example' || f === 'AGENT_RULES.md' || f === '.env') return;
+  if (f === '.env.example' || f === '.env') return;
   forbiddenPatterns.forEach(pattern => {
     if (pattern.test(f)) {
       console.error(`  ❌ [CRITICAL LEAK RISK] 機密名称に抵触するファイルが検出されました: ${f}`);
@@ -206,79 +206,24 @@ if (pipelineOk) {
   console.log('  ✓ SUBAGENT CVR監査合格: 法人受託導線、TwitterカードPNG、チートシートが完全連動中。\n');
 }
 
-// 4. 【ZENN 監査】公式GitHub自動デプロイ規格チェック (articles/*.md)
-console.log('▶ [4/4] ZENN 公式GitHub自動連携仕様監査...');
-const zennDir = path.join(rootDir, 'articles');
-if (!fs.existsSync(zennDir)) {
-  console.error('  ❌ articles/ ディレクトリが存在しません');
+// 4. 【止めた出力 監査】X の投稿文・Zenn の原稿はリポに置かない（オーナーの判断。scripts/utils/public_tree.mjs の RETIRED_OUTPUTS）
+console.log('▶ [4/4] 止めた出力（' + RETIRED_OUTPUTS.join(' ') + '）の非存在監査...');
+// 見るのは git が追跡しているファイル（手元に残った追跡外のファイルは .gitignore 済みで公開されない）
+// git の管理外のコピー（テストが作る複製など）では確かめられないので飛ばす（同じ検査は tests/public_tree.test.mjs が git で行う）
+let retiredLeft = [];
+let retiredChecked = true;
+try {
+  retiredLeft = execSync(`git ls-files -z -- ${RETIRED_OUTPUTS.join(' ')}`, { cwd: rootDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\0').filter(Boolean);
+} catch (e) {
+  retiredChecked = false;
+}
+if (!retiredChecked) {
+  console.log('  - git の管理外のため、止めた出力の追跡は確かめません（tests/public_tree.test.mjs が確かめる）。\n');
+} else if (retiredLeft.length) {
+  console.error(`  ❌ [RETIRED OUTPUT] 止めた出力のファイルが追跡されています: ${retiredLeft.length} 件（${retiredLeft.slice(0, 3).join(', ')}…）`);
   errorCount++;
 } else {
-  const zennArticles = fs.readdirSync(zennDir).filter(f => f.endsWith('.md'));
-  let zennErrors = 0;
-  let funnelCount = 0;
-  zennArticles.forEach(f => {
-    const slug = f.replace('.md', '');
-    if (slug.length < 12 || slug.length > 50 || !/^[a-z0-9_-]+$/.test(slug)) {
-      console.error(`  ❌ [ZENN INVALID SLUG] ${f}`);
-      zennErrors++;
-      errorCount++;
-    }
-    const zContent = fs.readFileSync(path.join(zennDir, f), 'utf8').replace(/\r\n/g, '\n');
-    const zSlug = path.basename(f).replace(/_zenn\.md$|-tech-radar\.md$|\.md$/, "");
-    if (zSlug && zContent.includes(zennCta(zSlug))) {
-      funnelCount++;
-    }
-
-    // Topics 規格チェック（1〜5個、半角英数字ハイフンアンダースコアのみ）
-    const topicsMatch = zContent.match(/^topics:\s*(\[.*?\])/m);
-    if (!topicsMatch) {
-      console.error(`  ❌ [ZENN MISSING TOPICS] ${f}: topics 配列が見つかりません`);
-      zennErrors++;
-      errorCount++;
-    } else {
-      try {
-        const parsed = JSON.parse(topicsMatch[1]);
-        if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 5) {
-          console.error(`  ❌ [ZENN INVALID TOPICS COUNT] ${f}: topics は 1〜5 個である必要があります`);
-          zennErrors++;
-          errorCount++;
-        } else {
-          for (const t of parsed) {
-            if (typeof t !== 'string' || !/^[a-z0-9_-]+$/.test(t)) {
-              console.error(`  ❌ [ZENN INVALID TOPIC] ${f}: "${t}" は英小文字・数字・ハイフン・アンダースコアのみ使用可能です`);
-              zennErrors++;
-              errorCount++;
-            }
-          }
-        }
-      } catch (e) {
-        console.error(`  ❌ [ZENN JSON PARSE ERROR] ${f}: topics のJSONパースに失敗しました`);
-        zennErrors++;
-        errorCount++;
-      }
-    }
-
-    // コードブロック整合性チェック
-    const zBackticks = zContent.match(/```/g) || [];
-    if (zBackticks.length % 2 !== 0) {
-      console.error(`  ❌ [ZENN UNCLOSED CODE BLOCK] ${f}: 奇数個のバッククォートが検出されました`);
-      zennErrors++;
-      errorCount++;
-    }
-
-    // 有料キット（見出し・提案書本文）の無料漏洩チェック。README 由来の MCP 設定や docker-compose 手順の引用は対象外
-    if (findProLeaks(zContent).length || zContent.includes('■ 案件名:')) {
-      console.error(`  ❌ [PRO LEAK IN ZENN] ${f}: 無料Zenn記事にPRO実務キットが漏洩しています！`);
-      zennErrors++;
-      errorCount++;
-    }
-  });
-  if (zennErrors === 0 && funnelCount === zennArticles.length) {
-    console.log(`  ✓ Zennデプロイ規格＆送客ファネル監査合格: 全 ${zennArticles.length} 本がZenn公式規格に適合し、共通の送客文（無料解説はサイト・実務キットは note）を配置済み。\n`);
-  } else if (funnelCount < zennArticles.length) {
-    console.error(`  ❌ Zenn記事の送客バナーが不足しています (${funnelCount}/${zennArticles.length})`);
-    errorCount++;
-  }
+  console.log('  ✓ 止めた出力の監査合格: X の投稿文・Zenn の原稿は追跡されていません。\n');
 }
 
 // 5. 【現代最新仕様 監査】IndexNow即時通知・Google Paywall構造化データ・FormSubmit・robots.txt
@@ -333,32 +278,8 @@ if (layoutContent.includes('atr-paywall-gate') && layoutContent.includes('isAcce
   errorCount++;
 }
 
-// 6. 【リンク完全性 監査】Zenn記事 ＆ サイト内リンク 404ゼロ欠陥チェック
-console.log('▶ [6/6] リンク完全性 ＆ 404リンク切れ0件監査...');
+// 6. 【リンク完全性】Web 記事の slug 一覧（note 原稿の送客 URL の検査（11）で使う）
 const existingWebSlugs = fs.readdirSync(radarDir).filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
-let brokenLinkCount = 0;
-
-if (fs.existsSync(zennDir)) {
-  const zArticles = fs.readdirSync(zennDir).filter(f => f.endsWith('.md'));
-  zArticles.forEach(zf => {
-    const content = fs.readFileSync(path.join(zennDir, zf), 'utf8');
-    const matches = content.matchAll(/auto-tech-radar\/radar\/([a-z0-9_-]+)\//g);
-    for (const match of matches) {
-      const linkedSlug = match[1];
-      if (!existingWebSlugs.includes(linkedSlug)) {
-        console.error(`  ❌ [BROKEN LINK] ${zf} -> /radar/${linkedSlug}/ (対象Web記事が存在しません)`);
-        brokenLinkCount++;
-        errorCount++;
-      }
-    }
-  });
-}
-
-if (brokenLinkCount === 0) {
-  console.log('  ✓ リンク完全性監査合格: 全Zenn記事の送客先URLが100%実在Webページと一致（404リンク切れゼロ）。\n');
-} else {
-  console.error(`  ❌ リンク完全性監査失敗: リンク切れが ${brokenLinkCount} 件検出されました。\n`);
-}
 
 // 7. 【Paywall DOM ＆ クライアントスクリプト完全性 監査】
 console.log('▶ [7/7] クライアントスクリプト完全性 ＆ 有料解除処理の非存在監査...');
@@ -463,49 +384,10 @@ if (fs.existsSync(noteDraftsDir)) {
   }
 }
 
-// 9. 【x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性 監査】
-console.log('▶ [9/13] x_posts 投稿原稿完全性 ＆ PRO漏洩 ＆ URL整合性監査...');
-const xPostsDir = path.join(rootDir, 'x_posts');
-if (fs.existsSync(xPostsDir)) {
-  const xFiles = fs.readdirSync(xPostsDir).filter(f => f.endsWith('.txt'));
-  let xErrors = 0;
-  xFiles.forEach(file => {
-    const content = fs.readFileSync(path.join(xPostsDir, file), 'utf8');
-    const cleanBody = content.replace(/^[=\-\s\n📱]+.*?X \(Twitter\) 投稿用スレッド[=\-\s\n]+/m, '').trim();
-    if (content.length < 200 || cleanBody.length < 50) {
-      console.error(`  ❌ [EMPTY/CORRUPTED X POST] ${file}: 実質本文が不足しています（全体: ${content.length}B, 本文: ${cleanBody.length}文字）！`);
-      xErrors++;
-      errorCount++;
-      return;
-    }
-    if (content.includes('mcpServers') || content.includes('docker-compose.yml') || content.includes('■ 案件名:')) {
-      console.error(`  ❌ [PRO LEAK IN X POST] ${file}: X投稿にPRO実務キットが漏洩しています！`);
-      xErrors++;
-      errorCount++;
-    }
-
-    // X投稿内の記事URL実在チェック（404リンクゼロ保証）
-    const xUrls = content.match(/auto-tech-radar\/radar\/([a-zA-Z0-9_-]+)/g) || [];
-    for (const u of xUrls) {
-      const slug = u.split('/').pop();
-      if (!existingWebSlugs.includes(slug)) {
-        console.error(`  ❌ [X POST 404 LINK] ${file}: ${slug} (対象Web記事が存在しません)`);
-        xErrors++;
-        errorCount++;
-      }
-    }
-  });
-  if (xErrors === 0) {
-    console.log(`  ✓ x_posts 監査合格: 全 ${xFiles.length} 本のX投稿でPRO漏洩ゼロ・本文実在性100%確認。\n`);
-  }
-}
-
 // 10. 【Mermaid ダイアグラム構文完全性 監査】
 console.log('▶ [10/11] Mermaid ダイアグラム構文完全性 ＆ レンダリング保証監査...');
 const checkMermaidFiles = [
   ...fs.readdirSync(radarDir).filter(f => f.endsWith('.md')).map(f => path.join(radarDir, f)),
-  ...(fs.existsSync(zennDir) ? fs.readdirSync(zennDir).filter(f => f.endsWith('.md')).map(f => path.join(zennDir, f)) : []),
-  ...(fs.existsSync(path.join(rootDir, 'articles')) ? fs.readdirSync(path.join(rootDir, 'articles')).filter(f => f.endsWith('.md')).map(f => path.join(rootDir, 'articles', f)) : [])
 ];
 let mermaidErrors = 0;
 // 検査の定義は生成・テストと共通（scripts/utils/mermaid.mjs）
@@ -518,7 +400,7 @@ checkMermaidFiles.forEach(fp => {
   }
 });
 // サイトと同じ版の Mermaid で実際に解析する（正規表現の検査では描画失敗を見逃したため）
-for (const fp of [...checkMermaidFiles, ...(fs.existsSync(path.join(rootDir, 'zenn_drafts')) ? fs.readdirSync(path.join(rootDir, 'zenn_drafts')).filter(f => f.endsWith('.md')).map(f => path.join(rootDir, 'zenn_drafts', f)) : [])]) {
+for (const fp of checkMermaidFiles) {
   for (const e of await mermaidParseErrors(fs.readFileSync(fp, 'utf8'))) {
     console.error(`  ❌ [MERMAID PARSE] ${path.relative(rootDir, fp)}: ${e}`);
     mermaidErrors++;
@@ -574,13 +456,8 @@ if (scriptErrors === 0) {
 
 // 13. 【デスクトップ起動導線 ＆ ショートカット完全性 監査】
 console.log('▶ [13/13] デスクトップ起動導線 ＆ ショートカット整合性 監査...');
-const userProfile = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\free1';
-const candidateDesktopDirs = [
-  path.join(userProfile, 'OneDrive', 'Desktop', 'SSK OS 9.bat関連'),
-  path.join(userProfile, 'Desktop', 'SSK OS 9.bat関連'),
-  'C:\\Users\\free1\\OneDrive\\Desktop\\SSK OS 9.bat関連'
-];
-const desktopDir = candidateDesktopDirs.find(d => fs.existsSync(d));
+// 起動用のバッチ・ショートカットの置き場所はオーナー端末ごとに違う。公開リポに端末のパスを書かず、環境変数 ATR_DESKTOP_DIR で渡す（無ければ検査しない）
+const desktopDir = process.env.ATR_DESKTOP_DIR && fs.existsSync(process.env.ATR_DESKTOP_DIR) ? process.env.ATR_DESKTOP_DIR : null;
 if (desktopDir) {
   const batPath = path.join(desktopDir, '【収益化】AutoTechRadar.bat');
   const lnkPath = path.join(desktopDir, '【収益化】AutoTechRadar.lnk');

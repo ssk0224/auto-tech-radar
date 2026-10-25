@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const dirs = ['src/pages/radar', 'articles'];
+const dirs = ['src/pages/radar'];
 
 for (const dirName of dirs) {
   const dir = path.resolve(dirName);

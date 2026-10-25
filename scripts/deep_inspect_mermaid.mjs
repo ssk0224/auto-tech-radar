@@ -82,7 +82,7 @@ function inspectMermaid(dirPath) {
 }
 
 const radarIssues = inspectMermaid('src/pages/radar');
-const articleIssues = inspectMermaid('articles');
+const articleIssues = []; // Zenn 用の原稿（articles/）は置かない
 
 console.log('=== Radar Mermaid Issues ===', radarIssues.length);
 radarIssues.forEach(i => console.log(`  ${i.file}:${i.lineNo} [${i.type}]: ${i.line}`));

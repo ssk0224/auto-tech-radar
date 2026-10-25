@@ -1,9 +1,91 @@
+# このリポは公開されている。入れてよいものだけを許可する（既定はすべて無視）。
+# 公開出力の台帳（scripts/utils/public_tree.mjs の PUBLIC_OUTPUTS）と、ソースコード・テスト・設定だけを許可する。
+# オーナー端末の状態・内部の文書・CI の診断結果・新しい状態ファイルは、名前や置き場所を変えても既定で無視され、git add でも入らない
+# （置き場所は scripts/utils/owner_dir.mjs の ownerDir か、CI の $RUNNER_TEMP）。tests/public_tree.test.mjs の「許可リスト」が確かめる。
+# 新しい種類のファイルを公開するときは、公開してよいかを確かめてから、ここに許可を足す。
+/*
+
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/*.yml
+!/.gitattributes
+!/.gitignore
+!/.env.example
+!/README.md
+!/astro.config.mjs
+!/package.json
+!/package-lock.json
+
+# ソースコード・テスト（コードの種類だけ）
+!/scripts/
+/scripts/**
+!/scripts/**/
+!/scripts/**/*.mjs
+!/scripts/**/*.js
+!/src/
+/src/**
+!/src/**/
+!/src/**/*.astro
+!/src/**/*.js
+!/src/**/*.mjs
+!/src/**/*.ts
+!/src/**/*.css
+!/tests/
+/tests/**
+!/tests/**/
+!/tests/**/*.mjs
+!/books/
+/books/*
+!/books/.gitkeep
+
+# 公開出力の台帳（PUBLIC_OUTPUTS）。場所ごとに、書く側が作る形（PUBLIC_OUTPUTS の shape）のファイル名だけを許す。
+# 場所の中でも、内部の文書（HANDOFF.md など）・状態の JSON（note_status.json など）は入らない
+!/src/pages/radar/*.md
+!/note_drafts/
+/note_drafts/*
+!/note_drafts/*_note.md
+!/note_drafts/*_note.paid.enc
+!/note_drafts/*_note.paid.json
+!/note_drafts/LEAD_MAGNET_CHEAT_SHEET.md
+!/public/
+/public/*
+!/public/ogp/
+/public/ogp/*
+!/public/ogp/*.png
+!/public/ogp/*.svg
+# public/ の直下の静的ファイル（手で書くソース。スクリプトは書かない）。public/ の中身はサイトにそのまま載る
+!/public/robots.txt
+!/public/llms.txt
+!/public/manifest.json
+!/public/og-card.png
+!/public/og-card.svg
+!/public/indexnow-key.txt
+!/public/3f9a7b21e84c40d99a5e2f7b8c1d3e5a.txt
+!/data/
+/data/*
+!/data/run_status/
+/data/run_status/*
+!/data/run_status/*.json
+!/data/ledger/
+/data/ledger/**
+!/data/ledger/**/
+!/data/ledger/**/*.jsonl
+!/data/derived/
+/data/derived/*
+!/data/derived/*.json
+!/scripts/publish_history.json
+!/scripts/note_urls.json
+!/keys/
+/keys/*
+!/keys/note_vault_public.pem
+
+# 許可した場所の中でも入れないもの（後ろの規則が優先）
 node_modules/
-dist/
 .env
 .env.*
 !.env.example
-.astro/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -12,6 +94,11 @@ CLAUDE.md
 
 # 有料原稿の復号鍵・復号済みの原稿は絶対にコミットしない（公開鍵 keys/note_vault_public.pem のみ例外）
 *.pem
-!keys/note_vault_public.pem
+!/keys/note_vault_public.pem
 note_full/
 *.paid.md
+
+# 止めた出力（X の投稿文・Zenn の原稿。scripts/utils/public_tree.mjs の RETIRED_OUTPUTS）。手元に残ったファイルを誤ってコミットしない
+x_posts/
+zenn_drafts/
+articles/

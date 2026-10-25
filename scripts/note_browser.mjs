@@ -9,6 +9,7 @@ import { chromium } from "playwright-core";
 import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
+import { noteStatusFile, noteBrowserLogFile } from "./utils/owner_dir.mjs";
 import { NOTE_FIX_MAX, applicableNoteRules, applyNoteRules, hasNoteTextIssue, noteHtmlText, planNoteFixes, noteFixBudget } from "./utils/note_pending.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -536,10 +537,10 @@ async function eyecatch({ wording = false, stats = false } = {}) {
     const root = path.join(__dirname, "..");
     const tasks = buildEyecatchTasks(JSON.parse(fs.readFileSync(path.join(__dirname, "note_urls.json"), "utf8")));
     // 本文に要修正の問題がある記事（CI の検査結果）は、下書きの中身が分からないので自動で再公開しない。
-    // テスト用: ATR_NOTE_STATUS に CI の検査結果の代わりのファイル（実データの note_status.json は CI が毎回書き換えるため）
+    // 検査結果はオーナー端末の ownerDir にある（scripts/sync_note_urls.mjs --status-only が書く）。テスト用: ATR_NOTE_STATUS に代わりのファイル
     let flagged = new Set();
     try {
-      const st = JSON.parse(fs.readFileSync(process.env.ATR_NOTE_STATUS || path.join(__dirname, "note_status.json"), "utf8"));
+      const st = JSON.parse(fs.readFileSync(noteStatusFile(), "utf8"));
       flagged = new Set(Object.entries(st.notes || {}).filter(([, v]) => v.issues?.length).map(([k]) => k));
     } catch (e) {}
     const base = async () => tasks.length && page.goto(`https://note.com/api/v3/notes/${tasks[0].key}`, { waitUntil: "domcontentloaded" });
@@ -682,17 +683,18 @@ async function eyecatch({ wording = false, stats = false } = {}) {
   }
 }
 
-// 実行結果を scripts/note_browser_log.json に残す（ランチャーが GitHub に送り、遠隔で原因を確認できるように）
-// テスト用: ATR_NOTE_LOG に書き先（記録に有料部分が入らないことを模擬応答で確かめるため）
+// 実行結果をオーナー端末の ownerDir（note 用の Chrome プロファイルの隣）に残す。公開リポには送らない
+// （編集画面の URL・ログイン後の閲覧数を含むため）。テスト用: ATR_NOTE_LOG に書き先（記録に有料部分が入らないことを模擬応答で確かめるため）
 function writeLog(entry) {
-  const file = process.env.ATR_NOTE_LOG || (process.env.ATR_NOTE_MOCK ? null : path.join(__dirname, "note_browser_log.json"));
-  if (!file) return; // テスト（模擬応答）の結果は scripts/ に残さない
+  if (process.env.ATR_NOTE_MOCK && !process.env.ATR_NOTE_LOG) return; // テスト（模擬応答）の結果は本物の置き場所に残さない
+  const file = noteBrowserLogFile();
   // どの版のコードで動いたかを残す（古い版のまま実行されたことに気づけるように）
   let version = "";
   try {
     version = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
   } catch (e) {}
   try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
   } catch (e) {}
 }

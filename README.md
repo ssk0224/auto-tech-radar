@@ -74,7 +74,8 @@ flowchart TD
 有料記事は note の有料エリア（購入者のみ閲覧可能）でのみ提供します。
 - Webサイト（GitHub Pages）には無料部分だけを掲載します。有料本文が配信物に混入するとビルドが失敗します。
 - `note_drafts/` には無料部分と有料ラインだけを平文で置き、有料部分は公開鍵 `keys/note_vault_public.pem` で暗号化した `*_note.paid.enc` として保存します（RSA-OAEP-256 + AES-256-GCM）。CI は公開鍵だけで暗号化するため、秘密情報は不要です。
-- 復号用の秘密鍵はオーナー端末の `%USERPROFILE%\.auto-tech-radar\note_vault_private.pem` にだけ置きます（リポジトリに入れない・必ずバックアップ）。ランチャーの note 出品操作は自動で復号し、完全版を `%USERPROFILE%\.auto-tech-radar\note_full\` に書き出して開きます。
+- 復号用の秘密鍵はオーナー端末の専用フォルダ（`scripts/utils/owner_dir.mjs`）にだけ置きます（リポジトリに入れない・クラウド同期されない場所にバックアップ）。ランチャーの note 出品操作は自動で復号し、完全版を同じ専用フォルダに書き出して開き、24 時間以内に消します。
+- オーナー端末の状態（note の検査結果・差し替えの一覧・自動メンテの実行記録・選定の候補）と内部の引き継ぎ文書も、公開リポではなく同じ専用フォルダに置きます。CI の検査結果は実行ごとの一時フォルダに書き、問題はログの ::error で知らせます（`tests/public_tree.test.mjs` が追跡ファイル・書き出し先・`git add` を確かめます）。
 - `npm run vault:open`（全件復号） / `npm run vault:seal`（平文の有料部分を暗号化） / `npm run vault:rotate`（鍵の作り直し）
 
 ---
@@ -98,6 +99,7 @@ flowchart TD
 1. **ECC (Enterprise & Confidentiality Guard)**: プライベートリポジトリや機密情報の完全隔離・有料本文の平文コミット防止。
 2. **SUPERPOWERS (Defect Sweep & Quality Gate)**: Mermaid図解・PNGサムネイル・外部パッケージ実在確認・13段階の自動監査（`npm run audit` / `npm test`）。
 3. **SUBAGENT (Swarm Market Intelligence)**: 海外テックトレンド・README準拠検証・品質監査の並行リサーチ。
+4. **テストの合否**: 件数を文書に書かず、GitHub Actions の実行結果（Linux は `daily-crawl.yml`、Windows は `ci-windows.yml`）で確かめます。
 
 ---
 

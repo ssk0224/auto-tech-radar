@@ -63,7 +63,8 @@ function run(mockOut, extraEnv = {}, { keepDates = false, timeout, prepare } = {
     }
   }
   if (prepare) prepare(dir); // 生成スクリプトを動かす前に複製を整える（git の履歴を作るなど）
-  const env = { ...process.env, GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...(keepDates ? { MOCK_NOW: String(Date.now() + 3 * 24 * 3600 * 1000) } : {}), ...extraEnv };
+  // オーナー端末だけの置き場所（ownerDir）は複製の中に向ける（テストが本物のウォッチリストなどを書き換えない）
+  const env = { ...process.env, ATR_OWNER_DIR: path.join(dir, ".owner"), GEMINI_API_KEY: "dummy", MOCK_OUT: mockOut, ...(keepDates ? { MOCK_NOW: String(Date.now() + 3 * 24 * 3600 * 1000) } : {}), ...extraEnv };
   const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(root, "tests/fixtures/mock_setup.mjs")).href, "scripts/crawl_and_generate.mjs"], {
     cwd: dir, encoding: "utf8", env, timeout,
   });
@@ -92,19 +93,22 @@ test("正常な生成物は保存され、有料本文は平文でどこにも�
     const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     assert.match(web, new RegExp(`^pubDate: "${jstToday}"$`, "m"));
     assert.match(web, /^stars: 1234$/m);
-    // リポジトリの作成日（JST）を残し、選定のウォッチリストを書く
+    // リポジトリの作成日（JST）を残し、選定のウォッチリスト（次の記事の候補）は公開リポの外（ownerDir）に書く
     assert.match(web, /^repoCreatedAt: "2026-01-15"$/m);
-    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, "data/watchlist.json"), "utf8")).date, jstToday);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, ".owner", "watchlist.json"), "utf8")).date, jstToday);
+    assert.ok(!fs.existsSync(path.join(dir, "data/watchlist.json")), "ウォッチリストを公開リポの data/ に書いた");
     // 推奨ハッシュタグは生成モデルの固定タグ（#副業 #受託開発 を含む）ではなく、言語・トピックから作ったもの
     const pub = fs.readFileSync(path.join(dir, "note_drafts/testtool_note.md"), "utf8");
     assert.match(pub, /^#OSS #Go #cli #devops$/m);
     assert.doesNotMatch(pub, /#副業|#受託開発/);
     // 領収書の案内は定型文にそろえて保存する（tests/receipt_wording.test.mjs が全原稿で確かめる文）
     assert.ok(pub.split("\n").includes("> ※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。"), pub);
-    // Zenn への自動公開は停止中: articles/ には下書き（published: false）として書く
-    const zenn = fs.readFileSync(path.join(dir, "articles/testtool-tech-radar.md"), "utf8");
-    assert.match(zenn, /^published: false$/m);
-    assert.doesNotMatch(zenn, /^published: true$/m);
+    // 止めた出力（X の投稿文・Zenn の原稿）は作らない
+    // （オーナー端末の作業ツリーには追跡外の古いファイルが残っていることがあるので、この記事の分が無いことを見る）
+    for (const d of ["x_posts", "zenn_drafts", "articles"]) {
+      const made = fs.existsSync(path.join(dir, d)) ? fs.readdirSync(path.join(dir, d)).filter((f) => f.startsWith("testtool")) : [];
+      assert.deepEqual(made, [], `${d}/ に書いた`);
+    }
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -357,19 +361,6 @@ for (const [name, frontmatter] of [
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 }
-
-test("リポジトリ名が . で始まる（.claude など）場合も、X 投稿文の記事リンクは保存した記事ページを指す", () => {
-  const { dir, log } = run(output(), { MOCK_REPO: JSON.stringify({ name: ".claude", full_name: "acme/.claude", html_url: "https://github.com/acme/.claude" }) });
-  try {
-    const pages = fs.readdirSync(path.join(dir, "src/pages/radar")).filter((f) => readWeb(dir, f.replace(/\.md$/, "")).includes("https://github.com/acme/.claude"));
-    assert.equal(pages.length, 1, log);
-    const slug = pages[0].replace(/\.md$/, "");
-    const x = fs.readFileSync(path.join(dir, "x_posts", `${slug}_x.txt`), "utf8");
-    const linked = [...x.matchAll(/\/auto-tech-radar\/radar\/([^/\s%]+)\//g)].map((m) => m[1]);
-    assert.ok(linked.length > 0, x);
-    assert.deepEqual([...new Set(linked)], [slug], "X 投稿文のリンク先と記事ページのスラッグが違う（404 になる）");
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-});
 
 test("選定ですべての候補が除外された日も、実行結果（reason: no_candidates）を記録する", () => {
   const { dir, log } = run(output(), { MOCK_REPO: JSON.stringify({ archived: true }) });

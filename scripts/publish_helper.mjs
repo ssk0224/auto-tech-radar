@@ -129,7 +129,7 @@ rl.question('番号を入力して Enter > ', (answer) => {
   if (mode === 'zenn') {
     // Zenn への投稿は停止中（2026-10-21）。自動生成した記事は Zenn の規約・ガイドライン（機械的に生成した文章・宣伝目的の投稿）に沿わないため、
     // 原稿は published: false の下書きのままにし、クリップボードへのコピーや投稿画面を開くことはしない
-    console.error('Zenn への投稿は停止しています（自動生成した記事は Zenn の規約に沿わないため）。articles/ と zenn_drafts/ の原稿は published: false のままにしてください。');
+    console.error('Zenn への投稿は停止しています（自動生成した記事は Zenn の規約に沿わないため）。Zenn 用の原稿は作っていません。');
     process.exit(1);
   } else {
     // X拡散モード
