@@ -1,11 +1,11 @@
-// 掲載中の Web 記事・note 原稿の公開部分（無料部分と末尾）・X の投稿文を、データから決まった形（scripts/utils/page_shape.mjs）で
+// 掲載中の Web 記事・note 原稿の公開部分（無料部分と末尾）を、データから決まった形（scripts/utils/page_shape.mjs）で
 // 作り直す（leakhunt C3・C4、2026-10-22）。生成スクリプトが新しい記事を書くときと同じ関数を使う。
 // - 本文に載せるのは、記事に今ある README の原文だけ（訳は載せない）。原文以外はすべて data/readme_facts/<slug>.json と *.paid.json から作る
 // - data/readme_facts/<slug>.json に、掲載時の記録（publication: 記事の公開日・スター数）、GitHub のトピック（--topics の JSON）、
 //   README の利用条件の記載（--readmes のディレクトリにある README から。README の本文はリポジトリに置かない）、
 //   これまでの個別の訂正の記録の指紋（corrections_keys）を足す
 // - note 原稿は、暗号化した有料部分（プレースホルダの行）を変えず、無料部分と末尾だけを書き直す
-// 作り直した結果は、テストと同じ検査を通らなければ書き込まない。
+// 作り直した結果は、テストと同じ検査を通らなければ書き込まない。X の投稿文は作らない（止めた出力 x_posts/。scripts/utils/public_tree.mjs の RETIRED_OUTPUTS）
 //   node scripts/reground_pages.mjs [--topics topics.json] [--readmes dir] [slug ...]
 import fs from "fs";
 import path from "path";
@@ -17,7 +17,6 @@ import {
   renderWebPage, webPageProblems, renderNoteHead, noteHeadProblems, noteFooter, noteTailProblems, parseWebPage, CORRECTION_NOTES,
 } from "./utils/page_shape.mjs";
 import { splitPaid, SEALED_PLACEHOLDER_RE } from "./utils/note_vault.mjs";
-import { xThreadText } from "./utils/x_thread.mjs";
 
 export const CORRECTION_DATE = "2026-10-22";
 const LEGACY_QUOTE_RE = /^\s*- 原文（README）: (.*)$/;
@@ -110,11 +109,9 @@ function main(argv) {
     const summary = noteFile.replace(/\.md$/, ".paid.json");
     const features = fs.existsSync(summary) ? JSON.parse(fs.readFileSync(summary, "utf8")).features : [];
     let web = null;
-    let x = null;
     if (pageMd) {
       web = regroundWeb(pageMd, facts);
       problems.push(...webPageProblems(web, facts).map((p) => `web ${p.kind}: ${p.detail}`));
-      x = xThreadText({ facts, slug, quote: pageQuotes(pageMd).overview[0], features: noteMd ? features : [] });
     }
     let noteText = null;
     if (noteMd) {
@@ -135,7 +132,6 @@ function main(argv) {
     }
     fs.writeFileSync(factsFileFor(slug), JSON.stringify(facts, null, 2) + "\n", "utf8");
     if (web) fs.writeFileSync(pageFile, web, "utf8");
-    if (x) fs.writeFileSync(path.join("x_posts", `${slug}_x.txt`), x, "utf8");
     if (noteText) fs.writeFileSync(noteFile, noteText, "utf8");
     console.log(`✓ ${slug}${facts.usage_lines.length ? `（利用条件の記載 ${facts.usage_lines.length} 件）` : ""}`);
   }
