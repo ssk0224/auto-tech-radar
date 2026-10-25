@@ -208,8 +208,11 @@ test("公開中の note の検査をオーナー端末で取り直しても（--
     fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
     linkDir(path.join(root, "node_modules"), path.join(dir, "node_modules"));
     const urlsFile = path.join(dir, "scripts/note_urls.json");
+    const [slug, entry] = Object.entries(JSON.parse(fs.readFileSync(urlsFile, "utf8"))).find(([s]) => s !== "LEAD_MAGNET_CHEAT_SHEET");
+    // 前回の対応表は、一覧（下の stub は 1 本）と同じ記事だけにする（前回の 8 割未満に減った一覧では対応表を置き換えない: scripts/sync_note_urls.mjs の nextNoteUrlMap）。
+    // 価格だけを一覧と違えておき、--status-only が対応表を書き換えたら分かるようにする
+    fs.writeFileSync(urlsFile, JSON.stringify({ [slug]: { ...entry, price: null } }, null, 2) + "\n");
     const before = fs.readFileSync(urlsFile, "utf8");
-    const [slug, entry] = Object.entries(JSON.parse(before)).find(([s]) => s !== "LEAD_MAGNET_CHEAT_SHEET");
     const stub = path.join(dir, "fetch_stub.mjs");
     fs.writeFileSync(stub, [
       `const note = ${JSON.stringify({ name: entry.title, noteUrl: entry.url, price: 980, publishAt: "2026-10-01T00:00:00+09:00" })};`,
@@ -224,14 +227,15 @@ test("公開中の note の検査をオーナー端末で取り直しても（--
     });
     const ownerStatus = path.join(dir, ".owner", "note_status.json");
     const r = run(["--status-only"], ownerStatus, false);
-    assert.equal(r.status, 0, r.stdout + r.stderr);
+    // 問題の残る記事がある（stub の本文）ので、検査は終了コード 1（scripts/sync_note_urls.mjs: bad・unknown・問題が 1 つでもあれば 1）
+    assert.equal(r.status, 1, r.stdout + r.stderr);
     assert.equal(fs.readFileSync(urlsFile, "utf8"), before, "--status-only で対応表を書き換えた");
     assert.ok(JSON.parse(fs.readFileSync(ownerStatus, "utf8")).notes[slug].issues.length > 0, "検査結果を書いていない");
     assert.ok(r.stdout.includes(slug), "オーナー端末では記事ごとの問題を表示する");
     // CI（--status-only なし）は対応表を書き、検査結果は渡された一時の置き場所に書く（リポの scripts/ には書かない）
     const ciStatus = path.join(dir, "runner-temp", "note_status.json");
     const ci = run([], ciStatus, true);
-    assert.equal(ci.status, 0, ci.stdout + ci.stderr);
+    assert.equal(ci.status, 1, ci.stdout + ci.stderr);
     // 公開される CI のログには、どの記事に問題が残っているかを出さない（本数だけを ::error で知らせる）
     assert.match(ci.stdout, /^::error title=note の公開内容::.*1 本/m);
     assert.deepEqual(ci.stdout.split(/\r?\n/).filter((l) => l.startsWith("::") && l.includes(slug)), []);

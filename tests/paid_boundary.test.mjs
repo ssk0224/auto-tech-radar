@@ -266,7 +266,9 @@ test("有料部分の作り方（NOTE_PAID_RECIPE）が無いと、プロンプ�
 // ---- (f) 生成モデルが書いた末尾の形をした有料本文は、生成スクリプトが保存する公開側の原稿に残らない（leakhunt #81） ----
 test("生成モデルの出力の末尾にある、タグや案内の形をした有料本文は、公開側の note 原稿に残らず暗号化される", () => {
   const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", { modulusLength: 2048, publicKeyEncoding: { type: "spki", format: "pem" }, privateKeyEncoding: { type: "pkcs8", format: "pem" } });
-  const paid = ["**有料の節**", "本文。".repeat(600), "---", "### 🎁 【メンバーシップのご案内】", "#受託単価は人日8万円", "#本番はポート8080"].join("\n");
+  // 有料本文に金額があるので、出品前の検査（scripts/utils/owner_checks.mjs）が求める積算根拠表を置く（無いと生成スクリプトが原稿を保存しない）
+  const basis = ["| 工程 | 作業内容 | 工数（人日） | 単価 | 小計 |", "|---|---|---|---|---|", "| 導入 | 環境の構築 | 1 | 8万円 | 8万円 |"];
+  const paid = ["**有料の節**", ...basis, "本文。".repeat(600), "---", "### 🎁 【メンバーシップのご案内】", "#受託単価は人日8万円", "#本番はポート8080"].join("\n");
   const { dir, log } = runGenerator(mock(paid), {}, (d) => fs.writeFileSync(path.join(d, "keys/note_vault_public.pem"), publicKey));
   try {
     const noteFile = path.join(dir, "note_drafts/testtool_note.md");
