@@ -2,16 +2,16 @@
   <defs>
     <!-- 多層ディープグラデーション背景 -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1c0410" />
-      <stop offset="50%" stop-color="#3b0a24" />
-      <stop offset="100%" stop-color="#0d0107" />
+      <stop offset="0%" stop-color="#1f1304" />
+      <stop offset="50%" stop-color="#402908" />
+      <stop offset="100%" stop-color="#0c0701" />
     </linearGradient>
 
     <!-- 主役アクセントグラデーション -->
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f43f5e" />
-      <stop offset="60%" stop-color="#e11d48" />
-      <stop offset="100%" stop-color="#be123c" />
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="60%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
     </linearGradient>
 
     <!-- ゴールドスターグラデーション -->
@@ -22,7 +22,7 @@
 
     <!-- 特注オーロラグロー効果（記事ごとに照射角度・位置が変動） -->
     <radialGradient id="glowDynamic" cx="94%" cy="37%" r="60%">
-      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.4" />
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.4" />
       <stop offset="100%" stop-color="transparent" />
     </radialGradient>
 
@@ -38,7 +38,7 @@
 
   <!-- 記事個別ジェネレーティブ・ハイテク背景パターン -->
   
-        <g opacity="0.12" fill="#f43f5e">
+        <g opacity="0.12" fill="#fbbf24">
           <rect x="150" y="180" width="3" height="80" rx="1.5" />
           <rect x="180" y="150" width="3" height="140" rx="1.5" />
           <rect x="210" y="200" width="3" height="50" rx="1.5" />
@@ -51,14 +51,14 @@
       
 
   <!-- 外枠プレミアムフレーム（ネオンデュアルライン） -->
-  <rect x="20" y="20" width="1160" height="590" rx="16" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.45" />
+  <rect x="20" y="20" width="1160" height="590" rx="16" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.45" />
   <rect x="25" y="25" width="1150" height="580" rx="13" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-opacity="0.08" />
 
   <!-- ヘッダー行: ブランドバッジ ＆ カテゴリ -->
   <g transform="translate(60, 52)">
-    <rect width="380" height="44" rx="22" fill="rgba(244, 63, 94, 0.2)" stroke="#f43f5e" stroke-width="1.4" />
-    <text x="190" y="28" fill="#f43f5e" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="15" font-weight="900" text-anchor="middle" letter-spacing="1.2">
-      ⚡ AUTO TECH RADAR ｜ SECURITY &amp; RUNTIME
+    <rect width="380" height="44" rx="22" fill="rgba(251, 191, 36, 0.2)" stroke="#fbbf24" stroke-width="1.4" />
+    <text x="190" y="28" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="15" font-weight="900" text-anchor="middle" letter-spacing="1.2">
+      ⚡ AUTO TECH RADAR ｜ JAVA
     </text>
   </g>
 
@@ -70,9 +70,9 @@
 
   <!-- 巨大3Dモノグラム＆シンボル（左アイキャッチブロック） -->
   <g transform="translate(60, 135)">
-    <rect width="115" height="115" rx="24" fill="#0d1117" stroke="#f43f5e" stroke-width="2.6" filter="url(#cardShadow)" />
-    <text x="57" y="60" font-size="44" text-anchor="middle" dominant-baseline="central">🛡️</text>
-    <text x="57" y="98" fill="#f43f5e" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="900" text-anchor="middle">CL</text>
+    <rect width="115" height="115" rx="24" fill="#0d1117" stroke="#fbbf24" stroke-width="2.6" filter="url(#cardShadow)" />
+    <text x="57" y="60" font-size="44" text-anchor="middle" dominant-baseline="central">💎</text>
+    <text x="57" y="98" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="900" text-anchor="middle">CL</text>
   </g>
 
   <!-- メインタイトル ＆ サブヘッド -->
@@ -85,12 +85,12 @@
     </text>
   </g>
 
-  <!-- 【超高視認性】キラー帯（活用領域） -->
+  <!-- 帯: 掲載日とスター数の注記（記事のデータから） -->
   <g transform="translate(60, 282)">
-    <rect width="1080" height="66" rx="12" fill="rgba(244, 63, 94, 0.2)" stroke="#f43f5e" stroke-width="1.6" filter="url(#cardShadow)" />
-    <rect x="0" y="0" width="10" height="66" rx="5" fill="#f43f5e" />
+    <rect width="1080" height="66" rx="12" fill="rgba(251, 191, 36, 0.2)" stroke="#fbbf24" stroke-width="1.6" filter="url(#cardShadow)" />
+    <rect x="0" y="0" width="10" height="66" rx="5" fill="#fbbf24" />
     <text x="32" y="42" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="900">
-      <tspan fill="#f1f5f9" font-weight="700">セキュア実行サンドボックス・企業情報漏洩対策</tspan>
+      <tspan fill="#f1f5f9" font-weight="700">掲載 2026-10-21 ｜ ★は記事作成時点の GitHub スター数</tspan>
     </text>
   </g>
 
@@ -104,16 +104,16 @@
   <!-- フッターバッジ群（Web 記事＝無料部分に実際に含まれるものだけを書く） -->
   <g transform="translate(60, 480)">
     <!-- バッジ 1: 解説の根拠 -->
-    <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#f43f5e" stroke-width="1.3" />
-    <text x="130" y="31" fill="#f43f5e" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ README ベースの解説</text>
+    <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#fbbf24" stroke-width="1.3" />
+    <text x="130" y="31" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ README ベースの解説</text>
 
-    <!-- バッジ 2: 図解（Web 記事は Mermaid 図が必須） -->
+    <!-- バッジ 2: 図解（記事に Mermaid 図があるときだけ） -->
     <rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.3" />
     <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ アーキテクチャ図解</text>
 
     <!-- バッジ 3: 技術タグ -->
     <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.3" />
-    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">Java ｜ adb ｜ adblock</text>
+    <text x="700" y="31" fill="#cbd5e1" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" text-anchor="middle">Java ｜ OSS ｜ GitHub</text>
 
     <!-- バッジ 4: 日本語解説 -->
     <rect x="860" y="0" width="220" height="50" rx="10" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.3" />

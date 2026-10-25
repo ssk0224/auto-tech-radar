@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import crypto from 'crypto';
+import { UNCATEGORIZED } from '../src/utils/categories.js';
+
+export { UNCATEGORIZED };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -22,7 +26,8 @@ function escapeXml(unsafe) {
   });
 }
 
-// 8つの超洗練ビジュアル・アーキタイプ（読者が絶対に飽きない世界基準のダイナミックデザイン）
+// 見た目（色・アイコン・背景の模様）の種類。キーワードの部分一致で選ぶので、記事の内容を述べる文字（カテゴリ名・用途の決まり文句）は持たせない
+// （「セキュア実行サンドボックス」などが Android TV のツールの画像に出た。2026-10-22）
 function getVisualArchetype(tags, title, desc, slug) {
   const text = `${(tags || []).join(' ')} ${title} ${desc}`.toLowerCase();
   
@@ -39,99 +44,83 @@ function getVisualArchetype(tags, title, desc, slug) {
 
   if (/agent|swarm|orchestrat|multi-agent/i.test(text)) {
     return {
-      type: 'AUTONOMOUS AI AGENT',
       icon: '🧠',
       bgGradient: ['#0f051d', '#230b42', '#05010a'],
       accentGradient: ['#e879f9', '#c084fc', '#a855f7'],
       badgeBg: 'rgba(192, 132, 252, 0.2)', badgeBorder: '#c084fc',
       glow: '#d946ef',
       patternType,
-      seed,
-      subtext: '自律型マルチエージェント基盤・業務自動化'
+      seed
     };
   } else if (/llm|qwen|gpt|model|weights|inference|neural|speculative/i.test(text)) {
     return {
-      type: 'NEXT-GEN LLM & MODEL',
       icon: '⚡',
       bgGradient: ['#050e26', '#0d2859', '#020512'],
       accentGradient: ['#38bdf8', '#60a5fa', '#3b82f6'],
       badgeBg: 'rgba(56, 189, 248, 0.2)', badgeBorder: '#38bdf8',
       glow: '#0284c7',
       patternType,
-      seed,
-      subtext: 'オープンウェイトローカル推論基盤・内製LLM構築'
+      seed
     };
   } else if (/rust|perf|speed|fast|kernel|wasm|low-latency/i.test(text)) {
     return {
-      type: 'ULTRA HIGH-SPEED RUST',
       icon: '🔥',
       bgGradient: ['#240a04', '#4a1506', '#100301'],
       accentGradient: ['#fb923c', '#f97316', '#ea580c'],
       badgeBg: 'rgba(249, 115, 22, 0.2)', badgeBorder: '#fb923c',
       glow: '#f97316',
       patternType,
-      seed,
-      subtext: '超高速ネイティブエンジン・高負荷バックエンド刷新'
+      seed
     };
   } else if (/browser|automation|crawl|scrap|web-agent/i.test(text)) {
     return {
-      type: 'AUTONOMOUS WEB RPA',
       icon: '🚀',
       bgGradient: ['#031826', '#08334c', '#010c14'],
       accentGradient: ['#22d3ee', '#06b6d4', '#0284c7'],
       badgeBg: 'rgba(34, 211, 238, 0.2)', badgeBorder: '#22d3ee',
       glow: '#06b6d4',
       patternType,
-      seed,
-      subtext: '爆速ブラウザ操作エージェント・次世代Web自動化'
+      seed
     };
   } else if (/cli|tool|terminal|developer|devops|infra|nix|brew/i.test(text)) {
     return {
-      type: 'DEV INFRA & CLI SUITE',
       icon: '🛠️',
       bgGradient: ['#031710', '#073322', '#010c08'],
       accentGradient: ['#34d399', '#10b981', '#059669'],
       badgeBg: 'rgba(52, 211, 153, 0.2)', badgeBorder: '#34d399',
       glow: '#10b981',
       patternType,
-      seed,
-      subtext: 'エンジニア生産性極大化・モダンDevOps/環境整備'
+      seed
     };
   } else if (/python|data|analytics|pipeline|database/i.test(text)) {
     return {
-      type: 'DATA & ML PIPELINE',
       icon: '🐍',
       bgGradient: ['#081726', '#122c42', '#030b14'],
       accentGradient: ['#4ade80', '#22c55e', '#16a34a'],
       badgeBg: 'rgba(74, 222, 128, 0.2)', badgeBorder: '#4ade80',
       glow: '#22c55e',
       patternType,
-      seed,
-      subtext: 'リアルタイム分析基盤・MLデータパイプライン'
+      seed
     };
   } else if (/security|auth|privacy|sandbox|audit/i.test(text)) {
     return {
-      type: 'SECURITY & RUNTIME',
       icon: '🛡️',
       bgGradient: ['#1c0410', '#3b0a24', '#0d0107'],
       accentGradient: ['#f43f5e', '#e11d48', '#be123c'],
       badgeBg: 'rgba(244, 63, 94, 0.2)', badgeBorder: '#f43f5e',
       glow: '#f43f5e',
       patternType,
-      seed,
-      subtext: 'セキュア実行サンドボックス・企業情報漏洩対策'
+      seed
     };
   } else {
     return {
-      type: 'COMMERCIAL OSS SUITE',
       icon: '💎',
       bgGradient: ['#1f1304', '#402908', '#0c0701'],
       accentGradient: ['#fbbf24', '#f59e0b', '#d97706'],
       badgeBg: 'rgba(251, 191, 36, 0.2)', badgeBorder: '#fbbf24',
       glow: '#f59e0b',
       patternType,
-      seed,
-      subtext: '受託開発での活用・マイクロSaaS化'
+      seed
     };
   }
 }
@@ -195,11 +184,19 @@ function renderBackgroundPattern(patternType, accentColor, seed) {
   }
 }
 
-export function generateOgCardForPost(postData) {
-  const { slug, title, stars, tags, desc } = postData;
+// 画像の左上に出すカテゴリ。記事のタグの先頭（GitHub の主な言語）から導き、無ければ「未分類」
+const GENERIC_TAGS = new Set(['OSS', 'GITHUB', 'TECH', 'AI']);
+export function categoryLabelOf(tags) {
+  const first = (Array.isArray(tags) ? tags : []).map((t) => String(t || '').trim()).find(Boolean);
+  return first && !GENERIC_TAGS.has(first.toUpperCase()) ? first.toUpperCase() : UNCATEGORIZED;
+}
+
+// SVG の文字列を作る（ファイルには書かない）。文字は記事のデータ（タイトル・説明・タグ・スター数・公開日・図の有無）だけから作る
+export function renderOgSvg(postData) {
+  const { slug, title, stars, tags, desc, pubDate, hasDiagram = true } = postData;
   const rawShortTitle = title.split(' - ')[0].split(':')[0].trim();
   const shortTitle = escapeXml(rawShortTitle);
-  const starCount = stars ? `★ ${stars.toLocaleString()}` : '急上昇';
+  const starCount = stars ? `★ ${stars.toLocaleString()}` : '★ —';
   const tagList = Array.isArray(tags) ? tags.slice(0, 3) : ['OSS', 'Tech'];
   // 幅 1080px・22px で収まる長さに切る（全角は半角の約 2 倍の幅）。短い説明には … を付けない
   const fitWidth = (text, maxUnits) => {
@@ -215,6 +212,7 @@ export function generateOgCardForPost(postData) {
   const safeDesc = escapeXml(fitWidth(desc || '', 88));
 
   const archetype = getVisualArchetype(tags, title, desc, slug);
+  const bandText = `${pubDate ? `掲載 ${pubDate} ｜ ` : ''}★は記事作成時点の GitHub スター数`;
   // エスケープ前の文字から切り出す（&amp; などの実体参照を途中で切ると SVG が壊れる）
   const monogram = escapeXml(rawShortTitle.slice(0, 2).toUpperCase());
 
@@ -276,7 +274,7 @@ export function generateOgCardForPost(postData) {
   <g transform="translate(60, 52)">
     <rect width="380" height="44" rx="22" fill="${archetype.badgeBg}" stroke="${archetype.badgeBorder}" stroke-width="1.4" />
     <text x="190" y="28" fill="${archetype.accentGradient[0]}" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="15" font-weight="900" text-anchor="middle" letter-spacing="1.2">
-      ⚡ AUTO TECH RADAR ｜ ${escapeXml(archetype.type)}
+      ⚡ AUTO TECH RADAR ｜ ${escapeXml(categoryLabelOf(tags))}
     </text>
   </g>
 
@@ -303,12 +301,12 @@ export function generateOgCardForPost(postData) {
     </text>
   </g>
 
-  <!-- 【超高視認性】キラー帯（活用領域） -->
+  <!-- 帯: 掲載日とスター数の注記（記事のデータから） -->
   <g transform="translate(60, 282)">
     <rect width="1080" height="66" rx="12" fill="${archetype.badgeBg}" stroke="${archetype.badgeBorder}" stroke-width="1.6" filter="url(#cardShadow)" />
     <rect x="0" y="0" width="10" height="66" rx="5" fill="${archetype.accentGradient[0]}" />
     <text x="32" y="42" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif" font-size="22" font-weight="900">
-      <tspan fill="#f1f5f9" font-weight="700">${archetype.subtext}</tspan>
+      <tspan fill="#f1f5f9" font-weight="700">${escapeXml(bandText)}</tspan>
     </text>
   </g>
 
@@ -325,9 +323,9 @@ export function generateOgCardForPost(postData) {
     <rect x="0" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="${archetype.accentGradient[0]}" stroke-width="1.3" />
     <text x="130" y="31" fill="${archetype.accentGradient[0]}" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ README ベースの解説</text>
 
-    <!-- バッジ 2: 図解（Web 記事は Mermaid 図が必須） -->
-    <rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.3" />
-    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ アーキテクチャ図解</text>
+    <!-- バッジ 2: 図解（記事に Mermaid 図があるときだけ） -->
+    ${hasDiagram ? `<rect x="280" y="0" width="260" height="50" rx="10" fill="#0d1117" stroke="#3b82f6" stroke-width="1.3" />
+    <text x="410" y="31" fill="#93c5fd" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">✓ アーキテクチャ図解</text>` : ''}
 
     <!-- バッジ 3: 技術タグ -->
     <rect x="560" y="0" width="280" height="50" rx="10" fill="#0d1117" stroke="#374151" stroke-width="1.3" />
@@ -338,12 +336,62 @@ export function generateOgCardForPost(postData) {
     <text x="970" y="31" fill="#fbbf24" font-family="-apple-system, BlinkMacSystemFont, 'Meiryo', sans-serif" font-size="16" font-weight="800" text-anchor="middle">📖 日本語で解説</text>
   </g>
 </svg>`;
+  return svgContent;
+}
 
-  const outPath = path.join(ogpDir, `${slug}.svg`);
-  fs.writeFileSync(outPath, svgContent, 'utf8');
+// ---- PNG に「どの SVG から作ったか」を記録する（tests/og_text.test.mjs が SVG と PNG の食い違いを止める） ----
+export const PNG_SOURCE_KEY = 'atr-source-svg-sha256';
+const PNG_SIG = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
+  let c = n;
+  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+  return c >>> 0;
+});
+const crc32 = (buf) => {
+  let c = 0xffffffff;
+  for (const b of buf) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+};
+function pngChunks(buf) {
+  if (!buf.subarray(0, 8).equals(PNG_SIG)) return null;
+  const chunks = [];
+  for (let off = 8; off + 12 <= buf.length; ) {
+    const len = buf.readUInt32BE(off);
+    const type = buf.toString('latin1', off + 4, off + 8);
+    chunks.push({ type, raw: buf.subarray(off, off + 12 + len), data: buf.subarray(off + 8, off + 8 + len) });
+    off += 12 + len;
+    if (type === 'IEND') break;
+  }
+  return chunks;
+}
+const textKey = (c) => c.data.toString('latin1', 0, Math.max(0, c.data.indexOf(0)));
+export function readPngText(buf) {
+  const out = {};
+  for (const c of pngChunks(buf) || []) {
+    if (c.type !== 'tEXt') continue;
+    const z = c.data.indexOf(0);
+    if (z > 0) out[textKey(c)] = c.data.toString('latin1', z + 1);
+  }
+  return out;
+}
+export function stampPng(buf, key, value) {
+  const chunks = pngChunks(buf);
+  if (!chunks) throw new Error('PNG ではありません');
+  const data = Buffer.concat([Buffer.from(key, 'latin1'), Buffer.from([0]), Buffer.from(value, 'latin1')]);
+  const head = Buffer.alloc(8);
+  head.writeUInt32BE(data.length, 0);
+  head.write('tEXt', 4, 'latin1');
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0);
+  const kept = chunks.filter((c) => !(c.type === 'tEXt' && textKey(c) === key));
+  const body = kept.filter((c) => c.type !== 'IEND').map((c) => c.raw);
+  const end = kept.filter((c) => c.type === 'IEND').map((c) => c.raw);
+  return Buffer.concat([PNG_SIG, ...body, head, data, crc, ...end]);
+}
+export const svgSourceHash = (svg) => crypto.createHash('sha256').update(String(svg).replace(/\r\n?/g, '\n')).digest('hex');
 
-  // PNGサムネイルの自動生成（note見出し画像用: 1200x630）
-  const pngPath = path.join(ogpDir, `${slug}.png`);
+// SVG を Chrome で PNG（1200x630）にし、元の SVG のハッシュを PNG に記録する
+export function renderPngFromSvg(svgPath, pngPath) {
   try {
     const chromeCandidates = [
       process.env.CHROME_BIN,
@@ -357,12 +405,41 @@ export function generateOgCardForPost(postData) {
       'chromium-browser'
     ];
     const chromeBin = chromeCandidates.find(c => c && fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${outPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
+    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${svgPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
+    fs.writeFileSync(pngPath, stampPng(fs.readFileSync(pngPath), PNG_SOURCE_KEY, svgSourceHash(fs.readFileSync(svgPath, 'utf8'))));
+    return true;
   } catch (e) {
-    // Chromeが使えない環境でもエラーで中断しないフェイルセーフ設計
+    // Chrome が使えない環境でも生成を止めない。PNG が SVG と食い違ったまま残れば tests/og_text.test.mjs が止める
+    console.warn(`PNG を作れませんでした（${path.basename(pngPath)}）: ${e.message}`);
+    return false;
   }
+}
 
+export function generateOgCardForPost(postData) {
+  const { slug } = postData;
+  const outPath = path.join(ogpDir, `${slug}.svg`);
+  fs.writeFileSync(outPath, renderOgSvg(postData), 'utf8');
+  // PNGサムネイル（note見出し画像用: 1200x630）
+  renderPngFromSvg(outPath, path.join(ogpDir, `${slug}.png`));
   return `/auto-tech-radar/ogp/${slug}.svg`;
+}
+
+// 記事の Markdown から画像の入力を読む（frontmatter の title・description・tags・stars・pubDate と、Mermaid 図の有無）
+export function ogInputFromArticle(slug, content) {
+  const post = { slug, title: slug, desc: '', tags: [], stars: 0, pubDate: null, hasDiagram: /^```mermaid\b/m.test(content) };
+  const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
+  if (!fm) return post;
+  const titleM = fm.match(/^title:\s*"?(.*?)"?\r?$/m);
+  if (titleM) post.title = titleM[1];
+  const descM = fm.match(/^description:\s*"?(.*?)"?\r?$/m);
+  if (descM) post.desc = descM[1];
+  const starsM = fm.match(/^stars:\s*(\d+)/m);
+  if (starsM) post.stars = parseInt(starsM[1], 10);
+  const tagsM = fm.match(/^tags:\s*\[(.*?)\]/m);
+  if (tagsM) post.tags = tagsM[1].split(',').map((t) => t.replace(/["'\s]/g, '')).filter(Boolean);
+  const pubM = fm.match(/^pubDate:\s*["']?(\d{4}-\d{2}-\d{2})/m);
+  if (pubM) post.pubDate = pubM[1];
+  return post;
 }
 
 // 全記事に対して実行
@@ -372,28 +449,10 @@ if (process.argv[1] && process.argv[1].endsWith('generate_og_cards.mjs')) {
 
   files.forEach(f => {
     const slug = f.replace('.md', '');
-    const content = fs.readFileSync(path.join(radarDir, f), 'utf8');
-
-    let title = slug;
-    let desc = '';
-    let tags = [];
-    let stars = 0;
-
-    const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    if (fmMatch) {
-      const fm = fmMatch[1];
-      const titleM = fm.match(/^title:\s*"?(.*?)"?$/m);
-      if (titleM) title = titleM[1];
-      const descM = fm.match(/^description:\s*"?(.*?)"?$/m);
-      if (descM) desc = descM[1];
-      const starsM = fm.match(/^stars:\s*(\d+)/m);
-      if (starsM) stars = parseInt(starsM[1], 10);
-      const tagsM = fm.match(/^tags:\s*\[(.*?)\]/m);
-      if (tagsM) tags = tagsM[1].split(',').map(s => s.replace(/["'\s]/g, ''));
-    }
-
-    generateOgCardForPost({ slug, title, desc, tags, stars });
+    generateOgCardForPost(ogInputFromArticle(slug, fs.readFileSync(path.join(radarDir, f), 'utf8')));
   });
+  // サイト共通のカード（public/og-card.svg は手で編集する。PNG はここで作り直す）
+  renderPngFromSvg(path.join(rootDir, 'public', 'og-card.svg'), path.join(rootDir, 'public', 'og-card.png'));
 
   console.log('✓ 全OGPカード（SVG ＆ note用PNGサムネイル）の生成が完了しました！');
 }

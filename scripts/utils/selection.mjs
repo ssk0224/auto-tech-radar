@@ -5,6 +5,7 @@
 // サイトの「選定基準」ページ（src/pages/criteria.astro）は同じ SELECTION_CONFIG を表示する（公開している基準とコードがずれないように）
 import { isNoise } from "./noise_filter.mjs";
 import { BLOCKED_SLUGS, isBlockedSlug, slugForRepoName } from "./blocklist.mjs";
+import { jstDate as jstDateOf } from "../../src/utils/dates.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -228,7 +229,7 @@ export function rankCandidates(candidates, { velocity = {}, featured = [], now =
 // 記事の公開日はリポジトリの作成日より前にしない（JST の日付で比べる）
 export function jstDate(t) {
   const ms = toTime(t);
-  return ms === null ? null : new Date(ms + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return ms === null ? null : jstDateOf(ms);
 }
 export function pubDateProblem(pubDate, createdAt) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(pubDate || ""))) return `pubDate が YYYY-MM-DD ではありません (${pubDate})`;

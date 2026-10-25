@@ -3,21 +3,16 @@
 // 記録するのはリポジトリ単位の公開値だけ（スターを付けた人・コントリビューターなど個人単位のデータは持たない）
 import fs from "fs";
 import path from "path";
+import { utcDate, addDays } from "../../src/utils/dates.js";
+
+// 台帳の日付は UTC（保存用のキー。src/utils/dates.js の決まり）
+export { utcDate, addDays };
 
 // 1 行（1 リポジトリ）の項目。この順・この集合だけを書く
 export const LEDGER_FIELDS = [
   "date", "full_name", "stars", "forks", "open_issues", "pushed_at", "created_at",
   "archived", "license", "latest_release_tag", "latest_release_at",
 ];
-
-export function utcDate(now = Date.now()) {
-  return new Date(now).toISOString().slice(0, 10);
-}
-
-export function addDays(date, n) {
-  const t = Date.parse(`${date}T00:00:00Z`) + n * 24 * 60 * 60 * 1000;
-  return new Date(t).toISOString().slice(0, 10);
-}
 
 export function ledgerPaths(rootDir, date) {
   const [y, m, d] = date.split("-");

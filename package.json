@@ -1,6 +1,7 @@
 {
   "name": "auto-tech-radar",
   "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "astro dev",

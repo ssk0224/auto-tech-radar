@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { utcStamp } from '../src/utils/dates.js';
 import { siteConfig } from '../src/config/site.js';
 import { isNoise } from './utils/noise_filter.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
@@ -315,7 +316,7 @@ async function main() {
   for (const l of r.lines) if (!(publicLog && l.startsWith(ISSUE_LINE))) console.log(l);
   if (publicLog && issueLines.length) console.log(annotation('error', 'note の公開内容', `直す表現が残っている公開中の note が ${issueLines.length} 本あります（ランチャー [U] / [E] で確認・修正）`));
   if (r.write) fs.mkdirSync(path.dirname(STATUS_FILE), { recursive: true });
-  if (r.write) fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: new Date().toISOString(), counts: r.counts, notes: r.notes, unlinked: r.unlinked }, null, 2) + '\n', 'utf8');
+  if (r.write) fs.writeFileSync(STATUS_FILE, JSON.stringify({ checkedAt: utcStamp(), counts: r.counts, notes: r.notes, unlinked: r.unlinked }, null, 2) + '\n', 'utf8');
   if (r.exitCode) process.exitCode = 1;
 }
 

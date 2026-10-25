@@ -20,6 +20,7 @@ import { noteListingBlock, jstDay } from './utils/note_listing.mjs';
 import { noteStatusFile, noteUpdatesFile, noteBrowserLogFile } from './utils/owner_dir.mjs';
 import { outputPathsWrittenBy } from './utils/public_tree.mjs';
 import { onTermination } from './utils/termination.mjs';
+import { jstDate, utcStamp } from '../src/utils/dates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -307,25 +308,21 @@ function loadMaintainLog() {
   }
 }
 
+// 記事の URL は scripts/note_urls.json（CI が note の公開一覧から作る）だけを正とする。
+// ここに URL を書き足すと、note 側で削除・非公開にした記事（404）を指したまま残る。URL が無い記事は記事一覧を開く
 function loadNoteUrls() {
-  const knownNoiseUrls = {
-    'crates-io-index': { url: 'https://note.com/vast_ixora7005/n/na4995221c9ec', price: 980 },
-    'homebrew-core': { url: 'https://note.com/vast_ixora7005/n/n78b928e2598d', price: 980 },
-    'internships-2027': { url: 'https://note.com/vast_ixora7005/n/n8b1178d06273', price: 980 },
-    'mediawiki': { url: 'https://note.com/dashboard/contents', price: 980 },
-  };
   try {
-    return { ...knownNoiseUrls, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8')) };
+    return JSON.parse(fs.readFileSync(path.join(__dirname, 'note_urls.json'), 'utf8'));
   } catch (e) {
-    return knownNoiseUrls;
+    return {};
   }
 }
 
 function recordNoteUpdated(slug, deduped) {
   const history = loadHistory();
-  const today = new Date().toISOString().split('T')[0];
+  const today = jstDate();
   // 時刻まで残す（CI の確認時刻と比べて、押し忘れで直っていない記事を再び一覧に出すため）
-  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: new Date().toISOString(), ...(deduped ? { noteDedupedAt: today } : {}) };
+  history[slug] = { ...(history[slug] || {}), noteUpdatedAt: utcStamp(), ...(deduped ? { noteDedupedAt: today } : {}) };
   saveHistory(history);
   syncHistory('chore(history): record note updates');
 }
@@ -1055,7 +1052,7 @@ function runCloudSync() {
     // 作業ツリーの全部は送らない: オーナー端末の状態・内部の文書・CI が書く記録（data/ など）が公開リポに混ざるため
     const paths = outputPathsWrittenBy('owner').filter((p) => fs.existsSync(path.join(rootDir, p)));
     console.log(`\n2. 公開してよい出力だけをコミットして同期 (${paths.join(' ')})...`);
-    const today = new Date().toISOString().split('T')[0];
+    const today = jstDate();
     const r = commitAndSync(rootDir, paths, `chore(owner): sync owner-side outputs (${today})`);
     reportRestored(r.restored);
     if (!r.ok) throw new Error(`${r.step}: ${r.message.split('\n').slice(-3).join(' / ')}`);

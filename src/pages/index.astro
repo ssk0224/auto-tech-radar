@@ -5,27 +5,30 @@ import { getArticles, hrefOf } from "../utils/articles.js";
 import { dateLabel } from "../utils/dates.js";
 import { ellipsis } from "../utils/article_page.js";
 import { ogpPathFor } from "../utils/ogp.js";
+import Cadence from "../components/Cadence.astro";
+import { categoryOf, TOPIC_CATEGORIES, UNCATEGORIZED } from "../utils/categories.js";
 // ノイズ除外・pubDate 降順は getArticles 側で済んでいる
 const posts = getArticles() as any[];
+// 絞り込みのボタン: 分類の定義そのもの（タグの完全一致。当てはまらない記事は「未分類」）。手で書いた分類名を出さない
+const categoryPills = [...TOPIC_CATEGORIES.map((c) => ({ key: c.key, label: c.label })), { key: "none", label: UNCATEGORIZED }];
 ---
 <Layout title="Auto Tech Radar | 海外急上昇OSS徹底解剖メディア">
   <!-- Hero Section -->
   <section style="margin-bottom: 2.5rem; text-align: center; padding: 2.5rem 1rem; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.18) 0%, transparent 75%); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.2);">
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.8rem; letter-spacing: 0.05em;">
-      🔥 毎日自動で更新（新着は1日最大1本）
+      🔥 <Cadence />
     </div>
     <h1 style="font-size: 2.3rem; font-weight: 900; margin: 0 0 0.8rem; line-height: 1.3; color: #fff;">
       世界の急上昇OSSを<br/><span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">日本語で解説</span>
     </h1>
     <p style="font-size: 1.05rem; color: #94a3b8; max-width: 680px; margin: 0 auto 1.8rem; line-height: 1.75;">
-      GitHub で注目を集める OSS を毎朝自動で収集し、README などの公開情報をもとに AI（Gemini）が解説を下書きします。技術仕様の徹底分析から、受託開発への提案の考え方、自社SaaS構築のマネタイズ実践法までお届けします。
+      GitHub でスター数が伸びている OSS を選び、README などの公開情報をもとに AI（Gemini）が構成図・比較・ライセンスの解説を下書きします。ソースコードの解析や動作検証は行っていません。
     </p>
 
     <!-- Key Metrics Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; max-width: 720px; margin: 0 auto 1.5rem;">
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
-        <div style="font-size: 1.5rem; font-weight: 900; color: #38bdf8;">毎日更新</div>
-        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">自動巡回 ＆ 生成 (JST)</div>
+        <Cadence variant="metric" />
       </div>
       <div style="background: #111827; border: 1px solid #1f2937; padding: 0.8rem 1rem; border-radius: 10px;">
         <div style="font-size: 1.5rem; font-weight: 900; color: #10b981;">README 準拠</div>
@@ -48,8 +51,7 @@ const posts = getArticles() as any[];
         <span style="background: #10b981; color: #000; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800;">CSV/Markdown</span>
       </a>
       <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/estimate/`} style="display: inline-flex; align-items: center; gap: 0.6rem; background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%); border: 1px solid rgba(59, 130, 246, 0.5); padding: 0.75rem 1.4rem; border-radius: 9999px; color: #93c5fd; font-weight: 700; font-size: 0.92rem; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);">
-        <span>⚡ 受託・導入即時見積もり試算</span>
-        <span style="background: #2563eb; color: #fff; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 800;">1秒自動計算</span>
+        <span>⚡ 開発費用の目安を試算（概算）</span>
       </a>
     </div>
   </section>
@@ -58,20 +60,17 @@ const posts = getArticles() as any[];
   <section style="margin-bottom: 2.5rem; background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1px solid #2563eb; border-radius: 14px; padding: 1.8rem; text-align: center;">
     <div style="max-width: 680px; margin: 0 auto;">
       <div style="display: inline-block; background: rgba(59, 130, 246, 0.25); color: #93c5fd; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; margin-bottom: 0.6rem;">
-        ⚡ 毎日自動で更新
+        ⚡ <Cadence />
       </div>
       <h3 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
-        世界の急上昇オープンソースを毎日キャッチアップ
+        新しい記事を受け取る
       </h3>
       <p style="font-size: 0.92rem; color: #94a3b8; margin: 0 0 1.2rem; line-height: 1.6;">
-        エンジニア、CTO、フリーランス向けに、GitHub 上の急上昇オープンソースの日本語解説と受託・SaaS商用化ノウハウを毎朝更新。お好みのチャンネルで新着通知をお受け取りください。
+        新しい記事は RSS フィードで受け取れます。有料版（note）の定期購読は note メンバーシップです。
       </p>
       <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
         <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/rss.xml`} target="_blank" rel="noopener noreferrer" style="background: #f97316; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
           📡 RSSリーダーに追加
-        </a>
-        <a href={siteConfig.xAccountUrl} target="_blank" rel="noopener noreferrer" style="background: #000; border: 1px solid #374151; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-          𝕏 公式をフォロー ({siteConfig.xHandle})
         </a>
         <a href={siteConfig.noteMembershipUrl} target="_blank" rel="noopener noreferrer" style="background: #2cb696; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
           ⚡ note メンバーシップ
@@ -139,20 +138,17 @@ const posts = getArticles() as any[];
           type="text" 
           id="search-input" 
           aria-label="記事をキーワードで検索" 
-          placeholder="リポジトリ名やキーワードで瞬時に検索... (例: AI, agent, Python, CLI)" 
+          placeholder="リポジトリ名やキーワードで検索 (例: AI, agent, Python, CLI)" 
           style="width: 100%; background: #030712; border: 1px solid #374151; color: #fff; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.92rem; outline: none;"
         />
       </div>
       <!-- One-click Category Quick Filters -->
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">技術領域絞込:</span>
-        <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">全ジャンル</button>
-        <button class="cat-pill" data-cat="agent" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🤖 AI Agent</button>
-        <button class="cat-pill" data-cat="saas" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🚀 SaaS代替・脱課金</button>
-        <button class="cat-pill" data-cat="llm" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">⚡ ローカル推論・LLM</button>
-        <button class="cat-pill" data-cat="cli" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🛠️ 開発者ツール・自動化</button>
-        <button class="cat-pill" data-cat="rust" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🦀 Rust高速基盤</button>
-        <button class="cat-pill" data-cat="python" style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🐍 Python ML</button>
+        <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">タグによる分類:</span>
+        <button class="cat-pill active" data-cat="" style="background: #2563eb; color: #fff; border: none; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">すべて</button>
+        {categoryPills.map((c) => (
+          <button class="cat-pill" data-cat={c.key} style="background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">{c.label}</button>
+        ))}
       </div>
     </div>
   </section>
@@ -160,15 +156,14 @@ const posts = getArticles() as any[];
   <!-- Feed Section -->
   <section>
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.6rem;">
-      <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #f3f4f6;">📡 最新レーダー速報</h3>
+      <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #f3f4f6;">📡 掲載中の記事</h3>
       <span style="font-size: 0.85rem; color: #64748b;" id="post-count">全 {posts.length} 本の技術レポート</span>
     </div>
 
     <div id="posts-container">
       {posts.length === 0 ? (
         <div style="text-align: center; padding: 3rem 1rem; background: #111827; border-radius: 12px; border: 1px solid #1f2937;">
-          <p style="color: #94a3b8; margin-bottom: 0.5rem;">毎朝の定時クロールで自動インデックスされます。</p>
-          <p style="font-size: 0.85rem; color: #64748b;">※ GitHub Actionsによる定時自動更新</p>
+          <p style="color: #94a3b8; margin-bottom: 0.5rem;">掲載中の記事はまだありません。</p>
         </div>
       ) : (
         posts.map((post) => {
@@ -176,7 +171,7 @@ const posts = getArticles() as any[];
           const tags = Array.isArray(post.frontmatter?.tags) ? post.frontmatter.tags : ['Tech'];
           const title = post.frontmatter?.title || post.file;
           return (
-            <article class="post-card" data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
+            <article class="post-card" data-category={categoryOf(post.frontmatter?.tags).key} data-title={title.toLowerCase()} data-desc={(post.frontmatter?.description || "").toLowerCase()} data-tags={tags.join(' ').toLowerCase()}>
               <div class="post-card-inner">
                 <div class="post-card-thumb">
                   <a href={hrefOf(post)} tabindex="-1" aria-hidden="true">
@@ -251,11 +246,11 @@ const posts = getArticles() as any[];
         海外最先端OSSを活用した自社専用AIの導入支援
       </h3>
       <p style="margin: 0; font-size: 0.92rem; color: #94a3b8; line-height: 1.6;">
-        「紹介されたAIエージェントを自社クラウドに構築したい」「商用SaaSをセルフホスト化して月額コストを削減したい」等、環境構築やAPI連携、NDA締結についても、導入支援のご相談を受け付けています。
+        紹介した OSS の環境構築や API 連携などのご相談は、お問い合わせフォームから受け付けています（個人で運営しているため、ご返信までお時間をいただく場合があります）。
       </p>
     </div>
     <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.6rem; border-radius: 8px; text-decoration: none; max-width: 100%; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
-      📩 受託・導入の無料相談・見積もり →
+      📩 お問い合わせフォーム →
     </a>
   </section>
 
@@ -311,13 +306,17 @@ const posts = getArticles() as any[];
     const countEl = document.getElementById("post-count");
     const catPills = document.querySelectorAll(".cat-pill");
 
+    // 検索語（部分一致）と分類（カードの data-category の完全一致）の両方で絞り込む
+    let activeCat = "";
     function applyFilter(query) {
       let visibleCount = 0;
       cards.forEach((card) => {
         const title = card.getAttribute("data-title") || "";
         const desc = card.getAttribute("data-desc") || "";
         const tags = card.getAttribute("data-tags") || "";
-        if (!query || title.includes(query) || desc.includes(query) || tags.includes(query)) {
+        const catOk = !activeCat || card.getAttribute("data-category") === activeCat;
+        const queryOk = !query || title.includes(query) || desc.includes(query) || tags.includes(query);
+        if (catOk && queryOk) {
           card.style.display = "";
           visibleCount++;
         } else {
@@ -344,9 +343,8 @@ const posts = getArticles() as any[];
         pill.style.color = "#fff";
         pill.style.border = "none";
 
-        const cat = pill.getAttribute("data-cat") || "";
-        if (searchInput) searchInput.value = cat;
-        applyFilter(cat);
+        activeCat = pill.getAttribute("data-cat") || "";
+        applyFilter(searchInput ? searchInput.value.toLowerCase().trim() : "");
       });
     });
   </script>

@@ -7,7 +7,7 @@ import { velocity } from "../utils/velocity_data.js";
 const { frontmatter } = Astro.props;
 const line = trackRecordLine(frontmatter, velocity);
 ---
-{line && <p class="track-record" title="GitHub のスター数（毎日の記録より）">{line}</p>}
+{line && <p class="track-record" title="GitHub のスター数（Radar Ledger の記録より）">{line}</p>}
 
 <style>
   .track-record {

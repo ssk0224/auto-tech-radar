@@ -1,0 +1,17 @@
+---
+// 更新頻度の表示（掲載中の記事の公開日から数える）。文はすべて src/utils/cadence.js の関数が作り、ここには文を書かない
+// （配信物の検査は data-derived の要素の文の全体が、その関数の結果と一致することを確かめる。tests/dist_claims.test.mjs）
+import { getArticles } from "../utils/articles.js";
+import { cadenceFacts, cadenceText, cadenceMetricParts } from "../utils/cadence.js";
+const { variant = "text" } = Astro.props;
+const facts = cadenceFacts((getArticles() as any[]).map((p) => p.frontmatter?.pubDate), Date.now());
+const [metricValue, metricLabel] = cadenceMetricParts(facts);
+---
+{variant === "metric" ? (
+  <div class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days} data-derived="cadence" data-derived-value={facts.count}>
+    <div style="font-size: 1.5rem; font-weight: 900; color: #38bdf8;">{metricValue}</div>
+    <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">{metricLabel}</div>
+  </div>
+) : (
+  <span class="cadence" data-cadence-count={facts.count} data-cadence-days={facts.days} data-derived="cadence" data-derived-value={facts.count}>{cadenceText(facts)}</span>
+)}

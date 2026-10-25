@@ -3,13 +3,14 @@
 import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
+import { jstDate as jstDateOf, utcStamp } from "../../src/utils/dates.js";
 
 // rejected: 生成した記事が CI の品質ゲート（npm test）に通らず、取り除いた（workflow の Post-Crawl Quality Test Gate が記録する）
 // upstream_unavailable: GitHub の検索・README をレート制限・障害で取得できず、記事を作れなかった（「候補なし」と区別する）
 export const RUN_REASONS = ["ok", "quota", "no_candidates", "model_unavailable", "upstream_unavailable", "error", "cap_reached", "rejected"];
 
 export function jstDate(now = Date.now()) {
-  return new Date(new Date(now).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return jstDateOf(now);
 }
 
 export function runStatusFile(rootDir, date) {
@@ -46,7 +47,7 @@ export function recordRunStatus({ rootDir = process.cwd(), now = Date.now(), gen
     const date = jstDate(now);
     const schedule = process.env.RUN_SCHEDULE ? ` (${process.env.RUN_SCHEDULE})` : "";
     const ev = event || `${process.env.GITHUB_EVENT_NAME || "local"}${schedule}`;
-    const next = appendRun(readRunStatus(rootDir, date), date, { at: new Date(now).toISOString(), event: ev, generated, reason, model });
+    const next = appendRun(readRunStatus(rootDir, date), date, { at: utcStamp(now), event: ev, generated, reason, model });
     const file = runStatusFile(rootDir, date);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(next, null, 2) + "\n", "utf8");

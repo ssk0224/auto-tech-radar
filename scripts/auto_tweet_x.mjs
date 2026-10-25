@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { pathToFileURL } from 'url';
 import { isNoise } from './utils/noise_filter.mjs';
+import { jstDate } from '../src/utils/dates.js';
 import { sanitizeAndAttachUrlToTweet, extractTweet1 } from './utils/twitter_formatter.mjs';
 import { annotation, readJsonStrict } from './utils/verdict.mjs';
 
@@ -105,7 +106,7 @@ export async function postLatestTweet({ root = process.cwd(), env = process.env,
       log(annotation('warning', 'X 自動投稿', `publish_history.json を保存できませんでした: ${saveErr.message}`));
     }
   };
-  const today = new Date().toISOString().split('T')[0];
+  const today = jstDate(); // 記録する日付は日本時間（publish_history の他の日付と同じ）
 
   if (!safeData.isSafe) {
     log(annotation('warning', 'X 自動投稿', `文字数の上限を超えているため投稿しません (weight ${safeData.weight}/280): ${slug}`));

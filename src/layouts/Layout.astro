@@ -8,12 +8,14 @@ import { dateLabel } from "../utils/dates.js";
 import { ogpPathFor } from "../utils/ogp.js";
 import noteUrls from "../../scripts/note_urls.json";
 import TrackRecord from "../components/TrackRecord.astro"; // 掲載時→現在のスター数（Radar Ledger）
+import Cadence from "../components/Cadence.astro"; // 掲載本数（掲載データから数える）
+import { SITE_DESCRIPTION } from "../utils/site_copy.js";
 import { googleVerificationContent, cloudflareBeaconConfig } from "../utils/site_tags.js";
 const googleVerification = googleVerificationContent(siteConfig.googleSiteVerification);
 const cloudflareBeacon = cloudflareBeaconConfig(siteConfig.cloudflareAnalyticsToken);
 const { title, description, frontmatter } = Astro.props;
 const pageTitle = title || frontmatter?.title || "Auto Tech Radar | 海外急上昇OSS徹底解剖メディア";
-const pageDesc = description || frontmatter?.description || "世界のGitHubトレンドから急上昇OSSを毎朝AIが自動検出し、日本語技術アーキテクチャ解説と受託・SaaSマネタイズ実践法をお届けします。";
+const pageDesc = description || frontmatter?.description || SITE_DESCRIPTION;
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // 関連記事（Read Next）の推薦ロジック
@@ -116,7 +118,7 @@ const ringBadgeBorder = tier.border;
     ) : (
       <script type="application/ld+json" set:html={jsonLdText({
         "@context": "https://schema.org",
-        "@type": "NewsMediaOrganization",
+        "@type": "Organization",
         "name": "Auto Tech Radar",
         "url": "https://ssk0224.github.io/auto-tech-radar/",
         "sameAs": [
@@ -124,7 +126,7 @@ const ringBadgeBorder = tier.border;
           "https://note.com/vast_ixora7005",
           "https://github.com/ssk0224/auto-tech-radar"
         ],
-        "description": "世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説とマネタイズ指南"
+        "description": SITE_DESCRIPTION
       })} />
     )}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -459,7 +461,7 @@ const ringBadgeBorder = tier.border;
         <div>
           <div class="brand-badge">⚡ Global OSS Intelligence</div>
           <div class="site-title"><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></div>
-          <p>世界の急上昇オープンソースを毎朝自動インデックス化・日本語技術解説 ＆ マネタイズ分析</p>
+          <p>GitHub でスター数が伸びている OSS の日本語解説（README などの公開情報をもとに AI が下書き）</p>
         </div>
         <div class="nav-links">
           <a href={`${baseUrl}/weekly/`} class="pill-btn" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe !important; border: 1px solid rgba(99, 102, 241, 0.5);">📑 週間白書</a>
@@ -541,18 +543,15 @@ const ringBadgeBorder = tier.border;
       {isArticle && (
         <section style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #334155; border-radius: 12px; padding: 1.8rem; margin: 3rem 0; text-align: center;">
           <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem;">
-            🔔 毎日自動で更新（新着は1日最大1本）
+            🔔 <Cadence />
           </div>
           <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">
-            明日の海外急上昇OSS解剖レポートを見逃さないために
+            新しい記事を受け取る
           </h3>
           <p style="font-size: 0.9rem; color: #94a3b8; max-width: 580px; margin: 0 auto 1.3rem; line-height: 1.6;">
-            GitHub 上の急上昇リポジトリから取り上げた OSS のアーキテクチャ図解を毎日自動で更新しています。公式𝕏のフォローまたはRSSフィード登録で最新情報を受け取れます。
+            新しい記事は RSS フィードで受け取れます。掲載中の記事の一覧はチートシートにまとめています。
           </p>
           <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-            <a href="https://x.com/AutoTechRadar" target="_blank" rel="noopener noreferrer" style="background: #000; border: 1px solid #475569; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-              𝕏 @AutoTechRadar をフォロー
-            </a>
             <a href={`${baseUrl}/rss.xml`} target="_blank" rel="noopener noreferrer" style="background: #ea580c; color: #fff; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
               📡 RSSリーダーに追加
             </a>
@@ -866,8 +865,8 @@ const ringBadgeBorder = tier.border;
 
               <div style="padding: 0.55rem 0.8rem; background: rgba(30, 27, 75, 0.45); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; flex-wrap: wrap;">
                 <div style="color: #c4b5fd; display: flex; align-items: center; gap: 0.4rem;">
-                  <span style="color: #a78bfa; font-weight: 700;">⚡ 2026最新規格:</span>
-                  <span>Claude / Cursor / Windsurf 向け即時開発キット</span>
+                  <span style="color: #a78bfa; font-weight: 700;">⚡ AI コーディング用:</span>
+                  <span>Claude / Cursor / Windsurf 向けの .cursorrules（この記事の要約）</span>
                 </div>
                 <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                   <button id="copy-cursor-btn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #bae6fd; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.74rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">

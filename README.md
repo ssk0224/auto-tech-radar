@@ -1,71 +1,43 @@
-# 📡 Auto Tech Radar - Global Trending OSS Intelligence & Monetization Engine
+# 📡 Auto Tech Radar
 
-[![Daily Tech Radar Pipeline](https://github.com/ssk0224/auto-tech-radar/actions/workflows/daily-crawl.yml/badge.svg)](https://github.com/ssk0224/auto-tech-radar/actions/workflows/daily-crawl.yml)
+[![Tech Radar Pipeline](https://github.com/ssk0224/auto-tech-radar/actions/workflows/daily-crawl.yml/badge.svg)](https://github.com/ssk0224/auto-tech-radar/actions/workflows/daily-crawl.yml)
 [![Live Site](https://img.shields.io/badge/Web-Live-blue?style=for-the-badge&logo=astro)](https://ssk0224.github.io/auto-tech-radar/)
-[![note PRO Membership](https://img.shields.io/badge/note-AutoTechRadarPRO-2cb696?style=for-the-badge)](https://note.com/vast_ixora7005)
-[![Enterprise Consultation](https://img.shields.io/badge/B2B-受託開発・導入相談-2563eb?style=for-the-badge)](https://ssk0224.github.io/auto-tech-radar/contact/)
-[![X Official](https://img.shields.io/badge/𝕏-@AutoTechRadar-black?style=for-the-badge)](https://x.com/AutoTechRadar)
 [![RSS 2.0 Feed](https://img.shields.io/badge/RSS-Feed-orange?style=for-the-badge)](https://ssk0224.github.io/auto-tech-radar/rss.xml)
 
-> **Auto Tech Radar** は、世界中の GitHub（Search API）からスター急上昇中のオープンソース（OSS）を毎朝 6:17 (JST)（8:43・12:17 に予備実行）に自動検出。Google Gemini（`gemini-2.5-flash`）が**「日本語アーキテクチャ深層解剖」**および**「受託開発・自社SaaS構築のマネタイズ考察」**を自動生成・配信するテックインテリジェンスメディアです。
+> **Auto Tech Radar** は、GitHub（Search API）でスター数が伸びているオープンソース（OSS）を選び、README などの公開情報をもとに Google Gemini（`gemini-2.5-flash` ほか）が日本語の解説を下書きし、自動検査を通ったものだけを掲載するサイトです。
+> 候補探しは GitHub Actions の定期実行（cron: 日本時間 6:17・8:43・12:17）で行い、条件を満たす候補が無い日・生成に失敗した日は掲載しません。実際の掲載本数は、サイトのトップページなどに掲載データ（記事の公開日）から数えて表示しています。
+
+記事は導入や採用を勧めるものではありません。性能などの記述は README の記載に基づくもので、ソフトウェアを動かして確かめたものではありません。
 
 ---
 
-## ⚡ クイックアクセス・公式ゲートウェイ
-- 🌐 **公開メディア（公式Webサイト）**: https://ssk0224.github.io/auto-tech-radar/
-- 📊 **全OSS商用化チートシート（Markdown/CSV出力・A4印刷対応）**: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
-- 📩 **法人・企業向け受託開発 ＆ AI導入相談窓口**: https://ssk0224.github.io/auto-tech-radar/contact/
-- 📗 **note 公式メンバーシップ（特典に追加した有料記事を閲覧可能）**: https://note.com/vast_ixora7005
-- 💼 **技術調査・学習目的での領収書・社内申請ガイド**: https://ssk0224.github.io/auto-tech-radar/expense/
-- 💳 **単発レポート（¥980）**: [note公式](https://note.com/vast_ixora7005)（有料記事の販売は note のみ）
-- 𝕏 **公式速報アカウント**: [@AutoTechRadar](https://x.com/AutoTechRadar)
+## リンク
+- 🌐 サイト: https://ssk0224.github.io/auto-tech-radar/
+- 📊 掲載中の OSS の一覧（Markdown/CSV 出力）: https://ssk0224.github.io/auto-tech-radar/cheatsheet/
+- 🤖 掲載中の記事のデータ（JSON）: https://ssk0224.github.io/auto-tech-radar/api/radar.json
+- 📝 運営方針・自動で検査していること・訂正履歴: https://ssk0224.github.io/auto-tech-radar/about/
+- 📗 note（有料記事の販売は note のみ）: https://note.com/vast_ixora7005
+- 📩 お問い合わせ: https://ssk0224.github.io/auto-tech-radar/contact/
+
+掲載中の記事の一覧は手で書かず、サイトの一覧・RSS・`api/radar.json` を正としています（記事のデータ `src/pages/radar/*.md` から生成）。
 
 ---
 
-## 🏆 注目の急上昇OSSアーキテクチャ解剖カタログ
-
-| プロジェクト | 技術領域 / 言語 | GitHub Stars | アーキテクチャ概要 ＆ 活用領域 | 日本語解剖レポート |
-| :--- | :--- | :--- | :--- | :--- |
-| **[pinvou-agent](https://github.com/Pinvou/pinvou-agent)** | 🤖 AI Agent / Rust | ⭐ 2,400+ | 文書・デザイン・コードを1画面で扱うデスクトップAI環境 | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/pinvou-agent/) |
-| **[answer-me-with-html](https://github.com/QingYunA/answer-me-with-html)** | 🌐 Modern Web / LLM | ⭐ 2,350+ | LLMの出力を1枚のHTML/図解に変換する軽量レンダリング手法 | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/answer-me-with-html/) |
-| **[tokenspeed](https://github.com/tokenspeed/tokenspeed)** | ⚡ ローカル推論 / Python | ⭐ 2,200+ | LLM推論ベンチマーク＆プロファイリング基盤 | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/tokenspeed/) |
-| **[OpenSandbox](https://github.com/opensandbox/opensandbox)** | 🛠️ Security / Go | ⭐ 15,700+ | AIエージェントやUntrustedコードを隔離実行する軽量サンドボックス | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/opensandbox/) |
-| **[PotatoTool](https://github.com/potato-security/PotatoTool)** | 🛠️ Security / Java | ⭐ 1,200+ | セキュリティ解析・通信検証向けの多機能ツールセット | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/potatotool/) |
-| **[GPTQModel](https://github.com/ModelCloud/GPTQModel)** | ⚡ 量子化 / PyTorch | ⭐ 1,270+ | LLM量子化（圧縮）ツールキット。推論時のGPUメモリ消費を削減 | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/gptqmodel/) |
-| **[JiuwenSwarm](https://github.com/openJiuwen-ai/jiuwenswarm)** | 🤖 AI Swarm / Python | ⭐ 5,900+ | マルチエージェント協調オーケストレーション基盤 | [解剖レポートを読む →](https://ssk0224.github.io/auto-tech-radar/radar/jiuwenswarm/) |
-
----
-
-## 🏗 自律型オムニチャネル ＆ 配信アーキテクチャ
+## 🏗 生成と配信の流れ
 
 ```mermaid
 flowchart TD
-    Cron["⏰ GitHub Actions (毎朝 6:17 JST ＋予備実行2回)"]
-    API["🐙 GitHub Search API (過去30日の★急増リポジトリ ＆ 4大技術領域)"]
-    Noise["🛡️ ノイズフィルター (辞書・求人・まとめ集を除外)"]
-    AI["🧠 Google Gemini 2.5 Flash (技術解剖・Mermaid図解・導入手順検証)"]
-    OGP["🎨 6大ダイナミックテーマカラー PNG サムネイル生成 (1200x630)"]
-    Build["⚡ Astro 7 SSG Engine (高速ビルド ＆ A4白書PDF印刷最適化)"]
+    Cron["⏰ GitHub Actions の定期実行（cron）"]
+    API["🐙 GitHub Search API（スター数が伸びているリポジトリ）"]
+    Noise["🛡️ ノイズフィルター（辞書・求人・まとめ集を除外）"]
+    AI["🧠 Google Gemini（README をもとにした解説・Mermaid 図の下書き）"]
+    Gate["✅ 自動検査（禁止表現・ライセンス・参照の実在・図の描画）"]
+    OGP["🎨 OGP 画像の生成（記事のデータから）"]
+    Build["⚡ Astro でサイトをビルド・配信物の監査"]
 
-    Cron --> API
-    API --> Noise
-    Noise --> AI
-    AI --> OGP
-    OGP --> Build
-
-    subgraph Channels["🚀 配信・収益化チャネル"]
-        subgraph Retail["📱 個人・エンジニア向け"]
-            Note["📗 note 有料記事 (980円) / メンバーシップ (月額1,980円)"]
-            X["📱 𝕏 解説スレッド配信"]
-        end
-        subgraph Enterprise["🏢 法人・チーム向け"]
-            B2B["📩 /contact/ 受託開発・社内AI導入相談"]
-            Sponsor["📢 /sponsor/ オフィシャルスポンサー枠 (PR表記つき)"]
-        end
-    end
-
-    Build --> Retail
-    Build --> Enterprise
+    Cron --> API --> Noise --> AI --> Gate --> OGP --> Build
+    Build --> Site["🌐 GitHub Pages"]
+    Build --> Note["📗 note（有料記事・オーナーが手で出品）"]
 ```
 
 ---
@@ -85,35 +57,26 @@ flowchart TD
 
 | Secret 名 | 必須 / 任意 | 用途 |
 |---|:---:|---|
-| `GEMINI_API_KEY` | **必須** | クローラーによる技術解剖・原稿自動生成用 Google Gemini API キー |
+| `GEMINI_API_KEY` | **必須** | 記事の下書きに使う Google Gemini API キー |
 | `GH_PAT` | 任意 | GitHub Search API のレート制限緩和および Pages 自動コミット用 Personal Access Token（未設定時は `GITHUB_TOKEN` を使用） |
-| `X_API_KEY` | 任意 | 毎朝の自動ツイート用 X (Twitter) API Key |
-| `X_API_SECRET` | 任意 | 毎朝の自動ツイート用 X (Twitter) API Secret |
-| `X_ACCESS_TOKEN` | 任意 | 毎朝の自動ツイート用 X (Twitter) Access Token |
-| `X_ACCESS_TOKEN_SECRET` | 任意 | 毎朝の自動ツイート用 X (Twitter) Access Token Secret |
+| `X_API_KEY` | 任意 | X (Twitter) への自動投稿用。未設定なら投稿しない |
+| `X_API_SECRET` | 任意 | 同上 |
+| `X_ACCESS_TOKEN` | 任意 | 同上 |
+| `X_ACCESS_TOKEN_SECRET` | 任意 | 同上 |
 
 ---
 
-## 🛡️ ECC × SUPERPOWERS × SUBAGENT 品質保証体制
-本プロジェクトは、3重の品質・境界統制プロトコルにより運用されています：
-1. **ECC (Enterprise & Confidentiality Guard)**: プライベートリポジトリや機密情報の完全隔離・有料本文の平文コミット防止。
-2. **SUPERPOWERS (Defect Sweep & Quality Gate)**: Mermaid図解・PNGサムネイル・外部パッケージ実在確認・13段階の自動監査（`npm run audit` / `npm test`）。
-3. **SUBAGENT (Swarm Market Intelligence)**: 海外テックトレンド・README準拠検証・品質監査の並行リサーチ。
-4. **テストの合否**: 件数を文書に書かず、GitHub Actions の実行結果（Linux は `daily-crawl.yml`、Windows は `ci-windows.yml`）で確かめます。
+## 🛡️ 品質の検査
+- `npm test`: 生成物・サイト・スクリプトのテスト（GitHub Actions のワークフローでも実行）。
+- `npm run audit`: 原稿とビルド結果（`dist/`）の監査。
+- 公開している文言のうち、更新頻度・ライセンス・リンク・実行時刻などの事実は `tests/docs_facts.test.mjs` がデータ・コードと突き合わせます。
+- テストの合否は件数を文書に書かず、GitHub Actions の実行結果（Linux は `daily-crawl.yml`、Windows は `ci-windows.yml`）で確かめます。
 
----
-
-## 💼 法人・企業様向け受託開発・AI導入支援
-Auto Tech Radar では、テック企業様向けの以下のご相談を承っております：
-- **自社専用AIエージェント構築**: レポート対象OSSの社内環境導入・業務ワークフロー連携・PoC開発
-- **商用SaaS代替・セルフホスト導入**: オープンソースを活用した自社管理インフラへの移行支援
-- **オフィシャルスポンサーシップ**: 当メディアおよび公式𝕏でのOSS活用プロダクト紹介・協賛掲載（PR表記つき）
-
-👉 **[受託開発・導入支援の無料相談・見積もりフォームはこちら（/contact/）](https://ssk0224.github.io/auto-tech-radar/contact/)**
+開発には外部の開発支援ツール（Claude Code と、そのプラグインの ECC・Superpowers）を使っています。
 
 ---
 
 ## 📜 ライセンス ＆ クレジット
-- 本プロジェクトのソースコードおよびサイト構成は MIT License に基づき公開されています。
+- 本プロジェクトのソースコードおよびサイト構成は MIT License（[LICENSE](LICENSE)）で公開しています。
 - 分析対象となる各オープンソースソフトウェアの権利は各リポジトリの著作者に帰属します。
-- © 2026 Auto Tech Radar. Engineered with Google Gemini & Astro.
+- © 2026 Auto Tech Radar. Built with Google Gemini & Astro.

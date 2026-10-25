@@ -2,11 +2,12 @@
 import Layout from "../layouts/Layout.astro";
 import { siteConfig } from "../config/site.js";
 import { getArticles, hrefOf, starTier, STAR_TIERS, STAR_TIER_NAME, STAR_TIER_NOTE } from "../utils/articles.js";
+import { categoryOf, TOPIC_CATEGORIES, UNCATEGORIZED } from "../utils/categories.js";
 const posts = getArticles() as any[];
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // 4象限（技術領域）& 4つのスター数区分（同心円）への自動マッピング
-// 象限はタグ・説明文のキーワード、同心円は GitHub スター数だけで決める（成熟度や推奨の判定ではない）
+// 象限は記事のタグ（src/utils/categories.js。当てはまらなければ「未分類」）、同心円は GitHub スター数だけで決める（成熟度や推奨の判定ではない）
 const radarItems = posts.map(p => {
   const front = p.frontmatter || {};
   const title = (front.title || p.file || "").split(" - ")[0].trim();
@@ -15,19 +16,9 @@ const radarItems = posts.map(p => {
   const tags = (Array.isArray(front.tags) ? front.tags : []).map((t: string) => t.toLowerCase());
   const slug = p.url.replace(/\/$/, "").split("/").pop();
 
-  // 象限 (Quadrant) 判定
-  let quadrant = 0; // 0: AI Agents, 1: LLM/Inference, 2: DevTools, 3: Backend/Systems
-  const text = (title + " " + desc + " " + tags.join(" ")).toLowerCase();
-  
-  if (text.includes("agent") || text.includes("autonomous") || text.includes("swarm") || text.includes("workflow")) {
-    quadrant = 0; // Q1: AI Agents
-  } else if (text.includes("llm") || text.includes("gpt") || text.includes("model") || text.includes("inference") || text.includes("token")) {
-    quadrant = 1; // Q2: LLM Infrastructure
-  } else if (text.includes("tool") || text.includes("cli") || text.includes("brew") || text.includes("pkg") || text.includes("terminal")) {
-    quadrant = 2; // Q3: DevTools & CLI
-  } else {
-    quadrant = 3; // Q4: Backend & Systems
-  }
+  // 象限 (Quadrant): 0〜2 は TOPIC_CATEGORIES の順、3 はタグに当てはまらない記事（未分類）
+  const cat = categoryOf(front.tags);
+  const quadrant = cat.key === "none" ? 3 : TOPIC_CATEGORIES.findIndex((c) => c.key === cat.key);
 
   // リング = GitHub スター数の区分（共通定義: src/utils/articles.js）
   const ring = starTier(stars).ring;
@@ -121,7 +112,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
         <!-- Q1: AI Agents -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #38bdf8; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-            🤖 Q1: AI Agents & 自律システム
+            🤖 Q1: {TOPIC_CATEGORIES[0].label}
           </h4>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
             {radarItems.filter(item => item.quadrant === 0).map(item => (
@@ -138,7 +129,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
         <!-- Q2: LLM & Local Inference -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #a78bfa; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-            ⚡ Q2: LLM・ローカル推論基盤
+            ⚡ Q2: {TOPIC_CATEGORIES[1].label}
           </h4>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
             {radarItems.filter(item => item.quadrant === 1).map(item => (
@@ -155,7 +146,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
         <!-- Q3: DevTools & CLI -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #34d399; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-            🛠️ Q3: Developer Tools & CLI
+            🛠️ Q3: {TOPIC_CATEGORIES[2].label}
           </h4>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
             {radarItems.filter(item => item.quadrant === 2).map(item => (
@@ -169,10 +160,10 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
           </ul>
         </div>
 
-        <!-- Q4: Backend & Systems -->
+        <!-- Q4: 未分類 -->
         <div style="background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 1.1rem;">
           <h4 style="margin: 0 0 0.8rem; color: #fbbf24; font-size: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.4rem;">
-            🦀 Q4: Next-Gen Systems & Rust
+            🧩 Q4: {UNCATEGORIZED}（タグが上の{TOPIC_CATEGORIES.length}つに当てはまらない記事）
           </h4>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
             {radarItems.filter(item => item.quadrant === 3).map(item => (
@@ -189,7 +180,7 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
     </div>
   </div>
 
-  <script is:inline define:vars={{ items: radarItems }}>
+  <script is:inline define:vars={{ items: radarItems, quadLabels: [...TOPIC_CATEGORIES.map((c) => c.label), UNCATEGORIZED] }}>
     // Canvas インタラクティブ描画ロジック
     const canvas = document.getElementById('radarCanvas');
     if (canvas && canvas.getContext) {
@@ -328,7 +319,6 @@ const ringBadgeStyle = (ring: number) => RING_BADGE_STYLES[ring] ?? RING_BADGE_S
             ringEl.style.background = ringColors[hoveredItem.ring] || '#3b82f6';
             ringEl.style.color = '#fff';
 
-            const quadLabels = ['AI Agents', 'LLM Infrastructure', 'DevTools & CLI', 'Backend & Systems'];
             quadEl.textContent = `象限: ${quadLabels[hoveredItem.quadrant]}`;
             linkEl.href = hoveredItem.url;
 

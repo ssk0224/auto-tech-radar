@@ -10,6 +10,7 @@ import { buildEyecatchTasks } from "./note_api_server.mjs";
 import { eyecatchPng } from "./utils/eyecatch.mjs";
 import { NOTE_PROFILE, chromeExe } from "./utils/note_chrome.mjs";
 import { noteStatusFile, noteBrowserLogFile } from "./utils/owner_dir.mjs";
+import { jstClock, utcStamp } from "../src/utils/dates.js";
 import { NOTE_FIX_MAX, normBlocks, planFreePartReplace, planFreePartFixes, noteFixBudget } from "./utils/note_pending.mjs";
 import { draftFileFor, isPaidSlug, plainText, renderDraftFree } from "./utils/free_part.mjs";
 
@@ -49,14 +50,14 @@ function recordFix(slug) {
   const h = readFixHistory();
   if (h.error) throw new Error(`直した記録（${FIX_HISTORY}）が読めないため、公開しません: ${h.error}`);
   const keep = h.entries.filter((e) => Date.parse(e?.at) > Date.now() - 7 * 24 * 60 * 60 * 1000);
-  keep.push({ at: new Date().toISOString(), slug });
+  keep.push({ at: utcStamp(), slug });
   fs.mkdirSync(path.dirname(FIX_HISTORY), { recursive: true });
   const tmp = `${FIX_HISTORY}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(keep, null, 2) + "\n", "utf8");
   fs.renameSync(tmp, FIX_HISTORY);
 }
 // ISO 時刻を日本時間の「MM-DD HH:MM」で見せる
-const jstLabel = (iso) => `${new Date(Date.parse(iso) + 9 * 60 * 60 * 1000).toISOString().slice(5, 16).replace("T", " ")}（日本時間）`;
+const jstLabel = (iso) => `${jstClock(iso)}（日本時間）`;
 
 // 記事の間などに意図して置く待ち時間（テスト用: ATR_NOTE_WAIT_SCALE で縮める）
 const pause = (ms) => new Promise((r) => setTimeout(r, ms * Number(process.env.ATR_NOTE_WAIT_SCALE || 1)));
@@ -759,7 +760,7 @@ function writeLog(entry) {
   }
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), version, ...entry }, null, 2) + "\n", "utf8");
+    fs.writeFileSync(file, JSON.stringify({ at: utcStamp(), version, ...entry }, null, 2) + "\n", "utf8");
   } catch (e) {
     // 記録が残らないと、[U] の一覧が「直した」ことを知らずに同じ記事を出し続ける。黙らずに知らせる
     console.log(`⚠ 実行記録（${path.basename(file)}）を書けませんでした: ${e.code || e.message.split("\n")[0]}`);

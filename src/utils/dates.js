@@ -16,9 +16,56 @@ export function jstDayStart(v) {
   return d ? Date.parse(`${d}T00:00:00+09:00`) : null;
 }
 
-// 公開日（jstDayStart の値）が、now を含む日本時間の直近 7 日間（今日と前の 6 日）に入るか。未来の日付は入れない
-export function withinLastWeek(dayStartMs, nowMs) {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// 公開日（jstDayStart の値）が、now を含む日本時間の直近 days 日間（今日と前の days-1 日）に入るか。未来の日付は入れない
+export function withinLastDays(dayStartMs, nowMs, days) {
   if (dayStartMs === null || dayStartMs === undefined || !Number.isFinite(dayStartMs)) return false;
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-  return dayStartMs <= nowMs && nowMs - dayStartMs < WEEK_MS;
+  return dayStartMs <= nowMs && nowMs - dayStartMs < days * DAY_MS;
+}
+
+// 週間ダイジェスト（サイトの /weekly/ と X のまとめスレッド）が扱う日数。ページの「直近N日」の表示もこの値から作る
+export const WEEK_DAYS = 7;
+export function withinLastWeek(dayStartMs, nowMs) {
+  return withinLastDays(dayStartMs, nowMs, WEEK_DAYS);
+}
+
+// ---- 日付の決まり（tests/dates_policy.test.mjs） ----
+// 表示・「今日」「直近 N 日」の判定は日本時間（JST）の暦日。保存用のキー（台帳のファイル名・GitHub 検索の日付）は UTC で、utcDate と名前で区別する。
+// scripts・src で暦日・時差を計算するときは、ここの関数だけを使う（その場で toISOString().slice(0, 10) や 9 時間の足し算をしない）
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+// 時刻（ms・Date・ISO 文字列）の日本時間の暦日。不正なら null
+export function jstDate(now = Date.now()) {
+  const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
+  return Number.isFinite(ms) ? isoDay(ms + JST_OFFSET_MS) : null;
+}
+
+// 保存用の UTC の暦日（台帳のファイル名・GitHub 検索の日付など、UTC が仕様のものだけに使う）
+export function utcDate(now = Date.now()) {
+  const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
+  return Number.isFinite(ms) ? isoDay(ms) : null;
+}
+
+// 記録用の UTC の時刻（ISO 8601・末尾 Z）。実行記録の at・checkedAt などの保存用。表示・暦日の判定には使わず、読むときは jstDate に渡す
+export function utcStamp(now = Date.now()) {
+  const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
+  return new Date(ms).toISOString();
+}
+
+// 暦日（YYYY-MM-DD）の n 日後（負なら前）。時差に関係しない暦の計算
+export function addDays(date, n) {
+  return isoDay(Date.parse(`${date}T00:00:00Z`) + n * DAY_MS);
+}
+
+// 日本時間の今日から n 日前の暦日（n=0 は今日。「今日を含む直近 7 日」の始まりは jstDaysAgo(6)）
+export function jstDaysAgo(n, now = Date.now()) {
+  return addDays(jstDate(now), -n);
+}
+
+// 日本時間の時刻の表示（MM-DD HH:mm）
+export function jstClock(now = Date.now()) {
+  const ms = now instanceof Date ? now.getTime() : typeof now === "string" ? Date.parse(now) : Number(now);
+  return new Date(ms + JST_OFFSET_MS).toISOString().slice(5, 16).replace("T", " ");
 }

@@ -2,6 +2,7 @@
 // 「差し替えた」と記録した時刻が、CI の最新の確認より後のときだけ隠す（次の確認で直っていなければ、また出す）。
 // 日付だけで比べると、同じ日に「更新する」を押し忘れた記事がその日いっぱい隠れてしまう（2026-10-21 に実際に起きた）
 import { findHype } from "./hype_check.mjs";
+import { utcStamp } from "../../src/utils/dates.js";
 
 export function hiddenAfterOwnerFix(noteUpdatedAt, checkedAt) {
   return Boolean(noteUpdatedAt && checkedAt && noteUpdatedAt > checkedAt);
@@ -99,7 +100,7 @@ export function noteFixBudget(history, now = Date.now(), max = NOTE_FIX_MAX, win
     .sort((a, b) => a - b);
   const left = Math.max(0, max - recent.length);
   // 古い方から数えて、期限切れになると残りが 1 本以上になる記録の、24 時間後
-  const nextAt = left > 0 ? null : new Date(recent[recent.length - max] + windowMs).toISOString();
+  const nextAt = left > 0 ? null : utcStamp(recent[recent.length - max] + windowMs);
   return { left, used: recent.length, nextAt };
 }
 

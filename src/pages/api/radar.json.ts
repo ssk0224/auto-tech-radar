@@ -3,7 +3,7 @@ import { getArticles, slugOf, starTier, STAR_TIERS, STAR_TIER_NAME, STAR_TIER_NO
 // 掲載時と現在のスター数（Radar Ledger: data/derived/velocity.json。記録が無ければ null）
 import { trackRecordFor } from '../../utils/track_record.js';
 import { velocity } from '../../utils/velocity_data.js';
-import { dateLabel } from '../../utils/dates.js';
+import { dateLabel, utcStamp } from '../../utils/dates.js';
 import { tagsOf } from '../../utils/article_page.js';
 
 export const GET: APIRoute = async () => {
@@ -37,7 +37,7 @@ export const GET: APIRoute = async () => {
     specification: "Agentic AI & Machine-Readable Open Tech Radar",
     endpoint_url: "https://ssk0224.github.io/auto-tech-radar/api/radar.json",
     total_tracked_oss: items.length,
-    updated_at: new Date().toISOString(),
+    updated_at: utcStamp(),
     rings_definition: { name: STAR_TIER_NAME, tiers: STAR_TIERS.map((t) => t.label), note: STAR_TIER_NOTE },
     data: items
   }, null, 2), {

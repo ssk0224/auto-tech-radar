@@ -15,8 +15,8 @@ const ossList = posts.map(p => {
 ---
 
 <Layout 
-  title="B2B受託開発・社内AI導入 即時見積もりシミュレーター | Auto Tech Radar"
-  description="急上昇OSSを活用した社内DX・AIエージェント構築・SaaS脱課金リプレイスの概算開発費用、想定工数、削減コストROIを1秒で試算できるインタラクティブシミュレーター。"
+  title="開発・導入費用の概算シミュレーター | Auto Tech Radar"
+  description="OSS を使った社内向けシステムの開発費用・工数の目安と、入力した月額費用からの削減額を、ブラウザ上で概算するシミュレーターです（見積もりではありません）。"
 >
   <style>
     @media (max-width: 640px) {
@@ -33,11 +33,11 @@ const ossList = posts.map(p => {
     <!-- ヘッダー -->
     <div style="text-align: center; margin-bottom: 2.2rem; background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 70%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 2.2rem 1.5rem;">
       <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.8rem;">
-        🏢 法人・受託開発者向け プロフェッショナル試算ツール
+        🏢 法人向けの概算ツール
       </div>
       <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0 0 0.8rem; color: #fff; line-height: 1.3;">
         AI受託開発 ＆ 社内DX導入<br/>
-        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">即時見積もり ＆ ROIシミュレーター</span>
+        <span style="background: linear-gradient(135deg, #60a5fa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">概算シミュレーター</span>
       </h1>
       <p style="font-size: 1rem; color: #94a3b8; max-width: 640px; margin: 0 auto; line-height: 1.7;">
         急上昇OSSを活用した「社内専用AIエージェント構築」や「商用SaaS脱課金リプレイス」の開発費用・工数の目安と、入力いただいた月額費用に基づく削減額を試算します（実際の見積もりではなく、あくまで概算です）。
@@ -122,7 +122,7 @@ const ossList = posts.map(p => {
           </label>
           <label style="display: flex; align-items: center; gap: 0.5rem; background: #0b0f19; border: 1px solid #1f2937; padding: 0.6rem 0.8rem; border-radius: 6px; cursor: pointer;">
             <input type="checkbox" id="req-maint" style="accent-color: #3b82f6;" />
-            <span style="font-size: 0.85rem; color: #e2e8f0;">月次保守・モデル更新パッケージ (+¥15万/月)</span>
+            <span style="font-size: 0.85rem; color: #e2e8f0;">月額保守・モデル更新パッケージ (+¥15万/月)</span>
           </label>
         </div>
       </div>
@@ -178,7 +178,7 @@ const ossList = posts.map(p => {
           🖨️ A4見積書として印刷 / PDF保存
         </button>
         <a id="consult-link" href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/contact/`} style="background: #2563eb; color: #fff; padding: 0.75rem 1.4rem; border-radius: 8px; font-weight: 800; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-          📩 この構成で開発・導入を無料相談する →
+          📩 この前提でお問い合わせする →
         </a>
       </div>
     </div>
@@ -195,7 +195,7 @@ const ossList = posts.map(p => {
   </div>
 
   <script is:inline>
-    const MAINT_MONTHLY = 150000; // 月次保守パッケージ（円/月）
+    const MAINT_MONTHLY = 150000; // 月額保守パッケージ（円/月）
 
     function calculateEstimate() {
       const ossSelect = document.getElementById('oss-select');
@@ -233,7 +233,7 @@ const ossList = posts.map(p => {
       const resultPriceEl = document.getElementById('result-price');
       if (resultPriceEl) resultPriceEl.textContent = '¥' + basePrice.toLocaleString();
       const resultMaintEl = document.getElementById('result-maint');
-      if (resultMaintEl) resultMaintEl.textContent = maintMonthly > 0 ? '＋ 月次保守 ¥' + maintMonthly.toLocaleString() + ' /月' : '';
+      if (resultMaintEl) resultMaintEl.textContent = maintMonthly > 0 ? '＋ 月額保守 ¥' + maintMonthly.toLocaleString() + ' /月' : '';
       const resultTimelineEl = document.getElementById('result-timeline');
       if (resultTimelineEl) resultTimelineEl.textContent = '約 ' + months + ' ヶ月';
       const roiEl = document.getElementById('result-roi');
