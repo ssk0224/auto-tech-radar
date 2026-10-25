@@ -8,6 +8,11 @@ import { spawnSync } from "child_process";
 import { readText } from "./helpers/read_src.mjs";
 import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
 
+// [E] で aihot の次に処理される記事。note_urls.json は note の公開状態に合わせて変わる（非公開にした記事は消える）ので、
+// 記事名を書かずに並び順から取る（以前は anatomy と書いていて、2026-10-22 に anatomy を非公開にしたら 4 本が落ちた）
+const urlSlugs = Object.keys(JSON.parse(readText("scripts/note_urls.json")));
+const NEXT = urlSlugs[urlSlugs.indexOf("aihot") + 1];
+
 
 // CI の検査結果（note_status.json）の代わり。実データは CI が毎回書き換える（公開中の記事に要修正の表現があれば issues が入る）ので、
 // テストは実データに左右されないよう、記事ごとの問題を指定したファイルを ATR_NOTE_STATUS で渡す
@@ -147,38 +152,38 @@ test("[E] 編集画面の下書きが公開中と違う記事は、置き換え�
 });
 
 test("[E] インボイス対応領収書の案内と「コピペで本番一発起動」を、太字で分かれていても置き換えて公開し、1 回の上限を超えた分は次回に回す", { skip: !chrome && "Chrome が無い環境では未実施" }, async () => {
-  // aihot と anatomy の 2 本に残っているが、上限を 1 本にして実行する（note_urls.json の順で aihot が先）
-  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_COPIPE: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
+  // aihot と NEXT の 2 本に残っているが、上限を 1 本にして実行する（note_urls.json の順で aihot が先）
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k[NEXT]}`, ATR_NOTE_MOCK_COPIPE: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
   assert.equal(r.status, 0, r.out);
   assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice, copipe-kit）/);
   // 上限（24 時間に 1 本）を使い切ったので、残りは次に直せる時刻以降の [E] で
   assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 0 \/ 残り 1 本は\d\d-\d\d \d\d:\d\d（日本時間） 以降の \[E\]で直します（24時間に 1 本まで）/);
   assert.deepEqual(r.fixes.map((f) => f.slug), ["aihot"], "直した記事と時刻をオーナー端末に記録する");
-  assert.doesNotMatch(r.out, /✓ 要修正の表現を直して更新: anatomy/);
+  assert.doesNotMatch(r.out, new RegExp(`✓ 要修正の表現を直して更新: ${NEXT}`));
   const { noteHtmlText } = await import("../scripts/utils/note_pending.mjs");
   const aihot = noteHtmlText(r.live[r.keys.aihot]);
   assert.match(aihot, /※noteは購入後、「購入・チップ履歴」から領収書を発行できます。経費精算の可否は所属先の規程をご確認ください。/);
   assert.match(aihot, /公式READMEに基づく導入手順（動作未検証の例を含む）の「Docker Compose & \.env 設定キット」/);
   assert.doesNotMatch(aihot, /インボイス|コピペで本番一発起動|技術調査費/);
-  assert.deepEqual(Object.keys(r.live), [r.keys.aihot], "上限を超えた anatomy は更新しない");
+  assert.deepEqual(Object.keys(r.live), [r.keys.aihot], "上限を超えた次の記事は更新しない");
 });
 
 test("[E] 前回の実行で下書きだけ直してある記事はそのまま公開し、下書きが公開中と違う文になっている記事は公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_RESUME: k.aihot, ATR_NOTE_MOCK_OTHER: k.anatomy }));
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k[NEXT]}`, ATR_NOTE_MOCK_RESUME: k.aihot, ATR_NOTE_MOCK_OTHER: k[NEXT] }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /✓ 要修正の表現を直して更新: aihot（invoice）/);
-  assert.match(r.out, /✕ anatomy: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません（3 段落目が違います。公開はしていません）/);
+  assert.match(r.out, new RegExp(`✕ ${NEXT}: 編集画面の下書き（\\d+ 字）が公開中の記事（\\d+ 字）と違うため、自動では直しません（3 段落目が違います。公開はしていません）`));
   assert.deepEqual(Object.keys(r.live), [r.keys.aihot]);
   assert.match(r.live[r.keys.aihot], /「購入・チップ履歴」から領収書を発行できます。/);
 });
 
 test("[E] 下書きが公開中と違う記事は飛ばし、次の記事は直す", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_DRIFT: k.aihot }));
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k[NEXT]}`, ATR_NOTE_MOCK_DRIFT: k.aihot }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /✕ aihot: 編集画面の下書き（\d+ 字）が公開中の記事（\d+ 字）と違うため、自動では直しません/);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: anatomy（invoice）/);
+  assert.match(r.out, new RegExp(`✓ 要修正の表現を直して更新: ${NEXT}（invoice）`));
   assert.match(r.out, /要修正の表現の修正: 修正 1 \/ 失敗 1\n/);
-  assert.deepEqual(Object.keys(r.live), [r.keys.anatomy], "anatomy だけ更新する");
+  assert.deepEqual(Object.keys(r.live), [r.keys[NEXT]], "次の記事だけ更新する");
 });
 
 test("[E] 下書きに公開していない文が残っている記事は、ほかに直す表現（コピペで本番一発起動）があっても置き換えず公開しない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
@@ -192,10 +197,10 @@ test("[E] 下書きに公開していない文が残っている記事は、ほ�
 });
 
 test("[E] 「更新する」の後に無料部分が変わった（有料ラインの位置が変わった）ら、その場で止めて残りの記事を直さない", { skip: !chrome && "Chrome が無い環境では未実施" }, () => {
-  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_PAIDMOVE: k.aihot }));
+  const r = runMaintain((k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k[NEXT]}`, ATR_NOTE_MOCK_PAIDMOVE: k.aihot }));
   assert.notEqual(r.status, 0, r.out);
   assert.match(r.out, /✕ aihot: 「更新する」の後、無料部分（ログインなしで読める部分）が更新前と違います（4 段落目、更新前 3 段落 \/ 更新後 4 段落）。有料ラインの位置が変わった可能性があります/);
-  assert.doesNotMatch(r.out, /anatomy/, "残りの記事は開かない");
+  assert.doesNotMatch(r.out, new RegExp(NEXT), "残りの記事は開かない");
   assert.deepEqual(Object.keys(r.live), [r.keys.aihot]);
   assert.deepEqual(r.fixes.map((f) => f.slug), ["aihot"], "「更新する」まで押した記事は 24 時間の本数に数える");
 });

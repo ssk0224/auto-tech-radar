@@ -6,7 +6,7 @@ import { findProLeaks } from './utils/pro_boundary.mjs';
 import { zennCta } from './utils/funnel_copy.mjs';
 import { splitPaid, isFooterOnly, sealedInfo, keyId, SEALED_PLACEHOLDER_RE, MIN_PUBLIC_NOTE_CHARS, publicKeyFile as vaultPublicKeyFile } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
-import { REMOVED_SLUGS } from './utils/blocklist.mjs';
+import { REMOVED_SLUGS, isNoteWithdrawn } from './utils/blocklist.mjs';
 import { findForbiddenClaims } from './utils/claims_check.mjs';
 import { mermaidProblems } from './utils/mermaid.mjs';
 import { mermaidParseErrors } from './utils/mermaid_parse.mjs';
@@ -658,7 +658,8 @@ if (fs.existsSync(noteUrlsFile)) {
     publishHistory = JSON.parse(fs.readFileSync(path.join(rootDir, 'scripts', 'publish_history.json'), 'utf8'));
   } catch (e) {}
   nonNoiseArticles.forEach(slug => {
-    if (publishHistory[slug]?.note && !noteUrlsData[slug]) {
+    // note から取り下げた記事（blocklist.mjs）は出品の記録が残っていても URL が無いのが正しい
+    if (publishHistory[slug]?.note && !isNoteWithdrawn(slug) && !noteUrlsData[slug]) {
       console.error(`  ❌ [MISSING NOTE URL] 非ノイズ記事 "${slug}" が scripts/note_urls.json に登録されていません`);
       noteUrlsErrors++;
       errorCount++;

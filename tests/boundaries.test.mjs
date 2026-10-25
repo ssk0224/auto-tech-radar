@@ -8,6 +8,7 @@ import { extractReferences } from "../scripts/utils/reference_check.mjs";
 import { zennCta } from "../scripts/utils/funnel_copy.mjs";
 import { splitPaid, isSealed, assembleNote, loadPrivateKeys } from "../scripts/utils/note_vault.mjs";
 import { isNoise } from "../scripts/utils/noise_filter.mjs";
+import { isNoteWithdrawn } from "../scripts/utils/blocklist.mjs";
 import { findForbiddenClaims } from "../scripts/utils/claims_check.mjs";
 import { fixMermaidInContent, mermaidProblems } from "../scripts/utils/mermaid.mjs";
 
@@ -194,7 +195,8 @@ test("全Web記事のFrontmatter完全性 (stars, title, description, pubDate)",
 test("scripts/note_urls.json は note 公開済みの全非ノイズ記事を含み、タイトルに # や禁止表現を含まない", () => {
   // 新しく生成した記事は、オーナーが note に出品するまで note_urls.json に載らない（定期実行のたびに落ちないよう、公開済みだけを見る）
   const history = JSON.parse(fs.readFileSync("scripts/publish_history.json", "utf8"));
-  const nonNoise = Object.keys(history).filter((s) => history[s]?.note && !isNoise(s) && fs.existsSync(`note_drafts/${s}_note.md`));
+  // note から取り下げた記事（blocklist.mjs）は出品の記録が残るが URL は無い（別のテストで「載っていない」ことを確かめる）
+  const nonNoise = Object.keys(history).filter((s) => history[s]?.note && !isNoise(s) && !isNoteWithdrawn(s) && fs.existsSync(`note_drafts/${s}_note.md`));
   const raw = fs.readFileSync("scripts/note_urls.json", "utf8");
 
   // 重複キー検査
@@ -214,6 +216,16 @@ test("scripts/note_urls.json は note 公開済みの全非ノイズ記事を含
     assert.deepEqual(findForbiddenClaims(data[slug].title), [], `${slug}: 禁止表現が含まれています`);
     assert.match(data[slug].url, /^https:\/\/note\.com\/[\w-]+\/n\/[a-zA-Z0-9]+$/, `${slug}: URLが不正`);
   }
+});
+
+test("note から取り下げた記事は note_urls.json に載らず、[N] の新規出品にも入らない（購入リンクの復活・再出品を防ぐ）", async () => {
+  const { NOTE_WITHDRAWN_SLUGS } = await import("../scripts/utils/blocklist.mjs");
+  const { slugsToCreate } = await import("../scripts/note_api_server.mjs");
+  const data = JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8"));
+  assert.ok(NOTE_WITHDRAWN_SLUGS.length > 0);
+  for (const slug of NOTE_WITHDRAWN_SLUGS) assert.ok(!data[slug], `取り下げた ${slug} が note_urls.json に残っています`);
+  const drafts = [...NOTE_WITHDRAWN_SLUGS, "zcode", "brand-new-article"].map((s) => `${s}_note.md`);
+  assert.deepEqual(slugsToCreate(drafts, { zcode: { url: "https://note.com/x/n/n1" } }), ["brand-new-article"]);
 });
 
 test("全Mermaidダイアグラムは未エスケープHTMLタグ・未クォート特殊文字ラベルを含まない", () => {

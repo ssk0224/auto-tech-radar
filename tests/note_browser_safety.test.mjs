@@ -12,6 +12,9 @@ import { mdToNoteHtml } from "../scripts/utils/note_html.mjs";
 import { chrome, ownerEnv, rmDir } from "./helpers/chrome.mjs";
 
 const skip = !chrome && "Chrome が無い環境では未実施";
+// [E] で aihot の次に処理される記事。note_urls.json は note の公開状態に合わせて変わるので、記事名を書かずに並び順から取る
+const urlSlugs = Object.keys(JSON.parse(fs.readFileSync("scripts/note_urls.json", "utf8")));
+const NEXT = urlSlugs[urlSlugs.indexOf("aihot") + 1];
 
 // cmd: maintain | eyecatch。extraEnv(keys) に note_urls.json の記事キー（slug → key）が渡る。
 // history: 以前の [E] の記録（配列なら JSON で、文字列ならそのまま書く）。実行後の記録 fixes、更新された本文 live、実行記録 log を返す
@@ -120,10 +123,10 @@ test("[E] テスト用の上限 ATR_NOTE_FIX_MAX でも 24 時間に 12 本を�
 });
 
 test("[E] 下書きが公開中と違って直せない記事は、その回の本数の枠を使わない（後ろの記事を直す）", { skip }, () => {
-  const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k.anatomy}`, ATR_NOTE_MOCK_DRIFT: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
+  const r = runNote("maintain", (k) => ({ ATR_NOTE_MOCK_INVOICE: `${k.aihot},${k[NEXT]}`, ATR_NOTE_MOCK_DRIFT: k.aihot, ATR_NOTE_FIX_MAX: "1" }));
   assert.match(r.out, /✕ aihot: 編集画面の下書き/);
-  assert.match(r.out, /✓ 要修正の表現を直して更新: anatomy（invoice）/);
-  assert.deepEqual(Object.keys(r.live), [r.keys.anatomy]);
+  assert.match(r.out, new RegExp(`✓ 要修正の表現を直して更新: ${NEXT}（invoice）`));
+  assert.deepEqual(Object.keys(r.live), [r.keys[NEXT]]);
 });
 
 test("[E] の実行記録に入る値（steps・失敗の理由）に、本文の文字列を入れない（数・規則の id・URL・ボタンの文言だけ）", () => {

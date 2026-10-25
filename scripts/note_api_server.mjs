@@ -5,11 +5,20 @@ import { fileURLToPath } from 'url';
 import { parseDraftToNotePayload } from './utils/note_html.mjs';
 import { assembleNote, loadPrivateKeys, noteDir } from './utils/note_vault.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
+import { isNoteWithdrawn } from './utils/blocklist.mjs';
 import { eyecatchPng, EYECATCH_WIDTH, EYECATCH_HEIGHT } from './utils/eyecatch.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..');
 const PORT = 18921;
+
+// 新規出品する原稿のスラグ。URL のある記事（出品済み）と、note から取り下げた記事（blocklist.mjs）は除く
+export function slugsToCreate(files, noteUrls) {
+  return files
+    .filter((f) => f.endsWith('_note.md'))
+    .map((f) => f.replace('_note.md', ''))
+    .filter((slug) => slug !== 'LEAD_MAGNET_CHEAT_SHEET' && !isNoise(slug) && !isNoteWithdrawn(slug) && !noteUrls[slug]?.url);
+}
 
 export function buildFullSyncTasks() {
   const keys = loadPrivateKeys();
@@ -42,12 +51,8 @@ export function buildFullSyncTasks() {
 
   // 3. New articles to create dynamically
   const creates = [];
-  const allDrafts = fs.readdirSync(noteDir).filter((f) => f.endsWith('_note.md'));
-  for (const f of allDrafts) {
-    const slug = f.replace('_note.md', '');
-    if (slug === 'LEAD_MAGNET_CHEAT_SHEET' || isNoise(slug)) continue;
-    if (noteUrls[slug]?.url) continue; // Already mapped
-    const noteFile = path.join(noteDir, f);
+  for (const slug of slugsToCreate(fs.readdirSync(noteDir), noteUrls)) {
+    const noteFile = path.join(noteDir, `${slug}_note.md`);
     const fullMd = assembleNote(noteFile, keys);
     const payload = parseDraftToNotePayload(fullMd, true);
     if (!payload.freeBody || !payload.payBody || !payload.separator) {
