@@ -1143,7 +1143,10 @@ const NOTE_STATUS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 function refreshNoteStatus() {
   try {
     if (Date.now() - fs.statSync(noteStatusFile()).mtimeMs < NOTE_STATUS_MAX_AGE_MS) return;
-  } catch (e) {}
+  } catch (e) {
+    // 検査結果がまだ無い（ENOENT）なら取り直す。それ以外で更新時刻を読めないときも、古いとみなして取り直す（新しいと決めつけない）
+    if (e.code !== 'ENOENT') console.log(`${c.yellow}⚠ note の検査結果の更新時刻を読めません（取り直します）: ${e.message}${c.reset}`);
+  }
   console.log(`${c.dim}公開中の note の状態を確認しています（1〜2 分）...${c.reset}`);
   const r = spawnSync(process.execPath, ['scripts/sync_note_urls.mjs', '--status-only'], { cwd: rootDir, stdio: 'inherit', timeout: 10 * 60 * 1000 });
   if (r.status !== 0) console.log(`${c.yellow}⚠ note の状態を確認できませんでした（前回の結果で続けます）${c.reset}`);
