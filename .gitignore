@@ -14,6 +14,7 @@
 !/.gitignore
 !/.env.example
 !/README.md
+!/LICENSE
 !/astro.config.mjs
 !/package.json
 !/package-lock.json
@@ -36,6 +37,9 @@
 /tests/**
 !/tests/**/
 !/tests/**/*.mjs
+# テストの補助（owner PC の宣言 owner_host.json・Windows の CI で symlink の権限を外す drop_symlink_privilege.ps1）
+!/tests/helpers/*.json
+!/tests/helpers/*.ps1
 !/books/
 /books/*
 !/books/.gitkeep
@@ -75,6 +79,10 @@
 !/data/derived/
 /data/derived/*
 !/data/derived/*.json
+!/data/readme_facts/
+/data/readme_facts/*
+!/data/readme_facts/*.json
+!/data/profile_copy.json
 !/scripts/publish_history.json
 !/scripts/note_urls.json
 !/keys/

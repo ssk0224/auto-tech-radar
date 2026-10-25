@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
-import crypto from 'crypto';
+import { pngFromSvg } from './utils/og_png.mjs';
 import { UNCATEGORIZED } from '../src/utils/categories.js';
 
 export { UNCATEGORIZED };
@@ -339,88 +338,16 @@ export function renderOgSvg(postData) {
   return svgContent;
 }
 
-// ---- PNG に「どの SVG から作ったか」を記録する（tests/og_text.test.mjs が SVG と PNG の食い違いを止める） ----
-export const PNG_SOURCE_KEY = 'atr-source-svg-sha256';
-const PNG_SIG = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-const crc32 = (buf) => {
-  let c = 0xffffffff;
-  for (const b of buf) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);
-  return (c ^ 0xffffffff) >>> 0;
-};
-function pngChunks(buf) {
-  if (!buf.subarray(0, 8).equals(PNG_SIG)) return null;
-  const chunks = [];
-  for (let off = 8; off + 12 <= buf.length; ) {
-    const len = buf.readUInt32BE(off);
-    const type = buf.toString('latin1', off + 4, off + 8);
-    chunks.push({ type, raw: buf.subarray(off, off + 12 + len), data: buf.subarray(off + 8, off + 8 + len) });
-    off += 12 + len;
-    if (type === 'IEND') break;
-  }
-  return chunks;
-}
-const textKey = (c) => c.data.toString('latin1', 0, Math.max(0, c.data.indexOf(0)));
-export function readPngText(buf) {
-  const out = {};
-  for (const c of pngChunks(buf) || []) {
-    if (c.type !== 'tEXt') continue;
-    const z = c.data.indexOf(0);
-    if (z > 0) out[textKey(c)] = c.data.toString('latin1', z + 1);
-  }
-  return out;
-}
-export function stampPng(buf, key, value) {
-  const chunks = pngChunks(buf);
-  if (!chunks) throw new Error('PNG ではありません');
-  const data = Buffer.concat([Buffer.from(key, 'latin1'), Buffer.from([0]), Buffer.from(value, 'latin1')]);
-  const head = Buffer.alloc(8);
-  head.writeUInt32BE(data.length, 0);
-  head.write('tEXt', 4, 'latin1');
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0);
-  const kept = chunks.filter((c) => !(c.type === 'tEXt' && textKey(c) === key));
-  const body = kept.filter((c) => c.type !== 'IEND').map((c) => c.raw);
-  const end = kept.filter((c) => c.type === 'IEND').map((c) => c.raw);
-  return Buffer.concat([PNG_SIG, ...body, head, data, crc, ...end]);
-}
-export const svgSourceHash = (svg) => crypto.createHash('sha256').update(String(svg).replace(/\r\n?/g, '\n')).digest('hex');
-
-// SVG を Chrome で PNG（1200x630）にし、元の SVG のハッシュを PNG に記録する
-export function renderPngFromSvg(svgPath, pngPath) {
-  try {
-    const chromeCandidates = [
-      process.env.CHROME_BIN,
-      '/usr/bin/google-chrome',
-      '/usr/bin/chromium',
-      '/usr/bin/chromium-browser',
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      'google-chrome',
-      'chromium',
-      'chromium-browser'
-    ];
-    const chromeBin = chromeCandidates.find(c => c && fs.existsSync(c)) || 'google-chrome';
-    execSync(`"${chromeBin}" --headless --disable-gpu --no-sandbox --hide-scrollbars --screenshot="${pngPath}" --window-size=1200,630 "${svgPath}"`, { stdio: 'ignore', timeout: 60000 }); // Chrome が固まっても CI を止めない
-    fs.writeFileSync(pngPath, stampPng(fs.readFileSync(pngPath), PNG_SOURCE_KEY, svgSourceHash(fs.readFileSync(svgPath, 'utf8'))));
-    return true;
-  } catch (e) {
-    // Chrome が使えない環境でも生成を止めない。PNG が SVG と食い違ったまま残れば tests/og_text.test.mjs が止める
-    console.warn(`PNG を作れませんでした（${path.basename(pngPath)}）: ${e.message}`);
-    return false;
-  }
-}
+// PNG の部品（scripts/utils/og_png.mjs）。tests/og_text.test.mjs がここから読む
+export { PNG_SOURCE_KEY, readPngText, stampPng, svgSourceHash } from './utils/og_png.mjs';
 
 export function generateOgCardForPost(postData) {
   const { slug } = postData;
   const outPath = path.join(ogpDir, `${slug}.svg`);
   fs.writeFileSync(outPath, renderOgSvg(postData), 'utf8');
   // PNGサムネイル（note見出し画像用: 1200x630）
-  renderPngFromSvg(outPath, path.join(ogpDir, `${slug}.png`));
+  const png = pngFromSvg(outPath);
+  if (png) fs.writeFileSync(path.join(ogpDir, `${slug}.png`), png);
   return `/auto-tech-radar/ogp/${slug}.svg`;
 }
 
@@ -451,8 +378,7 @@ if (process.argv[1] && process.argv[1].endsWith('generate_og_cards.mjs')) {
     const slug = f.replace('.md', '');
     generateOgCardForPost(ogInputFromArticle(slug, fs.readFileSync(path.join(radarDir, f), 'utf8')));
   });
-  // サイト共通のカード（public/og-card.svg は手で編集する。PNG はここで作り直す）
-  renderPngFromSvg(path.join(rootDir, 'public', 'og-card.svg'), path.join(rootDir, 'public', 'og-card.png'));
+  // サイト共通のカード（public/og-card.png）はオーナー端末の node scripts/render_site_og_card.mjs で作り直す（記事の画像を書く CI とは書く側が違う）
 
   console.log('✓ 全OGPカード（SVG ＆ note用PNGサムネイル）の生成が完了しました！');
 }

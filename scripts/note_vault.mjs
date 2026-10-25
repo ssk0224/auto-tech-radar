@@ -124,12 +124,14 @@ function rotate() {
   const { publicKey, privateKey } = generatePair();
   const newFile = `${privateKeyFile}.new`;
   fs.writeFileSync(newFile, privateKey, { encoding: "utf8", mode: 0o600 });
-  const full = noteFiles().map((f) => [f, assembleNote(f, [...keys, privateKey])]);
-  full.forEach(([f, content]) => writeSealedNote(f, content, publicKey));
+  // 書き先は noteFiles() の原稿そのもの（書き出し先の検査 tests/public_tree.test.mjs がたどれる形で渡す）
+  const files = noteFiles();
+  const full = new Map(files.map((f) => [f, assembleNote(f, [...keys, privateKey])]));
+  for (const f of files) writeSealedNote(f, full.get(f), publicKey);
   fs.writeFileSync(publicKeyFile, publicKey, "utf8");
   fs.renameSync(privateKeyFile, `${privateKeyFile}.old-${Date.now()}`);
   fs.renameSync(newFile, privateKeyFile);
-  console.log(`✓ ${full.length} 本を新しい鍵で暗号化し直しました。keys/note_vault_public.pem と note_drafts/ をコミットしてください。`);
+  console.log(`✓ ${files.length} 本を新しい鍵で暗号化し直しました。keys/note_vault_public.pem と note_drafts/ をコミットしてください。`);
   console.log(`  古い秘密鍵は ${path.dirname(privateKeyFile)} に .old-* として残しています（CI が古い鍵で暗号化した原稿を reseal で直すために必要）。`);
 }
 

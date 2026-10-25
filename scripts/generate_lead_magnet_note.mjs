@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { renderPngFromSvg } from './generate_og_cards.mjs';
+import { pngFromSvg } from './utils/og_png.mjs';
 import { isNoise } from './utils/noise_filter.mjs';
 import { jstDate } from '../src/utils/dates.js';
 
@@ -236,7 +236,11 @@ export function generateLeadMagnetOgCard() {
   fs.writeFileSync(svgPath, svgContent, 'utf8');
 
   // PNG は記事の OGP 画像と同じ方法で作る（元の SVG のハッシュを PNG に記録する。tests/og_text.test.mjs）
-  if (renderPngFromSvg(svgPath, pngPath)) console.log(`✓ リードマグネット専用アイキャッチPNGを生成しました: ${pngPath}`);
+  const png = pngFromSvg(svgPath);
+  if (png) {
+    fs.writeFileSync(pngPath, png);
+    console.log(`✓ リードマグネット専用アイキャッチPNGを生成しました: ${pngPath}`);
+  }
 }
 
 // 直接実行された場合
