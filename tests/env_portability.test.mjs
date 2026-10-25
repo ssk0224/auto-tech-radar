@@ -296,7 +296,7 @@ test("リポへの書き込み: テストが作業ツリーにファイルを残
 });
 
 test("サイトのビルド用コピーは、一時フォルダが短い名前（8.3 形式の RUNNER~1 など）で渡されても、長い名前の実パスに作る", async () => {
-  // GitHub の Windows の runner は TEMP が C:\Users\RUNNER~1\… で、短い名前のパスでビルドすると Layout の CSS の <link> が HTML から抜け、
+  // GitHub の Windows の runner は TEMP がユーザーのフォルダ名を 8.3 形式に縮めた短い名前（RUNNER~1）で、短い名前のパスでビルドすると Layout の CSS の <link> が HTML から抜け、
   // 全ページが CSS なしで描画されて 320px の幅を超えた（Linux・owner PC では起きない）
   const { prepareBuildRoot, removeDir } = await import("./helpers/site_build.mjs");
   const long = fs.mkdtempSync(path.join(os.tmpdir(), "atr long base "));

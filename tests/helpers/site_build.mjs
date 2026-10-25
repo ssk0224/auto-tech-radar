@@ -10,7 +10,7 @@ import { linkDir } from "./links.mjs";
 export const repoRoot = path.resolve(import.meta.dirname, "..", "..");
 
 // 重い・変わらないものはリンク、サイトの入力（src）と設定はコピー。extra(buildRoot) でビルド前に足せる（記事の追加など）
-// コピーは実パス（長い名前）に作る。Windows の runner の TEMP は 8.3 形式の短い名前（C:\Users\RUNNER~1\…）で、短い名前のパスでビルドすると
+// コピーは実パス（長い名前）に作る。Windows の runner の TEMP は ユーザーのフォルダ名を 8.3 形式に縮めた短い名前（RUNNER~1）で、短い名前のパスでビルドすると
 // Layout の CSS の <link> が HTML から抜け、全ページが CSS なしで描画される
 export function prepareBuildRoot(prefix, extra, base = os.tmpdir()) {
   const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(base, prefix)));
