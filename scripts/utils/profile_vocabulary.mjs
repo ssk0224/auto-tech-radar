@@ -28,9 +28,12 @@ export const TERMS = [
   { forms: ["解説"], file: "src/config/site.js", evidence: /tagline: ".*解説/ },
   { forms: ["記事"], file: "scripts/crawl_and_generate.mjs", evidence: /=== NOTE ARTICLE ===/ },
   { forms: ["AI", "生成"], file: "scripts/crawl_and_generate.mjs", evidence: /GEMINI_API_KEY/, polarity: true },
-  { forms: ["動作", "検証"], file: "scripts/crawl_and_generate.mjs", evidence: /動作未検証/, polarity: false },
+  // 記事のインストールの節は README の転記で、動作を確かめていないと書く（生成スクリプトはソフトウェアを動かさない）
+  { forms: ["動作", "検証"], file: "scripts/utils/readme_facts.mjs", evidence: /当サイトでは動作を確認していません/, polarity: false },
   { forms: ["有料"], file: "src/config/site.js", evidence: /singleArticlePrice/ },
-  { forms: ["提案書テンプレート", "工数見積表", "導入手順", "まとめ"], file: "scripts/crawl_and_generate.mjs" },
+  // 有料版の中身は、有料版にしか無い価値のラベル（PAID_FEATURE_RULES）だけで言う。導入手順は無料の Web 記事に README から転記しているので売りにしない
+  { forms: ["提案書テンプレート", "工数・見積表"], file: "scripts/utils/note_vault.mjs", evidence: /\[\/提案書\/, "導入提案書テンプレート（Markdown）"\],\s*\[\/見積\/, "工数・見積表"\]/ },
+  { forms: ["提供"], file: "scripts/utils/paid_copy.mjs", evidence: /`\$\{KIT\}は、note の有料記事でのみ提供しています。`/ },
   { forms: ["メンバーシップ", "特典", "入っ"], file: "scripts/sync_note_urls.mjs", evidence: /isMembershipConnected/ },
   { forms: ["購入", "読め"], file: "src/config/site.js", evidence: /購入者だけが読める/, polarity: true },
   { forms: ["個別"], file: "src/config/site.js", evidence: /singleArticlePrice/ },

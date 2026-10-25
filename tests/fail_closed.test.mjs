@@ -219,13 +219,16 @@ const FAULTS = {
       g("init", "-q", "-b", "main");
       g("config", "user.email", "test@example.invalid");
       g("config", "user.name", "test");
-      fs.writeFileSync(path.join(dir, "a.json"), "{}\n");
-      g("add", "a.json");
+      // コミットするのは、台帳（scripts/utils/public_tree.mjs）でオーナー端末が書く出力（台帳の外は取り込みの前に step: "ledger" で止まる）
+      const state = "scripts/publish_history.json";
+      fs.mkdirSync(path.join(dir, "scripts"));
+      fs.writeFileSync(path.join(dir, state), "{}\n");
+      g("add", state);
       g("commit", "-q", "-m", "init");
       g("remote", "add", "origin", path.join(dir, "no-such-remote"));
       assert.equal(pullLatest(dir).ok, false, "取り込めないのに ok");
-      fs.writeFileSync(path.join(dir, "a.json"), '{"a": 1}\n');
-      const r = commitAndSync(dir, ["a.json"], "test");
+      fs.writeFileSync(path.join(dir, state), '{"a": 1}\n');
+      const r = commitAndSync(dir, [state], "test");
       assert.equal(r.ok, false, "送れないのに ok");
       assert.equal(r.step, "pull");
       assert.ok(r.message, "失敗の理由が空");
@@ -249,6 +252,45 @@ const FAULTS = {
   // オーナー端末の対話メニュー（読み込むと画面を出して入力を待つ）。故障を注入して動かす仕組みが無いため、自動では確かめていない。
   // 何もしない catch が無いこと（下の形の検査）だけを確かめる。通信の失敗は画面に ⚠ を出す（取り込みは git_sync.mjs の行で確かめる）
   "scripts/launcher.mjs": notAutomated("対話メニュー。読み込むと入力待ちになる"),
+  // README の事実の集合を取得して書く。取得・解析の失敗、必須項目の欠けた応答では例外にし、事実の集合のファイルを書かない
+  "scripts/build_readme_facts.mjs": async () => {
+    const { buildFacts } = await import("../scripts/build_readme_facts.mjs");
+    const { factsFileFor } = await import("../scripts/utils/readme_facts.mjs");
+    const slug = "fail-closed-probe-never-written";
+    // 故障はリポジトリの情報・README のどちらか一方だけに入れる（片方の失敗を握りつぶしても、もう片方の失敗で例外になって見逃さない）
+    const good = (u) => (/\/readme$/.test(u) ? res(200, "# t\n") : /\/repos\/a\/b$/.test(u) ? res(200, { full_name: "a/b" }) : res(404));
+    const only = (part, fault) => async (u) => ((part === "readme" ? /\/readme$/ : /\/repos\/a\/b$/).test(u) ? fault(u) : good(u));
+    const broken = [...FAULTS_HTTP.map((s) => async () => res(s)), throwing];
+    const faults = [...broken.map((f) => only("repo", f)), ...broken.map((f) => only("readme", f)), only("repo", async () => res(200, "{broken")), only("repo", async () => res(200, {}))];
+    for (const f of faults) {
+      await assert.rejects(buildFacts(slug, "a/b", { fetchImpl: f }));
+      assert.equal(fs.existsSync(factsFileFor(slug)), false, "失敗したのに事実の集合を書いた");
+    }
+  },
+  // 消した commit が GitHub でまだ読めるか。404・422 は「消えている」と確定してよい。ほかの状態・通信の失敗は unknown（purged にしない）
+  "scripts/probe_purged_shas.mjs": async () => {
+    const { probePurged } = await import("../scripts/probe_purged_shas.mjs");
+    for (const f of [...faultStatuses({ 404: "消えている", 422: "消えている" }).map((s) => async () => res(s)), throwing]) {
+      const r = await probePurged({ shas: ["a".repeat(40)], repo: "a/b", fetchImpl: f });
+      assert.equal(r.ok, false);
+      assert.notEqual(r.results[0].state, "purged");
+    }
+    assert.equal((await probePurged({ shas: [], repo: "a/b", fetchImpl: async () => res(404) })).ok, false, "調べる SHA が無いのに ok");
+  },
+  // 公開前の監査（npm run build の scan）。配信物が無い・公開してはいけない形がある・git で許可リストを確かめられないときは失敗にする
+  "scripts/utils/public_tree.mjs": async () => {
+    const { ignoredSiteInputs } = await import("../scripts/utils/public_tree.mjs");
+    const dir = tmp("atr-fc-tree-");
+    try {
+      const scan = (d) => spawnSync(process.execPath, [path.join(root, "scripts/utils/public_tree.mjs"), "scan", d], { encoding: "utf8" });
+      assert.notEqual(scan(path.join(dir, "none")).status, 0, "配信物が無いのに合格にした");
+      fs.writeFileSync(path.join(dir, "a.html"), `<p>${"a".repeat(40)}</p>\n`);
+      assert.notEqual(scan(dir).status, 0, "公開してはいけない形を見逃した");
+      assert.throws(() => ignoredSiteInputs(dir), /確かめられません/, "git が使えないのに許可リストの外が無いとした");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  },
   "scripts/audit_dist.mjs": () => {
     const dir = tmp("atr-fc-dist-");
     try {
