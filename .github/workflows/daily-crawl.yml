@@ -45,20 +45,53 @@ jobs:
         run: |
           git fetch origin main
           git merge --ff-only origin/main
+
+      # Radar Ledger: 候補・掲載済みリポジトリの公開指標を UTC 日付ごとに 1 回記録する（data/ledger/、data/derived/velocity.json）。
+      # 過去の日の値は後から取り直せない唯一の記録なので、コードのテスト（下の npm test）より前に記録し、台帳だけをコミットして push する
+      # （テストが赤の日も台帳は残す。10/23・10/24 は npm test で 9 回続けて落ち、2 日分が欠けた。tests/workflow.test.mjs が確かめる）。
+      # スクリプト自体が通信失敗でも終了コード 0 で終わる（デプロイを止めない）。同じ日の再実行は、その日のファイルが既にあれば API を呼ばない
+      - name: Snapshot ledger
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: node scripts/snapshot_ledger.mjs
+
+      # 足すのは台帳の出力の明示パスだけ（記事・原稿・サイト・デプロイは、テストが通ったときだけ）。
+      # push できなくても後続を止めない（台帳のコミットは手元に残り、最後の「Commit and push changes」が一緒に push する）
+      - name: Commit and push ledger
+        id: ledger
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          git add data/ledger/ data/derived/
+          if git diff --staged --quiet; then
+            echo "No new ledger snapshot to commit."
+            exit 0
+          fi
+          git commit -m "chore: record radar ledger snapshot [skip ci]"
+          for i in 1 2 3; do
+            echo "Ledger: pull/rebase and push attempt $i of 3..."
+            if git pull --rebase origin main; then
+              if git push origin main; then
+                echo "Pushed the ledger snapshot to main."
+                exit 0
+              fi
+            else
+              echo "::warning::Rebase failed (conflict or network). Aborting and retrying."
+              git rebase --abort || true
+            fi
+            sleep 5
+          done
+          echo "::error title=Ledger not pushed::台帳のコミットを push できませんでした。最後の「Commit and push changes」で一緒に push します（npm test が失敗した日は push されません）"
+          exit 1
+
       # 品質ゲートが不具合を本当に止めるかの検証を含むテスト（失敗したら生成・公開しない）
       - run: npm test
       - name: Install Japanese CJK fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk
-
-      # Radar Ledger: 候補・掲載済みリポジトリの公開指標を UTC 日付ごとに 1 回記録する（data/ledger/、data/derived/velocity.json）。
-      # 過去の日の値は後から取り直せないため生成より先に行う。スクリプト自体が通信失敗でも終了コード 0 で終わる（デプロイを止めない）
-      - name: Snapshot ledger
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
-        run: node scripts/snapshot_ledger.mjs
 
       - name: Run Crawler & Gemini
         id: crawler
@@ -126,10 +159,13 @@ jobs:
           # data/ の実行記録 run_status・日次スナップショット ledger・velocity はサイトのビルド対象外だが公開する記録
           # data/readme_facts/ は記事の根拠（README の事実の集合）。記事と一緒に公開リポに残す
           git add src/pages/radar/ note_drafts/ public/ogp/ data/run_status/ data/ledger/ data/derived/ data/readme_facts/ scripts/note_urls.json
-          if git diff --staged --quiet; then
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: auto-index new tech radar entry [skip ci]"
+          fi
+          # 「Commit and push ledger」で push できなかった台帳のコミットも、ここで一緒に push する（足すものが無い回も）
+          if [ -z "$(git log --oneline origin/main..HEAD)" ]; then
             echo "No new radar entries to commit."
           else
-            git commit -m "chore: auto-index new tech radar entry [skip ci]"
 
             # 認証は actions/checkout が token（GH_PAT または GITHUB_TOKEN）で設定済み。
             # 別途 extraheader を足すと認証ヘッダーが二重になり push が拒否されるため設定しない
