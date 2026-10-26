@@ -383,6 +383,18 @@ test("(c) workflow がコミットに足すのは、CI が書く公開出力の�
   assert.ok(adds > 0);
 });
 
+// 台帳で CI が書くと宣言した出力が、毎日の更新のコミットに入っていないと、生成した記事の根拠（README の事実の集合など）が公開リポに残らず、
+// 次の便の最初の npm test が「根拠が無い記事」で落ちて毎日の更新が止まる（data/readme_facts/ の抜けで実際に起きた）
+test("(c) 台帳で CI が書く出力は、毎日の更新（daily-crawl.yml）のコミットにすべて足されている", () => {
+  const staged = read(".github/workflows/daily-crawl.yml")
+    .split("\n")
+    .flatMap((l) => (/^\s*git add\s+(.+)$/.exec(l)?.[1] ?? "").split(/\s+/))
+    .filter(Boolean);
+  assert.ok(staged.length > 0, "daily-crawl.yml に git add が無い");
+  const missing = outputPathsWrittenBy("ci").filter((p) => !staged.some((s) => s === p || s === `${p}/` || `${s}/` === p));
+  assert.deepEqual(missing, []);
+});
+
 test("(c) コミットの検査は、書き方を変えた全部入りのコミットを捕まえる", () => {
   const ciPaths = outputPathsWrittenBy("ci");
   const problems = (yml) => workflowStagingProblems(yml, ciPaths).problems;

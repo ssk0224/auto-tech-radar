@@ -124,7 +124,8 @@ jobs:
         run: |
           # 足すのは公開出力の台帳（scripts/utils/public_tree.mjs）で CI が書く出力だけ（tests/public_tree.test.mjs が確かめる）。
           # data/ の実行記録 run_status・日次スナップショット ledger・velocity はサイトのビルド対象外だが公開する記録
-          git add src/pages/radar/ note_drafts/ public/ogp/ data/run_status/ data/ledger/ data/derived/ scripts/note_urls.json
+          # data/readme_facts/ は記事の根拠（README の事実の集合）。記事と一緒に公開リポに残す
+          git add src/pages/radar/ note_drafts/ public/ogp/ data/run_status/ data/ledger/ data/derived/ data/readme_facts/ scripts/note_urls.json
           if git diff --staged --quiet; then
             echo "No new radar entries to commit."
           else
