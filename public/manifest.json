@@ -1,7 +1,7 @@
 {
   "name": "Auto Tech Radar",
   "short_name": "TechRadar",
-  "description": "海外の急上昇オープンソース（OSS）日本語解説メディア",
+  "description": "海外の急上昇オープンソース（OSS）の README の文を原文のまま紹介するメディア",
   "start_url": "/auto-tech-radar/",
   "display": "standalone",
   "background_color": "#030712",

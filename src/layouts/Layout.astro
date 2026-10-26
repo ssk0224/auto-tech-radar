@@ -461,7 +461,7 @@ const ringBadgeBorder = tier.border;
         <div>
           <div class="brand-badge">⚡ Global OSS Intelligence</div>
           <div class="site-title"><a href={`${baseUrl}/`}>📡 Auto Tech Radar</a></div>
-          <p>GitHub でスター数が伸びている OSS の日本語解説（README などの公開情報をもとに AI が下書き）</p>
+          <p>GitHub でスター数が伸びている OSS の README の文を、原文のまま（訳さずに）抜き出して紹介（文は AI が選んでいます）</p>
         </div>
         <div class="nav-links">
           <a href={`${baseUrl}/weekly/`} class="pill-btn" style="background: rgba(99, 102, 241, 0.2); color: #c7d2fe !important; border: 1px solid rgba(99, 102, 241, 0.5);">📑 週間白書</a>
@@ -812,7 +812,7 @@ const ringBadgeBorder = tier.border;
                 `  1. 既存商用SaaSのライセンス費用の削減\n` +
                 `  2. ベンダーロックインの低減とオンプレミス/プライベートクラウド運用\n` +
                 `  3. AI/エージェント技術の内製化による業務工数の削減\n\n` +
-                `■ 参考（README などの公開情報をもとにした日本語解説）:\n` +
+                `■ 参考（README の文を原文のまま抜き出した記事）:\n` +
                 `  ${pageUrl}\n`;
               navigator.clipboard.writeText(proposalText).then(() => {
                 copyPropBtn.textContent = '✓ 提案書コピー完了！';

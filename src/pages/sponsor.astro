@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { SITE_DESCRIPTION } from "../utils/site_copy.js";
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
 // スポンサー枠の価格は出さない。読者数・読者属性のデータを公開していない段階で価格を提示しない（2026-10-21）。
 // ページ自体とフッターのリンクは残す（オーナー判断）
@@ -21,7 +22,7 @@ const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
         広告・スポンサー掲載について
       </h1>
       <p style="font-size: 1rem; color: #cbd5e1; margin: 0 auto; max-width: 650px; line-height: 1.75;">
-        Auto Tech Radar は、GitHub で注目されている OSS を README などの公開情報をもとに日本語で解説しています。
+        Auto Tech Radar は、{SITE_DESCRIPTION}
       </p>
     </div>
 
