@@ -45,12 +45,12 @@
     Auto Tech Radar
   </text>
   <text x="100" y="295" fill="url(#brand)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800">
-    海外で注目の OSS を日本語で解説
+    海外で注目の OSS を README の原文で紹介
   </text>
 
   <!-- Subtitle / Value Prop -->
   <text x="100" y="375" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500">
-    README ベースのアーキテクチャ解説 ｜ AI による下書き ｜ 自動検査
+    README の文を原文のまま抜き出し ｜ AI による下書き ｜ 自動検査
   </text>
 
   <!-- Feature Pills Footer -->
