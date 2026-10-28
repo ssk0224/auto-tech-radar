@@ -14,6 +14,13 @@
       "generated": 0,
       "reason": "error",
       "model": null
+    },
+    {
+      "at": "2026-10-28T09:50:54.516Z",
+      "event": "schedule (17 3 * * *)",
+      "generated": 0,
+      "reason": "error",
+      "model": null
     }
   ]
 }
