@@ -7,6 +7,13 @@
       "generated": 1,
       "reason": "ok",
       "model": "gemini-3.5-flash"
+    },
+    {
+      "at": "2026-11-07T03:17:19.339Z",
+      "event": "schedule (43 23 * * *)",
+      "generated": 0,
+      "reason": "cap_reached",
+      "model": null
     }
   ]
 }
