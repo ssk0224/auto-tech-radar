@@ -74,6 +74,14 @@ test("品質ゲートに落ちたとき、この実行が commit するもの（
   assert.match(fail.if, /sync_rejected/);
 });
 
+test("品質ゲートに落ちたとき、data/readme_facts の変更・未追跡ファイルも削除・復元される", () => {
+  const gate = steps.find((s) => s.id === "gate");
+  const checkoutLine = gate.run.match(/^\s*git checkout -- .*src\/pages\/radar.*$/m)?.[0] || "";
+  const cleanLine = gate.run.match(/^\s*git clean -fdq -- .*src\/pages\/radar.*$/m)?.[0] || "";
+  assert.ok(checkoutLine.split(/\s+/).includes("data/readme_facts"), `git checkout に data/readme_facts がありません: ${checkoutLine}`);
+  assert.ok(cleanLine.split(/\s+/).includes("data/readme_facts"), `git clean に data/readme_facts がありません: ${cleanLine}`);
+});
+
 test("run_status の CLI は reason を記録し、一覧に無い reason では失敗する", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atr-wf-"));
   try {

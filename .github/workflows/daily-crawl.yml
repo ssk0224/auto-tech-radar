@@ -146,8 +146,8 @@ jobs:
           echo "rejected=true" >> "$GITHUB_OUTPUT"
           # 実行結果の記録（data/run_status）に、生成した記事を取り除いたことを残す（アラートに「ok」だけが載らないように）
           if [ "${{ github.event_name }}" != "push" ]; then node scripts/utils/run_status.mjs rejected || true; fi
-          git checkout -- src/pages/radar note_drafts public/ogp
-          git clean -fdq -- src/pages/radar note_drafts public/ogp
+          git checkout -- src/pages/radar note_drafts public/ogp data/readme_facts
+          git clean -fdq -- src/pages/radar note_drafts public/ogp data/readme_facts
           npm test
 
       - name: Build Astro SSG

@@ -534,3 +534,14 @@ test("README を取得できない（429 など）候補は「README が不十�
     assert.equal(last.reason, "upstream_unavailable", log);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("README 由来データや生成物に hex40 等の機微・公開不可パターンが含まれる場合は、保存前に拒否して data/readme_facts に残さない", () => {
+  const sha = "0123456789abcdef".repeat(2) + "01234567";
+  const badReadme = `${MOCK_README}\n## Install\n\n${FENCE}bash\npip install git+https://github.com/acme/testtool.git@${sha}\n${FENCE}\n`;
+  const { dir, log } = run(output(), { MOCK_README: badReadme });
+  try {
+    assert.match(log, /公開物に含められない文字列の形が含まれています（hex40）/, log);
+    assert.ok(!fs.existsSync(path.join(dir, "data/readme_facts/testtool.json")), log);
+    assert.ok(!fs.existsSync(path.join(dir, "src/pages/radar/testtool.md")), log);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

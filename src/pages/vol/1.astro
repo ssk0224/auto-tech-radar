@@ -1,0 +1,312 @@
+---
+import { createHash } from "node:crypto";
+import Layout from "../../layouts/Layout.astro";
+import { getArticles, hrefOf, slugOf } from "../../utils/articles.js";
+import { dateLabel, jstDayStart } from "../../utils/dates.js";
+import { velocity } from "../../utils/velocity_data.js";
+import { parseJsonl, repoFullNameFromUrl } from "../../../scripts/utils/ledger.mjs";
+
+const posts = getArticles() as any[];
+
+const ledgerModules = import.meta.glob("../../../data/ledger/**/*.jsonl", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+}) as Record<string, string>;
+
+const ledgerByRepo = new Map<string, Map<string, number>>();
+const allDatesSet = new Set<string>();
+
+for (const raw of Object.values(ledgerModules)) {
+  for (const row of parseJsonl(raw)) {
+    const name = row?.full_name;
+    const date = String(row?.date || "");
+    const stars = Number(row?.stars);
+    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(stars)) continue;
+    allDatesSet.add(date);
+    if (!ledgerByRepo.has(name)) ledgerByRepo.set(name, new Map());
+    ledgerByRepo.get(name)!.set(date, stars);
+  }
+}
+
+const ledgerDates = [...allDatesSet].sort();
+const ledgerStart = ledgerDates[0] || "";
+const ledgerEnd = velocity?.as_of || ledgerDates.at(-1) || "";
+
+const rows = posts.map((post) => {
+  const fm = post.frontmatter || {};
+  const slug = slugOf(post);
+  const fullName = repoFullNameFromUrl(fm.repoUrl) || "";
+  const pubDate = dateLabel(fm.pubDate) || "";
+  const pubStars = Number(fm.stars || 0);
+  const vel = fullName && velocity?.repos ? velocity.repos[fullName] : null;
+  const hist = fullName ? ledgerByRepo.get(fullName) : null;
+  const latestLedgerStars = vel?.stars_now ?? (hist ? [...hist.entries()].sort((a, b) => a[0].localeCompare(b[0])).at(-1)?.[1] ?? null : null);
+  const latestLedgerDate = vel?.last_seen ?? (hist ? [...hist.keys()].sort().at(-1) ?? null : null);
+  const gainFromPub = latestLedgerStars !== null && Number.isFinite(pubStars) ? latestLedgerStars - pubStars : null;
+  const pctFromPub = gainFromPub !== null && pubStars > 0 ? (gainFromPub / pubStars) * 100 : null;
+  return {
+    slug,
+    title: String(fm.title || slug).split(" - ")[0].trim(),
+    url: hrefOf(post),
+    repoUrl: String(fm.repoUrl || ""),
+    fullName,
+    pubDate,
+    pubStars,
+    latestLedgerDate,
+    latestLedgerStars,
+    gainFromPub,
+    pctFromPub,
+    gain7d: vel?.gain_7d ?? null,
+    daysOnRadar: vel?.days_on_radar ?? (hist ? hist.size : 0),
+  };
+}).sort((a, b) => (a.pubDate || "").localeCompare(b.pubDate || "") || a.slug.localeCompare(b.slug));
+
+const matched = rows.filter((r) => r.gainFromPub !== null);
+const gainedCount = matched.filter((r) => (r.gainFromPub ?? 0) > 0).length;
+const declinedOrFlatCount = matched.filter((r) => (r.gainFromPub ?? 0) <= 0).length;
+
+const median = (arr: number[]) => {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+
+const medianGainFromPub = median(matched.map((r) => r.gainFromPub!));
+const medianPctFromPub = median(matched.map((r) => r.pctFromPub!).filter((v) => v !== null));
+
+const selectedNames = new Set(rows.map((r) => r.fullName).filter(Boolean));
+interface BaselineRow {
+  fullName: string;
+  selected: boolean;
+  spanDays: number;
+  startStars: number;
+  endStars: number;
+  gainPerDay: number;
+  pct: number;
+}
+const span14: BaselineRow[] = [];
+for (const [name, dateMap] of ledgerByRepo.entries()) {
+  const dates = [...dateMap.keys()].sort();
+  if (dates.length < 2) continue;
+  const startMs = jstDayStart(dates[0]);
+  const endMs = jstDayStart(dates.at(-1));
+  const spanDays = startMs !== null && endMs !== null ? Math.round((endMs - startMs) / 86400000) : 0;
+  if (spanDays < 14) continue;
+  const startStars = dateMap.get(dates[0])!;
+  const endStars = dateMap.get(dates.at(-1)!)!;
+  const gain = endStars - startStars;
+  span14.push({
+    fullName: name,
+    selected: selectedNames.has(name),
+    spanDays,
+    startStars,
+    endStars,
+    gainPerDay: gain / spanDays,
+    pct: startStars > 0 ? (gain / startStars) * 100 : 0,
+  });
+}
+
+const sel14 = span14.filter((x) => x.selected);
+const nonSel14 = span14.filter((x) => !x.selected);
+const selMedianPerDay = median(sel14.map((x) => x.gainPerDay));
+const selMedianPct = median(sel14.map((x) => x.pct));
+const nonSelMedianPerDay = median(nonSel14.map((x) => x.gainPerDay));
+const nonSelMedianPct = median(nonSel14.map((x) => x.pct));
+
+const underperformers = [...matched]
+  .sort((a, b) => (a.gainFromPub ?? 0) - (b.gainFromPub ?? 0))
+  .slice(0, 5);
+
+const fmtInt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : Math.round(n).toLocaleString("en-US"));
+const fmtSignedInt = (n: number | null | undefined) => {
+  if (n === null || n === undefined) return "—";
+  const r = Math.round(n);
+  return `${r > 0 ? "+" : ""}${r.toLocaleString("en-US")}`;
+};
+const fmtSignedPct = (n: number | null | undefined) => {
+  if (n === null || n === undefined) return "—";
+  return `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
+};
+const fmtRate = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${n > 0 ? "+" : ""}${n.toFixed(1)}`);
+
+const csvHeader = "pub_date,slug,full_name,pub_stars,ledger_latest_date,ledger_latest_stars,gain_from_pub,pct_from_pub,gain_7d";
+const csvRows = rows.map((r) => [
+  r.pubDate,
+  r.slug,
+  r.fullName,
+  r.pubStars,
+  r.latestLedgerDate ?? "",
+  r.latestLedgerStars ?? "",
+  r.gainFromPub ?? "",
+  r.pctFromPub !== null ? r.pctFromPub.toFixed(2) : "",
+  r.gain7d ?? "",
+].join(","));
+const ledgerCsv = [csvHeader, ...csvRows].join("\n") + "\n";
+const ledgerCsvSha256 = createHash("sha256").update(ledgerCsv, "utf8").digest("hex");
+---
+
+<Layout
+  title="Radar Ledger Vol.1 — 掲載銘柄の追跡記録とベースライン比較 | Auto Tech Radar"
+  description="Auto Tech Radar が紹介した全掲載銘柄について、公開時点から台帳最新記録日までのスター推移を外れ銘柄を含めて集計した観測ログです。勢いの継続であり先見性ではありません。"
+>
+  <section style="margin-bottom: 2rem;">
+    <div style="background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.16) 0%, transparent 75%); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 1.6rem 1.2rem; margin-bottom: 1.5rem;">
+      <div style="display: inline-block; background: rgba(56, 189, 248, 0.18); color: #7dd3fc; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; margin-bottom: 0.7rem;">
+        📒 Radar Ledger Vol.1（無料公開版）
+      </div>
+      <h1 style="margin: 0 0 0.7rem; font-size: 1.65rem; font-weight: 900; color: #f8fafc; line-height: 1.35;">
+        Radar Ledger Vol.1：掲載全銘柄の追跡記録とベースライン比較
+      </h1>
+      <p style="margin: 0 0 0.9rem; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7;">
+        このページは、Auto Tech Radar がこれまで掲載した全 {rows.length} 本の記事について、公開時点のスター数と記録台帳（<code>data/ledger</code>）に保存された最新値（UTC {ledgerStart || "—"} 〜 {ledgerEnd || "—"}、計 {ledgerDates.length} ファイル分）を突合した観測ログです。
+      </p>
+      <div style="margin: 0 0 0.9rem; background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 0.7rem 0.9rem; font-size: 0.8rem; color: #cbd5e1;">
+        <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; justify-content: space-between;">
+          <span>一覧 CSV（{rows.length} 行）SHA-256: <code style="word-break: break-all; color: #7dd3fc;">{ledgerCsvSha256}</code></span>
+          <button
+            id="download-vol1-csv"
+            type="button"
+            data-csv={ledgerCsv}
+            style="background: #1e293b; border: 1px solid #38bdf8; color: #7dd3fc; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer;"
+          >
+            ⬇ 台帳比較 CSV を保存
+          </button>
+        </div>
+      </div>
+      <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.85rem 1rem; color: #fde68a; font-size: 0.88rem; line-height: 1.65;">
+        <strong>見方の前提：勢いの継続であり先見性ではない</strong><br />
+        本サイトは「すでにスターが伸びている OSS」を GitHub 検索 API から機械的に抽出しているため、その後にスター数が増えやすい母集団を扱っています。減少・微増にとどまった外れ銘柄も含め、紹介した対象を隠さず同一条件で記録します。品質・保守性・導入適性の推奨ではありません。
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.85rem; margin-bottom: 1.8rem;">
+      <div style="background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 10px; padding: 1rem;">
+        <div style="font-size: 0.76rem; color: #94a3b8; margin-bottom: 0.3rem;">公開時点比：増加 / 減少・横ばい</div>
+        <div style="font-size: 1.35rem; font-weight: 800; color: #f8fafc;">
+          {gainedCount} / {declinedOrFlatCount}
+          <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 500;">（照合 {matched.length} 本）</span>
+        </div>
+      </div>
+      <div style="background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 10px; padding: 1rem;">
+        <div style="font-size: 0.76rem; color: #94a3b8; margin-bottom: 0.3rem;">公開時点からの増減（中央値）</div>
+        <div style="font-size: 1.35rem; font-weight: 800; color: #34d399;">
+          {fmtSignedInt(medianGainFromPub)} stars
+        </div>
+        <div style="font-size: 0.76rem; color: #94a3b8;">増加率 中央値 {fmtSignedPct(medianPctFromPub)}</div>
+      </div>
+      <div style="background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 10px; padding: 1rem;">
+        <div style="font-size: 0.76rem; color: #94a3b8; margin-bottom: 0.3rem;">台帳14日+ 掲載群（n={sel14.length}）</div>
+        <div style="font-size: 1.35rem; font-weight: 800; color: #60a5fa;">
+          {fmtRate(selMedianPerDay)} / day
+        </div>
+        <div style="font-size: 0.76rem; color: #94a3b8;">期間増加率 中央値 {fmtSignedPct(selMedianPct)}</div>
+      </div>
+      <div style="background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 10px; padding: 1rem;">
+        <div style="font-size: 0.76rem; color: #94a3b8; margin-bottom: 0.3rem;">台帳14日+ 非掲載候補群（n={nonSel14.length}）</div>
+        <div style="font-size: 1.35rem; font-weight: 800; color: #cbd5e1;">
+          {fmtRate(nonSelMedianPerDay)} / day
+        </div>
+        <div style="font-size: 0.76rem; color: #94a3b8;">期間増加率 中央値 {fmtSignedPct(nonSelMedianPct)}</div>
+      </div>
+    </div>
+
+    <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.8rem;">
+      <h2 style="margin: 0 0 0.6rem; font-size: 1.12rem; color: #f8fafc;">📉 台帳比較の見方と外れ・停滞銘柄（下位 5 件）</h2>
+      <p style="margin: 0 0 0.9rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.65;">
+        14 日以上の記録がある候補のうち、非掲載群にはスター母数が非常に大きい既存大型リポジトリが含まれるため、1 日あたりの絶対増の中央値（{fmtRate(nonSelMedianPerDay)}/day）は非掲載群が高く出る一方、期間増加率の中央値は掲載群 {fmtSignedPct(selMedianPct)}・非掲載群 {fmtSignedPct(nonSelMedianPct)} となっています。また、掲載した中でも公開時点より減少またはほぼ横ばいに終わった銘柄が存在します。
+      </p>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid #334155; color: #94a3b8; text-align: left;">
+              <th style="padding: 0.5rem 0.6rem;">リポジトリ</th>
+              <th style="padding: 0.5rem 0.6rem;">公開日</th>
+              <th style="padding: 0.5rem 0.6rem; text-align: right;">公開時★</th>
+              <th style="padding: 0.5rem 0.6rem; text-align: right;">台帳最新★</th>
+              <th style="padding: 0.5rem 0.6rem; text-align: right;">増減（率）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {underperformers.map((r) => (
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 0.5rem 0.6rem;">
+                  <a href={r.url} style="color: #93c5fd; font-weight: 600;">{r.fullName || r.slug}</a>
+                </td>
+                <td style="padding: 0.5rem 0.6rem; color: #94a3b8; white-space: nowrap;">{r.pubDate}</td>
+                <td style="padding: 0.5rem 0.6rem; text-align: right;">{fmtInt(r.pubStars)}</td>
+                <td style="padding: 0.5rem 0.6rem; text-align: right;">{fmtInt(r.latestLedgerStars)}</td>
+                <td style={`padding: 0.5rem 0.6rem; text-align: right; font-weight: 700; color: ${(r.gainFromPub ?? 0) <= 0 ? "#f87171" : "#fbbf24"};`}>
+                  {fmtSignedInt(r.gainFromPub)} ({fmtSignedPct(r.pctFromPub)})
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 1.2rem;">
+      <h2 style="margin: 0 0 0.6rem; font-size: 1.12rem; color: #f8fafc;">📋 全掲載銘柄の台帳記録一覧（{rows.length} 本）</h2>
+      <p style="margin: 0 0 0.9rem; font-size: 0.83rem; color: #94a3b8;">
+        公開時のスター数は各記事の frontmatter、台帳最新値は <code>data/ledger</code>（{ledgerEnd || "—"} 時点）に基づきます。
+      </p>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid #334155; color: #94a3b8; text-align: left;">
+              <th style="padding: 0.5rem 0.55rem;">公開日</th>
+              <th style="padding: 0.5rem 0.55rem;">リポジトリ / 記事</th>
+              <th style="padding: 0.5rem 0.55rem; text-align: right;">公開時★</th>
+              <th style="padding: 0.5rem 0.55rem; text-align: right;">最新★</th>
+              <th style="padding: 0.5rem 0.55rem; text-align: right;">公開比増減</th>
+              <th style="padding: 0.5rem 0.55rem; text-align: right;">増減率</th>
+              <th style="padding: 0.5rem 0.55rem; text-align: right;">直近7日増減</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 0.48rem 0.55rem; color: #94a3b8; white-space: nowrap;">{r.pubDate}</td>
+                <td style="padding: 0.48rem 0.55rem; min-width: 150px;">
+                  <a href={r.url} style="color: #93c5fd; font-weight: 600;">{r.fullName || r.slug}</a>
+                </td>
+                <td style="padding: 0.48rem 0.55rem; text-align: right; white-space: nowrap;">{fmtInt(r.pubStars)}</td>
+                <td style="padding: 0.48rem 0.55rem; text-align: right; white-space: nowrap;">{fmtInt(r.latestLedgerStars)}</td>
+                <td style={`padding: 0.48rem 0.55rem; text-align: right; white-space: nowrap; font-weight: 700; color: ${(r.gainFromPub ?? 0) <= 0 ? "#f87171" : "#34d399"};`}>
+                  {fmtSignedInt(r.gainFromPub)}
+                </td>
+                <td style="padding: 0.48rem 0.55rem; text-align: right; white-space: nowrap; color: #cbd5e1;">
+                  {fmtSignedPct(r.pctFromPub)}
+                </td>
+                <td style="padding: 0.48rem 0.55rem; text-align: right; white-space: nowrap; color: #94a3b8;">
+                  {fmtSignedInt(r.gain7d)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const btn = document.getElementById("download-vol1-csv");
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        const csv = btn.getAttribute("data-csv") || "";
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "radar-ledger-vol1.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</Layout>

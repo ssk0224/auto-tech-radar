@@ -21,6 +21,7 @@ import { isPublishedOn, radarArticlesOnRef, fetchOriginMain } from "./utils/publ
 import { watchlistFile } from "./utils/owner_dir.mjs";
 import { unwrapMarkdownFence, sanitizeMarkdownContent, finalWebArticleProblems } from "./utils/generated_content.mjs";
 import { readmeFacts, ungroundedTokens, factsFileFor, renderableDiagrams } from "./utils/readme_facts.mjs";
+import { privateShapeHits } from "./utils/public_tree.mjs";
 import { WEB_H2, LLM_OVERVIEW_H2, NOTE_FIXED_TEXT, paidHeadingsToBold } from "./utils/article_template.mjs";
 import { renderWebPage, webPageProblems, noteHeadProblems, noteTailProblems, renderNoteDraft } from "./utils/page_shape.mjs";
 import { parseQuotes, QUOTE_LINE } from "./utils/anchored.mjs";
@@ -683,10 +684,14 @@ async function run() {
       // （表示は規則名だけで、有料本文の文字列は出さない）
       const paidProblems = noteText ? paidNoteProblems(noteText) : [];
       if (paidProblems.length) problems.push(`note原稿が出品前の検査に通りません（${paidProblems.join(" / ")}）`);
+      const factsJson = JSON.stringify(facts, null, 2) + "\n";
+      const tail = noteText ? splitPaid(noteText).tail : "";
+      const shapeKinds = [...new Set([factsJson, web, head, tail].flatMap((t) => privateShapeHits(t).map((h) => h.kind)))];
+      if (shapeKinds.length) problems.push(`公開物に含められない文字列の形が含まれています（${shapeKinds.join(" / ")}）`);
       if (problems.length) throw new Rejection(problems);
 
       fs.mkdirSync(path.dirname(factsFileFor(slug)), { recursive: true });
-      fs.writeFileSync(factsFileFor(slug), JSON.stringify(facts, null, 2) + "\n", "utf8");
+      fs.writeFileSync(factsFileFor(slug), factsJson, "utf8");
       if (noteText) {
         writeSealedNote(noteFile, noteText);
         console.log(`✓ note有料記事ドラフト保存（有料部分は暗号化）: ${noteFile}`);
