@@ -7,6 +7,13 @@
       "generated": 0,
       "reason": "error",
       "model": null
+    },
+    {
+      "at": "2026-11-22T03:51:58.406Z",
+      "event": "schedule (43 23 * * *)",
+      "generated": 0,
+      "reason": "error",
+      "model": null
     }
   ]
 }
