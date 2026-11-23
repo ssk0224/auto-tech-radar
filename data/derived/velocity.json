@@ -1,23 +1,23 @@
 {
-  "as_of": "2026-11-22",
+  "as_of": "2026-11-23",
   "repos": {
     "addyosmani/agent-skills": {
-      "stars_now": 119590,
-      "last_seen": "2026-11-22",
+      "stars_now": 119787,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-01",
-      "days_on_radar": 15,
-      "gain_1d": 181,
-      "gain_7d": 2008,
+      "days_on_radar": 16,
+      "gain_1d": 197,
+      "gain_7d": 1838,
       "gain_30d": null
     },
     "affaan-m/ECC": {
-      "stars_now": 308388,
-      "last_seen": "2026-11-22",
+      "stars_now": 309047,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 505,
-      "gain_7d": 5297,
-      "gain_30d": 22677
+      "days_on_radar": 29,
+      "gain_1d": 659,
+      "gain_7d": 5186,
+      "gain_30d": 23336
     },
     "alchaincyf/huashu-art-motion": {
       "stars_now": 6126,
@@ -38,31 +38,31 @@
       "gain_30d": null
     },
     "anefzaoui/misterdownloadmanager": {
-      "stars_now": 15577,
-      "last_seen": "2026-11-22",
+      "stars_now": 16625,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-14",
-      "days_on_radar": 9,
-      "gain_1d": 1253,
-      "gain_7d": 5990,
+      "days_on_radar": 10,
+      "gain_1d": 1048,
+      "gain_7d": 6239,
       "gain_30d": null
     },
     "anhao/ai-pose-gallery-zh": {
-      "stars_now": 7768,
-      "last_seen": "2026-11-22",
+      "stars_now": 7856,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-01",
-      "days_on_radar": 19,
-      "gain_1d": 203,
-      "gain_7d": 806,
+      "days_on_radar": 20,
+      "gain_1d": 88,
+      "gain_7d": 826,
       "gain_30d": null
     },
     "anomalyco/opencode": {
-      "stars_now": 228435,
-      "last_seen": "2026-11-22",
+      "stars_now": 228620,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 175,
-      "gain_7d": 1558,
-      "gain_30d": 8770
+      "days_on_radar": 29,
+      "gain_1d": 185,
+      "gain_7d": 1561,
+      "gain_30d": 8955
     },
     "anomalyco/rune": {
       "stars_now": 7613,
@@ -74,13 +74,13 @@
       "gain_30d": null
     },
     "anthropics/claude-code": {
-      "stars_now": 156579,
-      "last_seen": "2026-11-22",
+      "stars_now": 156705,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 103,
-      "gain_7d": 889,
-      "gain_30d": 3831
+      "days_on_radar": 29,
+      "gain_1d": 126,
+      "gain_7d": 910,
+      "gain_30d": 3957
     },
     "anthropics/skills": {
       "stars_now": 198497,
@@ -101,31 +101,31 @@
       "gain_30d": null
     },
     "awesome-selfhosted/awesome-selfhosted": {
-      "stars_now": 339275,
-      "last_seen": "2026-11-22",
+      "stars_now": 339572,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 25,
-      "gain_1d": 285,
+      "days_on_radar": 26,
+      "gain_1d": 297,
       "gain_7d": null,
-      "gain_30d": 10233
+      "gain_30d": 10530
     },
     "browser-use/browser-use": {
-      "stars_now": 121683,
-      "last_seen": "2026-11-22",
+      "stars_now": 121776,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 59,
-      "gain_7d": 645,
-      "gain_30d": 2905
+      "days_on_radar": 29,
+      "gain_1d": 93,
+      "gain_7d": 662,
+      "gain_30d": 2998
     },
     "browser-use/jev-ultrafast": {
-      "stars_now": 24701,
-      "last_seen": "2026-11-22",
+      "stars_now": 24710,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 4,
-      "gain_7d": 204,
-      "gain_30d": 1281
+      "days_on_radar": 29,
+      "gain_1d": 9,
+      "gain_7d": 190,
+      "gain_30d": 1290
     },
     "BryceYuuu/RUN": {
       "stars_now": 4981,
@@ -137,76 +137,76 @@
       "gain_30d": null
     },
     "ccch1mneyyy/dsh-Go": {
-      "stars_now": 29610,
-      "last_seen": "2026-11-22",
+      "stars_now": 30211,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-03",
-      "days_on_radar": 17,
-      "gain_1d": 567,
-      "gain_7d": 6860,
+      "days_on_radar": 18,
+      "gain_1d": 601,
+      "gain_7d": 6433,
       "gain_30d": null
     },
     "cdyforever/how-to-live-better": {
-      "stars_now": 14988,
-      "last_seen": "2026-11-22",
+      "stars_now": 15012,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 22,
-      "gain_7d": 339,
-      "gain_30d": 2003
+      "days_on_radar": 29,
+      "gain_1d": 24,
+      "gain_7d": 309,
+      "gain_30d": 2027
     },
     "CopilotKit/OpenDots": {
-      "stars_now": 6717,
-      "last_seen": "2026-11-22",
+      "stars_now": 6727,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 21,
-      "gain_7d": 117,
-      "gain_30d": 891
+      "days_on_radar": 29,
+      "gain_1d": 10,
+      "gain_7d": 109,
+      "gain_30d": 901
     },
     "deepseek-ai/chat-demo": {
-      "stars_now": 5217,
-      "last_seen": "2026-11-22",
+      "stars_now": 5285,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-20",
-      "days_on_radar": 3,
-      "gain_1d": 89,
+      "days_on_radar": 4,
+      "gain_1d": 68,
       "gain_7d": null,
       "gain_30d": null
     },
     "deepseek-ai/DeepInfer": {
-      "stars_now": 26298,
-      "last_seen": "2026-11-22",
+      "stars_now": 26320,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 37,
-      "gain_7d": 264,
-      "gain_30d": 8495
+      "days_on_radar": 29,
+      "gain_1d": 22,
+      "gain_7d": 246,
+      "gain_30d": 8517
     },
     "deepseek-ai/dsh-superagent-prototype": {
-      "stars_now": 24158,
-      "last_seen": "2026-11-22",
+      "stars_now": 24239,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-02",
-      "days_on_radar": 18,
-      "gain_1d": 76,
-      "gain_7d": 1013,
+      "days_on_radar": 19,
+      "gain_1d": 81,
+      "gain_7d": 943,
       "gain_30d": null
     },
     "designfuchen/word-atlas": {
-      "stars_now": 5131,
-      "last_seen": "2026-11-21",
+      "stars_now": 5203,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-18",
-      "days_on_radar": 4,
-      "gain_1d": 30,
+      "days_on_radar": 5,
+      "gain_1d": null,
       "gain_7d": null,
       "gain_30d": null
     },
     "DietrichGebert/ponytail": {
-      "stars_now": 196389,
-      "last_seen": "2026-11-22",
+      "stars_now": 196913,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 24,
-      "gain_1d": 720,
-      "gain_7d": 5445,
-      "gain_30d": 24803
+      "days_on_radar": 25,
+      "gain_1d": 524,
+      "gain_7d": 5451,
+      "gain_30d": 25327
     },
     "Djihads80/Eglantine": {
       "stars_now": 5208,
@@ -218,67 +218,76 @@
       "gain_30d": null
     },
     "Droid-Deck/DroidDeck": {
-      "stars_now": 21222,
-      "last_seen": "2026-11-22",
+      "stars_now": 21382,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 145,
-      "gain_7d": 1079,
-      "gain_30d": 8979
+      "days_on_radar": 29,
+      "gain_1d": 160,
+      "gain_7d": 1069,
+      "gain_30d": 9139
     },
     "earendil-works/pi": {
-      "stars_now": 123198,
-      "last_seen": "2026-11-22",
+      "stars_now": 123359,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 114,
-      "gain_7d": 1170,
-      "gain_30d": 6242
+      "days_on_radar": 29,
+      "gain_1d": 161,
+      "gain_7d": 1191,
+      "gain_30d": 6403
     },
     "Ebony-Vinyl/dsh-our-free-model": {
-      "stars_now": 83119,
-      "last_seen": "2026-11-22",
+      "stars_now": 84008,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 967,
-      "gain_7d": 8755,
-      "gain_30d": 49328
+      "days_on_radar": 29,
+      "gain_1d": 889,
+      "gain_7d": 8188,
+      "gain_30d": 50217
     },
     "Eglantine-Community/Eglantine": {
-      "stars_now": 6192,
-      "last_seen": "2026-11-22",
+      "stars_now": 6207,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-09",
-      "days_on_radar": 11,
-      "gain_1d": 24,
-      "gain_7d": 216,
+      "days_on_radar": 12,
+      "gain_1d": 15,
+      "gain_7d": 187,
       "gain_30d": null
     },
     "erkamyaman/rust-anything": {
-      "stars_now": 7442,
-      "last_seen": "2026-11-22",
+      "stars_now": 8025,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-20",
-      "days_on_radar": 3,
-      "gain_1d": 748,
+      "days_on_radar": 4,
+      "gain_1d": 583,
+      "gain_7d": null,
+      "gain_30d": null
+    },
+    "ersinkoc/phonebox": {
+      "stars_now": 5066,
+      "last_seen": "2026-11-23",
+      "first_seen": "2026-11-23",
+      "days_on_radar": 1,
+      "gain_1d": null,
       "gain_7d": null,
       "gain_30d": null
     },
     "f/prompts.chat": {
-      "stars_now": 178194,
-      "last_seen": "2026-11-22",
+      "stars_now": 178285,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 151,
-      "gain_7d": 829,
-      "gain_30d": 4366
+      "days_on_radar": 29,
+      "gain_1d": 91,
+      "gain_7d": 723,
+      "gain_30d": 4457
     },
     "farion1231/cc-switch": {
-      "stars_now": 156201,
-      "last_seen": "2026-11-22",
+      "stars_now": 156408,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 160,
-      "gain_7d": 1766,
-      "gain_30d": 8979
+      "days_on_radar": 29,
+      "gain_1d": 207,
+      "gain_7d": 1774,
+      "gain_30d": 9186
     },
     "Fei2411/DS-Bot": {
       "stars_now": 5568,
@@ -290,31 +299,31 @@
       "gain_30d": null
     },
     "firecrawl/firecrawl": {
-      "stars_now": 206223,
-      "last_seen": "2026-11-22",
+      "stars_now": 207074,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 891,
-      "gain_7d": 4396,
-      "gain_30d": 12292
+      "days_on_radar": 29,
+      "gain_1d": 851,
+      "gain_7d": 5003,
+      "gain_30d": 13143
     },
     "flizzywine/dsh-tavern": {
-      "stars_now": 1720,
-      "last_seen": "2026-11-22",
+      "stars_now": 1730,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 11,
-      "gain_7d": 102,
-      "gain_30d": 534
+      "days_on_radar": 29,
+      "gain_1d": 10,
+      "gain_7d": 104,
+      "gain_30d": 544
     },
     "Gathin23/cleanyourtv": {
-      "stars_now": 60093,
-      "last_seen": "2026-11-22",
+      "stars_now": 60378,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 228,
-      "gain_7d": 2208,
-      "gain_30d": 41056
+      "days_on_radar": 29,
+      "gain_1d": 285,
+      "gain_7d": 2088,
+      "gain_30d": 41341
     },
     "google-gemini/gemini-cli": {
       "stars_now": 108957,
@@ -335,30 +344,30 @@
       "gain_30d": null
     },
     "Graphify-Labs/graphify": {
-      "stars_now": 151631,
-      "last_seen": "2026-11-22",
+      "stars_now": 152078,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 428,
-      "gain_7d": 3841,
-      "gain_30d": 20026
+      "days_on_radar": 29,
+      "gain_1d": 447,
+      "gain_7d": 3646,
+      "gain_30d": 20473
     },
     "haydenschmitty/floorplan": {
-      "stars_now": 5990,
-      "last_seen": "2026-11-22",
+      "stars_now": 6262,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-19",
-      "days_on_radar": 4,
-      "gain_1d": 332,
+      "days_on_radar": 5,
+      "gain_1d": 272,
       "gain_7d": null,
       "gain_30d": null
     },
     "heydamir/unslop": {
-      "stars_now": 19785,
-      "last_seen": "2026-11-22",
+      "stars_now": 20307,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-02",
-      "days_on_radar": 18,
-      "gain_1d": 508,
-      "gain_7d": 3765,
+      "days_on_radar": 19,
+      "gain_1d": 522,
+      "gain_7d": 3541,
       "gain_30d": null
     },
     "HeyPuter/everything": {
@@ -380,11 +389,11 @@
       "gain_30d": null
     },
     "huami1314/GestaltX": {
-      "stars_now": 8735,
-      "last_seen": "2026-11-22",
+      "stars_now": 8810,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-19",
-      "days_on_radar": 4,
-      "gain_1d": 89,
+      "days_on_radar": 5,
+      "gain_1d": 75,
       "gain_7d": null,
       "gain_30d": null
     },
@@ -398,29 +407,29 @@
       "gain_30d": null
     },
     "immich-app/immich": {
-      "stars_now": 119797,
-      "last_seen": "2026-11-22",
+      "stars_now": 119885,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 55,
-      "gain_7d": 588,
-      "gain_30d": 2934
+      "days_on_radar": 29,
+      "gain_1d": 88,
+      "gain_7d": 584,
+      "gain_30d": 3022
     },
     "interplains/Zero-Breach-Toolkit": {
-      "stars_now": 5273,
-      "last_seen": "2026-11-22",
+      "stars_now": 5291,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-17",
-      "days_on_radar": 6,
-      "gain_1d": 13,
+      "days_on_radar": 7,
+      "gain_1d": 18,
       "gain_7d": null,
       "gain_30d": null
     },
     "ItsNotRexed/Leonida": {
-      "stars_now": 5750,
-      "last_seen": "2026-11-22",
+      "stars_now": 15428,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-22",
-      "days_on_radar": 1,
-      "gain_1d": null,
+      "days_on_radar": 2,
+      "gain_1d": 9678,
       "gain_7d": null,
       "gain_30d": null
     },
@@ -443,31 +452,31 @@
       "gain_30d": null
     },
     "janestreet/agent_skills": {
-      "stars_now": 10557,
-      "last_seen": "2026-11-22",
+      "stars_now": 10675,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-14",
-      "days_on_radar": 9,
-      "gain_1d": 123,
-      "gain_7d": 1918,
+      "days_on_radar": 10,
+      "gain_1d": 118,
+      "gain_7d": 1687,
       "gain_30d": null
     },
     "jaredpalmer/kev": {
-      "stars_now": 10078,
-      "last_seen": "2026-11-22",
+      "stars_now": 10083,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 3,
-      "gain_7d": 91,
-      "gain_30d": 657
+      "days_on_radar": 29,
+      "gain_1d": 5,
+      "gain_7d": 87,
+      "gain_30d": 662
     },
     "jev-chat/jev-chat-jarvis": {
-      "stars_now": 8488,
-      "last_seen": "2026-11-22",
+      "stars_now": 8489,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 8,
-      "gain_7d": 108,
-      "gain_30d": 523
+      "days_on_radar": 29,
+      "gain_1d": 1,
+      "gain_7d": 94,
+      "gain_30d": 524
     },
     "jhaizhou-ops/d2r-mobile": {
       "stars_now": 5221,
@@ -479,21 +488,21 @@
       "gain_30d": null
     },
     "JuliusBrussee/caveman": {
-      "stars_now": 121981,
-      "last_seen": "2026-11-22",
+      "stars_now": 122192,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 180,
-      "gain_7d": 1901,
-      "gain_30d": 7851
+      "days_on_radar": 29,
+      "gain_1d": 211,
+      "gain_7d": 1728,
+      "gain_30d": 8062
     },
     "JuneYaooo/rea-video": {
-      "stars_now": 11822,
-      "last_seen": "2026-11-22",
+      "stars_now": 12259,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-10",
-      "days_on_radar": 10,
-      "gain_1d": 375,
-      "gain_7d": 3224,
+      "days_on_radar": 11,
+      "gain_1d": 437,
+      "gain_7d": 3066,
       "gain_30d": null
     },
     "JustAResearcher/gpu-unlock-ada": {
@@ -515,22 +524,22 @@
       "gain_30d": null
     },
     "KKKKhazix/agent-autoloop": {
-      "stars_now": 6204,
-      "last_seen": "2026-11-22",
+      "stars_now": 6296,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-15",
-      "days_on_radar": 8,
-      "gain_1d": 75,
-      "gain_7d": 864,
+      "days_on_radar": 9,
+      "gain_1d": 92,
+      "gain_7d": 790,
       "gain_30d": null
     },
     "KKKKhazix/AIHOT": {
-      "stars_now": 11191,
-      "last_seen": "2026-11-22",
+      "stars_now": 11239,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 41,
-      "gain_7d": 502,
-      "gain_30d": 2834
+      "days_on_radar": 29,
+      "gain_1d": 48,
+      "gain_7d": 500,
+      "gain_30d": 2882
     },
     "KnifeLemon/Filee": {
       "stars_now": 14742,
@@ -560,39 +569,39 @@
       "gain_30d": null
     },
     "langchain-ai/langchain": {
-      "stars_now": 149954,
-      "last_seen": "2026-11-22",
+      "stars_now": 149993,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": -31,
-      "gain_7d": 435,
-      "gain_30d": 1733
+      "days_on_radar": 29,
+      "gain_1d": 39,
+      "gain_7d": 411,
+      "gain_30d": 1772
     },
     "langflow-ai/langflow": {
-      "stars_now": 156829,
-      "last_seen": "2026-11-22",
+      "stars_now": 156853,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 15,
-      "gain_7d": 185,
-      "gain_30d": 936
+      "days_on_radar": 29,
+      "gain_1d": 24,
+      "gain_7d": 169,
+      "gain_30d": 960
     },
     "langgenius/dify": {
-      "stars_now": 161631,
-      "last_seen": "2026-11-22",
+      "stars_now": 161692,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 47,
-      "gain_7d": 465,
-      "gain_30d": 2474
+      "days_on_radar": 29,
+      "gain_1d": 61,
+      "gain_7d": 477,
+      "gain_30d": 2535
     },
     "Lee-xeo/Claude-Cage": {
-      "stars_now": 7369,
-      "last_seen": "2026-11-22",
+      "stars_now": 7696,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-15",
-      "days_on_radar": 8,
-      "gain_1d": 274,
-      "gain_7d": 1891,
+      "days_on_radar": 9,
+      "gain_1d": 327,
+      "gain_7d": 1979,
       "gain_30d": null
     },
     "lemomo-ai/lemo-opuscar": {
@@ -605,31 +614,31 @@
       "gain_30d": null
     },
     "Leonxlnx/taste-skill": {
-      "stars_now": 119754,
-      "last_seen": "2026-11-22",
+      "stars_now": 120146,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-04",
-      "days_on_radar": 4,
-      "gain_1d": null,
-      "gain_7d": 4393,
-      "gain_30d": null
-    },
-    "libracoder/kiri": {
-      "stars_now": 12058,
-      "last_seen": "2026-11-22",
-      "first_seen": "2026-11-16",
-      "days_on_radar": 7,
-      "gain_1d": 358,
+      "days_on_radar": 5,
+      "gain_1d": 392,
       "gain_7d": null,
       "gain_30d": null
     },
+    "libracoder/kiri": {
+      "stars_now": 12361,
+      "last_seen": "2026-11-23",
+      "first_seen": "2026-11-16",
+      "days_on_radar": 8,
+      "gain_1d": 303,
+      "gain_7d": 5916,
+      "gain_30d": null
+    },
     "lightseekorg/tokenspeed": {
-      "stars_now": 2944,
-      "last_seen": "2026-11-22",
+      "stars_now": 2950,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 0,
+      "days_on_radar": 29,
+      "gain_1d": 6,
       "gain_7d": 19,
-      "gain_30d": 203
+      "gain_30d": 209
     },
     "LNPANDY/NX2Apple": {
       "stars_now": 7627,
@@ -659,20 +668,20 @@
       "gain_30d": null
     },
     "mattpocock/skills": {
-      "stars_now": 329790,
-      "last_seen": "2026-11-22",
+      "stars_now": 330530,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 782,
-      "gain_7d": 5294,
-      "gain_30d": 29945
+      "days_on_radar": 29,
+      "gain_1d": 740,
+      "gain_7d": 5340,
+      "gain_30d": 30685
     },
     "mdiri-ai/SoduWork": {
-      "stars_now": 6451,
-      "last_seen": "2026-11-22",
+      "stars_now": 6820,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-21",
-      "days_on_radar": 2,
-      "gain_1d": 432,
+      "days_on_radar": 3,
+      "gain_1d": 369,
       "gain_7d": null,
       "gain_30d": null
     },
@@ -686,40 +695,40 @@
       "gain_30d": null
     },
     "Minireel/HGhub": {
-      "stars_now": 11072,
-      "last_seen": "2026-11-22",
+      "stars_now": 11537,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-10",
-      "days_on_radar": 10,
-      "gain_1d": 612,
-      "gain_7d": 2222,
+      "days_on_radar": 11,
+      "gain_1d": 465,
+      "gain_7d": 2534,
       "gain_30d": null
     },
     "mizorewww/laya-mlx": {
-      "stars_now": 7114,
-      "last_seen": "2026-11-22",
+      "stars_now": 7117,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 1,
-      "gain_7d": 12,
-      "gain_30d": 119
+      "days_on_radar": 29,
+      "gain_1d": 3,
+      "gain_7d": 13,
+      "gain_30d": 122
     },
     "ModelCloud/GPTQModel": {
-      "stars_now": 1294,
-      "last_seen": "2026-11-22",
+      "stars_now": 1295,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 0,
-      "gain_7d": 4,
-      "gain_30d": 20
+      "days_on_radar": 29,
+      "gain_1d": 1,
+      "gain_7d": 5,
+      "gain_30d": 21
     },
     "morluto/rea": {
-      "stars_now": 472823,
-      "last_seen": "2026-11-22",
+      "stars_now": 474155,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 1246,
-      "gain_7d": 12904,
-      "gain_30d": 115179
+      "days_on_radar": 29,
+      "gain_1d": 1332,
+      "gain_7d": 12160,
+      "gain_30d": 116511
     },
     "msitarzewski/agency-agents": {
       "stars_now": 168339,
@@ -731,49 +740,49 @@
       "gain_30d": null
     },
     "n8n-io/n8n": {
-      "stars_now": 211660,
-      "last_seen": "2026-11-22",
+      "stars_now": 211843,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 105,
-      "gain_7d": 1156,
-      "gain_30d": 3408
+      "days_on_radar": 29,
+      "gain_1d": 183,
+      "gain_7d": 1238,
+      "gain_30d": 3591
     },
     "NandhaKishorM/laya": {
-      "stars_now": 35790,
-      "last_seen": "2026-11-22",
+      "stars_now": 35836,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 40,
-      "gain_7d": 260,
-      "gain_30d": 1934
+      "days_on_radar": 29,
+      "gain_1d": 46,
+      "gain_7d": 265,
+      "gain_30d": 1980
     },
     "Niko1221/Strata": {
-      "stars_now": 46578,
-      "last_seen": "2026-11-22",
+      "stars_now": 47036,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 261,
-      "gain_7d": 2380,
-      "gain_30d": 16648
+      "days_on_radar": 29,
+      "gain_1d": 458,
+      "gain_7d": 2491,
+      "gain_30d": 17106
     },
     "NousResearch/hermes-agent": {
-      "stars_now": 265208,
-      "last_seen": "2026-11-22",
+      "stars_now": 265444,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 204,
-      "gain_7d": 1797,
-      "gain_30d": 9309
+      "days_on_radar": 29,
+      "gain_1d": 236,
+      "gain_7d": 1804,
+      "gain_30d": 9545
     },
     "obra/superpowers": {
-      "stars_now": 323739,
-      "last_seen": "2026-11-22",
+      "stars_now": 324196,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 857,
-      "gain_7d": 6080,
-      "gain_30d": 20583
+      "days_on_radar": 29,
+      "gain_1d": 457,
+      "gain_7d": 6114,
+      "gain_30d": 21040
     },
     "omlahore/RemoveMacAI": {
       "stars_now": 5407,
@@ -794,22 +803,22 @@
       "gain_30d": null
     },
     "open-webui/open-webui": {
-      "stars_now": 159228,
-      "last_seen": "2026-11-22",
+      "stars_now": 159288,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 52,
-      "gain_7d": 564,
-      "gain_30d": 2854
+      "days_on_radar": 29,
+      "gain_1d": 60,
+      "gain_7d": 526,
+      "gain_30d": 2914
     },
     "openai/codex": {
-      "stars_now": 136064,
-      "last_seen": "2026-11-22",
+      "stars_now": 136148,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 67,
-      "gain_7d": 758,
-      "gain_30d": 5752
+      "days_on_radar": 29,
+      "gain_1d": 84,
+      "gain_7d": 740,
+      "gain_30d": 5836
     },
     "openai/math": {
       "stars_now": 17308,
@@ -822,38 +831,38 @@
     },
     "openJiuwen-ai/jiuwenswarm": {
       "stars_now": 8585,
-      "last_seen": "2026-11-22",
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 1,
+      "days_on_radar": 29,
+      "gain_1d": 0,
       "gain_7d": -2,
       "gain_30d": 778
     },
     "opensandbox-group/OpenSandbox": {
-      "stars_now": 17772,
-      "last_seen": "2026-11-22",
+      "stars_now": 17806,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 32,
-      "gain_7d": 469,
-      "gain_30d": 1743
+      "days_on_radar": 29,
+      "gain_1d": 34,
+      "gain_7d": 475,
+      "gain_30d": 1777
     },
     "paperclipai/paperclip": {
-      "stars_now": 115678,
-      "last_seen": "2026-11-22",
+      "stars_now": 115982,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-25",
-      "days_on_radar": 16,
-      "gain_1d": 172,
-      "gain_7d": 1741,
+      "days_on_radar": 17,
+      "gain_1d": 304,
+      "gain_7d": 1833,
       "gain_30d": null
     },
     "patch-gg/pixelfx": {
-      "stars_now": 8621,
-      "last_seen": "2026-11-22",
+      "stars_now": 8757,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-06",
-      "days_on_radar": 14,
-      "gain_1d": 107,
-      "gain_7d": 1155,
+      "days_on_radar": 15,
+      "gain_1d": 136,
+      "gain_7d": 1170,
       "gain_30d": null
     },
     "pbakaus/impeccable": {
@@ -866,48 +875,48 @@
       "gain_30d": null
     },
     "pengchujin/aerial-tv": {
-      "stars_now": 12844,
-      "last_seen": "2026-11-22",
+      "stars_now": 12985,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-25",
-      "days_on_radar": 26,
-      "gain_1d": 91,
-      "gain_7d": 973,
+      "days_on_radar": 27,
+      "gain_1d": 141,
+      "gain_7d": 961,
       "gain_30d": null
     },
     "Pinvou/pinvou-agent": {
-      "stars_now": 3043,
-      "last_seen": "2026-11-22",
+      "stars_now": 3044,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 0,
-      "gain_7d": 21,
-      "gain_30d": 400
+      "days_on_radar": 29,
+      "gain_1d": 1,
+      "gain_7d": 10,
+      "gain_30d": 401
     },
     "potato-security/PotatoTool": {
       "stars_now": 1236,
-      "last_seen": "2026-11-22",
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
+      "days_on_radar": 29,
       "gain_1d": 0,
       "gain_7d": -3,
       "gain_30d": 1
     },
     "QingYunA/answer-me-with-html": {
-      "stars_now": 6593,
-      "last_seen": "2026-11-22",
+      "stars_now": 6604,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 15,
-      "gain_7d": 269,
-      "gain_30d": 2418
+      "days_on_radar": 29,
+      "gain_1d": 11,
+      "gain_7d": 264,
+      "gain_30d": 2429
     },
     "qybaihe/bla": {
-      "stars_now": 6380,
-      "last_seen": "2026-11-22",
+      "stars_now": 6427,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-15",
-      "days_on_radar": 8,
-      "gain_1d": 49,
-      "gain_7d": 695,
+      "days_on_radar": 9,
+      "gain_1d": 47,
+      "gain_7d": 625,
       "gain_30d": null
     },
     "rddmwmddr/android-ad-cleaner": {
@@ -920,40 +929,40 @@
       "gain_30d": null
     },
     "rehan-remade/universal-modder": {
-      "stars_now": 9828,
-      "last_seen": "2026-11-22",
+      "stars_now": 9836,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 13,
-      "gain_7d": 135,
-      "gain_30d": 1197
+      "days_on_radar": 29,
+      "gain_1d": 8,
+      "gain_7d": 121,
+      "gain_30d": 1205
     },
     "robbietilton/Compositor": {
-      "stars_now": 18766,
-      "last_seen": "2026-11-22",
+      "stars_now": 18782,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 3,
-      "gain_7d": 99,
-      "gain_30d": 1108
+      "days_on_radar": 29,
+      "gain_1d": 16,
+      "gain_7d": 92,
+      "gain_30d": 1124
     },
     "RoutineMiku/apkstart": {
-      "stars_now": 8998,
-      "last_seen": "2026-11-22",
+      "stars_now": 9243,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-16",
-      "days_on_radar": 7,
-      "gain_1d": 270,
-      "gain_7d": null,
+      "days_on_radar": 8,
+      "gain_1d": 245,
+      "gain_7d": 4058,
       "gain_30d": null
     },
     "rustdesk/rustdesk": {
-      "stars_now": 130649,
-      "last_seen": "2026-11-22",
+      "stars_now": 130809,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 135,
-      "gain_7d": 1174,
-      "gain_30d": 4103
+      "days_on_radar": 29,
+      "gain_1d": 160,
+      "gain_7d": 1212,
+      "gain_30d": 4263
     },
     "seedds/nxnative": {
       "stars_now": 14203,
@@ -974,22 +983,22 @@
       "gain_30d": null
     },
     "shihabal3amri/DiPlay": {
-      "stars_now": 14067,
-      "last_seen": "2026-11-22",
+      "stars_now": 14100,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 26,
-      "gain_7d": 255,
-      "gain_30d": 2101
+      "days_on_radar": 29,
+      "gain_1d": 33,
+      "gain_7d": 231,
+      "gain_30d": 2134
     },
     "Shubhamsaboo/awesome-llm-apps": {
-      "stars_now": 145312,
-      "last_seen": "2026-11-22",
+      "stars_now": 145436,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 20,
-      "gain_1d": 91,
-      "gain_7d": 670,
-      "gain_30d": 2783
+      "days_on_radar": 21,
+      "gain_1d": 124,
+      "gain_7d": 693,
+      "gain_30d": 2907
     },
     "simbasjungles/free-my-tv": {
       "stars_now": 6463,
@@ -1010,30 +1019,30 @@
       "gain_30d": null
     },
     "stablyai/orca": {
-      "stars_now": 132015,
-      "last_seen": "2026-11-22",
+      "stars_now": 133075,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-25",
-      "days_on_radar": 23,
-      "gain_1d": 909,
-      "gain_7d": 6940,
+      "days_on_radar": 24,
+      "gain_1d": 1060,
+      "gain_7d": 7289,
       "gain_30d": null
     },
     "storytold/cadcraft": {
-      "stars_now": 8361,
-      "last_seen": "2026-11-22",
+      "stars_now": 8390,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
+      "days_on_radar": 29,
       "gain_1d": 29,
-      "gain_7d": 269,
-      "gain_30d": 2041
+      "gain_7d": 275,
+      "gain_30d": 2070
     },
     "storytold/craft-anything": {
-      "stars_now": 40364,
-      "last_seen": "2026-11-22",
+      "stars_now": 41263,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-04",
-      "days_on_radar": 16,
-      "gain_1d": 806,
-      "gain_7d": 7594,
+      "days_on_radar": 17,
+      "gain_1d": 899,
+      "gain_7d": 7503,
       "gain_30d": null
     },
     "storytold/craft-launcher": {
@@ -1064,13 +1073,13 @@
       "gain_30d": null
     },
     "storytold/effectcraft": {
-      "stars_now": 9093,
-      "last_seen": "2026-11-22",
+      "stars_now": 9138,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 40,
-      "gain_7d": 308,
-      "gain_30d": 1464
+      "days_on_radar": 29,
+      "gain_1d": 45,
+      "gain_7d": 302,
+      "gain_30d": 1509
     },
     "storytold/figcraft": {
       "stars_now": 4537,
@@ -1082,67 +1091,67 @@
       "gain_30d": null
     },
     "storytold/filmcraft": {
-      "stars_now": 18779,
-      "last_seen": "2026-11-22",
+      "stars_now": 18858,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 57,
-      "gain_7d": 494,
-      "gain_30d": 3220
+      "days_on_radar": 29,
+      "gain_1d": 79,
+      "gain_7d": 500,
+      "gain_30d": 3299
     },
     "storytold/gridcraft": {
-      "stars_now": 7736,
-      "last_seen": "2026-11-22",
+      "stars_now": 7759,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 22,
-      "gain_7d": 200,
-      "gain_30d": 1575
+      "days_on_radar": 29,
+      "gain_1d": 23,
+      "gain_7d": 187,
+      "gain_30d": 1598
     },
     "storytold/lightcraft": {
-      "stars_now": 16272,
-      "last_seen": "2026-11-22",
+      "stars_now": 16306,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 32,
-      "gain_7d": 282,
-      "gain_30d": 2059
+      "days_on_radar": 29,
+      "gain_1d": 34,
+      "gain_7d": 270,
+      "gain_30d": 2093
     },
     "storytold/pdfcraft": {
-      "stars_now": 21409,
-      "last_seen": "2026-11-22",
+      "stars_now": 21477,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 64,
-      "gain_7d": 668,
-      "gain_30d": 4428
+      "days_on_radar": 29,
+      "gain_1d": 68,
+      "gain_7d": 661,
+      "gain_30d": 4496
     },
     "storytold/photocraft": {
-      "stars_now": 80891,
-      "last_seen": "2026-11-22",
+      "stars_now": 81050,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 145,
-      "gain_7d": 1475,
-      "gain_30d": 10267
+      "days_on_radar": 29,
+      "gain_1d": 159,
+      "gain_7d": 1433,
+      "gain_30d": 10426
     },
     "storytold/vectorcraft": {
-      "stars_now": 11998,
-      "last_seen": "2026-11-22",
+      "stars_now": 12024,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 35,
-      "gain_7d": 262,
-      "gain_30d": 1665
+      "days_on_radar": 29,
+      "gain_1d": 26,
+      "gain_7d": 237,
+      "gain_30d": 1691
     },
     "storytold/wordcraft": {
-      "stars_now": 18395,
-      "last_seen": "2026-11-22",
+      "stars_now": 18441,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 51,
-      "gain_7d": 375,
-      "gain_30d": 3059
+      "days_on_radar": 29,
+      "gain_1d": 46,
+      "gain_7d": 361,
+      "gain_30d": 3105
     },
     "T-Auto/dsh-ops": {
       "stars_now": 5317,
@@ -1154,65 +1163,65 @@
       "gain_30d": null
     },
     "tangency-labs/solidcraft": {
-      "stars_now": 17625,
-      "last_seen": "2026-11-22",
+      "stars_now": 17774,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 151,
-      "gain_7d": 1298,
-      "gain_30d": 8743
+      "days_on_radar": 29,
+      "gain_1d": 149,
+      "gain_7d": 1262,
+      "gain_30d": 8892
     },
     "TauricResearch/TradingAgents": {
-      "stars_now": 123392,
-      "last_seen": "2026-11-22",
+      "stars_now": 123512,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 19,
-      "gain_1d": 90,
+      "days_on_radar": 20,
+      "gain_1d": 120,
       "gain_7d": null,
-      "gain_30d": 10816
+      "gain_30d": 10936
     },
     "thedotmack/claude-mem": {
-      "stars_now": 118853,
-      "last_seen": "2026-11-22",
+      "stars_now": 119098,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-03",
-      "days_on_radar": 17,
-      "gain_1d": 189,
-      "gain_7d": 1728,
+      "days_on_radar": 18,
+      "gain_1d": 245,
+      "gain_7d": 1717,
       "gain_30d": null
     },
     "ultraworkers/claw-code": {
       "stars_now": 194739,
-      "last_seen": "2026-11-22",
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": -18,
-      "gain_7d": -42,
+      "days_on_radar": 29,
+      "gain_1d": 0,
+      "gain_7d": -29,
       "gain_30d": -332
     },
     "unclebob/ub-mode": {
-      "stars_now": 8307,
-      "last_seen": "2026-11-22",
+      "stars_now": 8350,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-30",
-      "days_on_radar": 21,
-      "gain_1d": 17,
-      "gain_7d": 342,
+      "days_on_radar": 22,
+      "gain_1d": 43,
+      "gain_7d": 346,
       "gain_30d": null
     },
     "valentderah/totk-pc-recomp": {
-      "stars_now": 7928,
-      "last_seen": "2026-11-22",
+      "stars_now": 8035,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-06",
-      "days_on_radar": 14,
-      "gain_1d": 84,
-      "gain_7d": 693,
+      "days_on_radar": 15,
+      "gain_1d": 107,
+      "gain_7d": 651,
       "gain_30d": null
     },
     "vercel-labs/ui": {
-      "stars_now": 6450,
-      "last_seen": "2026-11-22",
+      "stars_now": 6567,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-17",
-      "days_on_radar": 6,
-      "gain_1d": 159,
+      "days_on_radar": 7,
+      "gain_1d": 117,
       "gain_7d": null,
       "gain_30d": null
     },
@@ -1226,22 +1235,22 @@
       "gain_30d": null
     },
     "wangzan101/Mika": {
-      "stars_now": 9465,
-      "last_seen": "2026-11-22",
+      "stars_now": 9639,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-03",
-      "days_on_radar": 17,
-      "gain_1d": 157,
-      "gain_7d": 847,
+      "days_on_radar": 18,
+      "gain_1d": 174,
+      "gain_7d": 917,
       "gain_30d": null
     },
     "wheresryan22/anatomy": {
-      "stars_now": 28577,
-      "last_seen": "2026-11-22",
+      "stars_now": 28726,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 154,
-      "gain_7d": 1255,
-      "gain_30d": 10055
+      "days_on_radar": 29,
+      "gain_1d": 149,
+      "gain_7d": 1233,
+      "gain_30d": 10204
     },
     "xiaoyang111222/cn-math-taxonomy": {
       "stars_now": 8148,
@@ -1253,13 +1262,13 @@
       "gain_30d": null
     },
     "yetone/magpie": {
-      "stars_now": 39785,
-      "last_seen": "2026-11-22",
+      "stars_now": 40063,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 246,
-      "gain_7d": 3236,
-      "gain_30d": 21003
+      "days_on_radar": 29,
+      "gain_1d": 278,
+      "gain_7d": 3116,
+      "gain_30d": 21281
     },
     "yihui-dev/awesome-opus5-5-videos": {
       "stars_now": 11246,
@@ -1280,13 +1289,13 @@
       "gain_30d": null
     },
     "zai-org/ZCode": {
-      "stars_now": 8819,
-      "last_seen": "2026-11-22",
+      "stars_now": 8833,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 9,
-      "gain_7d": 131,
-      "gain_30d": 739
+      "days_on_radar": 29,
+      "gain_1d": 14,
+      "gain_7d": 133,
+      "gain_30d": 753
     },
     "zhongerxin/iPhone-use": {
       "stars_now": 4820,
@@ -1298,22 +1307,22 @@
       "gain_30d": null
     },
     "zortos293/Lichii": {
-      "stars_now": 9989,
-      "last_seen": "2026-11-22",
+      "stars_now": 10081,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-11-08",
-      "days_on_radar": 12,
-      "gain_1d": 81,
-      "gain_7d": 794,
+      "days_on_radar": 13,
+      "gain_1d": 92,
+      "gain_7d": 701,
       "gain_30d": null
     },
     "zzyoxml/md3Music": {
-      "stars_now": 1515,
-      "last_seen": "2026-11-22",
+      "stars_now": 1529,
+      "last_seen": "2026-11-23",
       "first_seen": "2026-10-21",
-      "days_on_radar": 28,
-      "gain_1d": 7,
-      "gain_7d": 89,
-      "gain_30d": 433
+      "days_on_radar": 29,
+      "gain_1d": 14,
+      "gain_7d": 84,
+      "gain_30d": 447
     }
   }
 }
