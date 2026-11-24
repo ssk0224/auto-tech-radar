@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-24",
+  "runs": [
+    {
+      "at": "2026-11-24T05:37:20.339Z",
+      "event": "schedule (17 21 * * *)",
+      "generated": 0,
+      "reason": "error",
+      "model": null
+    }
+  ]
+}
